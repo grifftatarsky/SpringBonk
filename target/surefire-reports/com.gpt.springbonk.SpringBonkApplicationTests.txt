@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.gpt.springbonk.SpringBonkApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.454 s -- in com.gpt.springbonk.SpringBonkApplicationTests

@@ -1,0 +1,61 @@
+scheme: http
+hostname: localhost
+reverse-proxy-port: 7080
+reverse-proxy-uri: ${scheme}://${hostname}:${reverse-proxy-port}
+authorization-server-prefix: /auth
+issuer: ${reverse-proxy-uri}${authorization-server-prefix}/realms/gpt-keycloak
+username-claim-json-path: $.preferred_username
+authorities-json-path: $.realm_access.roles
+resource-server-port: 7084
+audience:
+
+server:
+  port: ${resource-server-port}
+
+spring:
+  application:
+    name: SpringBonk
+
+  # Virtual Threading & Performance
+  threads:
+    virtual:
+      enabled: true
+
+  # Database configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gpt-db
+    username: secret
+    password: secret
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  # API Documentation
+  doc:
+    swagger-ui:
+      enabled: true
+      path: /swagger-ui.html
+
+  # Security configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/gpt-keycloak
+          jwk-set-uri: http://localhost:8080/realms/gpt-keycloak/protocol/openid-connect/certs
+
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+          - iss: ${issuer}
+            username-claim: ${username-claim-json-path}
+            authorities:
+              - path: ${authorities-json-path}
+            aud: ${audience}
+        resourceserver:
+          permit-all:
+            - /me

@@ -1,0 +1,17 @@
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/SpringBonkApplication.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/controller/BookController.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/controller/MeController.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/controller/ShelfController.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/exception/GlobalExceptionHandler.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/exception/ResourceNotFoundException.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/model/Book.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/model/Shelf.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/model/dto/request/BookRequest.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/model/dto/request/ShelfRequest.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/model/dto/response/BookResponse.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/model/dto/response/ShelfResponse.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/repository/BookRepository.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/repository/ShelfRepository.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/security/SecurityConfig.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/service/BookService.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/service/ShelfService.java
