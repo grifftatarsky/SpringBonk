@@ -69,7 +69,7 @@ public class SecurityConfig
             .csrf(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests(requests -> {
-            requests.requestMatchers("/me").authenticated();
+            requests.requestMatchers("/sync").authenticated();
             requests.anyRequest().denyAll();
         });
 

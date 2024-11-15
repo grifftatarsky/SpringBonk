@@ -43,8 +43,17 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/gpt-keycloak
-          jwk-set-uri: http://localhost:8080/realms/gpt-keycloak/protocol/openid-connect/certs
+          issuer-uri: http://localhost:7080/auth/realms/gpt-keycloak
+          jwk-set-uri: http://localhost:7080/auth/realms/gpt-keycloak/protocol/openid-connect/certs
+
+
+
+# Logging Configuration
+logging:
+  level:
+    org:
+      keycloak: INFO
+
 
 com:
   c4-soft:

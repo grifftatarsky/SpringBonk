@@ -7,7 +7,7 @@
   "refreshTokenMaxReuse" : 0,
   "accessTokenLifespan" : 900,
   "accessTokenLifespanForImplicitFlow" : 900,
-  "ssoSessionIdleTimeout" : 1800,
+  "ssoSessionIdleTimeout" : 30,
   "ssoSessionMaxLifespan" : 36000,
   "ssoSessionIdleTimeoutRememberMe" : 0,
   "ssoSessionMaxLifespanRememberMe" : 0,
@@ -450,7 +450,10 @@
     "enabled" : true,
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
-    "redirectUris" : [ "/realms/gpt-keycloak/account/*" ],
+    "redirectUris" : [
+      "/realms/gpt-keycloak/account/*",
+      "com.gpt.bonk:/callback"
+    ],
     "webOrigins" : [ ],
     "notBefore" : 0,
     "bearerOnly" : false,
@@ -463,7 +466,7 @@
     "frontchannelLogout" : false,
     "protocol" : "openid-connect",
     "attributes" : {
-      "post.logout.redirect.uris" : "+",
+      "post.logout.redirect.uris" : "+##com.gpt.bonk:/logoutcallback",
       "pkce.code.challenge.method" : "S256"
     },
     "authenticationFlowBindingOverrides" : { },
@@ -526,7 +529,8 @@
       "http://host.docker.internal:7080/bff/login/oauth2/code/gpt-keycloak",
       "https://localhost:7080/bff/login/oauth2/code/gpt-keycloak",
       "https://127.0.0.1:7080/bff/login/oauth2/code/gpt-keycloak",
-      "https://host.docker.internal:7080/bff/login/oauth2/code/gpt-keycloak" ],
+      "https://host.docker.internal:7080/bff/login/oauth2/code/gpt-keycloak"
+    ],
     "webOrigins" : [ "+" ],
     "notBefore" : 0,
     "bearerOnly" : false,

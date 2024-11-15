@@ -2,6 +2,20 @@ volumes:
   gpt_bff_postgres_data:
 
 services:
+  # Reverse Proxy [NGINX]
+  nginx:
+    image: nginx:latest
+    container_name: gpt-bff.nginx-reverse-proxy
+    ports:
+      - "7080:7080"  # For HTTP redirect
+      - "8443:8443"  # For HTTPS
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/ssl/certs:ro
+      - ./logs:/var/log/nginx
+    networks:
+      - gpt-network
+
   postgres:
     container_name: gpt-bff.pgsql
     image: postgres:latest
@@ -58,3 +72,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+
+networks:
+  gpt-network:
+    driver: bridge

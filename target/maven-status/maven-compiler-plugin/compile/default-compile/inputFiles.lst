@@ -1,6 +1,5 @@
 /Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/SpringBonkApplication.java
 /Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/controller/BookController.java
-/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/controller/MeController.java
 /Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/controller/ShelfController.java
 /Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/exception/GlobalExceptionHandler.java
 /Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/exception/ResourceNotFoundException.java
@@ -13,5 +12,9 @@
 /Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/repository/BookRepository.java
 /Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/repository/ShelfRepository.java
 /Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/security/SecurityConfig.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/security/keycloak/KeycloakController.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/security/keycloak/KeycloakUser.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/security/keycloak/KeycloakUserDTO.java
+/Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/security/keycloak/KeycloakUserRepository.java
 /Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/service/BookService.java
 /Users/griffith.tatarsky/projects/SpringBonk/src/main/java/com/gpt/springbonk/service/ShelfService.java

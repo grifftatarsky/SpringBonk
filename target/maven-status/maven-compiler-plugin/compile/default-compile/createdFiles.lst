@@ -1,7 +1,7 @@
+com/gpt/springbonk/security/keycloak/KeycloakUser.class
 com/gpt/springbonk/controller/ShelfController.class
 com/gpt/springbonk/service/ShelfService.class
 com/gpt/springbonk/model/dto/response/ShelfResponse.class
-com/gpt/springbonk/controller/MeController$UserInfoDto.class
 com/gpt/springbonk/exception/GlobalExceptionHandler$ErrorResponse.class
 com/gpt/springbonk/repository/BookRepository.class
 com/gpt/springbonk/model/dto/request/BookRequest.class
@@ -9,11 +9,13 @@ com/gpt/springbonk/model/Shelf.class
 com/gpt/springbonk/model/dto/response/BookResponse$ShelfInfo.class
 com/gpt/springbonk/service/BookService.class
 com/gpt/springbonk/security/SecurityConfig.class
+com/gpt/springbonk/security/keycloak/KeycloakController.class
 com/gpt/springbonk/model/Book.class
 com/gpt/springbonk/exception/ResourceNotFoundException.class
 com/gpt/springbonk/repository/ShelfRepository.class
-com/gpt/springbonk/controller/MeController.class
+com/gpt/springbonk/security/keycloak/KeycloakUserRepository.class
 com/gpt/springbonk/controller/BookController.class
+com/gpt/springbonk/security/keycloak/KeycloakUserDTO.class
 com/gpt/springbonk/security/SecurityConfig$AuthoritiesConverter.class
 com/gpt/springbonk/exception/GlobalExceptionHandler.class
 com/gpt/springbonk/model/dto/request/ShelfRequest.class
