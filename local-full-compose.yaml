@@ -2,7 +2,6 @@ volumes:
   gpt_bff_postgres_data:
 
 services:
-
   nginx:
     image: nginx:latest
     container_name: gpt-bff.nginx-reverse-proxy
@@ -21,13 +20,20 @@ services:
     ports:
       - "5432:5432"
     environment:
-    - POSTGRES_DB=gpt-db
-    - POSTGRES_PASSWORD=secret
-    - POSTGRES_USER=secret
+      - POSTGRES_DB=gpt-db
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_USER=secret
+      - SPRINGBONK_DB_NAME=gpt-springbonk-db
+      - SPRINGBONK_DB_USER=springbonk_user
+      - SPRINGBONK_DB_PASSWORD=springbonk_password
+      - KEYCLOAK_DB_NAME=gpt-keycloak-db
+      - KEYCLOAK_DB_USER=keycloak_user
+      - KEYCLOAK_DB_PASSWORD=keycloak_password
     volumes:
-    -  gpt_bff_postgres_data:/var/lib/postgresql/data
+      - gpt_bff_postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-d", "gpt-db", "-U", "secret"]
+      test: [ "CMD-SHELL", "pg_isready", "-d", "gpt-db", "-U", "secret" ]
       interval: 3s
       timeout: 60s
       retries: 20
@@ -44,10 +50,10 @@ services:
       - ./keycloak/import/:/opt/keycloak/data/import/
     environment:
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://gpt-bff.pgsql:5432/gpt-db
+      KC_DB_URL: jdbc:postgresql://gpt-bff.pgsql:5432/gpt-keycloak-db
       KC_DB_SCHEMA: public
-      KC_DB_USERNAME: secret
-      KC_DB_PASSWORD: secret
+      KC_DB_USERNAME: keycloak_user
+      KC_DB_PASSWORD: keycloak_password
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HTTP_PORT: 8080
@@ -63,14 +69,31 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "LOCALHOST_NAME:host-gateway"
-    #    depends_on:
-    #      postgres-keycloak:
-    #        condition: service_healthy
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: [ 'CMD-SHELL', '[ -f /tmp/HealthCheck.java ] || echo "public class HealthCheck { public static void main(String[] args) throws java.lang.Throwable { System.exit(java.net.HttpURLConnection.HTTP_OK == ((java.net.HttpURLConnection)new java.net.URL(args[0]).openConnection()).getResponseCode() ? 0 : 1); } }" > /tmp/HealthCheck.java && java /tmp/HealthCheck.java http://localhost:8080/auth/health/live' ]
       interval: 5s
       timeout: 5s
       retries: 20
+
+  springbonk:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    restart: on-failure:5
+    env_file:
+      - .env
+    # A volume thing here for deployed app props? idk.
+    networks:
+      - gpt-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7084/actuator/health"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
 networks:
   gpt-network:

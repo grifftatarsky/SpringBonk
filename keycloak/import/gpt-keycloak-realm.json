@@ -524,9 +524,9 @@
     "clientAuthenticatorType" : "client-secret",
     "secret" : "secret",
     "redirectUris" : [
-      "http://localhost:7080/bff/login/oauth2/code/gpt-keycloak",
-      "http://127.0.0.1:7080/bff/login/oauth2/code/gpt-keycloak",
-      "http://host.docker.internal:7080/bff/login/oauth2/code/gpt-keycloak",
+      "https://localhost:7080/bff/login/oauth2/code/gpt-keycloak",
+      "https://127.0.0.1:7080/bff/login/oauth2/code/gpt-keycloak",
+      "https://host.docker.internal:7080/bff/login/oauth2/code/gpt-keycloak",
       "https://localhost:7080/bff/login/oauth2/code/gpt-keycloak",
       "https://127.0.0.1:7080/bff/login/oauth2/code/gpt-keycloak",
       "https://host.docker.internal:7080/bff/login/oauth2/code/gpt-keycloak"
@@ -546,8 +546,8 @@
       "oidc.ciba.grant.enabled" : "false",
       "client.secret.creation.time" : "1713148612",
       "backchannel.logout.session.required" : "true",
-      "backchannel.logout.url" : "http://host.docker.internal:7080/bff/logout/connect/back-channel/gpt-keycloak",
-      "post.logout.redirect.uris" : "http://localhost:7080/*##http://127.0.0.1:7080/*##https://localhost:7080/*##https://127.0.0.1:7080/*##http://host.docker.internal:7080/*##https://host.docker.internal:7080/*",
+      "backchannel.logout.url" : "https://host.docker.internal:7080/bff/logout/connect/back-channel/gpt-keycloak",
+      "post.logout.redirect.uris" : "https://localhost:7080/*##https://127.0.0.1:7080/*##https://localhost:7080/*##https://127.0.0.1:7080/*##https://host.docker.internal:7080/*##https://host.docker.internal:7080/*",
       "oauth2.device.authorization.grant.enabled" : "false",
       "display.on.consent.screen" : "false",
       "backchannel.logout.revoke.offline.tokens" : "false"

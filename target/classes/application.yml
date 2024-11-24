@@ -1,4 +1,4 @@
-scheme: http
+scheme: https
 hostname: localhost
 reverse-proxy-port: 7080
 reverse-proxy-uri: ${scheme}://${hostname}:${reverse-proxy-port}
@@ -23,9 +23,9 @@ spring:
 
   # Database configuration
   datasource:
-    url: jdbc:postgresql://localhost:5432/gpt-db
-    username: secret
-    password: secret
+    url: jdbc:postgresql://localhost:5432/gpt-springbonk-db
+    username: springbonk_user
+    password: springbonk_password
 
   jpa:
     hibernate:
@@ -43,8 +43,9 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:7080/auth/realms/gpt-keycloak
-          jwk-set-uri: http://localhost:7080/auth/realms/gpt-keycloak/protocol/openid-connect/certs
+          # TODO: Just use the variables...
+          issuer-uri: https://localhost:7080/auth/realms/gpt-keycloak
+          jwk-set-uri: https://localhost:7080/auth/realms/gpt-keycloak/protocol/openid-connect/certs
 
 
 
