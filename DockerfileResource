@@ -1,0 +1,27 @@
+FROM maven:3.9.9-eclipse-temurin-23-alpine AS build
+
+WORKDIR /app
+
+COPY pom.xml /tmp/pom.xml
+RUN mvn -f /tmp/pom.xml install -N
+
+COPY ./spring-resource/pom.xml ./pom.xml
+COPY ./spring-resource/src ./src
+
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:23-jre
+
+RUN groupadd -r bonk-docker && useradd -r -g bonk-docker veto
+
+WORKDIR /app
+
+COPY --from=build /app/target/*.jar /app/runner.jar
+
+RUN chown -R veto:bonk-docker /app
+
+EXPOSE 7084
+
+USER veto
+
+ENTRYPOINT ["java", "-jar", "/app/runner.jar"]

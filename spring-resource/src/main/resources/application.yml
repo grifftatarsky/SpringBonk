@@ -1,0 +1,72 @@
+scheme: https
+hostname: localhost
+reverse-proxy-port: 7080
+reverse-proxy-uri: ${scheme}://${hostname}:${reverse-proxy-port}
+authorization-server-prefix: /auth
+issuer: ${reverse-proxy-uri}${authorization-server-prefix}/realms/gpt-keycloak
+username-claim-json-path: $.preferred_username
+authorities-json-path: $.realm_access.roles
+resource-server-port: 7084
+audience:
+
+server:
+  port: ${resource-server-port}
+
+spring:
+  application:
+    name: SpringBonk
+
+  # Virtual Threading & Performance
+  threads:
+    virtual:
+      enabled: true
+
+  # Database configuration
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  # API Documentation
+  doc:
+    swagger-ui:
+      enabled: true
+      path: /swagger-ui.html
+
+  # Security configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # TODO: Just use the variables...
+          issuer-uri: https://localhost:7080/auth/realms/gpt-keycloak
+          jwk-set-uri: https://localhost:7080/auth/realms/gpt-keycloak/protocol/openid-connect/certs
+
+
+
+# Logging Configuration
+logging:
+  level:
+    org:
+      keycloak: INFO
+
+
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+          - iss: ${issuer}
+            username-claim: ${username-claim-json-path}
+            authorities:
+              - path: ${authorities-json-path}
+            aud: ${audience}
+        resourceserver:
+          permit-all:
+            - /me

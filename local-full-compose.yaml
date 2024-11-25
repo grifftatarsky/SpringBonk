@@ -1,6 +1,10 @@
 volumes:
   gpt_bff_postgres_data:
 
+networks:
+  gpt-network:
+    driver: bridge
+
 services:
   nginx:
     image: nginx:latest
@@ -20,7 +24,6 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_DB=gpt-db
       - POSTGRES_PASSWORD=secret
       - POSTGRES_USER=secret
       - SPRINGBONK_DB_NAME=gpt-springbonk-db
@@ -37,6 +40,8 @@ services:
       interval: 3s
       timeout: 60s
       retries: 20
+    networks:
+      - gpt-network
 
   keycloak:
     container_name: gpt-bff.auth
@@ -77,24 +82,47 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    networks:
+      - gpt-network
 
-  springbonk:
+  resource:
+    container_name: gpt-bff.spring-resource
     build:
-      context: ./
-      dockerfile: Dockerfile
-    restart: on-failure:5
-    env_file:
-      - .env
-    # A volume thing here for deployed app props? idk.
+      context: .
+      dockerfile: DockerfileResource
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://gpt-bff.pgsql:5432/gpt-springbonk-db
+      - SPRING_DATASOURCE_USERNAME=springbonk_user
+      - SPRING_DATASOURCE_PASSWORD=springbonk_password
+      - SERVER_PORT=7084
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - gpt-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7084/actuator/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:7084/actuator/health" ]
       interval: 1m30s
       timeout: 10s
       retries: 3
       start_period: 30s
 
-networks:
-  gpt-network:
-    driver: bridge
+  bff:
+    container_name: gpt-bff.spring-bff
+    build:
+      context: .
+      dockerfile: DockerfileBFF
+    environment:
+      - SERVER_PORT=7081
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - gpt-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:7081/actuator/health" ]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
