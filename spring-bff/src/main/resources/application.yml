@@ -1,8 +1,10 @@
 scheme: https
 
-reverse-proxy-container-name: ${KC_HOSTNAME}
-reverse-proxy-port: ${KC_PORT}
-reverse-proxy-uri: ${scheme}://${reverse-proxy-container-name}:${reverse-proxy-port}
+reverse-proxy-container-name: ${REVERSE_PROXY_HOSTNAME}
+reverse-proxy-port: ${REVERSE_PROXY_PORT}
+# For local, add the port to the end (after a colon) of the container name.
+# TODO: add local props file by default.
+reverse-proxy-uri: ${scheme}://${reverse-proxy-container-name}
 
 authorization-server-prefix: /auth
 issuer: ${reverse-proxy-uri}${authorization-server-prefix}/realms/gpt-keycloak
