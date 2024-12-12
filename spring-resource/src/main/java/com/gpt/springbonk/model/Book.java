@@ -1,5 +1,7 @@
 package com.gpt.springbonk.model;
 
+import java.util.HashSet;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -41,11 +43,15 @@ public class Book {
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "shelf_id")
+    @ManyToMany
+    @JoinTable(
+        name = "book_shelf",
+        joinColumns = @JoinColumn(name = "book_id"),
+        inverseJoinColumns = @JoinColumn(name = "shelf_id")
+    )
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Shelf shelf;
+    private Set<Shelf> shelves = new HashSet<>();
 
     public Book(String title, String author) {
         this.title = title;

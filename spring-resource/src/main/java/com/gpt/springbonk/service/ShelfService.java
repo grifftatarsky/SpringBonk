@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,17 +29,18 @@ public class ShelfService {
     }
 
     public List<ShelfResponse> getAllShelves() {
-        return shelfRepository.findAll().stream().map(ShelfResponse::new).toList();
+        return shelfRepository.findAll().stream()
+                              .map(ShelfResponse::new)
+                              .toList();
     }
 
-    public ShelfResponse getOneShelf(UUID id)
-    {
-       return new ShelfResponse(getShelfById(id));
+    public ShelfResponse getOneShelf(UUID id) {
+        return new ShelfResponse(getShelfById(id));
     }
 
     public Shelf getShelfById(UUID id) {
         return shelfRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Shelf not found with id: " + id));
+                              .orElseThrow(() -> new ResourceNotFoundException("Shelf not found with id: " + id));
     }
 
     public ShelfResponse updateShelf(UUID id, ShelfRequest shelfUpdateRequest) {
@@ -49,27 +51,21 @@ public class ShelfService {
 
     public void removeAllBooksFromShelf(UUID shelfId) {
         Shelf shelf = getShelfById(shelfId);
-        List<Book> books = shelf.getBooks();
 
-        for (Book book : books) {
-            book.setShelf(null);
-            bookRepository.saveAndFlush(book);
-        }
+        // Create a new HashSet to avoid concurrent modification
+        new HashSet<>(shelf.getBooks()).forEach(book -> {
+            shelf.removeBook(book);
+            bookRepository.save(book);
+        });
 
-        shelf.getBooks().clear();
-        shelfRepository.saveAndFlush(shelf);
+        shelfRepository.save(shelf);
     }
 
     public void deleteShelf(UUID id) {
         Shelf shelf = getShelfById(id);
 
-        List<Book> books = shelf.getBooks();
-        for (Book book : books) {
-            book.setShelf(null);
-            bookRepository.saveAndFlush(book);
-        }
-
-        shelf.getBooks().clear();
+        // Remove all books from the shelf before deletion
+        removeAllBooksFromShelf(id);
 
         shelfRepository.delete(shelf);
     }

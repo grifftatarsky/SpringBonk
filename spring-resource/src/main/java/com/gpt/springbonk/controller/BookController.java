@@ -23,7 +23,7 @@ public class BookController {
     private final BookService bookService;
 
     @PostMapping
-    @Operation(summary = "Create a new shelf")
+    @Operation(summary = "Create a new book")
     public ResponseEntity<BookResponse> createBook(@RequestBody BookRequest bookRequest) {
         BookResponse createdBook = bookService.createBook(bookRequest);
         return ResponseEntity.ok(createdBook);
@@ -37,14 +37,14 @@ public class BookController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get one book by ID")
+    @Operation(summary = "Get an existing book by ID")
     public ResponseEntity<BookResponse> getBookById(@PathVariable UUID id) {
         BookResponse book = bookService.getOneBook(id);
         return ResponseEntity.ok(book);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Update an existing shelf")
+    @Operation(summary = "Update an existing book")
     public ResponseEntity<BookResponse> updateBook(@PathVariable UUID id, @RequestBody BookRequest bookUpdateRequest) {
         BookResponse updatedBook = bookService.updateBook(id, bookUpdateRequest);
         return ResponseEntity.ok(updatedBook);
@@ -64,17 +64,20 @@ public class BookController {
         return ResponseEntity.ok(books);
     }
 
-    @PutMapping("/{bookId}/shelf/{shelfId}")
-    @Operation(summary = "Add or switch an existing book's shelf")
-    public ResponseEntity<BookResponse> addOrSwitchBookToShelf(@PathVariable UUID bookId, @PathVariable UUID shelfId) {
-        BookResponse updatedBook = bookService.addOrSwitchBookToShelf(bookId, shelfId);
+    @PutMapping("/{bookId}/{shelfId}")
+    @Operation(summary = "Add an existing book to a new shelf")
+    public ResponseEntity<BookResponse> addBookToShelf(@PathVariable UUID bookId, @PathVariable UUID shelfId) {
+        BookResponse updatedBook = bookService.addBookToShelf(bookId, shelfId);
         return ResponseEntity.ok(updatedBook);
     }
 
-    @DeleteMapping("/{bookId}/shelf")
-    @Operation(summary = "Remove a book from its shelf")
-    public ResponseEntity<BookResponse> removeBookFromShelf(@PathVariable UUID bookId) {
-        BookResponse updatedBook = bookService.removeBookFromShelf(bookId);
+    @DeleteMapping("/{bookId}/{shelfId}")
+    @Operation(summary = "Remove an existing book from a shelf")
+    public ResponseEntity<BookResponse> removeBookFromShelf(
+        @PathVariable UUID bookId,
+        @PathVariable UUID shelfId
+    ) {
+        BookResponse updatedBook = bookService.removeBookFromShelf(bookId, shelfId);
         return ResponseEntity.ok(updatedBook);
     }
 }

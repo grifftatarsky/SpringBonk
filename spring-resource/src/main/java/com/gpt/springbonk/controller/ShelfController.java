@@ -37,7 +37,7 @@ public class ShelfController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get one shelf by ID")
+    @Operation(summary = "Get an existing shelf by ID")
     public ResponseEntity<ShelfResponse> getShelfById(@PathVariable UUID id) {
         ShelfResponse shelf = shelfService.getOneShelf(id);
         return ResponseEntity.ok(shelf);

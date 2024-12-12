@@ -3,6 +3,8 @@ package com.gpt.springbonk.model.dto.response;
 import com.gpt.springbonk.model.Book;
 import com.gpt.springbonk.model.Shelf;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -19,7 +21,7 @@ public class BookResponse {
     private String imageURL;
     private String blurb;
     private LocalDateTime createdDate;
-    private ShelfInfo shelf;
+    private Set<ShelfInfo> shelves;
 
     @Data
     public static class ShelfInfo {
@@ -40,7 +42,7 @@ public class BookResponse {
         this.imageURL = book.getImageURL();
         this.blurb = book.getBlurb();
         this.createdDate = book.getCreatedDate();
-        this.shelf = new ShelfInfo(book.getShelf());
+        this.shelves = book.getShelves().stream().map(ShelfInfo::new).collect(Collectors.toSet());
     }
 
     public static List<BookResponse> booksToBookResponses(List<Book> bookList) {

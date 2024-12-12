@@ -1,5 +1,7 @@
 package com.gpt.springbonk.model;
 
+import java.util.HashSet;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -31,10 +33,10 @@ public class Shelf {
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
-    @OneToMany(mappedBy = "shelf", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(mappedBy = "shelves")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private List<Book> books = new ArrayList<>();
+    private Set<Book> books = new HashSet<>();
 
     public Shelf(String title) {
         this.title = title;
@@ -42,11 +44,11 @@ public class Shelf {
 
     public void addBook(Book book) {
         books.add(book);
-        book.setShelf(this);
+        book.getShelves().add(this);
     }
 
     public void removeBook(Book book) {
         books.remove(book);
-        book.setShelf(null);
+        book.getShelves().remove(this);
     }
 }
