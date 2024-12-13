@@ -1,13 +1,18 @@
 package com.gpt.springbonk.service;
 
 
+import com.gpt.springbonk.constant.enumeration.TieBreaker;
 import com.gpt.springbonk.exception.DuplicateCandidateException;
 import com.gpt.springbonk.exception.DuplicateVoteException;
 import com.gpt.springbonk.exception.ResourceNotFoundException;
+import com.gpt.springbonk.model.BallotBox;
 import com.gpt.springbonk.model.Book;
 import com.gpt.springbonk.model.Candidate;
 import com.gpt.springbonk.model.Election;
+import com.gpt.springbonk.model.ElectionResult;
+import com.gpt.springbonk.model.RoundResult;
 import com.gpt.springbonk.model.Vote;
+import com.gpt.springbonk.model.VoteCount;
 import com.gpt.springbonk.model.dto.request.ElectionRequest;
 import com.gpt.springbonk.model.dto.response.CandidateResponse;
 import com.gpt.springbonk.model.dto.response.ElectionResponse;
@@ -20,8 +25,13 @@ import com.gpt.springbonk.security.keycloak.KeycloakUserService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -150,6 +160,122 @@ public class ElectionService
     public List<ElectionResponse> getAllElections()
     {
         return electionRepository.findAll().stream().map(ElectionResponse::new).toList();
+    }
+
+    public ElectionResult runRankedChoiceElection(UUID electionId, TieBreaker tieBreakerStyle)
+    {
+        Election election = getElection(electionId);
+        Set<Candidate> candidates = election.getCandidates();
+
+        if (candidates.isEmpty())
+        {
+            throw new ResourceNotFoundException("There are no candidates in the election.");
+        }
+
+        BallotBox ballotBox = RankedChoiceProcessor.processCandidates(candidates);
+
+        if (ballotBox.getTotalVotes() == 0)
+        {
+            throw new IllegalStateException("No votes have been cast in this election.");
+        }
+
+        // Track eliminated candidates and rounds
+        Set<UUID> eliminatedCandidates = new HashSet<>();
+        List<RoundResult> rounds = new ArrayList<>();
+        List<VoteCount> voteCounts = new ArrayList<>();
+
+        // Continue until we have a winner
+        while (true)
+        {
+            int roundNumber = rounds.size() + 1;
+
+            // Count votes for this round
+            VoteCount voteCount =
+                RankedChoiceProcessor.countRound(ballotBox, eliminatedCandidates, roundNumber);
+            voteCounts.add(voteCount);
+
+            Map<UUID, Integer> currentVotes = voteCount.getCurrentVotes();
+            int totalVotes = currentVotes.values().stream().mapToInt(Integer::intValue).sum();
+
+            // Check if we have a majority winner
+            Optional<Map.Entry<UUID, Integer>> majorityWinner = currentVotes.entrySet()
+                                                                            .stream()
+                                                                            .filter(entry -> entry.getValue()
+                                                                                > totalVotes / 2)
+                                                                            .findFirst();
+
+            if (majorityWinner.isPresent())
+            {
+                // We have a winner!
+                rounds.add(new RoundResult(
+                    roundNumber,
+                    currentVotes,
+                    null,
+                    "Winner achieved majority"
+                ));
+                return new ElectionResult(majorityWinner.get().getKey(), rounds, totalVotes);
+            }
+
+            // Check if we're down to two candidates
+            if (currentVotes.size() <= 2)
+            {
+                // Get the candidate with the most votes
+                UUID winner = currentVotes.entrySet().stream()
+                                          .max(Map.Entry.comparingByValue())
+                                          .map(Map.Entry::getKey)
+                                          .orElseThrow(() -> new IllegalStateException("No votes in final round"));
+
+                rounds.add(new RoundResult(
+                    roundNumber,
+                    currentVotes,
+                    null,
+                    "Final round winner"
+                ));
+                return new ElectionResult(winner, rounds, totalVotes);
+            }
+
+            // Find candidate(s) with lowest votes
+            int minVotes = currentVotes.values().stream()
+                                       .mapToInt(Integer::intValue)
+                                       .min()
+                                       .orElseThrow();
+
+            Set<UUID> candidatesWithMinVotes = currentVotes.entrySet().stream()
+                                                           .filter(entry -> entry.getValue() == minVotes)
+                                                           .map(Map.Entry::getKey)
+                                                           .collect(Collectors.toSet());
+
+            // Handle ties for elimination
+            UUID candidateToEliminate;
+            String eliminationReason;
+
+            if (candidatesWithMinVotes.size() > 1)
+            {
+                candidateToEliminate = RankedChoiceProcessor.breakTie(
+                    ballotBox,
+                    candidatesWithMinVotes,
+                    voteCounts,
+                    tieBreakerStyle
+                );
+                eliminationReason = "Eliminated after tie resolution";
+            }
+            else
+            {
+                candidateToEliminate = candidatesWithMinVotes.iterator().next();
+                eliminationReason = "Eliminated with lowest votes";
+            }
+
+            // Record this round's results
+            rounds.add(new RoundResult(
+                roundNumber,
+                currentVotes,
+                candidateToEliminate,
+                eliminationReason
+            ));
+
+            // Eliminate the candidate
+            eliminatedCandidates.add(candidateToEliminate);
+        }
     }
 
     // Voting Methods

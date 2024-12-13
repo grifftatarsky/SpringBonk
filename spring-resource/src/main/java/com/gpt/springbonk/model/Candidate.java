@@ -55,7 +55,11 @@ public class Candidate
     @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vote> votes = new ArrayList<>();
 
-    public Candidate(Election election, Book book, KeycloakUser nominator)
+    public Candidate(
+        Election election,
+        Book book,
+        KeycloakUser nominator
+    )
     {
         this.election = election;
         this.book = book;
