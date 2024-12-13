@@ -51,7 +51,7 @@ public class Shelf
     private KeycloakUser user;
 
     @Column(nullable = false)
-    private boolean isDefaultShelf = false;
+    private boolean defaultShelf = false;
 
     public Shelf(String title)
     {
