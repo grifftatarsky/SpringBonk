@@ -35,14 +35,6 @@ public class ShelfService
         return new ShelfResponse(shelfRepository.saveAndFlush(shelf));
     }
 
-    public void createDefaultShelf(KeycloakUser user)
-    {
-        Shelf defaultShelf = new Shelf("Unshelved");
-        defaultShelf.setUser(user);
-        defaultShelf.setDefaultShelf(true);
-        shelfRepository.saveAndFlush(defaultShelf);
-    }
-
     public List<ShelfResponse> getUserShelves(UUID userId)
     {
         return shelfRepository.findByUserId(userId).stream().map(ShelfResponse::new).toList();

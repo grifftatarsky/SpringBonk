@@ -8,7 +8,6 @@ import com.gpt.springbonk.model.dto.request.BookRequest;
 import com.gpt.springbonk.model.dto.response.BookResponse;
 import com.gpt.springbonk.repository.BookRepository;
 import com.gpt.springbonk.repository.ShelfRepository;
-import com.gpt.springbonk.security.keycloak.KeycloakUserService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -26,7 +25,6 @@ public class BookService
 
     private final BookRepository bookRepository;
     private final ShelfRepository shelfRepository;
-    private final KeycloakUserService keycloakUserService;
 
     public BookResponse createBook(BookRequest bookRequest, UUID userId)
     {

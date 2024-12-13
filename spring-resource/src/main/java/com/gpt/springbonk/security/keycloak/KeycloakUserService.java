@@ -2,6 +2,8 @@ package com.gpt.springbonk.security.keycloak;
 
 
 import com.gpt.springbonk.exception.ResourceNotFoundException;
+import com.gpt.springbonk.model.Shelf;
+import com.gpt.springbonk.repository.ShelfRepository;
 import com.gpt.springbonk.service.ShelfService;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -17,7 +19,7 @@ public class KeycloakUserService
 {
 
     private final KeycloakUserRepository keycloakUserRepository;
-    private final ShelfService shelfService;
+    private final ShelfRepository shelfRepository;
 
     public KeycloakUser createUser(KeycloakUser user)
     {
@@ -29,7 +31,7 @@ public class KeycloakUserService
         KeycloakUser savedUser = keycloakUserRepository.save(user);
 
         // Create default "unshelved" shelf for the new user
-        shelfService.createDefaultShelf(savedUser);
+        createDefaultShelf(savedUser);
 
         return savedUser;
     }
@@ -93,5 +95,13 @@ public class KeycloakUserService
         user.setLastAction(LocalDateTime.now());
 
         return keycloakUserRepository.save(user);
+    }
+
+    public void createDefaultShelf(KeycloakUser user)
+    {
+        Shelf defaultShelf = new Shelf("Unshelved");
+        defaultShelf.setUser(user);
+        defaultShelf.setDefaultShelf(true);
+        shelfRepository.saveAndFlush(defaultShelf);
     }
 }
