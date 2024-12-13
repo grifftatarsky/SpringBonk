@@ -1,13 +1,12 @@
 package com.gpt.springbonk.model.dto.request;
 
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-import jakarta.validation.constraints.NotBlank;
-
 @Data
-public class ShelfRequest {
-
-    @NotBlank(message = "Title is mandatory")
+public class ShelfRequest
+{
+    @NotBlank(message = "Title is required")
     private String title;
 }

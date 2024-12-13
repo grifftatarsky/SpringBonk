@@ -1,9 +1,9 @@
 package com.gpt.springbonk.security.keycloak;
 
 
+import com.gpt.springbonk.model.dto.response.KeycloakUserResponse;
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,24 +19,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class KeycloakController
 {
-    private final KeycloakUserRepository keycloakUserRepository;
+
+    private final KeycloakUserService keycloakUserService;
 
     @GetMapping("/sync")
-    public KeycloakUserDTO syncUser(Authentication auth)
+    public KeycloakUserResponse syncUser(Authentication auth)
     {
         if (auth instanceof JwtAuthenticationToken jwtAuth)
         {
             Map<String, Object> attributes = jwtAuth.getTokenAttributes();
 
+            final var subjectId = UUID.fromString(
+                (String) attributes.getOrDefault(StandardClaimNames.SUB, "")
+            );
+
             final var email = (String) attributes.getOrDefault(StandardClaimNames.EMAIL, "");
-
-            final var subjectIdString = (String) attributes.getOrDefault(StandardClaimNames.SUB, "");
-            final var subjectId = UUID.fromString(subjectIdString);
-
             final var username = (String) attributes.getOrDefault(StandardClaimNames.PREFERRED_USERNAME, "");
-
             final var lastName = (String) attributes.getOrDefault(StandardClaimNames.FAMILY_NAME, "");
-
             final var firstName = (String) attributes.getOrDefault(StandardClaimNames.GIVEN_NAME, "");
 
             // TODO: This does not work.
@@ -45,40 +44,30 @@ public class KeycloakController
                                   .map(GrantedAuthority::getAuthority)
                                   .toList();
 
-            KeycloakUserDTO dto = new KeycloakUserDTO(
-                subjectId,
-                auth.getName(),
-                email,
-                lastName,
-                firstName,
-                roles
-            );
+            KeycloakUser user = keycloakUserService.findUserById(subjectId)
+                                                   .orElseGet(() -> {
+                                                       KeycloakUser newUser = new KeycloakUser(
+                                                           subjectId,
+                                                           username,
+                                                           firstName,
+                                                           lastName,
+                                                           roles,
+                                                           email,
+                                                           LocalDateTime.now(),
+                                                           LocalDateTime.now()
+                                                       );
+                                                       return keycloakUserService.createUser(newUser);
+                                                   });
 
-            Optional<KeycloakUser> user = keycloakUserRepository.findKeycloakUserById(subjectId);
-
-            if (user.isEmpty())
+            // Update last action for existing users
+            if (user.getId() != null)
             {
-                LocalDateTime now = LocalDateTime.now();
-                KeycloakUser toCreate = new KeycloakUser(
-                    subjectId,
-                    username,
-                    firstName,
-                    lastName,
-                    roles,
-                    email,
-                    now,
-                    now
-                );
-
-                keycloakUserRepository.saveAndFlush(toCreate);
-            } else
-            {
-                KeycloakUser toUpdate = user.get();
-                toUpdate.setLastAction(LocalDateTime.now());
-                keycloakUserRepository.saveAndFlush(toUpdate);
+                keycloakUserService.updateLastAction(user.getId());
             }
-            return dto;
+
+            return new KeycloakUserResponse(user);
         }
-        return KeycloakUserDTO.ANONYMOUS;
+
+        return new KeycloakUserResponse(KeycloakUser.ANONYMOUS);
     }
 }

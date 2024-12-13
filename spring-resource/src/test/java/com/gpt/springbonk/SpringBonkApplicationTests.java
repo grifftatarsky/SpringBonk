@@ -1,7 +1,6 @@
 package com.gpt.springbonk;
 
 
-
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
@@ -9,5 +8,5 @@ import org.springframework.context.annotation.Import;
 @SpringBootTest
 class SpringBonkApplicationTests
 {
-  // Uh. No tests?
+    // Uh. No tests?
 }

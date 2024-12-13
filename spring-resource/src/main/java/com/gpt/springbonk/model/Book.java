@@ -1,25 +1,32 @@
 package com.gpt.springbonk.model;
 
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.CreationTimestamp;
-
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import java.util.UUID;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @Table(name = "books")
-public class Book {
-
+public class Book
+{
     @Id
     @GeneratedValue
     private UUID id;
@@ -53,12 +60,14 @@ public class Book {
     @EqualsAndHashCode.Exclude
     private Set<Shelf> shelves = new HashSet<>();
 
-    public Book(String title, String author) {
+    public Book(String title, String author)
+    {
         this.title = title;
         this.author = author;
     }
 
-    public Book(String title, String author, String imageURL, String blurb, String googleID) {
+    public Book(String title, String author, String imageURL, String blurb, String googleID)
+    {
         this.title = title;
         this.author = author;
         this.imageURL = imageURL;
