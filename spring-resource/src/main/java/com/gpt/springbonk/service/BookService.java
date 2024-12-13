@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import static com.gpt.springbonk.constant.ShelfConstants.UNSHELVED;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -26,8 +28,10 @@ public class BookService
     private final BookRepository bookRepository;
     private final ShelfRepository shelfRepository;
 
-    public BookResponse createBook(BookRequest bookRequest, UUID userId)
-    {
+    public BookResponse createBook(
+        @NotNull BookRequest bookRequest,
+        @NotNull UUID userId
+    ) {
         Book book = new Book(
             bookRequest.getTitle(),
             bookRequest.getAuthor(),
@@ -43,11 +47,12 @@ public class BookService
         }
         else
         {
-            // If no shelf specified, add to user's default shelf
-            Shelf defaultShelf = shelfRepository.findByUserIdAndDefaultShelf(userId, true)
-                                                .orElseThrow(() -> new ResourceNotFoundException(
-                                                    "Default shelf not found for user"));
-            addBookToShelf(book, defaultShelf.getId(), userId);
+            Shelf unshelvedShelf = shelfRepository.findByUserIdAndDefaultShelfAndTitle(
+                userId,
+                true,
+                UNSHELVED
+            ).orElseThrow(() -> new ResourceNotFoundException("Default shelf not found for user"));
+            addBookToShelf(book, unshelvedShelf.getId(), userId);
         }
 
         return new BookResponse(bookRepository.saveAndFlush(book));
@@ -63,20 +68,25 @@ public class BookService
                     .toList();
     }
 
-    public BookResponse getOneBook(UUID id)
-    {
+    public BookResponse getOneBook(
+        @NotNull UUID id
+    ) {
         return new BookResponse(getBookById(id));
     }
 
-    public Book getBookById(UUID id)
-    {
+    public Book getBookById(
+        @NotNull UUID id
+    ) {
         return bookRepository.findById(id).orElseThrow(
             () -> new ResourceNotFoundException("Book not found with id: " + id)
         );
     }
 
-    public BookResponse updateBook(UUID id, BookRequest bookUpdateRequest, UUID userId)
-    {
+    public BookResponse updateBook(
+        @NotNull UUID id,
+        @NotNull BookRequest bookUpdateRequest,
+        @NotNull UUID userId
+    ) {
         Book book = getBookById(id);
 
         book.setTitle(bookUpdateRequest.getTitle());
@@ -93,8 +103,10 @@ public class BookService
         return new BookResponse(bookRepository.saveAndFlush(book));
     }
 
-    public void deleteBook(UUID id, UUID userId)
-    {
+    public void deleteBook(
+        @NotNull UUID id,
+        @NotNull UUID userId
+    ) {
         Book book = getBookById(id);
         // Remove from user's shelves before deletion
         new HashSet<>(book.getShelves()).forEach(shelf -> {
@@ -110,24 +122,30 @@ public class BookService
         }
     }
 
-    public List<BookResponse> getBooksByShelfId(UUID shelfId, UUID userId)
-    {
+    public List<BookResponse> getBooksByShelfId(
+        @NotNull UUID shelfId,
+        @NotNull UUID userId
+    ) {
         Shelf shelf = getShelfById(shelfId);
         validateShelfOwnership(shelf, userId);
-        return shelf.getBooks().stream()
-                    .map(BookResponse::new)
-                    .toList();
+        return shelf.getBooks().stream().map(BookResponse::new).toList();
     }
 
-    public BookResponse addBookToShelf(UUID bookId, UUID shelfId, UUID userId)
-    {
+    public BookResponse addBookToShelf(
+        @NotNull UUID bookId,
+        @NotNull UUID shelfId,
+        @NotNull UUID userId
+    ) {
         Book book = getBookById(bookId);
         addBookToShelf(book, shelfId, userId);
         return new BookResponse(bookRepository.save(book));
     }
 
-    public BookResponse removeBookFromShelf(UUID bookId, UUID shelfId, UUID userId)
-    {
+    public BookResponse removeBookFromShelf(
+        @NotNull UUID bookId,
+        @NotNull UUID shelfId,
+        @NotNull UUID userId
+    ) {
         Book book = getBookById(bookId);
         Shelf shelf = getShelfById(shelfId);
         validateShelfOwnership(shelf, userId);
@@ -137,23 +155,29 @@ public class BookService
         return new BookResponse(bookRepository.save(book));
     }
 
-    private void addBookToShelf(Book book, @NotNull UUID shelfId, UUID userId)
-    {
+    private void addBookToShelf(
+        @NotNull Book book,
+        @NotNull UUID shelfId,
+        @NotNull UUID userId
+    ) {
         Shelf shelf = getShelfById(shelfId);
         validateShelfOwnership(shelf, userId);
         shelf.addBook(book);
-        shelfRepository.save(shelf);
+        shelfRepository.saveAndFlush(shelf);
     }
 
-    private Shelf getShelfById(UUID shelfId)
-    {
+    private Shelf getShelfById(
+        @NotNull UUID shelfId
+    ) {
         return shelfRepository.findById(shelfId).orElseThrow(
             () -> new ResourceNotFoundException("Shelf not found with id: " + shelfId)
         );
     }
 
-    private void validateShelfOwnership(Shelf shelf, UUID userId)
-    {
+    private void validateShelfOwnership(
+        @NotNull Shelf shelf,
+        @NotNull UUID userId
+    ) {
         if (!shelf.getUser().getId().equals(userId))
         {
             throw new AccessDeniedException("You don't have access to this shelf");

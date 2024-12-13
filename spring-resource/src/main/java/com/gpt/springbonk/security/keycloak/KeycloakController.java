@@ -44,6 +44,7 @@ public class KeycloakController
                                   .map(GrantedAuthority::getAuthority)
                                   .toList();
 
+            // This should validate a user is unique. TODO: test.
             KeycloakUser user = keycloakUserService.findUserById(subjectId)
                                                    .orElseGet(() -> {
                                                        KeycloakUser newUser = new KeycloakUser(

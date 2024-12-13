@@ -13,5 +13,5 @@ public interface ShelfRepository extends JpaRepository<Shelf, UUID>
 {
     List<Shelf> findByUserId(UUID userId);
 
-    Optional<Shelf> findByUserIdAndDefaultShelf(UUID userId, boolean isDefault);
+    Optional<Shelf> findByUserIdAndDefaultShelfAndTitle(UUID userId, boolean isDefault, String title);
 }

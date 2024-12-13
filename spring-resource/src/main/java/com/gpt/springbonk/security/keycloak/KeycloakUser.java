@@ -1,6 +1,7 @@
 package com.gpt.springbonk.security.keycloak;
 
 
+import com.gpt.springbonk.model.Election;
 import com.gpt.springbonk.model.Shelf;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -57,6 +58,11 @@ public class KeycloakUser
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<Shelf> shelves = new HashSet<>();
+
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<Election> createdElections = new HashSet<>();
 
     public static final KeycloakUser ANONYMOUS = new KeycloakUser(
         UUID.fromString("00000000-0000-0000-0000-000000000000"),
