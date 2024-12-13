@@ -71,7 +71,11 @@ public class SecurityConfig
             .csrf(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests(requests -> {
+            // Is this allowing unauthenticated users through?
             requests.requestMatchers("/sync").authenticated();
+            requests.requestMatchers("/book/**").authenticated();
+            requests.requestMatchers("/shelf/**").authenticated();
+            requests.requestMatchers("/election/**").authenticated();
             requests.anyRequest().denyAll();
         });
 

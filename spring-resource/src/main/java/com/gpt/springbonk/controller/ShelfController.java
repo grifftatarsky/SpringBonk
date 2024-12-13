@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Shelf Suite")
-@RequestMapping("shelf")
+@RequestMapping("sshelf")
 public class ShelfController
 {
 
