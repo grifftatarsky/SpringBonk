@@ -53,7 +53,7 @@ spring:
     gateway:
       routes:
         - id: bff
-          uri: ${scheme}://${resource-server-container-name}:${resource-server-port}
+          uri: http://${resource-server-container-name}:${resource-server-port}
           predicates:
             - Path=/api/**
           filters:
