@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Election Suite")
-@RequestMapping("/api/election")
+@RequestMapping("election")
 public class ElectionController
 {
     private final ElectionService electionService;
