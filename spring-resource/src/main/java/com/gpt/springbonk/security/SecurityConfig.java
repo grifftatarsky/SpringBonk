@@ -70,14 +70,15 @@ public class SecurityConfig
         http.sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .csrf(AbstractHttpConfigurer::disable);
 
-        http.authorizeHttpRequests(requests -> {
-            // Is this allowing unauthenticated users through?
-            requests.requestMatchers("/sync").authenticated();
-            requests.requestMatchers("/book/**").authenticated();
-            requests.requestMatchers("/shelf/**").authenticated();
-            requests.requestMatchers("/election/**").authenticated();
-            requests.anyRequest().denyAll();
-        });
+        // Ensure APIs are secured. Deny unauthenticated requests. TODO : Refactor this.
+        http.authorizeHttpRequests(requests -> requests
+            .requestMatchers(
+                "/sync",
+                "/book/**",
+                "/shelf/**",
+                "/election/**"
+            ).authenticated().anyRequest().denyAll()
+        );
 
         return http.build();
     }
