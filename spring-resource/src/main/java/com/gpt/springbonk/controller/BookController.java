@@ -122,4 +122,16 @@ public class BookController
         BookResponse updatedBook = bookService.removeBookFromShelf(bookId, shelfId, userId);
         return ResponseEntity.ok(updatedBook);
     }
+
+    @GetMapping("/{googleId}/shelves")
+    @Operation(summary = "Get a book's shelfIds by GoogleId")
+    public ResponseEntity<List<UUID>> getShelfIdsByBookGoogleId(
+        @PathVariable String googleId,
+        @AuthenticationPrincipal Jwt jwt
+    )
+    {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        List<UUID> shelfIds = bookService.getShelfIdsByBookGoogleId(googleId, userId);
+        return ResponseEntity.ok(shelfIds);
+    }
 }
