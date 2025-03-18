@@ -14,7 +14,7 @@ public class BallotBox
 {
     private final Map<UUID, List<UUID>> ballots = new HashMap<>();
 
-    private final Map<UUID, Candidate> candidateMap = new HashMap<>();
+    private final Map<UUID, Candidate> candidates = new HashMap<>();
 
     public void addBallot(KeycloakUser voter, List<UUID> candidatePreferences)
     {
@@ -23,7 +23,7 @@ public class BallotBox
 
     public void addCandidate(Candidate candidate)
     {
-        candidateMap.put(candidate.getId(), candidate);
+        candidates.put(candidate.getId(), candidate);
     }
 
     public Map<UUID, List<UUID>> getBallots()
@@ -33,7 +33,7 @@ public class BallotBox
 
     public Map<UUID, Candidate> getCandidates()
     {
-        return Collections.unmodifiableMap(candidateMap);
+        return Collections.unmodifiableMap(candidates);
     }
 
     public int getTotalVotes()

@@ -44,7 +44,8 @@ public class KeycloakController
                                   .map(GrantedAuthority::getAuthority)
                                   .toList();
 
-            // This should validate a user is unique. TODO: test.
+            // This should validate a user is unique.
+            // TODO: Fix. Right now, this is always returning a newUser, but luckily not creating a new one?
             KeycloakUser user = keycloakUserService.findUserById(subjectId)
                                                    .orElseGet(() -> {
                                                        KeycloakUser newUser = new KeycloakUser(

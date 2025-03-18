@@ -45,6 +45,17 @@ public class GlobalExceptionHandler
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(ElectionCannotBeCompletedException.class)
+    public ResponseEntity<ErrorResponse> handleElectionCannotBeCompletedException(ElectionCannotBeCompletedException ex)
+    {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.NO_CONTENT.value(),
+            ex.getMessage(),
+            LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex)
     {

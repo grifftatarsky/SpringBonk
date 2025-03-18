@@ -65,4 +65,9 @@ public class Candidate
         this.book = book;
         this.nominator = nominator;
     }
+
+    public void addVote(Vote vote)
+    {
+        this.votes.add(vote);
+    }
 }

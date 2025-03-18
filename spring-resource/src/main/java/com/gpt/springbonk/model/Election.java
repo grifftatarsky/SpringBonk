@@ -13,8 +13,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -51,7 +51,7 @@ public class Election
     @OneToMany(mappedBy = "election", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Set<Candidate> candidates = new HashSet<>();
+    private List<Candidate> candidates = new ArrayList<>();
 
     public Election(String title, LocalDateTime endDateTime)
     {

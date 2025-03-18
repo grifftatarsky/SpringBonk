@@ -1,6 +1,7 @@
 package com.gpt.springbonk.controller;
 
 
+import com.gpt.springbonk.model.ElectionResult;
 import com.gpt.springbonk.model.dto.request.ElectionRequest;
 import com.gpt.springbonk.model.dto.response.CandidateResponse;
 import com.gpt.springbonk.model.dto.response.ElectionResponse;
@@ -33,6 +34,8 @@ public class ElectionController
 {
     private final ElectionService electionService;
 
+    // BASICS
+
     @PostMapping
     @Operation(summary = "Create a new election")
     public ResponseEntity<ElectionResponse> createElection(
@@ -45,31 +48,32 @@ public class ElectionController
         return ResponseEntity.ok(createdElection);
     }
 
-    @PostMapping("/{electionId}/nominate/{bookId}")
-    @Operation(summary = "Nominate a candidate for an existing election")
-    public ResponseEntity<CandidateResponse> nominateCandidate(
-        @PathVariable UUID electionId,
-        @PathVariable UUID bookId,
+    @PutMapping("/{id}")
+    @Operation(summary = "Update an existing election by ID")
+    public ResponseEntity<ElectionResponse> updateElection(
+        @PathVariable UUID id,
+        @RequestBody ElectionRequest electionUpdateRequest,
         @AuthenticationPrincipal Jwt jwt
     )
     {
         UUID userId = UUID.fromString(jwt.getSubject());
-        CandidateResponse nominatedCandidate = electionService.nominateCandidate(bookId, userId, electionId);
-        return ResponseEntity.ok(nominatedCandidate);
+        ElectionResponse updatedElection = electionService.updateElection(id, electionUpdateRequest, userId);
+        return ResponseEntity.ok(updatedElection);
     }
 
-    @PostMapping("/vote/{candidateId}/{rank}")
-    @Operation(summary = "Vote for an existing candidate")
-    public ResponseEntity<VoteResponse> voteForCandidate(
-        @PathVariable UUID candidateId,
-        @PathVariable Integer rank,
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete an existing election by ID")
+    public ResponseEntity<Void> deleteElection(
+        @PathVariable UUID id,
         @AuthenticationPrincipal Jwt jwt
     )
     {
         UUID userId = UUID.fromString(jwt.getSubject());
-        VoteResponse vote = electionService.voteForCandidate(candidateId, userId, rank);
-        return ResponseEntity.ok(vote);
+        electionService.deleteElection(id, userId);
+        return ResponseEntity.noContent().build();
     }
+
+    // GETS
 
     @GetMapping
     @Operation(summary = "Get all available elections (unpaged)")
@@ -89,7 +93,6 @@ public class ElectionController
         return ResponseEntity.ok(election);
     }
 
-    // This serves as a good "ballot."
     @GetMapping("/{id}/candidates")
     @Operation(summary = "Get all candidates by existing elections (unpaged)")
     public ResponseEntity<List<CandidateResponse>> getAllCandidatesByElection(
@@ -100,29 +103,43 @@ public class ElectionController
         return ResponseEntity.ok(candidates);
     }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "Update an existing election")
-    public ResponseEntity<ElectionResponse> updateElection(
-        @PathVariable UUID id,
-        @RequestBody ElectionRequest electionUpdateRequest,
-        @AuthenticationPrincipal Jwt jwt
+    // RUN
+
+    @GetMapping("/{id}/run")
+    @Operation(summary = "Run an instant runoff (temp) election by ID")
+    public ResponseEntity<ElectionResult> runElection(
+        @PathVariable UUID id
     )
     {
-        UUID userId = UUID.fromString(jwt.getSubject());
-        ElectionResponse updatedElection = electionService.updateElection(id, electionUpdateRequest, userId);
-        return ResponseEntity.ok(updatedElection);
+        return ResponseEntity.ok(electionService.runRankedChoiceElection(id));
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Delete an existing election")
-    public ResponseEntity<Void> deleteElection(
+    // CANDIDATE (TODO: Maybe move to a voting controller)
+
+    @PostMapping("/{id}/nominate/{bookId}")
+    @Operation(summary = "Nominate a candidate for an existing election")
+    public ResponseEntity<CandidateResponse> nominateCandidate(
         @PathVariable UUID id,
+        @PathVariable UUID bookId,
         @AuthenticationPrincipal Jwt jwt
     )
     {
         UUID userId = UUID.fromString(jwt.getSubject());
-        electionService.deleteElection(id, userId);
-        return ResponseEntity.noContent().build();
+        CandidateResponse nominatedCandidate = electionService.nominateCandidate(bookId, userId, id);
+        return ResponseEntity.ok(nominatedCandidate);
+    }
+
+    @PostMapping("/vote/{candidateId}/{rank}")
+    @Operation(summary = "Vote for an existing candidate")
+    public ResponseEntity<VoteResponse> voteForCandidate(
+        @PathVariable UUID candidateId,
+        @PathVariable Integer rank,
+        @AuthenticationPrincipal Jwt jwt
+    )
+    {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        VoteResponse vote = electionService.voteForCandidate(candidateId, userId, rank);
+        return ResponseEntity.ok(vote);
     }
 
     @DeleteMapping("/vote/{candidateId}")
