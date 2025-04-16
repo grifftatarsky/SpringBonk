@@ -1,3 +1,7 @@
+# THIS IS A COMPOSE PROJECT FOR THE LOCAL MACHINE ONLY!
+# DO NOT USE THIS AS A PRODUCTION COMPOSE PROJECT!
+# (However, you can use it as a base for what you'll need).
+
 volumes:
   postgres_data:
 
@@ -20,39 +24,30 @@ services:
       - gpt-network
 
   keycloak:
-    container_name: auth
-    image: quay.io/keycloak/keycloak:24.0.0
+    container_name: keycloak
+    image: keycloak/keycloak:26.2
     command:
       - start-dev
       - --import-realm
     ports:
-      - "8080:8080"
+      - 8080:8080
+    env_file:
+      - .env
     volumes:
-      - ./keycloak/import/:/opt/keycloak/data/import/
+      - ./keycloak/:/opt/keycloak/data/import/
     environment:
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://localhost:5432/auth-db
-      KC_DB_SCHEMA: public
-      KC_DB_USERNAME: auth_user
-      KC_DB_PASSWORD: auth_password
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HTTP_PORT: 8080
-      KC_HOSTNAME_URL: https://localhost:7080/auth
-      KC_HOSTNAME_ADMIN_URL: https://localhost:7080/auth
+      KC_HOSTNAME_URL: http://localhost:8080
+      KC_HOSTNAME_ADMIN_URL: http://localhost:8080
       KC_HOSTNAME_STRICT_BACKCHANNEL: true
-      #KC_HOSTNAME_DEBUG: true
-      KC_HTTP_RELATIVE_PATH: /auth/
+      KC_HTTP_RELATIVE_PATH: /
       KC_HTTP_ENABLED: true
       KC_HEALTH_ENABLED: true
       KC_METRICS_ENABLED: true
-      #KC_LOG_LEVEL: DEBUG
     extra_hosts:
       - "host.docker.internal:host-gateway"
-      - "LOCALHOST_NAME:host-gateway"
-    depends_on:
-      postgres:
-        condition: service_healthy
     healthcheck:
       test: [ 'CMD-SHELL', '[ -f /tmp/HealthCheck.java ] || echo "public class HealthCheck { public static void main(String[] args) throws java.lang.Throwable { System.exit(java.net.HttpURLConnection.HTTP_OK == ((java.net.HttpURLConnection)new java.net.URL(args[0]).openConnection()).getResponseCode() ? 0 : 1); } }" > /tmp/HealthCheck.java && java /tmp/HealthCheck.java http://localhost:8080/auth/health/live' ]
       interval: 5s

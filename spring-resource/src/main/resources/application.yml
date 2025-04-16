@@ -40,7 +40,6 @@ spring:
   doc:
     swagger-ui:
       enabled: true
-      path: ${SWAGGER_PATH_RESOURCE:/swagger-ui.html}
   security:
     oauth2:
       resourceserver:
@@ -48,26 +47,7 @@ spring:
           issuer-uri: ${issuer}
           jwk-set-uri: ${jwk-set}
 
-
-
-# Logging Configuration
 logging:
   level:
     org:
       keycloak: INFO
-
-
-com:
-  c4-soft:
-    springaddons:
-      oidc:
-        ops:
-          - iss: ${issuer}
-            username-claim: ${AUTH_USERNAME_CLAIM_JSON:$.preferred_username}
-            authorities:
-              - path: ${AUTH_AUTHORITIES_JSON:$.realm_access.roles}
-            aud: ${AUTH_AUDIENCE:}
-        resourceserver:
-          permit-all:
-            - /swagger-ui.html
-            - /swagger-ui/index.html

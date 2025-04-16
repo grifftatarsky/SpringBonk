@@ -21,16 +21,15 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig
 {
-
-    // TODO: Extract interface, fix unchecked casts, fix NullPointer possibility in Collection::stream
-    // TODO: Look into the disabling of CSRF and such in bottom method.
-
-    interface AuthoritiesConverter extends Converter<Map<String, Object>, Collection<GrantedAuthority>>
+    interface AuthoritiesConverter
+        extends Converter<Map<String, Object>, Collection<GrantedAuthority>>
     {
     }
 
@@ -49,7 +48,8 @@ public class SecurityConfig
     @Bean
     @Primary
     JwtAuthenticationConverter authenticationConverter(
-        Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter
+        Converter<Map<String, Object>,
+            Collection<GrantedAuthority>> authoritiesConverter
     )
     {
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
@@ -58,28 +58,35 @@ public class SecurityConfig
         return jwtAuthenticationConverter;
     }
 
-    //@Bean
-    //SecurityFilterChain resourceServerSecurityFilterChain(
-    //    HttpSecurity http,
-    //    Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter
-    //) throws Exception
-    //{
-    //    http.oauth2ResourceServer(resourceServer -> resourceServer.jwt(
-    //        jwtDecoder -> jwtDecoder.jwtAuthenticationConverter(jwtAuthenticationConverter)));
-    //
-    //    http.sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-    //        .csrf(AbstractHttpConfigurer::disable);
-    //
-    //    // Ensure APIs are secured. Deny unauthenticated requests. TODO : Refactor this.
-    //    http.authorizeHttpRequests(requests -> requests
-    //        .requestMatchers(
-    //            "/sync",
-    //            "/book/**",
-    //            "/shelf/**",
-    //            "/election/**"
-    //        ).authenticated().anyRequest().denyAll()
-    //    );
-    //
-    //    return http.build();
-    //}
+    @Bean
+    SecurityFilterChain resourceServerSecurityFilterChain(
+        HttpSecurity http,
+        Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter
+    ) throws Exception
+    {
+        http.oauth2ResourceServer(resourceServer -> resourceServer.jwt(
+            jwtDecoder -> jwtDecoder.jwtAuthenticationConverter(jwtAuthenticationConverter)));
+
+        http.sessionManagement(sessions -> sessions.sessionCreationPolicy(STATELESS))
+            .csrf(AbstractHttpConfigurer::disable);
+
+
+        // This is forcing auth: but everything should be, by default, so idk. REFACTOR!
+        http.authorizeHttpRequests(requests -> requests
+            .requestMatchers(
+                "/sync",
+                "/book/**",
+                "/shelf/**",
+                "/election/**"
+            ).authenticated()
+            .requestMatchers(
+                "/swagger-ui/**",
+                "/v3/api-docs*/**"
+            ).permitAll()
+            .anyRequest()
+            .denyAll()
+        );
+
+        return http.build();
+    }
 }
