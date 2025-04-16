@@ -58,28 +58,28 @@ public class SecurityConfig
         return jwtAuthenticationConverter;
     }
 
-    @Bean
-    SecurityFilterChain resourceServerSecurityFilterChain(
-        HttpSecurity http,
-        Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter
-    ) throws Exception
-    {
-        http.oauth2ResourceServer(resourceServer -> resourceServer.jwt(
-            jwtDecoder -> jwtDecoder.jwtAuthenticationConverter(jwtAuthenticationConverter)));
-
-        http.sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .csrf(AbstractHttpConfigurer::disable);
-
-        // Ensure APIs are secured. Deny unauthenticated requests. TODO : Refactor this.
-        http.authorizeHttpRequests(requests -> requests
-            .requestMatchers(
-                "/sync",
-                "/book/**",
-                "/shelf/**",
-                "/election/**"
-            ).authenticated().anyRequest().denyAll()
-        );
-
-        return http.build();
-    }
+    //@Bean
+    //SecurityFilterChain resourceServerSecurityFilterChain(
+    //    HttpSecurity http,
+    //    Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter
+    //) throws Exception
+    //{
+    //    http.oauth2ResourceServer(resourceServer -> resourceServer.jwt(
+    //        jwtDecoder -> jwtDecoder.jwtAuthenticationConverter(jwtAuthenticationConverter)));
+    //
+    //    http.sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    //        .csrf(AbstractHttpConfigurer::disable);
+    //
+    //    // Ensure APIs are secured. Deny unauthenticated requests. TODO : Refactor this.
+    //    http.authorizeHttpRequests(requests -> requests
+    //        .requestMatchers(
+    //            "/sync",
+    //            "/book/**",
+    //            "/shelf/**",
+    //            "/election/**"
+    //        ).authenticated().anyRequest().denyAll()
+    //    );
+    //
+    //    return http.build();
+    //}
 }

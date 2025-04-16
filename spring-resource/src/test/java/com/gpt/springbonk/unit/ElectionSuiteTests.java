@@ -1,4 +1,4 @@
-package com.gpt.springbonk;
+package com.gpt.springbonk.unit;
 
 
 import com.gpt.springbonk.exception.ElectionCannotBeCompletedException;

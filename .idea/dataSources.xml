@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="gpt-db@localhost" uuid="8c874bce-df1d-42a7-96a0-2356ab9ead94">
+    <data-source source="LOCAL" name="mydatabase@localhost" uuid="8c874bce-df1d-42a7-96a0-2356ab9ead94">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>

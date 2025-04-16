@@ -1,4 +1,4 @@
-package com.gpt.springbonk;
+package com.gpt.springbonk.config;
 
 
 import org.springframework.boot.test.context.TestConfiguration;
