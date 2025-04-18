@@ -1,4 +1,4 @@
-package com.gpt.springbonk.security.keycloak;
+package com.gpt.springbonk.keycloak;
 
 
 import java.util.Optional;

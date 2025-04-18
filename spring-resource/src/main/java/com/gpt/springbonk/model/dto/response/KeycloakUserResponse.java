@@ -1,7 +1,7 @@
 package com.gpt.springbonk.model.dto.response;
 
 
-import com.gpt.springbonk.security.keycloak.KeycloakUser;
+import com.gpt.springbonk.keycloak.KeycloakUser;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;

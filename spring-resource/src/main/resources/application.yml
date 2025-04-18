@@ -9,14 +9,14 @@ reverse-proxy-container-name: ${CONTAINER_NAME_REVERSE_PROXY:localhost}
 reverse-proxy-uri: ${reverse-proxy-scheme}://${reverse-proxy-container-name}:${reverse-proxy-port}
 # Authorization Server #############################################################################
 auth-server-prefix: ${PREFIX_AUTH:/auth}
-auth-server-issuer: ${AUTH_ISSUER:/realms/gpt-keycloak}
+auth-server-issuer: ${AUTH_ISSUER:/realms/local-keycloak}
 auth-server-jwk-set: ${AUTH_JWK_SET:/protocol/openid-connect/certs}
 issuer: ${reverse-proxy-uri}${auth-server-prefix}${auth-server-issuer}
 jwk-set: ${issuer}${auth-server-jwk-set}
-# Application Properties ###########################################################################
+# Server Properties ################################################################################
 server:
   port: ${PORT_RESOURCE_SERVER:7084}
-
+# Spring Properties ################################################################################
 spring:
   application:
     name: SpringBonk
@@ -39,14 +39,24 @@ spring:
     open-in-view: false
   doc:
     swagger-ui:
-      enabled: true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${issuer}
-          jwk-set-uri: ${jwk-set}
-
+      # MARK # TODO: Swagger requires a functional OAUTH implementation.
+      enabled: false
+# Spring OIDC Properties ###########################################################################
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+          - iss: ${issuer}
+            username-claim: ${AUTH_USERNAME_CLAIM_JSON:$.preferred_username}
+            authorities:
+              - path: ${AUTH_AUTHORITIES_JSON:$.realm_access.roles}
+            aud: ${AUTH_AUDIENCE:}
+        resourceserver:
+          permit-all:
+            - /swagger-ui*/**
+            - /v3/api-docs*/**
+# Log Levels #######################################################################################
 logging:
   level:
     org:

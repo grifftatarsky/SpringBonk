@@ -1,38 +1,27 @@
 # Base #############################################################################################
-bff-scheme: ${SCHEME_BFF:https}
+bff-scheme: ${SCHEME_BFF:http}
 bff-container-name: ${CONTAINER_NAME_BFF:localhost}
 bff-prefix: ${PREFIX_BFF:/bff}
 # Reverse Proxy ####################################################################################
-reverse-proxy-scheme: ${SCHEME_REVERSE_PROXY:https}
+reverse-proxy-scheme: ${SCHEME_REVERSE_PROXY:http}
 reverse-proxy-port: ${PORT_REVERSE_PROXY:7080}
 reverse-proxy-container-name: ${CONTAINER_NAME_REVERSE_PROXY:localhost}
 reverse-proxy-uri: ${reverse-proxy-scheme}://${reverse-proxy-container-name}:${reverse-proxy-port}
 # Authorization Server #############################################################################
 auth-server-prefix: ${AUTH_PREFIX:/auth}
-auth-server-issuer: ${AUTH_ISSUER:/realms/gpt-keycloak}
+auth-server-issuer: ${AUTH_ISSUER:/realms/local-keycloak}
 issuer: ${reverse-proxy-uri}${auth-server-prefix}${auth-server-issuer}
 # TODO: what should this actually be...
-client-id: gpt-keycloak-confidential
-client-secret: ${KEYCLOAK_CLIENT_SECRET}
+client-id: ${BFF_CLIENT_ID}
+client-secret: ${BFF_CLIENT_SECRET}
 # Resource Server ##################################################################################
 resource-port: ${PORT_RESOURCE_SERVER:7084}
-resource-scheme: ${SCHEME_RESOURCE_SERVER:https}
+resource-scheme: ${SCHEME_RESOURCE_SERVER:http}
 resource-container-name: ${CONTAINER_NAME_RESOURCE:localhost}
 resource-prefix: ${PREFIX_RESOURCE:/api}
 # Application Properties ###########################################################################
 server:
   port: ${PORT_BFF:7081}
-# Management #######################################################################################
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  health:
-    livenessstate:
-      enabled: true
-    readinessstate:
-      enabled: true
 # Security #########################################################################################
 spring:
   security:

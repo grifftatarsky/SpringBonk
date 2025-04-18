@@ -6,7 +6,7 @@ import com.gpt.springbonk.model.BallotBox;
 import com.gpt.springbonk.model.Candidate;
 import com.gpt.springbonk.model.Vote;
 import com.gpt.springbonk.model.VoteCount;
-import com.gpt.springbonk.security.keycloak.KeycloakUser;
+import com.gpt.springbonk.keycloak.KeycloakUser;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;

@@ -10,7 +10,7 @@ import com.gpt.springbonk.model.ElectionResult;
 import com.gpt.springbonk.model.RoundResult;
 import com.gpt.springbonk.model.Vote;
 import com.gpt.springbonk.model.VoteCount;
-import com.gpt.springbonk.security.keycloak.KeycloakUser;
+import com.gpt.springbonk.keycloak.KeycloakUser;
 import com.gpt.springbonk.service.electoral.single.InstantRunoffService;
 import java.util.ArrayList;
 import java.util.Collections;
