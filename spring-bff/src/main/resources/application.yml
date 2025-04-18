@@ -42,7 +42,7 @@ spring:
     gateway:
       routes:
         - id: bff
-          uri: ${resource-scheme}${resource-container-name}:${resource-port}
+          uri: ${resource-scheme}://${resource-container-name}:${resource-port}
           predicates:
             - Path=${resource-prefix}/**
           filters:
