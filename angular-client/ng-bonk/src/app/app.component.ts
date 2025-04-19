@@ -13,15 +13,9 @@ import { AuthenticationComponent } from './auth/authentication.component';
     HttpClientModule,
     AuthenticationComponent,
   ],
-  template: `<div style="display: flex;">
-      <div style="margin: auto;"></div>
-      <h1>Angular UI</h1>
-      <div style="margin: auto;"></div>
-      <app-authentication style="margin: auto 1em;"></app-authentication>
-    </div>
-    <div>
-      <router-outlet></router-outlet>
-    </div>`,
+  templateUrl: './app.component.html',
   styles: [],
 })
-export class AppComponent {}
+export class AppComponent {
+  title: string = "Bonk!"
+}

@@ -1,15 +1,18 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import {MatButton} from '@angular/material/button';
 
 @Component({
   selector: 'app-navigation',
   standalone: true,
-  imports: [],
-  template: `<button (click)="navigate()">{{ label }}</button>`,
+  imports: [
+    MatButton
+  ],
+  template: `<button mat-button (click)="navigate()">{{ label }}</button>`,
   styles: ``,
 })
-export class NavigationComponent {
+export class NavigationComponent implements OnDestroy {
   @Input()
   label!: string;
 
@@ -20,11 +23,11 @@ export class NavigationComponent {
 
   constructor(private router: Router) {}
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.userSubscription?.unsubscribe();
   }
 
-  navigate() {
-    this.router.navigate(this.destination);
+  navigate(): void {
+    void this.router.navigate(this.destination);
   }
 }
