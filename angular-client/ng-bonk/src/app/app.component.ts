@@ -1,58 +1,27 @@
+import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 import { Component } from '@angular/core';
-import {NgForOf, NgIf} from '@angular/common';
-import {AuthService} from './service/auth.service';
+import { RouterOutlet } from '@angular/router';
+import { AuthenticationComponent } from './auth/authentication.component';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
-  imports: [NgIf, NgForOf],
-  standalone: true
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    HttpClientModule,
+    AuthenticationComponent,
+  ],
+  template: `<div style="display: flex;">
+      <div style="margin: auto;"></div>
+      <h1>Angular UI</h1>
+      <div style="margin: auto;"></div>
+      <app-authentication style="margin: auto 1em;"></app-authentication>
+    </div>
+    <div>
+      <router-outlet></router-outlet>
+    </div>`,
+  styles: [],
 })
-export class AppComponent {
-  title = 'Bonk!';
-  loginOptions: any[] = [];
-  user: any = null;
-
-  constructor(private auth: AuthService) {}
-
-  ngOnInit(): void {
-    this.auth.getLoginOptions().subscribe(opts => this.loginOptions = opts);
-    this.auth.getCurrentUser().subscribe(u => this.user = u);
-  }
-
-  login(url: string) {
-    window.location.href = url;
-  }
-
-  // OIDC FLOW
-  // constructor(private oauthService: OAuthService) {
-  //   this.oauthService.configure(authCodeFlowConfig);
-  //   this.oauthService.loadDiscoveryDocumentAndLogin();
-  //
-  //   //this.oauthService.setupAutomaticSilentRefresh();
-  //
-  //   // Automatically load user profile
-  //   this.oauthService.events
-  //     .pipe(filter((e: OAuthEvent): boolean => e.type === 'token_received'))
-  //     .subscribe((_: OAuthEvent): Promise<object> => this.oauthService.loadUserProfile());
-  // }
-  //
-  // get userName(): string | null {
-  //   const claims: Record<string, any> = this.oauthService.getIdentityClaims();
-  //   if (!claims) return null;
-  //   return claims['given_name'];
-  // }
-  //
-  // get idToken(): string {
-  //   return this.oauthService.getIdToken();
-  // }
-  //
-  // get accessToken(): string {
-  //   return this.oauthService.getAccessToken();
-  // }
-  //
-  // refresh(): void {
-  //   this.oauthService.refreshToken();
-  // }
-}
+export class AppComponent {}

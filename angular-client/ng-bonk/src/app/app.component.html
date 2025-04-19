@@ -1,9 +1,0 @@
-<div *ngIf="!user; else loggedIn">
-  <p>Please login:</p>
-  <button *ngFor="let option of loginOptions" (click)="login(option.loginUri)">
-    {{ option.label }}
-  </button>
-</div>
-<ng-template #loggedIn>
-  <p>Welcome, {{ user?.name }}</p>
-</ng-template>

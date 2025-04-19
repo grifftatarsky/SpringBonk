@@ -63,12 +63,12 @@ com:
         client:
           client-uri: ${reverse-proxy-uri}${bff-prefix}
           security-matchers:
-            - /${resource-prefix}/**
+            - ${resource-prefix}/**
             - /login/**
             - /oauth2/**
             - /logout
           permit-all:
-            - /${resource-prefix}/**
+            - ${resource-prefix}/**
             - /login/**
             - /oauth2/**
           csrf: cookie-accessible-from-js
@@ -78,7 +78,6 @@ com:
           permit-all:
             - /login-options
             - /error
-            - /actuator/health
             - /actuator/health/readiness
             - /actuator/health/liveness
 

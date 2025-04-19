@@ -54,10 +54,28 @@ com:
             aud: ${AUTH_AUDIENCE:}
         resourceserver:
           permit-all:
+            - /me
             - /swagger-ui*/**
             - /v3/api-docs*/**
+            - /actuator/health/readiness
+            - /actuator/health/liveness
 # Log Levels #######################################################################################
 logging:
   level:
     org:
       keycloak: INFO
+# Actuator
+#management:
+#  endpoint:
+#    health:
+#      probes:
+#        enabled: true
+#  endpoints:
+#    web:
+#      exposure:
+#        include: '*'
+#  health:
+#    livenessstate:
+#      enabled: true
+#    readinessstate:
+#      enabled: true
