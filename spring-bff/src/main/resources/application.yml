@@ -28,11 +28,11 @@ spring:
     oauth2:
       client:
         provider:
-          gpt-keycloak:
+          local-keycloak:
             issuer-uri: ${issuer}
         registration:
-          gpt-keycloak:
-            provider: gpt-keycloak
+          local-keycloak:
+            provider: local-keycloak
             authorization-grant-type: authorization_code
             client-id: ${client-id}
             client-secret: ${client-secret}

@@ -548,7 +548,10 @@
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
     "secret" : "secret",
-    "redirectUris" : [ "http://localhost:7080/auth/login/oauth2/code/keycloak" ],
+    "redirectUris" : [
+      "http://localhost:7080/auth/login/oauth2/code/keycloak",
+      "http://localhost:7080/bff/login/oauth2/code/local-keycloak"
+    ],
     "webOrigins" : [ "+" ],
     "notBefore" : 0,
     "bearerOnly" : false,
