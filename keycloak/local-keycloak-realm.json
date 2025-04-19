@@ -549,8 +549,12 @@
     "clientAuthenticatorType" : "client-secret",
     "secret" : "secret",
     "redirectUris" : [
-      "http://localhost:7080/auth/login/oauth2/code/keycloak",
-      "http://localhost:7080/bff/login/oauth2/code/local-keycloak"
+      "http://localhost:7080/bff/login/oauth2/code/local-keycloak",
+      "http://127.0.0.1:7080/bff/login/oauth2/code/local-keycloak",
+      "http://host.docker.internal:7080/bff/login/oauth2/code/local-keycloak",
+      "https://localhost:7080/bff/login/oauth2/code/local-keycloak",
+      "https://127.0.0.1:7080/bff/login/oauth2/code/local-keycloak",
+      "https://host.docker.internal:7080/bff/login/oauth2/code/local-keycloak"
     ],
     "webOrigins" : [ "+" ],
     "notBefore" : 0,
@@ -567,8 +571,8 @@
       "oidc.ciba.grant.enabled" : "false",
       "client.secret.creation.time" : "1721505129",
       "backchannel.logout.session.required" : "true",
-      "backchannel.logout.url" : "http://host.docker.internal:7080/auth/logout/connect/back-channel/keycloak",
-      "post.logout.redirect.uris" : "http://localhost:7080/",
+      "backchannel.logout.url" : "http://host.docker.internal:7080/bff/logout/connect/back-channel/local-keycloak",
+      "post.logout.redirect.uris" : "http://localhost:7080/*##http://127.0.0.1:7080/*##https://localhost:7080/*##https://127.0.0.1:7080/*##http://host.docker.internal:7080/*##https://host.docker.internal:7080/*",
       "oauth2.device.authorization.grant.enabled" : "false",
       "display.on.consent.screen" : "false",
       "backchannel.logout.revoke.offline.tokens" : "false"
