@@ -1,6 +1,6 @@
 package com.gpt.springbonk.model;
 
-import com.gpt.springbonk.security.keycloak.KeycloakUser;
+import com.gpt.springbonk.keycloak.KeycloakUser;
 import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.Getter;

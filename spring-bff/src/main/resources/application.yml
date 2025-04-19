@@ -1,67 +1,56 @@
-scheme: https
-
-reverse-proxy-container-name: ${REVERSE_PROXY_HOSTNAME}
-reverse-proxy-port: ${REVERSE_PROXY_PORT}
-# For local, add the port to the end (after a colon) of the container name.
-# TODO: add local props file by default.
-reverse-proxy-uri: ${scheme}://${reverse-proxy-container-name}
-
-authorization-server-prefix: /auth
-issuer: ${reverse-proxy-uri}${authorization-server-prefix}/realms/gpt-keycloak
-client-id: gpt-keycloak-confidential
-client-secret: ${KEYCLOAK_CLIENT_SECRET}  # Add this to .env file
-username-claim-json-path: $.preferred_username
-authorities-json-path: $.realm_access.roles
-
-bff-port: ${SPRING_BFF_PORT}
-bff-prefix: /bff
-
-resource-server-container-name: gpt-bff.spring-resource
-resource-server-port: ${SPRING_RESOURCE_PORT}
-
-audience:
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  health:
-    livenessstate:
-      enabled: true
-    readinessstate:
-      enabled: true
-
+# Base #############################################################################################
+bff-scheme: ${SCHEME_BFF:http}
+bff-container-name: ${CONTAINER_NAME_BFF:localhost}
+bff-prefix: ${PREFIX_BFF:/bff}
+# Reverse Proxy ####################################################################################
+reverse-proxy-scheme: ${SCHEME_REVERSE_PROXY:http}
+reverse-proxy-port: ${PORT_REVERSE_PROXY:7080}
+reverse-proxy-container-name: ${CONTAINER_NAME_REVERSE_PROXY:localhost}
+reverse-proxy-uri: ${reverse-proxy-scheme}://${reverse-proxy-container-name}:${reverse-proxy-port}
+# Authorization Server #############################################################################
+auth-server-prefix: ${AUTH_PREFIX:/auth}
+auth-server-issuer: ${AUTH_ISSUER:/realms/local-keycloak}
+issuer: ${reverse-proxy-uri}${auth-server-prefix}${auth-server-issuer}
+# TODO: what should this actually be...
+client-id: ${BFF_CLIENT_ID}
+client-secret: ${BFF_CLIENT_SECRET}
+# Resource Server ##################################################################################
+resource-port: ${PORT_RESOURCE_SERVER:7084}
+resource-scheme: ${SCHEME_RESOURCE_SERVER:http}
+resource-container-name: ${CONTAINER_NAME_RESOURCE:localhost}
+resource-prefix: ${PREFIX_RESOURCE:/api}
+# Application Properties ###########################################################################
 server:
-  port: ${bff-port}
-
+  port: ${PORT_BFF:7081}
+# Security #########################################################################################
 spring:
   security:
     oauth2:
       client:
         provider:
-          gpt-keycloak:
+          local-keycloak:
             issuer-uri: ${issuer}
         registration:
-          gpt-keycloak:
-            provider: gpt-keycloak
+          local-keycloak:
+            provider: local-keycloak
             authorization-grant-type: authorization_code
             client-id: ${client-id}
             client-secret: ${client-secret}
             scope: openid,profile,email,offline_access
+# Gateway Routes ###################################################################################
   cloud:
     gateway:
       routes:
         - id: bff
-          uri: http://${resource-server-container-name}:${resource-server-port}
+          uri: ${resource-scheme}://${resource-container-name}:${resource-port}
           predicates:
-            - Path=/api/**
+            - Path=${resource-prefix}/**
           filters:
             - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
             - TokenRelay=
             - SaveSession
             - StripPrefix=1
-
+# Addons ###########################################################################################
 com:
   c4-soft:
     springaddons:
@@ -69,17 +58,17 @@ com:
         ops:
           - iss: ${issuer}
             authorities:
-              - path: ${authorities-json-path}
-            aud: ${audience}
+              - path: ${AUTH_AUTHORITIES_JSON:$.realm_access.roles}
+            aud: ${AUTH_AUDIENCE:}
         client:
           client-uri: ${reverse-proxy-uri}${bff-prefix}
           security-matchers:
-            - /api/**
+            - ${resource-prefix}/**
             - /login/**
             - /oauth2/**
             - /logout
           permit-all:
-            - /api/**
+            - ${resource-prefix}/**
             - /login/**
             - /oauth2/**
           csrf: cookie-accessible-from-js
@@ -89,6 +78,8 @@ com:
           permit-all:
             - /login-options
             - /error
-            - /actuator/health
             - /actuator/health/readiness
             - /actuator/health/liveness
+
+# TODO: Why is this unused?
+#username-claim-json-path: $.preferred_username

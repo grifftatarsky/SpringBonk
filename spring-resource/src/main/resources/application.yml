@@ -1,72 +1,81 @@
-scheme: https
-hostname: localhost
-reverse-proxy-port: 7080
-reverse-proxy-uri: ${scheme}://${hostname}:${reverse-proxy-port}
-authorization-server-prefix: /auth
-issuer: ${reverse-proxy-uri}${authorization-server-prefix}/realms/gpt-keycloak
-username-claim-json-path: $.preferred_username
-authorities-json-path: $.realm_access.roles
-resource-server-port: 7084
-audience:
-
+# Base #############################################################################################
+resource-scheme: ${SCHEME_RESOURCE_SERVER:https}
+resource-container-name: ${CONTAINER_NAME_RESOURCE:localhost}
+resource-prefix: ${PREFIX_RESOURCE:/api}
+# Reverse Proxy ####################################################################################
+reverse-proxy-scheme: ${SCHEME_REVERSE_PROXY:https}
+reverse-proxy-port: ${PORT_REVERSE_PROXY:7080}
+reverse-proxy-container-name: ${CONTAINER_NAME_REVERSE_PROXY:localhost}
+reverse-proxy-uri: ${reverse-proxy-scheme}://${reverse-proxy-container-name}:${reverse-proxy-port}
+# Authorization Server #############################################################################
+auth-server-prefix: ${PREFIX_AUTH:/auth}
+auth-server-issuer: ${AUTH_ISSUER:/realms/local-keycloak}
+auth-server-jwk-set: ${AUTH_JWK_SET:/protocol/openid-connect/certs}
+issuer: ${reverse-proxy-uri}${auth-server-prefix}${auth-server-issuer}
+jwk-set: ${issuer}${auth-server-jwk-set}
+# Server Properties ################################################################################
 server:
-  port: ${resource-server-port}
-
+  port: ${PORT_RESOURCE_SERVER:7084}
+# Spring Properties ################################################################################
 spring:
   application:
     name: SpringBonk
-
-  # Virtual Threading & Performance
+  devtools:
+    add-properties: ${DEV_TOOLS_ADD_PROPS:false}
+    livereload:
+      enabled:  ${DEV_TOOLS_LIVE_RELOAD:false}
   threads:
     virtual:
       enabled: true
-
-  # Database configuration
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: ${RESOURCE_DATASOURCE_URL}
+    username: ${RESOURCE_DATASOURCE_USERNAME}
+    password: ${RESOURCE_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
-
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
-
-  # API Documentation
+    open-in-view: false
   doc:
     swagger-ui:
-      enabled: true
-      path: /swagger-ui.html
-
-  # Security configuration
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          # TODO: Just use the variables...
-          issuer-uri: https://localhost:7080/auth/realms/gpt-keycloak
-          jwk-set-uri: https://localhost:7080/auth/realms/gpt-keycloak/protocol/openid-connect/certs
-
-
-
-# Logging Configuration
-logging:
-  level:
-    org:
-      keycloak: INFO
-
-
+      # MARK # TODO: Swagger requires a functional OAUTH implementation.
+      enabled: false
+# Spring OIDC Properties ###########################################################################
 com:
   c4-soft:
     springaddons:
       oidc:
         ops:
           - iss: ${issuer}
-            username-claim: ${username-claim-json-path}
+            username-claim: ${AUTH_USERNAME_CLAIM_JSON:$.preferred_username}
             authorities:
-              - path: ${authorities-json-path}
-            aud: ${audience}
+              - path: ${AUTH_AUTHORITIES_JSON:$.realm_access.roles}
+            aud: ${AUTH_AUDIENCE:}
         resourceserver:
           permit-all:
             - /me
+            - /swagger-ui*/**
+            - /v3/api-docs*/**
+            - /actuator/health/readiness
+            - /actuator/health/liveness
+# Log Levels #######################################################################################
+logging:
+  level:
+    org:
+      keycloak: INFO
+# Actuator
+#management:
+#  endpoint:
+#    health:
+#      probes:
+#        enabled: true
+#  endpoints:
+#    web:
+#      exposure:
+#        include: '*'
+#  health:
+#    livenessstate:
+#      enabled: true
+#    readinessstate:
+#      enabled: true

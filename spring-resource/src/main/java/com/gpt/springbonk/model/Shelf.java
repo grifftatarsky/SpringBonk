@@ -1,7 +1,7 @@
 package com.gpt.springbonk.model;
 
 
-import com.gpt.springbonk.security.keycloak.KeycloakUser;
+import com.gpt.springbonk.keycloak.KeycloakUser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
