@@ -1,6 +1,5 @@
 package com.gpt.springbonk.model;
 
-
 import com.gpt.springbonk.keycloak.KeycloakUser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,46 +26,42 @@ import org.hibernate.annotations.CreationTimestamp;
 @Setter
 @NoArgsConstructor
 @Table(name = "shelves")
-public class Shelf
-{
+public class Shelf {
 
-    @Id
-    @GeneratedValue
-    private UUID id;
+  @Id
+  @GeneratedValue
+  private UUID id;
 
-    @Column(nullable = false)
-    private String title;
+  @Column(nullable = false)
+  private String title;
 
-    @CreationTimestamp
-    @Column(name = "created_date", nullable = false, updatable = false)
-    private LocalDateTime createdDate;
+  @CreationTimestamp
+  @Column(name = "created_date", nullable = false, updatable = false)
+  private LocalDateTime createdDate;
 
-    @ManyToMany(mappedBy = "shelves")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Set<Book> books = new HashSet<>();
+  @ManyToMany(mappedBy = "shelves")
+  @ToString.Exclude
+  @EqualsAndHashCode.Exclude
+  private Set<Book> books = new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private KeycloakUser user;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false)
+  private KeycloakUser user;
 
-    @Column(nullable = false)
-    private boolean defaultShelf = false;
+  @Column(nullable = false)
+  private boolean defaultShelf = false;
 
-    public Shelf(String title)
-    {
-        this.title = title;
-    }
+  public Shelf(String title) {
+    this.title = title;
+  }
 
-    public void addBook(Book book)
-    {
-        books.add(book);
-        book.getShelves().add(this);
-    }
+  public void addBook(Book book) {
+    books.add(book);
+    book.getShelves().add(this);
+  }
 
-    public void removeBook(Book book)
-    {
-        books.remove(book);
-        book.getShelves().remove(this);
-    }
+  public void removeBook(Book book) {
+    books.remove(book);
+    book.getShelves().remove(this);
+  }
 }

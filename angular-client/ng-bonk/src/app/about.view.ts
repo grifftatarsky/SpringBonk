@@ -9,6 +9,10 @@ import { NavigationComponent } from './navigation.component';
       [destination]="['']"
       label="HOME"
     ></app-navigation>
+  <app-navigation
+    [destination]="['elections']"
+    label="Elections"
+  ></app-navigation>
     <p>
       This application is a show-case for an Angular app consuming a REST API
       through an OAuth2 BFF.

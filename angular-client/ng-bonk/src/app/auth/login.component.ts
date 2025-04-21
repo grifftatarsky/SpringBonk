@@ -2,10 +2,11 @@ import{ HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Observable, map } from 'rxjs';
-import { UserService } from './user.service';
+import { UserService } from './service/user.service';
 import { baseUri } from '../app.config';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import {MatButton} from '@angular/material/button';
 
 interface LoginOptionDto {
   label: string;
@@ -22,9 +23,9 @@ function loginOptions(http: HttpClient): Observable<Array<LoginOptionDto>> {
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MatButton],
   template: `<span>
-      <button (click)="login()"  [disabled]="!isLoginEnabled">Login</button>
+      <button mat-stroked-button (click)="login()"  [disabled]="!isLoginEnabled">Login</button>
     </span>`
 })
 export class LoginComponent {
@@ -53,15 +54,17 @@ export class LoginComponent {
     }
 
     const url = new URL(this.loginUri);
+    console.log("DBG: 1")
     url.searchParams.append(
       'post_login_success_uri',
       `${baseUri}${this.router.url}`
     );
+    console.log("DBG: 2")
     url.searchParams.append(
       'post_login_failure_uri',
       `${baseUri}login-error`
     );
-
+    console.log("DBG: 3")
     window.location.href = url.toString();
   }
 }

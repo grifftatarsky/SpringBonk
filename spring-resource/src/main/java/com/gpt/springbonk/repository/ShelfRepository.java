@@ -1,6 +1,5 @@
 package com.gpt.springbonk.repository;
 
-
 import com.gpt.springbonk.model.Shelf;
 import java.util.List;
 import java.util.Optional;
@@ -9,9 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ShelfRepository extends JpaRepository<Shelf, UUID>
-{
-    List<Shelf> findByUserId(UUID userId);
+public interface ShelfRepository extends JpaRepository<Shelf, UUID> {
+  List<Shelf> findByUserId(UUID userId);
 
-    Optional<Shelf> findByUserIdAndDefaultShelfAndTitle(UUID userId, boolean isDefault, String title);
+  Optional<Shelf> findByUserIdAndDefaultShelfAndTitle(UUID userId, boolean isDefault, String title);
 }

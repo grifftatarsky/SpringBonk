@@ -1,6 +1,5 @@
 package com.gpt.springbonk.model;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,53 +24,50 @@ import org.hibernate.annotations.CreationTimestamp;
 @Setter
 @NoArgsConstructor
 @Table(name = "books")
-public class Book
-{
-    @Id
-    @GeneratedValue
-    private UUID id;
+public class Book {
+  @Id
+  @GeneratedValue
+  private UUID id;
 
-    @Column
-    private String googleID;
+  @Column
+  private String googleID;
 
-    @Column(nullable = false)
-    private String title;
+  @Column(nullable = false)
+  private String title;
 
-    @Column(nullable = false)
-    private String author;
+  @Column(nullable = false)
+  private String author;
 
-    @Column(name = "image_url")
-    private String imageURL;
+  @Column(name = "image_url")
+  private String imageURL;
 
-    @Column(columnDefinition = "TEXT")
-    private String blurb;
+  @Column(columnDefinition = "TEXT")
+  private String blurb;
 
-    @CreationTimestamp
-    @Column(name = "created_date", nullable = false, updatable = false)
-    private LocalDateTime createdDate;
+  @CreationTimestamp
+  @Column(name = "created_date", nullable = false, updatable = false)
+  private LocalDateTime createdDate;
 
-    @ManyToMany
-    @JoinTable(
-        name = "book_shelf",
-        joinColumns = @JoinColumn(name = "book_id"),
-        inverseJoinColumns = @JoinColumn(name = "shelf_id")
-    )
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Set<Shelf> shelves = new HashSet<>();
+  @ManyToMany
+  @JoinTable(
+      name = "book_shelf",
+      joinColumns = @JoinColumn(name = "book_id"),
+      inverseJoinColumns = @JoinColumn(name = "shelf_id")
+  )
+  @ToString.Exclude
+  @EqualsAndHashCode.Exclude
+  private Set<Shelf> shelves = new HashSet<>();
 
-    public Book(String title, String author)
-    {
-        this.title = title;
-        this.author = author;
-    }
+  public Book(String title, String author) {
+    this.title = title;
+    this.author = author;
+  }
 
-    public Book(String title, String author, String imageURL, String blurb, String googleID)
-    {
-        this.title = title;
-        this.author = author;
-        this.imageURL = imageURL;
-        this.blurb = blurb;
-        this.googleID = googleID;
-    }
+  public Book(String title, String author, String imageURL, String blurb, String googleID) {
+    this.title = title;
+    this.author = author;
+    this.imageURL = imageURL;
+    this.blurb = blurb;
+    this.googleID = googleID;
+  }
 }

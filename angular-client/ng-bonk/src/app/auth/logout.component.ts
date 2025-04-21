@@ -1,15 +1,18 @@
 import { Component } from '@angular/core';
-import { UserService } from './user.service';
+import { UserService } from './service/user.service';
 import { lastValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { baseUri } from '../app.config';
+import {MatButton} from '@angular/material/button';
 
 @Component({
   selector: 'app-logout',
   standalone: true,
-  imports: [],
+  imports: [
+    MatButton
+  ],
   template: `
-  <button (click)="logout()">Logout</button>
+  <button mat-stroked-button (click)="logout()">Logout</button>
   `,
   styles: ``
 })

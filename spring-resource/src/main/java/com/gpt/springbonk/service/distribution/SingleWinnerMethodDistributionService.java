@@ -1,6 +1,5 @@
 package com.gpt.springbonk.service.distribution;
 
-
 import com.gpt.springbonk.constant.enumeration.system.single.SingleWinnerVotingSystemMethod;
 import com.gpt.springbonk.exception.ElectionCannotBeCompletedException;
 import com.gpt.springbonk.model.Election;
@@ -16,20 +15,17 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SingleWinnerMethodDistributionService
-{
-    private final InstantRunoffService instantRunoffService;
+public class SingleWinnerMethodDistributionService {
+  private final InstantRunoffService instantRunoffService;
 
-    public ElectionResult distributeByMethodology(
-        Election election,
-        SingleWinnerVotingSystemMethod methodology
-    )
-    {
-        return switch (methodology)
-        {
-            case INSTANT_RUNOFF -> instantRunoffService.conductElection(election);
-            case SCHULZE -> null;
-            default -> throw new ElectionCannotBeCompletedException("Methodology not supported");
-        };
-    }
+  public ElectionResult distributeByMethodology(
+      Election election,
+      SingleWinnerVotingSystemMethod methodology
+  ) {
+    return switch (methodology) {
+      case INSTANT_RUNOFF -> instantRunoffService.conductElection(election);
+      case SCHULZE -> null;
+      default -> throw new ElectionCannotBeCompletedException("Methodology not supported");
+    };
+  }
 }

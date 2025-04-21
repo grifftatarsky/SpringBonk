@@ -1,14 +1,13 @@
 package com.gpt.springbonk.service;
 
-
 import com.gpt.springbonk.exception.ResourceNotFoundException;
+import com.gpt.springbonk.keycloak.KeycloakUser;
+import com.gpt.springbonk.keycloak.KeycloakUserService;
 import com.gpt.springbonk.model.Shelf;
 import com.gpt.springbonk.model.dto.request.ShelfRequest;
 import com.gpt.springbonk.model.dto.response.ShelfResponse;
 import com.gpt.springbonk.repository.BookRepository;
 import com.gpt.springbonk.repository.ShelfRepository;
-import com.gpt.springbonk.keycloak.KeycloakUser;
-import com.gpt.springbonk.keycloak.KeycloakUserService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -24,116 +23,114 @@ import static com.gpt.springbonk.constant.ShelfConstants.UNSHELVED;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class ShelfService
-{
+public class ShelfService {
 
-    private final ShelfRepository shelfRepository;
-    private final BookRepository bookRepository;
-    private final KeycloakUserService keycloakUserService;
+  private final ShelfRepository shelfRepository;
+  private final BookRepository bookRepository;
+  private final KeycloakUserService keycloakUserService;
 
-    public ShelfResponse createShelf(
-        @NotNull ShelfRequest shelfRequest,
-        @NotNull UUID userId
-    ) {
-        KeycloakUser user = keycloakUserService.getUserById(userId);
-        Shelf shelf = new Shelf(shelfRequest.getTitle());
-        shelf.setUser(user);
-        return new ShelfResponse(shelfRepository.saveAndFlush(shelf));
+  public ShelfResponse createShelf(
+      @NotNull ShelfRequest shelfRequest,
+      @NotNull UUID userId
+  ) {
+    KeycloakUser user = keycloakUserService.getUserById(userId);
+    Shelf shelf = new Shelf(shelfRequest.getTitle());
+    shelf.setUser(user);
+    return new ShelfResponse(shelfRepository.saveAndFlush(shelf));
+  }
+
+  public List<ShelfResponse> getUserShelves(
+      @NotNull UUID userId
+  ) {
+    return shelfRepository.findByUserId(userId).stream().map(ShelfResponse::new).toList();
+  }
+
+  public ShelfResponse getOneShelf(
+      @NotNull UUID id,
+      @NotNull UUID userId
+  ) {
+    Shelf shelf = getShelfById(id);
+    validateShelfOwnership(shelf, userId);
+    return new ShelfResponse(shelf);
+  }
+
+  public Shelf getShelfById(
+      @NotNull UUID id
+  ) {
+    return shelfRepository.findById(id).orElseThrow(
+        () -> new ResourceNotFoundException("Shelf not found with id: " + id)
+    );
+  }
+
+  public ShelfResponse updateShelf(
+      @NotNull UUID id,
+      @NotNull ShelfRequest shelfUpdateRequest,
+      @NotNull UUID userId
+  ) {
+    Shelf shelf = getShelfById(id);
+    validateShelfOwnership(shelf, userId);
+
+    if (shelf.isDefaultShelf()) {
+      throw new IllegalStateException("Cannot modify the default shelf");
     }
 
-    public List<ShelfResponse> getUserShelves(
-        @NotNull UUID userId
-    ) {
-        return shelfRepository.findByUserId(userId).stream().map(ShelfResponse::new).toList();
-    }
+    shelf.setTitle(shelfUpdateRequest.getTitle());
+    return new ShelfResponse(shelfRepository.saveAndFlush(shelf));
+  }
 
-    public ShelfResponse getOneShelf(
-        @NotNull UUID id,
-        @NotNull UUID userId
-    ) {
-        Shelf shelf = getShelfById(id);
-        validateShelfOwnership(shelf, userId);
-        return new ShelfResponse(shelf);
-    }
+  public Shelf getUnshelvedShelf(
+      @NotNull UUID userId
+  ) {
+    return shelfRepository.findByUserIdAndDefaultShelfAndTitle(userId, true, UNSHELVED).orElseThrow(
+        () -> new ResourceNotFoundException("Default shelf not found for user")
+    );
+  }
 
-    public Shelf getShelfById(
-        @NotNull UUID id
-    ) {
-        return shelfRepository.findById(id).orElseThrow(
-            () -> new ResourceNotFoundException("Shelf not found with id: " + id)
-        );
-    }
-
-    public ShelfResponse updateShelf(
-        @NotNull UUID id,
-        @NotNull ShelfRequest shelfUpdateRequest,
-        @NotNull UUID userId
-    ) {
-        Shelf shelf = getShelfById(id);
-        validateShelfOwnership(shelf, userId);
-
-        if (shelf.isDefaultShelf())
-        {
-            throw new IllegalStateException("Cannot modify the default shelf");
-        }
-
-        shelf.setTitle(shelfUpdateRequest.getTitle());
-        return new ShelfResponse(shelfRepository.saveAndFlush(shelf));
-    }
-
-    public Shelf getUnshelvedShelf(
-        @NotNull UUID userId
-    ) {
-        return shelfRepository.findByUserIdAndDefaultShelfAndTitle(userId, true, UNSHELVED).orElseThrow(
+  public Shelf getNominatedShelf(
+      @NotNull UUID userId
+  ) {
+    return shelfRepository.findByUserIdAndDefaultShelfAndTitle(userId, true, NOMINATIONS)
+        .orElseThrow(
             () -> new ResourceNotFoundException("Default shelf not found for user")
         );
+  }
+
+  public void removeAllBooksFromShelf(
+      @NotNull UUID shelfId,
+      @NotNull UUID userId
+  ) {
+    Shelf shelf = getShelfById(shelfId);
+    validateShelfOwnership(shelf, userId);
+
+    new HashSet<>(shelf.getBooks()).forEach(book -> {
+      shelf.removeBook(book);
+      bookRepository.save(book);
+    });
+
+    shelfRepository.save(shelf);
+  }
+
+  public void deleteShelf(
+      @NotNull UUID id,
+      @NotNull UUID userId
+  ) {
+    Shelf shelf = getShelfById(id);
+    validateShelfOwnership(shelf, userId);
+
+    if (shelf.isDefaultShelf()) {
+      throw new IllegalStateException("Cannot delete the default shelf");
     }
 
-    public Shelf getNominatedShelf(
-        @NotNull UUID userId
-    ) {
-        return shelfRepository.findByUserIdAndDefaultShelfAndTitle(userId, true, NOMINATIONS).orElseThrow(
-            () -> new ResourceNotFoundException("Default shelf not found for user")
-        );
+    removeAllBooksFromShelf(id, userId);
+    shelfRepository.delete(shelf);
+  }
+
+  private void validateShelfOwnership(
+      @NotNull Shelf shelf,
+      @NotNull UUID userId
+  ) {
+    if (!shelf.getUser().getId().equals(userId)) {
+      throw new AccessDeniedException("You don't have access to this shelf");
     }
-
-    public void removeAllBooksFromShelf(
-        @NotNull UUID shelfId,
-        @NotNull UUID userId
-    ) {
-        Shelf shelf = getShelfById(shelfId);
-        validateShelfOwnership(shelf, userId);
-
-        new HashSet<>(shelf.getBooks()).forEach(book -> {
-            shelf.removeBook(book);
-            bookRepository.save(book);
-        });
-
-        shelfRepository.save(shelf);
-    }
-
-    public void deleteShelf(
-        @NotNull UUID id,
-        @NotNull UUID userId
-    ) {
-        Shelf shelf = getShelfById(id);
-        validateShelfOwnership(shelf, userId);
-
-        if (shelf.isDefaultShelf())
-        {
-            throw new IllegalStateException("Cannot delete the default shelf");
-        }
-
-        removeAllBooksFromShelf(id, userId);
-        shelfRepository.delete(shelf);
-    }
-
-    private void validateShelfOwnership(
-        @NotNull Shelf shelf,
-        @NotNull UUID userId
-    ) {
-        if (!shelf.getUser().getId().equals(userId)) {
-            throw new AccessDeniedException("You don't have access to this shelf");
-        }
-    }
+  }
 }

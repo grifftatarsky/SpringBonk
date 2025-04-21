@@ -1,6 +1,5 @@
 package com.gpt.springbonk.service.electoral.single;
 
-
 import com.gpt.springbonk.constant.enumeration.process.EliminationMessage;
 import com.gpt.springbonk.exception.ElectionCannotBeCompletedException;
 import com.gpt.springbonk.model.BallotBox;
@@ -28,163 +27,144 @@ import static com.gpt.springbonk.service.BallotUtility.processCandidates;
 
 @Slf4j
 @Service
-public class InstantRunoffService extends AbstractSingleWinnerElectionService
-{
-    @Override
-    protected BallotBox processBallots(
-        List<Candidate> candidates
-    )
-    {
-        return processCandidates(candidates);
+public class InstantRunoffService extends AbstractSingleWinnerElectionService {
+  @Override
+  protected BallotBox processBallots(
+      List<Candidate> candidates
+  ) {
+    return processCandidates(candidates);
+  }
+
+  // Tested effectively ✔
+  @Override
+  public ElectionResult conductElection(
+      Election election
+  ) {
+    if (election == null) {
+      throw new ElectionCannotBeCompletedException(NO_ELECTION_MESSAGE);
     }
 
-    // Tested effectively ✔
-    @Override
-    public ElectionResult conductElection(
-        Election election
-    )
-    {
-        if (election == null)
-        {
-            throw new ElectionCannotBeCompletedException(NO_ELECTION_MESSAGE);
-        }
+    BallotBox ballotBox = processBallots(election.getCandidates());
 
-        BallotBox ballotBox = processBallots(election.getCandidates());
+    List<RoundResult> rounds = new ArrayList<>();
+    List<UUID> eliminatedCandidates = new ArrayList<>();
+    int allWayTieCorrectionCount = 0;
 
-        List<RoundResult> rounds = new ArrayList<>();
-        List<UUID> eliminatedCandidates = new ArrayList<>();
-        int allWayTieCorrectionCount = 0;
+    while (true) {
+      int roundNumber = rounds.size() + 1;
 
-        while (true)
-        {
-            int roundNumber = rounds.size() + 1;
+      if (roundNumber != 1 && rounds.getLast()
+          .getEliminationMessage()
+          .equals(TIE_ALL_WAY_TIE_ELIMINATION_MESSAGE)) {
+        allWayTieCorrectionCount++;
+      } else {
+        allWayTieCorrectionCount = 0;
+      }
 
-            if (roundNumber != 1 && rounds.getLast()
-                                          .getEliminationMessage()
-                                          .equals(TIE_ALL_WAY_TIE_ELIMINATION_MESSAGE))
-            {
-                allWayTieCorrectionCount++;
-            }
-            else
-            {
-                allWayTieCorrectionCount = 0;
-            }
+      VoteCount voteCount =
+          conductRound(ballotBox, eliminatedCandidates, roundNumber, allWayTieCorrectionCount);
 
-            VoteCount voteCount = conductRound(ballotBox, eliminatedCandidates, roundNumber, allWayTieCorrectionCount);
+      Map<UUID, Integer> currentVotes = voteCount.getCurrentVotes();
+      int currentVotesSize = voteCount.getCurrentVotesSize();
 
-            Map<UUID, Integer> currentVotes = voteCount.getCurrentVotes();
-            int currentVotesSize = voteCount.getCurrentVotesSize();
+      Optional<ElectionResult> majorityWinner = findMajorityWinner(
+          currentVotes, currentVotesSize, rounds, roundNumber
+      );
 
-            Optional<ElectionResult> majorityWinner = findMajorityWinner(
-                currentVotes, currentVotesSize, rounds, roundNumber
-            );
+      if (majorityWinner.isPresent()) {
+        return majorityWinner.get();
+      }
 
-            if (majorityWinner.isPresent())
-            {
-                return majorityWinner.get();
-            }
+      List<UUID> candidatesWithMinVotes = getCandidatesWithMinVotes(
+          ballotBox, eliminatedCandidates, currentVotes
+      );
 
-            List<UUID> candidatesWithMinVotes = getCandidatesWithMinVotes(
-                ballotBox, eliminatedCandidates, currentVotes
-            );
+      RoundResult roundResult = getRoundResult(candidatesWithMinVotes, roundNumber, currentVotes);
 
-            RoundResult roundResult = getRoundResult(candidatesWithMinVotes, roundNumber, currentVotes);
+      rounds.add(roundResult);
 
-            rounds.add(roundResult);
+      eliminatedCandidates.addAll(roundResult.getEliminatedCandidateIds());
+    }
+  }
 
-            eliminatedCandidates.addAll(roundResult.getEliminatedCandidateIds());
-        }
+  private RoundResult getRoundResult(
+      List<UUID> candidatesWithMinVotes,
+      int roundNumber,
+      Map<UUID, Integer> currentVotes
+  ) {
+    EliminationMessage eliminationReason;
+
+    if (candidatesWithMinVotes.size() == currentVotes.size()) {
+      log.debug("Detected a allWayTie round - all remaining candidates would be eliminated");
+      eliminationReason = TIE_ALL_WAY_TIE_ELIMINATION_MESSAGE;
+      candidatesWithMinVotes = new ArrayList<>();
+    } else if (candidatesWithMinVotes.size() > 1) {
+      eliminationReason = TIE_ELIMINATION_MESSAGE;
+    } else {
+      eliminationReason = NO_TIE_ELIMINATION_MESSAGE;
     }
 
-    private RoundResult getRoundResult(
-        List<UUID> candidatesWithMinVotes,
-        int roundNumber,
-        Map<UUID, Integer> currentVotes
-    )
-    {
-        EliminationMessage eliminationReason;
+    return new RoundResult(
+        roundNumber,
+        currentVotes,
+        candidatesWithMinVotes,
+        eliminationReason
+    );
+  }
 
-        if (candidatesWithMinVotes.size() == currentVotes.size())
-        {
-            log.debug("Detected a allWayTie round - all remaining candidates would be eliminated");
-            eliminationReason = TIE_ALL_WAY_TIE_ELIMINATION_MESSAGE;
-            candidatesWithMinVotes = new ArrayList<>();
-        }
-        else if (candidatesWithMinVotes.size() > 1)
-        {
-            eliminationReason = TIE_ELIMINATION_MESSAGE;
-        }
-        else
-        {
-            eliminationReason = NO_TIE_ELIMINATION_MESSAGE;
-        }
+  private static Optional<ElectionResult> findMajorityWinner(
+      Map<UUID, Integer> currentVotes,
+      int currentVotesSize,
+      List<RoundResult> rounds,
+      int roundNumber
+  ) {
+    Optional<Map.Entry<UUID, Integer>> majorityWinner
+        = currentVotes.entrySet()
+        .stream()
+        .filter(entry -> entry.getValue() > currentVotesSize / 2)
+        .findFirst();
 
-        return new RoundResult(
-            roundNumber,
-            currentVotes,
-            candidatesWithMinVotes,
-            eliminationReason
-        );
+    if (majorityWinner.isPresent()) {
+      rounds.add(new RoundResult(
+          roundNumber,
+          currentVotes,
+          null,
+          currentVotes.size() == 1 ? WINNER_ATTRITION : WINNER_MAJORITY
+      ));
+
+      return Optional.of(new ElectionResult(
+          majorityWinner.get().getKey(),
+          rounds,
+          currentVotesSize
+      ));
+    } else {
+      return Optional.empty();
     }
+  }
 
-    private static Optional<ElectionResult> findMajorityWinner(
-        Map<UUID, Integer> currentVotes,
-        int currentVotesSize,
-        List<RoundResult> rounds,
-        int roundNumber
-    )
-    {
-        Optional<Map.Entry<UUID, Integer>> majorityWinner
-            = currentVotes.entrySet().stream().filter(entry -> entry.getValue() > currentVotesSize / 2).findFirst();
+  private static List<UUID> getCandidatesWithMinVotes(
+      BallotBox ballotBox,
+      List<UUID> eliminatedCandidates,
+      Map<UUID, Integer> currentVotes
+  ) {
+    List<UUID> candidatesWithNoVotes
+        = ballotBox.getCandidates()
+        .keySet()
+        .stream()
+        .filter(candidateId -> !eliminatedCandidates.contains(candidateId))
+        .filter(candidateId -> !currentVotes.containsKey(candidateId))
+        .toList();
 
-        if (majorityWinner.isPresent())
-        {
-            rounds.add(new RoundResult(
-                roundNumber,
-                currentVotes,
-                null,
-                currentVotes.size() == 1 ? WINNER_ATTRITION : WINNER_MAJORITY
-            ));
+    if (!candidatesWithNoVotes.isEmpty()) {
+      return new ArrayList<>(candidatesWithNoVotes);
+    } else {
+      int minVotes = currentVotes.values().stream().mapToInt(Integer::intValue).min().orElseThrow();
 
-            return Optional.of(new ElectionResult(
-                majorityWinner.get().getKey(),
-                rounds,
-                currentVotesSize
-            ));
-        }
-        else
-        {
-            return Optional.empty();
-        }
+      return currentVotes.entrySet()
+          .stream()
+          .filter(entry -> entry.getValue() == minVotes)
+          .map(Map.Entry::getKey)
+          .toList();
     }
-
-    private static List<UUID> getCandidatesWithMinVotes(
-        BallotBox ballotBox,
-        List<UUID> eliminatedCandidates,
-        Map<UUID, Integer> currentVotes
-    )
-    {
-        List<UUID> candidatesWithNoVotes
-            = ballotBox.getCandidates()
-                       .keySet()
-                       .stream()
-                       .filter(candidateId -> !eliminatedCandidates.contains(candidateId))
-                       .filter(candidateId -> !currentVotes.containsKey(candidateId))
-                       .toList();
-
-        if (!candidatesWithNoVotes.isEmpty())
-        {
-            return new ArrayList<>(candidatesWithNoVotes);
-        }
-        else
-        {
-            int minVotes = currentVotes.values().stream().mapToInt(Integer::intValue).min().orElseThrow();
-
-            return currentVotes.entrySet()
-                               .stream()
-                               .filter(entry -> entry.getValue() == minVotes)
-                               .map(Map.Entry::getKey)
-                               .toList();
-        }
-    }
+  }
 }

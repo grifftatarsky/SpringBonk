@@ -1,0 +1,23 @@
+<h2 mat-dialog-title>Create an election</h2>
+
+<mat-dialog-content>
+  <p>So you wanna participate in democracy, do ya?</p>
+
+  <mat-form-field>
+    <mat-label>Election title</mat-label>
+    <input matInput [(ngModel)]="titleValue" />
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Choose an end date</mat-label>
+    <input matInput [matDatepicker]="picker" [(ngModel)]="endDateValue" />
+    <mat-hint>MM/DD/YYYY</mat-hint>
+    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-button (click)="onNoClick()">No Thanks</button>
+  <button mat-button [disabled]="!titleValue.trim()" (click)="submit()" cdkFocusInitial>Ok</button>
+</mat-dialog-actions>

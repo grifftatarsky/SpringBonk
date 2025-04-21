@@ -23,7 +23,7 @@ spring:
   devtools:
     add-properties: ${DEV_TOOLS_ADD_PROPS:false}
     livereload:
-      enabled:  ${DEV_TOOLS_LIVE_RELOAD:false}
+      enabled: ${DEV_TOOLS_LIVE_RELOAD:false}
   threads:
     virtual:
       enabled: true
@@ -54,7 +54,7 @@ com:
             aud: ${AUTH_AUDIENCE:}
         resourceserver:
           permit-all:
-            - /me
+            - /user/details
             - /swagger-ui*/**
             - /v3/api-docs*/**
             - /actuator/health/readiness

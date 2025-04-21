@@ -9,7 +9,7 @@ import {MatButton} from '@angular/material/button';
   imports: [
     MatButton
   ],
-  template: `<button mat-button (click)="navigate()">{{ label }}</button>`,
+  template: `<button mat-stroked-button (click)="navigate()">{{ label }}</button>`,
   styles: ``,
 })
 export class NavigationComponent implements OnDestroy {

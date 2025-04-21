@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AuthenticationComponent } from './auth/authentication.component';
+import { MatCard } from '@angular/material/card';
 
 @Component({
   selector: 'app-root',
@@ -10,8 +10,8 @@ import { AuthenticationComponent } from './auth/authentication.component';
   imports: [
     CommonModule,
     RouterOutlet,
-    HttpClientModule,
     AuthenticationComponent,
+    MatCard,
   ],
   templateUrl: './app.component.html',
   styles: [],

@@ -1,4 +1,50 @@
-/* You can add global styles to this file, and also import other style files */
+$breakpoint-sm: 480px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1200px;
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+
+  #sub-body {
+    flex: 1;
+    width: 100%;
+  }
+}
+
+#main-card {
+  transition: all .3s;
+  padding: 2rem;
+  margin: 4rem 8rem;
+  height: calc(100% - 8rem);
+
+  @media (max-width: $breakpoint-xl) {
+    margin: 4rem;
+  }
+
+  @media (max-width: $breakpoint-lg) {
+    margin: 2rem;
+    height: calc(100% - 4rem);
+  }
+
+  @media (max-width: $breakpoint-md) {
+    margin: 1rem;
+    height: calc(100% - 2rem);
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    margin: .5rem;
+    height: calc(100% - 1rem);
+  }
+}

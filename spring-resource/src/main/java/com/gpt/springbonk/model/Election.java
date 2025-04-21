@@ -1,6 +1,5 @@
 package com.gpt.springbonk.model;
 
-
 import com.gpt.springbonk.keycloak.KeycloakUser;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -28,34 +27,32 @@ import org.hibernate.annotations.CreationTimestamp;
 @Setter
 @NoArgsConstructor
 @Table(name = "elections")
-public class Election
-{
-    @Id
-    @GeneratedValue
-    private UUID id;
+public class Election {
+  @Id
+  @GeneratedValue
+  private UUID id;
 
-    @Column(nullable = false)
-    private String title;
+  @Column(nullable = false)
+  private String title;
 
-    @Column(name = "end_date")
-    private LocalDateTime endDateTime;
+  @Column(name = "end_date")
+  private LocalDateTime endDateTime;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private KeycloakUser creator;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false)
+  private KeycloakUser creator;
 
-    @CreationTimestamp
-    @Column(name = "created_date", nullable = false, updatable = false)
-    private LocalDateTime createdDate;
+  @CreationTimestamp
+  @Column(name = "created_date", nullable = false, updatable = false)
+  private LocalDateTime createdDate;
 
-    @OneToMany(mappedBy = "election", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private List<Candidate> candidates = new ArrayList<>();
+  @OneToMany(mappedBy = "election", cascade = CascadeType.ALL, orphanRemoval = true)
+  @ToString.Exclude
+  @EqualsAndHashCode.Exclude
+  private List<Candidate> candidates = new ArrayList<>();
 
-    public Election(String title, LocalDateTime endDateTime)
-    {
-        this.title = title;
-        this.endDateTime = endDateTime;
-    }
+  public Election(String title, LocalDateTime endDateTime) {
+    this.title = title;
+    this.endDateTime = endDateTime;
+  }
 }

@@ -1,6 +1,4 @@
 package com.gpt.springbonk.constant.enumeration.system;
 
-
-public interface VotingSystemBallotType
-{
+public interface VotingSystemBallotType {
 }
