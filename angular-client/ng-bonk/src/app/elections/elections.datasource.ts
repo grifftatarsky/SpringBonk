@@ -1,31 +1,48 @@
 import { DataSource } from '@angular/cdk/collections';
 import { ElectionResponse } from '../model/response/election-response.model';
-import { Observable, ReplaySubject } from 'rxjs';
+import { Observable, BehaviorSubject, of } from 'rxjs';
+import { catchError, map, finalize } from 'rxjs/operators';
 import { ElectionHttpService } from './service/election-http.service';
+import {PagedResponse} from '../model/response/paged-response.model';
 
 export class ElectionsDataSource extends DataSource<ElectionResponse> {
-  private _dataStream: ReplaySubject<ElectionResponse[]> = new ReplaySubject<ElectionResponse[]>(1);
+  private _electionsSubject: BehaviorSubject<ElectionResponse[]> =
+    new BehaviorSubject<ElectionResponse[]>([]);
 
-  constructor(
-    private http: ElectionHttpService
-  ) {
+  private _loadingSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+
+  private _totalSubject: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+
+  public loading$: Observable<boolean> = this._loadingSubject.asObservable();
+  public total$: Observable<number> = this._totalSubject.asObservable();
+
+  constructor(private http: ElectionHttpService) {
     super();
   }
 
   connect(): Observable<ElectionResponse[]> {
-    this.refresh();
-    return this._dataStream.asObservable();
+    return this._electionsSubject.asObservable();
   }
 
-  disconnect(): void {}
+  disconnect(): void {
+    this._electionsSubject.complete();
+    this._loadingSubject.complete();
+    this._totalSubject.complete();
+  }
 
-  refresh(): void {
-    this.http.getPagedElections().subscribe({
-      next: (data: ElectionResponse[]): void => {
-        console.log(data)
-        return this._dataStream.next(data)
-      },
-      error: (err): void => console.error('Failed to fetch elections:', err)
-    });
+  loadElections(pageIndex = 0, pageSize = 10): void {
+    this._loadingSubject.next(true);
+
+    this.http.getPagedElections(pageIndex, pageSize).pipe(
+      map((res: PagedResponse<ElectionResponse>): ElectionResponse[] => {
+        const embeddedKey: string = Object.keys(res._embedded)[0];
+        this._totalSubject.next(res.page.totalElements);
+        return res._embedded[embeddedKey];
+      }),
+      catchError((): Observable<never[]> => of([])),
+      finalize((): void => this._loadingSubject.next(false))
+    ).subscribe(
+      (elections: ElectionResponse[] | never[]): void => this._electionsSubject.next(elections)
+    );
   }
 }

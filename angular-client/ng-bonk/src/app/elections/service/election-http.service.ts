@@ -31,8 +31,8 @@ export class ElectionHttpService extends BaseHttpService {
 
   // ----- GETTERS -----
 
-  getPagedElections(): Observable<PagedResponse<ElectionResponse>> {
-    return this.get<PagedResponse<ElectionResponse>>(`${this.baseUrl}`);
+  getPagedElections(page = 0, size = 10): Observable<PagedResponse<ElectionResponse>> {
+    return this.get<PagedResponse<ElectionResponse>>(`${this.baseUrl}?page=${page}&size=${size}`);
   }
 
   getElectionById(id: string): Observable<ElectionResponse> {
