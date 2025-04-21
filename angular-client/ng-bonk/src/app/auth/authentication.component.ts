@@ -16,9 +16,7 @@ import { LogoutComponent } from './logout.component';
   styles: ``,
 })
 export class AuthenticationComponent {
-  constructor(
-    private user: UserService
-  ) {}
+  constructor(private user: UserService) {}
 
   get isAuthenticated(): boolean {
     return this.user.current.isAuthenticated;

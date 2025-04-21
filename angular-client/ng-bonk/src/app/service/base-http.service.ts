@@ -1,67 +1,93 @@
-import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpHeaders,
+  HttpParams,
+} from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class BaseHttpService {
-  protected apiBase: string = "/bff/api"
+  protected apiBase: string = '/bff/api';
 
   constructor(protected http: HttpClient) {}
 
   /**
    * Perform a GET request
    */
-  protected get<T>(url: string, params?: HttpParams | { [param: string]: string | number | boolean }, headers?: HttpHeaders): Observable<T> {
-    return this.http.get<T>(url, {
-      params: this.normalizeParams(params),
-      headers: this.normalizeHeaders(headers)
-    }).pipe(
-      map(res => res),
-      catchError(this.handleError)
-    );
+  protected get<T>(
+    url: string,
+    params?: HttpParams | { [param: string]: string | number | boolean },
+    headers?: HttpHeaders
+  ): Observable<T> {
+    return this.http
+      .get<T>(url, {
+        params: this.normalizeParams(params),
+        headers: this.normalizeHeaders(headers),
+      })
+      .pipe(
+        map(res => res),
+        catchError(this.handleError)
+      );
   }
 
   /**
    * Perform a POST request
    */
-  protected post<T>(url: string, body: any, headers?: HttpHeaders): Observable<T> {
-    return this.http.post<T>(url, body, {
-      headers: this.normalizeHeaders(headers)
-    }).pipe(
-      map(res => res),
-      catchError(this.handleError)
-    );
+  protected post<T>(
+    url: string,
+    body: any,
+    headers?: HttpHeaders
+  ): Observable<T> {
+    return this.http
+      .post<T>(url, body, {
+        headers: this.normalizeHeaders(headers),
+      })
+      .pipe(
+        map(res => res),
+        catchError(this.handleError)
+      );
   }
 
   /**
    * Perform a PUT request
    */
-  protected put<T>(url: string, body: any, headers?: HttpHeaders): Observable<T> {
-    return this.http.put<T>(url, body, {
-      headers: this.normalizeHeaders(headers)
-    }).pipe(
-      map(res => res),
-      catchError(this.handleError)
-    );
+  protected put<T>(
+    url: string,
+    body: any,
+    headers?: HttpHeaders
+  ): Observable<T> {
+    return this.http
+      .put<T>(url, body, {
+        headers: this.normalizeHeaders(headers),
+      })
+      .pipe(
+        map(res => res),
+        catchError(this.handleError)
+      );
   }
 
   /**
    * Perform a DELETE request
    */
   protected delete<T>(
-    url: string, params?: HttpParams | { [param: string]: string | number | boolean },
+    url: string,
+    params?: HttpParams | { [param: string]: string | number | boolean },
     headers?: HttpHeaders
   ): Observable<T> {
-    return this.http.delete<T>(url, {
-      params: this.normalizeParams(params),
-      headers: this.normalizeHeaders(headers)
-    }).pipe(
-      map(res => res),
-      catchError(this.handleError)
-    );
+    return this.http
+      .delete<T>(url, {
+        params: this.normalizeParams(params),
+        headers: this.normalizeHeaders(headers),
+      })
+      .pipe(
+        map(res => res),
+        catchError(this.handleError)
+      );
   }
 
   /**
@@ -83,7 +109,13 @@ export class BaseHttpService {
   /**
    * Normalizes headers, allowing plain objects or prebuilt HttpHeaders
    */
-  private normalizeHeaders(headers?: HttpHeaders | { [header: string]: string | string[] }): HttpHeaders | undefined {
+  private normalizeHeaders(
+    headers?:
+      | HttpHeaders
+      | {
+          [header: string]: string | string[];
+        }
+  ): HttpHeaders | undefined {
     if (!headers) return undefined;
     if (headers instanceof HttpHeaders) return headers;
 

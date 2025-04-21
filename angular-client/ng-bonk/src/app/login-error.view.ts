@@ -9,14 +9,14 @@ import { ActivatedRoute } from '@angular/router';
     <h1>Login Error</h1>
     <p>{{ msg }}</p>
   `,
-  styles: ``
+  styles: ``,
 })
 export class LoginErrorView {
-  msg = ""
+  msg = '';
 
   constructor(activatedRoute: ActivatedRoute) {
-    activatedRoute.queryParams.subscribe((params) => {
+    activatedRoute.queryParams.subscribe(params => {
       this.msg = params['error'];
-    })
+    });
   }
 }

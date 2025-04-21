@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import {MatDialog, MatDialogRef} from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { NavigationComponent } from '../navigation.component';
 import { ElectionHttpService } from './service/election-http.service';
@@ -26,14 +26,19 @@ import { Observable } from 'rxjs';
     MatIconModule,
     DatePipe,
     AsyncPipe,
-    NgIf
+    NgIf,
   ],
   templateUrl: './elections.component.html',
-  styleUrls: ['./elections.component.scss']
+  styleUrls: ['./elections.component.scss'],
 })
 export class ElectionsComponent implements AfterViewInit {
   // MARK // TODO: Replace the loading circle with a nice, clean progress bar.
-  displayedColumns: string[] = ['title', 'endDateTime', 'createDate', 'actions'];
+  displayedColumns: string[] = [
+    'title',
+    'endDateTime',
+    'createDate',
+    'actions',
+  ];
 
   dataSource: ElectionsDataSource;
   loading$: Observable<boolean>;
@@ -47,24 +52,35 @@ export class ElectionsComponent implements AfterViewInit {
   ) {
     this.dataSource = new ElectionsDataSource(this.http);
     this.loading$ = this.dataSource.loading$;
-    this.dataSource.total$.subscribe((count: number): number => this.total = count);
+    this.dataSource.total$.subscribe(
+      (count: number): number => (this.total = count)
+    );
   }
 
   ngAfterViewInit(): void {
     this.paginator.page.subscribe((): void => {
-      this.dataSource.loadElections(this.paginator.pageIndex, this.paginator.pageSize);
+      this.dataSource.loadElections(
+        this.paginator.pageIndex,
+        this.paginator.pageSize
+      );
     });
 
     this.dataSource.loadElections();
   }
 
   openCreateDialog(): void {
-    const dialogRef: MatDialogRef<ElectionDialog> = this.dialog.open(ElectionDialog, { width: '400px' });
+    const dialogRef: MatDialogRef<ElectionDialog> = this.dialog.open(
+      ElectionDialog,
+      { width: '400px' }
+    );
 
     dialogRef.afterClosed().subscribe((result: ElectionRequest): void => {
       if (result) {
         this.http.createElection(result).subscribe((): void => {
-          this.dataSource.loadElections(this.paginator.pageIndex, this.paginator.pageSize);
+          this.dataSource.loadElections(
+            this.paginator.pageIndex,
+            this.paginator.pageSize
+          );
         });
       }
     });
@@ -72,11 +88,16 @@ export class ElectionsComponent implements AfterViewInit {
 
   deleteElection(electionId: string): void {
     this.http.deleteElection(electionId).subscribe((): void => {
-      this.dataSource.loadElections(this.paginator.pageIndex, this.paginator.pageSize);
-      if (this.total -1 <= this.paginator.pageSize * this.paginator.pageIndex) {
+      this.dataSource.loadElections(
+        this.paginator.pageIndex,
+        this.paginator.pageSize
+      );
+      if (
+        this.total - 1 <=
+        this.paginator.pageSize * this.paginator.pageIndex
+      ) {
         this.paginator.previousPage();
       }
     });
   }
 }
-

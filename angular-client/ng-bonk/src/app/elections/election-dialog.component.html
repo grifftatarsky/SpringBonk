@@ -19,5 +19,11 @@
 
 <mat-dialog-actions>
   <button mat-button (click)="onNoClick()">No Thanks</button>
-  <button mat-button [disabled]="!titleValue.trim()" (click)="submit()" cdkFocusInitial>Ok</button>
+  <button
+    mat-button
+    [disabled]="!titleValue.trim()"
+    (click)="submit()"
+    cdkFocusInitial>
+    Ok
+  </button>
 </mat-dialog-actions>

@@ -1,11 +1,17 @@
-import { ChangeDetectionStrategy, Component, inject, model } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  model,
+} from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
   MatDialogClose,
-  MatDialogContent, MatDialogModule,
+  MatDialogContent,
+  MatDialogModule,
   MatDialogRef,
-  MatDialogTitle
+  MatDialogTitle,
 } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,7 +19,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { ElectionRequest } from '../model/request/election-request.model';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import {provideNativeDateAdapter} from '@angular/material/core';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 @Component({
   selector: 'app-election-dialog',
@@ -24,7 +30,7 @@ import {provideNativeDateAdapter} from '@angular/material/core';
     FormsModule,
     MatButtonModule,
     MatDialogModule,
-    MatDatepickerModule
+    MatDatepickerModule,
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './election-dialog.component.html',
@@ -37,7 +43,9 @@ export class ElectionDialog {
 
   // Don't bind to signals in template. Use values directly for ngModel
   titleValue: string = this.data?.title ?? '';
-  endDateValue: Date | null = this.data?.endDateTime ? new Date(this.data.endDateTime) : null;
+  endDateValue: Date | null = this.data?.endDateTime
+    ? new Date(this.data.endDateTime)
+    : null;
 
   onNoClick(): void {
     this.dialogRef.close();
@@ -46,7 +54,7 @@ export class ElectionDialog {
   submit(): void {
     const payload: ElectionRequest = {
       title: this.titleValue,
-      endDateTime: this.endDateValue?.toISOString() ?? null
+      endDateTime: this.endDateValue?.toISOString() ?? null,
     };
 
     this.dialogRef.close(payload);

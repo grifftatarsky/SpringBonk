@@ -8,7 +8,9 @@ import { UserInfoResponse } from '../model/user-info-response.model';
   providedIn: 'root',
 })
 export class UserService {
-  private user$: BehaviorSubject<User> = new BehaviorSubject<User>(User.ANONYMOUS);
+  private user$: BehaviorSubject<User> = new BehaviorSubject<User>(
+    User.ANONYMOUS
+  );
   private refreshSub?: Subscription;
 
   constructor(private http: UserHttpService) {
@@ -19,7 +21,7 @@ export class UserService {
     this.refreshSub?.unsubscribe();
     this.http.getDetails().subscribe({
       next: (user: UserInfoResponse): void => {
-        console.log(user)
+        console.log(user);
         if (
           user.username !== this.user$.value.name ||
           user.email !== this.user$.value.email ||
@@ -28,28 +30,29 @@ export class UserService {
           this.user$.next(
             user.username
               ? new User(
-                user.username || '',
-                user.email || '',
-                user.roles || []
-              )
+                  user.username || '',
+                  user.email || '',
+                  user.roles || []
+                )
               : User.ANONYMOUS
           );
         }
-        if (typeof user.exp
-          === "number"
-          && user.exp
-          > 0
-          && user.exp
-          < Number.MAX_SAFE_INTEGER
-          / 1000) {
+        if (
+          typeof user.exp === 'number' &&
+          user.exp > 0 &&
+          user.exp < Number.MAX_SAFE_INTEGER / 1000
+        ) {
           const now: number = Date.now();
           const expMs: number = user.exp * 1000; // Convert expiration time to milliseconds safely
 
-          if (expMs > now) { // Ensure expiration is in the future
+          if (expMs > now) {
+            // Ensure expiration is in the future
             const delay: number = (expMs - now) * 0.8;
 
             if (delay > 2000 && delay < Number.MAX_SAFE_INTEGER) {
-              this.refreshSub = interval(delay).subscribe((): void => this.refresh());
+              this.refreshSub = interval(delay).subscribe((): void =>
+                this.refresh()
+              );
             }
           }
         }
@@ -62,13 +65,13 @@ export class UserService {
   }
 
   get valueChanges(): Observable<User> {
-    console.log("User service valueChanges [dbg]")
+    console.log('User service valueChanges [dbg]');
 
     return this.user$;
   }
 
   get current(): User {
-    console.log("User service current [dbg]")
+    console.log('User service current [dbg]');
     return this.user$.value;
   }
 }

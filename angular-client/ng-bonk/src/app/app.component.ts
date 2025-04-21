@@ -7,15 +7,10 @@ import { MatCard } from '@angular/material/card';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    AuthenticationComponent,
-    MatCard,
-  ],
+  imports: [CommonModule, RouterOutlet, AuthenticationComponent, MatCard],
   templateUrl: './app.component.html',
   styles: [],
 })
 export class AppComponent {
-  title: string = "Bonk!"
+  title: string = 'Bonk!';
 }

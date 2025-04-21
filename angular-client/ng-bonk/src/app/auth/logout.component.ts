@@ -3,22 +3,20 @@ import { UserService } from './service/user.service';
 import { lastValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { baseUri } from '../app.config';
-import {MatButton} from '@angular/material/button';
+import { MatButton } from '@angular/material/button';
 
 @Component({
   selector: 'app-logout',
   standalone: true,
-  imports: [
-    MatButton
-  ],
-  template: `
-  <button mat-stroked-button (click)="logout()">Logout</button>
-  `,
-  styles: ``
+  imports: [MatButton],
+  template: ` <button mat-stroked-button (click)="logout()">Logout</button> `,
+  styles: ``,
 })
 export class LogoutComponent {
-
-  constructor(private http: HttpClient, private user: UserService) {}
+  constructor(
+    private http: HttpClient,
+    private user: UserService
+  ) {}
 
   logout() {
     lastValueFrom(
@@ -29,7 +27,7 @@ export class LogoutComponent {
         observe: 'response',
       })
     )
-      .then((resp) => {
+      .then(resp => {
         const logoutUri = resp.headers.get('Location');
         if (!!logoutUri) {
           window.location.href = logoutUri;

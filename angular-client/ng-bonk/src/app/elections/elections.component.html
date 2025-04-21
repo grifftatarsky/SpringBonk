@@ -1,50 +1,55 @@
-<app-navigation
-  [destination]="['about']"
-  label="About"
-></app-navigation>
-<app-navigation
-  [destination]="['']"
-  label="Home"
-></app-navigation>
+<app-navigation [destination]="['about']" label="About"></app-navigation>
+<app-navigation [destination]="['']" label="Home"></app-navigation>
 
 <div class="elections-container" fxLayout="column" fxLayoutGap="16px">
-  <div class="elections-header" fxLayout="row" fxLayoutAlign="space-between center">
+  <div
+    class="elections-header"
+    fxLayout="row"
+    fxLayoutAlign="space-between center">
     <h2>Manage Elections</h2>
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">Add Election</button>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      Add Election
+    </button>
   </div>
 
   <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-
     <!-- Title Column -->
     <ng-container matColumnDef="title">
-      <th mat-header-cell *matHeaderCellDef> Title </th>
-      <td mat-cell *matCellDef="let element"> {{element.title}} </td>
+      <th mat-header-cell *matHeaderCellDef>Title</th>
+      <td mat-cell *matCellDef="let element">{{ element.title }}</td>
     </ng-container>
 
     <!-- End Date Column -->
     <ng-container matColumnDef="endDateTime">
-      <th mat-header-cell *matHeaderCellDef> Ends </th>
-      <td mat-cell *matCellDef="let element"> {{element.endDateTime | date:'short'}} </td>
+      <th mat-header-cell *matHeaderCellDef>Ends</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.endDateTime | date: 'short' }}
+      </td>
     </ng-container>
 
     <!-- Create Date Column -->
     <ng-container matColumnDef="createDate">
-      <th mat-header-cell *matHeaderCellDef> Created </th>
-      <td mat-cell *matCellDef="let element"> {{element.createDate | date:'short'}} </td>
+      <th mat-header-cell *matHeaderCellDef>Created</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.createDate | date: 'short' }}
+      </td>
     </ng-container>
 
     <!-- Actions Column -->
     <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef> Actions </th>
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
       <td mat-cell *matCellDef="let element">
-        <button mat-icon-button color="warn" (click)="deleteElection(element.id)">
+        <button
+          mat-icon-button
+          color="warn"
+          (click)="deleteElection(element.id)">
           <mat-icon>delete</mat-icon>
         </button>
       </td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
 
   <div class="spinner-overlay" *ngIf="loading$ | async">

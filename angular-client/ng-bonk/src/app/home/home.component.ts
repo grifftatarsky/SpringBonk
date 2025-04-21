@@ -1,4 +1,4 @@
-import {Component, OnDestroy} from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { NavigationComponent } from '../navigation.component';
 import { UserService } from '../auth/service/user.service';
@@ -25,10 +25,10 @@ export class HomeComponent implements OnDestroy {
   }
 
   static rolesStr(user: User): string {
-    if(!user?.roles?.length) {
-      return '[]'
+    if (!user?.roles?.length) {
+      return '[]';
     }
-    return `["${user.roles.join('", "')}"]`
+    return `["${user.roles.join('", "')}"]`;
   }
 
   ngOnDestroy(): void {

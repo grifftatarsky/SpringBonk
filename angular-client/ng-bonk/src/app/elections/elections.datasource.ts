@@ -9,9 +9,12 @@ export class ElectionsDataSource extends DataSource<ElectionResponse> {
   private _electionsSubject: BehaviorSubject<ElectionResponse[]> =
     new BehaviorSubject<ElectionResponse[]>([]);
 
-  private _loadingSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  private _loadingSubject: BehaviorSubject<boolean> =
+    new BehaviorSubject<boolean>(false);
 
-  private _totalSubject: BehaviorSubject<number> = new BehaviorSubject<number>(0);
+  private _totalSubject: BehaviorSubject<number> = new BehaviorSubject<number>(
+    0
+  );
 
   public loading$: Observable<boolean> = this._loadingSubject.asObservable();
   public total$: Observable<number> = this._totalSubject.asObservable();
@@ -33,16 +36,19 @@ export class ElectionsDataSource extends DataSource<ElectionResponse> {
   loadElections(pageIndex = 0, pageSize = 10): void {
     this._loadingSubject.next(true);
 
-    this.http.getPagedElections(pageIndex, pageSize).pipe(
-      map((res: PagedResponse<ElectionResponse>): ElectionResponse[] => {
-        const embeddedKey: string = Object.keys(res._embedded)[0];
-        this._totalSubject.next(res.page.totalElements);
-        return res._embedded[embeddedKey];
-      }),
-      catchError((): Observable<never[]> => of([])),
-      finalize((): void => this._loadingSubject.next(false))
-    ).subscribe(
-      (elections: ElectionResponse[] | never[]): void => this._electionsSubject.next(elections)
-    );
+    this.http
+      .getPagedElections(pageIndex, pageSize)
+      .pipe(
+        map((res: PagedResponse<ElectionResponse>): ElectionResponse[] => {
+          const embeddedKey: string = Object.keys(res._embedded)[0];
+          this._totalSubject.next(res.page.totalElements);
+          return res._embedded[embeddedKey];
+        }),
+        catchError((): Observable<never[]> => of([])),
+        finalize((): void => this._loadingSubject.next(false))
+      )
+      .subscribe((elections: ElectionResponse[] | never[]): void =>
+        this._electionsSubject.next(elections)
+      );
   }
 }

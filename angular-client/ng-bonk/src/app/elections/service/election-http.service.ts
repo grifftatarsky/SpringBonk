@@ -9,10 +9,9 @@ import { ElectionResult } from '../../model/election-result.model';
 import { PagedResponse } from '../../model/response/paged-response.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ElectionHttpService extends BaseHttpService {
-
   private readonly baseUrl: string = this.apiBase + '/election';
 
   // ----- BASIC CRUD -----
@@ -21,7 +20,10 @@ export class ElectionHttpService extends BaseHttpService {
     return this.post<ElectionResponse>(`${this.baseUrl}`, request);
   }
 
-  updateElection(id: string, request: ElectionRequest): Observable<ElectionResponse> {
+  updateElection(
+    id: string,
+    request: ElectionRequest
+  ): Observable<ElectionResponse> {
     return this.put<ElectionResponse>(`${this.baseUrl}/${id}`, request);
   }
 
@@ -31,8 +33,13 @@ export class ElectionHttpService extends BaseHttpService {
 
   // ----- GETTERS -----
 
-  getPagedElections(page = 0, size = 10): Observable<PagedResponse<ElectionResponse>> {
-    return this.get<PagedResponse<ElectionResponse>>(`${this.baseUrl}?page=${page}&size=${size}`);
+  getPagedElections(
+    page = 0,
+    size = 10
+  ): Observable<PagedResponse<ElectionResponse>> {
+    return this.get<PagedResponse<ElectionResponse>>(
+      `${this.baseUrl}?page=${page}&size=${size}`
+    );
   }
 
   getElectionById(id: string): Observable<ElectionResponse> {
@@ -51,14 +58,26 @@ export class ElectionHttpService extends BaseHttpService {
 
   // ----- CANDIDATE NOMINATION -----
 
-  nominateCandidate(electionId: string, bookId: string): Observable<CandidateResponse> {
-    return this.post<CandidateResponse>(`${this.baseUrl}/${electionId}/nominate/${bookId}`, {});
+  nominateCandidate(
+    electionId: string,
+    bookId: string
+  ): Observable<CandidateResponse> {
+    return this.post<CandidateResponse>(
+      `${this.baseUrl}/${electionId}/nominate/${bookId}`,
+      {}
+    );
   }
 
   // ----- VOTING -----
 
-  voteForCandidate(candidateId: string, rank: number): Observable<VoteResponse> {
-    return this.post<VoteResponse>(`${this.baseUrl}/vote/${candidateId}/${rank}`, {});
+  voteForCandidate(
+    candidateId: string,
+    rank: number
+  ): Observable<VoteResponse> {
+    return this.post<VoteResponse>(
+      `${this.baseUrl}/vote/${candidateId}/${rank}`,
+      {}
+    );
   }
 
   deleteVote(candidateId: string): Observable<void> {

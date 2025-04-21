@@ -1,4 +1,4 @@
-import{ HttpClient } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Observable, map } from 'rxjs';
@@ -6,7 +6,7 @@ import { UserService } from './service/user.service';
 import { baseUri } from '../app.config';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import {MatButton} from '@angular/material/button';
+import { MatButton } from '@angular/material/button';
 
 interface LoginOptionDto {
   label: string;
@@ -25,8 +25,10 @@ function loginOptions(http: HttpClient): Observable<Array<LoginOptionDto>> {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatButton],
   template: `<span>
-      <button mat-stroked-button (click)="login()"  [disabled]="!isLoginEnabled">Login</button>
-    </span>`
+    <button mat-stroked-button (click)="login()" [disabled]="!isLoginEnabled">
+      Login
+    </button>
+  </span>`,
 })
 export class LoginComponent {
   private loginUri?: string;
@@ -54,17 +56,14 @@ export class LoginComponent {
     }
 
     const url = new URL(this.loginUri);
-    console.log("DBG: 1")
+    console.log('DBG: 1');
     url.searchParams.append(
       'post_login_success_uri',
       `${baseUri}${this.router.url}`
     );
-    console.log("DBG: 2")
-    url.searchParams.append(
-      'post_login_failure_uri',
-      `${baseUri}login-error`
-    );
-    console.log("DBG: 3")
+    console.log('DBG: 2');
+    url.searchParams.append('post_login_failure_uri', `${baseUri}login-error`);
+    console.log('DBG: 3');
     window.location.href = url.toString();
   }
 }
