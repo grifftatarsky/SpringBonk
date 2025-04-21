@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Observable, map } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { UserService } from './service/user.service';
 import { baseUri } from '../app.config';
 import { Router } from '@angular/router';
@@ -24,11 +24,7 @@ function loginOptions(http: HttpClient): Observable<Array<LoginOptionDto>> {
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatButton],
-  template: `<span>
-    <button mat-stroked-button (click)="login()" [disabled]="!isLoginEnabled">
-      Login
-    </button>
-  </span>`,
+  templateUrl: 'login.component.html',
 })
 export class LoginComponent {
   private loginUri?: string;

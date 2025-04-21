@@ -1,7 +1,7 @@
 <app-navigation [destination]="['about']" label="About"></app-navigation>
 <app-navigation [destination]="['']" label="Home"></app-navigation>
 
-<div class="elections-container" fxLayout="column" fxLayoutGap="16px">
+<mat-card class="elections-container" fxLayout="column" fxLayoutGap="16px">
   <div
     class="elections-header"
     fxLayout="row"
@@ -67,4 +67,4 @@
     [pageSizeOptions]="[5, 10, 25]"
     aria-label="Election Pagination">
   </mat-paginator>
-</div>
+</mat-card>

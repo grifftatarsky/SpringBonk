@@ -21,6 +21,14 @@ body {
     flex: 1;
     width: 100%;
   }
+
+  #main-container {
+    overflow: scroll;
+
+    #header-container {
+      display: flex;
+    }
+  }
 }
 
 #main-card {

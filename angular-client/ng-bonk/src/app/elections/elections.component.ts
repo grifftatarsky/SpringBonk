@@ -9,10 +9,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AsyncPipe, DatePipe, NgIf } from '@angular/common';
 import { ElectionRequest } from '../model/request/election-request.model';
-import { MatPaginator } from '@angular/material/paginator';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Observable } from 'rxjs';
+import { MatCard } from '@angular/material/card';
 
 @Component({
   selector: 'app-elections',
@@ -27,6 +27,7 @@ import { Observable } from 'rxjs';
     DatePipe,
     AsyncPipe,
     NgIf,
+    MatCard,
   ],
   templateUrl: './elections.component.html',
   styleUrls: ['./elections.component.scss'],
