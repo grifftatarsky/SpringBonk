@@ -1,58 +1,137 @@
-$breakpoint-sm: 480px;
-$breakpoint-md: 768px;
-$breakpoint-lg: 1024px;
-$breakpoint-xl: 1200px;
+@use '@angular/material' as mat;
 
-html,
-body {
-  height: 100%;
+// VARIABLES
+
+$dc_metro_blue: #003DA5;
+$dc_metro_red: #DA291C;
+$dc_metro_green: #00843D;
+$dc_metro_yellow: #FFC72C;
+$dc_metro_orange: #ED8B00;
+$dc_metro_silver: #7C878E;
+
+$disabled: #CCC;
+
+$white: #FFF;
+$light-gray: #f0f0f0;
+$dark-gray: #555;
+
+// BASE
+
+html, body {
   margin: 0;
   padding: 0;
 }
 
-body {
+// UTILITY
+
+.spacer {
+  flex: 1;
+}
+
+// MAT: TOOLBAR
+
+mat-toolbar {
+  padding: 2rem !important;
+}
+
+#toolbar-primary {
   display: flex;
-  flex-flow: column;
-  justify-content: center;
-  align-items: center;
-  font-family: Roboto, 'Helvetica Neue', sans-serif;
 
-  #sub-body {
-    flex: 1;
-    width: 100%;
-  }
+  @include mat.toolbar-overrides((
+    container-background-color: $dc_metro_blue,
+    container-text-color: white,
+  ));
+}
 
-  #main-container {
-    overflow: scroll;
+#toolbar-secondary {
+  padding: 0 1rem !important;
+}
 
-    #header-container {
-      display: flex;
-    }
+#toolbar-elections {
+  display: flex;
+  padding: 0 1.5rem !important;
+}
+
+.toolbar-divider {
+  width: 0;
+  border-left: 2px solid $disabled;
+}
+
+.toolbar-icon-button {
+  transition: color .3s;
+
+  &:hover {
+    cursor: pointer;
+    color: $dc_metro_blue
   }
 }
 
-#main-card {
-  transition: all 0.3s;
-  padding: 2rem;
-  margin: 4rem 8rem;
-  height: calc(100% - 8rem);
+// MAT: MENU
+.secondary-toolbar-menu-trigger {
+  font-weight: 600;
+  font-size: 1rem;
 
-  @media (max-width: $breakpoint-xl) {
-    margin: 4rem;
+  display: flex;
+  flex-flow: row;
+  align-items: center;
+  justify-content: center;
+
+  transition: color .3s;
+
+  &:hover {
+    cursor: pointer;
+    color: $dc_metro_blue
   }
 
-  @media (max-width: $breakpoint-lg) {
-    margin: 2rem;
-    height: calc(100% - 4rem);
+  &[aria-expanded="true"] {
+    color: $dc_metro_blue
   }
+}
 
-  @media (max-width: $breakpoint-md) {
-    margin: 1rem;
-    height: calc(100% - 2rem);
-  }
+.mat-mdc-menu-panel {
+  padding: 0;
 
-  @media (max-width: $breakpoint-sm) {
-    margin: 0.5rem;
-    height: calc(100% - 1rem);
+  background-color: $white !important;
+  border: 1px solid $dc_metro_blue
+}
+
+// MAT: TABLE
+:root {
+  @include mat.table-overrides((
+    background-color: $white,
+  ));
+}
+
+.mat-mdc-table {
+  padding: 0 1rem;
+  background-color: $light-gray !important;
+
+  thead th {
+    border-bottom: none;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    font-size: .75rem;
+    color: $dark-gray;
+    background-color: $light-gray !important;
   }
+}
+
+// These are equivalent to tailwind or bootstrap classes.
+// If I have enough, I'll re-eval using the lib.
+.flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+.gap-1 {
+  gap: .25rem;
+}
+
+.gap-2 {
+  gap: .5rem;
+}
+
+// BRANDING
+
+#logo-image {
+  width: 2rem;
 }

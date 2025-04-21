@@ -1,13 +1,12 @@
 import { Component, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { NavigationComponent } from '../navigation.component';
 import { UserService } from '../auth/service/user.service';
 import { User } from '../auth/model/user.model';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [NavigationComponent],
+  imports: [],
   templateUrl: 'home.component.html',
   styles: [],
 })

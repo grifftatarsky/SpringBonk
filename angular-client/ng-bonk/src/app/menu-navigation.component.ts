@@ -1,18 +1,17 @@
 import { Component, Input, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { MatButton } from '@angular/material/button';
+import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
-  selector: 'app-navigation',
+  selector: 'app-menu-navigation',
   standalone: true,
-  imports: [MatButton],
-  template: `<button mat-stroked-button (click)="navigate()">
-    {{ label }}
-  </button>`,
+  imports: [MatButtonModule, MatMenuModule],
+  template: ` <button mat-menu-item (click)="navigate()">{{ label }}</button>`,
   styles: ``,
 })
-export class NavigationComponent implements OnDestroy {
+export class MenuNavigationComponent implements OnDestroy {
   @Input()
   label!: string;
 

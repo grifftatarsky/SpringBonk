@@ -1,7 +1,6 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
-import { NavigationComponent } from '../navigation.component';
 import { ElectionHttpService } from './service/election-http.service';
 import { ElectionsDataSource } from './elections.datasource';
 import { ElectionDialog } from './election-dialog.component';
@@ -12,13 +11,13 @@ import { ElectionRequest } from '../model/request/election-request.model';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Observable } from 'rxjs';
-import { MatCard } from '@angular/material/card';
+import { MatToolbarModule } from '@angular/material/toolbar';
 
 @Component({
   selector: 'app-elections',
   standalone: true,
   imports: [
-    NavigationComponent,
+    MatToolbarModule,
     MatTableModule,
     MatPaginatorModule,
     MatButtonModule,
@@ -27,7 +26,6 @@ import { MatCard } from '@angular/material/card';
     DatePipe,
     AsyncPipe,
     NgIf,
-    MatCard,
   ],
   templateUrl: './elections.component.html',
   styleUrls: ['./elections.component.scss'],
@@ -36,6 +34,7 @@ export class ElectionsComponent implements AfterViewInit {
   // MARK // TODO: Replace the loading circle with a nice, clean progress bar.
   displayedColumns: string[] = [
     'title',
+    'status',
     'endDateTime',
     'createDate',
     'actions',

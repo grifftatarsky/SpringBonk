@@ -1,13 +1,24 @@
-<div class="interior-container">
-  <!--  <div id="header-container">-->
-  <!--    <img-->
-  <!--      style="width: 2rem; padding-right: 0.5rem"-->
-  <!--      src="/small_pill%20only-min.svg" />-->
-  <!--    <h1 id="title">Akira</h1>-->
-  <!--    <div style="margin: auto"></div>-->
-  <!--    <app-authentication style="margin: auto 1em"></app-authentication>-->
-  <!--  </div>-->
-  <div id="main-container">
-    <router-outlet></router-outlet>
-  </div>
+<mat-toolbar id="toolbar-primary" class="gap-2">
+  <img id="logo-image" src="/small_pill%20only-min.svg" />
+  <span>Akira</span>
+  <div class="spacer"></div>
+  <app-authentication />
+</mat-toolbar>
+
+<mat-toolbar id="toolbar-secondary">
+  <button mat-button [matMenuTriggerFor]="menu" class="flex-row-reverse gap-1">
+    {{ title$ | async }}
+    <mat-icon>expand_more</mat-icon>
+  </button>
+
+  <mat-menu #menu="matMenu">
+    <app-menu-navigation [destination]="['']" label="Home" />
+    <app-menu-navigation [destination]="['about']" label="About" />
+    <app-menu-navigation [destination]="['elections']" label="My elections" />
+  </mat-menu>
+  <div class="spacer"></div>
+</mat-toolbar>
+
+<div>
+  <router-outlet></router-outlet>
 </div>
