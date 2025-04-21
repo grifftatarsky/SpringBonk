@@ -3,10 +3,6 @@ import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
-/**
- * BaseHttpService provides generic HTTP methods with centralized error handling and clean request setup.
- * Extend this class in feature-specific services to DRY out boilerplate and enforce consistency.
- */
 @Injectable({
   providedIn: 'root'
 })
@@ -55,7 +51,10 @@ export class BaseHttpService {
   /**
    * Perform a DELETE request
    */
-  protected delete<T>(url: string, params?: HttpParams | { [param: string]: string | number | boolean }, headers?: HttpHeaders): Observable<T> {
+  protected delete<T>(
+    url: string, params?: HttpParams | { [param: string]: string | number | boolean },
+    headers?: HttpHeaders
+  ): Observable<T> {
     return this.http.delete<T>(url, {
       params: this.normalizeParams(params),
       headers: this.normalizeHeaders(headers)
@@ -68,12 +67,14 @@ export class BaseHttpService {
   /**
    * Normalizes various param types to HttpParams
    */
-  private normalizeParams(params?: HttpParams | { [param: string]: string | number | boolean }): HttpParams | undefined {
+  private normalizeParams(
+    params?: HttpParams | { [param: string]: string | number | boolean }
+  ): HttpParams | undefined {
     if (!params) return undefined;
     if (params instanceof HttpParams) return params;
 
     let httpParams = new HttpParams();
-    Object.entries(params).forEach(([key, value]) => {
+    Object.entries(params).forEach(([key, value]): void => {
       httpParams = httpParams.set(key, String(value));
     });
     return httpParams;
@@ -87,7 +88,7 @@ export class BaseHttpService {
     if (headers instanceof HttpHeaders) return headers;
 
     let httpHeaders = new HttpHeaders();
-    Object.entries(headers).forEach(([key, value]) => {
+    Object.entries(headers).forEach(([key, value]): void => {
       httpHeaders = httpHeaders.set(key, value);
     });
     return httpHeaders;
@@ -97,7 +98,7 @@ export class BaseHttpService {
    * Global error handler for all HTTP requests
    */
   private handleError(error: HttpErrorResponse): Observable<never> {
-    // Could expand this with toast service or log to a remote server
+    // MARK // TODO: add a toast message, and let's add an error type.
     console.error(`[HTTP ERROR] ${error.status}: ${error.message}`);
     return throwError((): HttpErrorResponse => error);
   }

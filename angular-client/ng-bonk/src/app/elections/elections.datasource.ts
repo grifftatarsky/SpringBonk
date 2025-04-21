@@ -3,7 +3,7 @@ import { ElectionResponse } from '../model/response/election-response.model';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { catchError, map, finalize } from 'rxjs/operators';
 import { ElectionHttpService } from './service/election-http.service';
-import {PagedResponse} from '../model/response/paged-response.model';
+import { PagedResponse } from '../model/response/paged-response.model';
 
 export class ElectionsDataSource extends DataSource<ElectionResponse> {
   private _electionsSubject: BehaviorSubject<ElectionResponse[]> =

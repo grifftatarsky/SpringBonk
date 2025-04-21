@@ -6,7 +6,7 @@ import { ElectionRequest } from '../../model/request/election-request.model';
 import { CandidateResponse } from '../../model/response/candidate-response.model';
 import { VoteResponse } from '../../model/response/vote-response.model';
 import { ElectionResult } from '../../model/election-result.model';
-import {PagedResponse} from '../../model/response/paged-response.model';
+import { PagedResponse } from '../../model/response/paged-response.model';
 
 @Injectable({
   providedIn: 'root'
