@@ -103,16 +103,78 @@ mat-toolbar {
 }
 
 .mat-mdc-table {
-  padding: 0 1rem;
-  background-color: $light-gray !important;
 
-  thead th {
-    border-bottom: none;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    font-size: .75rem;
-    color: $dark-gray;
+  thead {
     background-color: $light-gray !important;
+
+    th {
+      border-bottom: none;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      font-size: .75rem;
+      color: $dark-gray;
+      background-color: $light-gray !important;
+
+      &:first-child {
+        padding-left: 2rem;
+      }
+    }
+  }
+
+  tbody {
+    td {
+      &:first-child {
+        padding-left: 2rem;
+      }
+    }
+  }
+}
+
+.table-no-data-bar {
+  width: 100%;
+}
+
+// MAT: CHIP
+
+mat-chip {
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.status-chip-endless {
+  min-width: 102px;
+  @include mat.chips-overrides((
+    outline-color: $dc_metro_green,
+    label-text-color: $dc_metro_green,
+  ));
+
+  mat-icon {
+    color: $dc_metro_green !important;
+  }
+}
+
+.status-chip-ongoing {
+  min-width: 102px;
+  @include mat.chips-overrides((
+    outline-color: $dc_metro_green,
+    elevated-container-color: $dc_metro_green,
+    label-text-color: $white,
+  ));
+
+  mat-icon {
+    color: $white !important;
+  }
+}
+
+.status-chip-ended {
+  min-width: 102px;
+  @include mat.chips-overrides((
+    outline-color: $white,
+    elevated-container-color: $dc_metro_red,
+    label-text-color: $white,
+  ));
+
+  mat-icon {
+    color: $white !important;
   }
 }
 

@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -41,13 +45,23 @@ public class ShelfController {
     return ResponseEntity.ok(createdShelf);
   }
 
+  @GetMapping
+  @Operation(summary = "Get shelves (paged)")
+  public ResponseEntity<PagedModel<ShelfResponse>> getPagedShelves(
+      Pageable pageable,
+      PagedResourcesAssembler assembler
+  ) {
+    Page<ShelfResponse> elections = shelfService.getPagedShelves(pageable);
+    return ResponseEntity.ok(assembler.toModel(elections));
+  }
+
   @GetMapping("/all")
   @Operation(summary = "Get all shelves for the current user (unpaged)")
   public ResponseEntity<List<ShelfResponse>> getUserShelves(
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
-    List<ShelfResponse> shelves = shelfService.getUserShelves(userId);
+    List<ShelfResponse> shelves = shelfService.getAllUserShelves(userId);
     return ResponseEntity.ok(shelves);
   }
 

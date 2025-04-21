@@ -14,6 +14,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -39,10 +41,14 @@ public class ShelfService {
     return new ShelfResponse(shelfRepository.saveAndFlush(shelf));
   }
 
-  public List<ShelfResponse> getUserShelves(
+  public List<ShelfResponse> getAllUserShelves(
       @NotNull UUID userId
   ) {
     return shelfRepository.findByUserId(userId).stream().map(ShelfResponse::new).toList();
+  }
+
+  public Page<ShelfResponse> getPagedShelves(Pageable pageable) {
+    return shelfRepository.findAll(pageable).map(ShelfResponse::new);
   }
 
   public ShelfResponse getOneShelf(

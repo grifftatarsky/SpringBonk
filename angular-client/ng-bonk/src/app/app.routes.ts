@@ -3,6 +3,7 @@ import { AboutView } from './about.view';
 import { HomeComponent } from './home/home.component';
 import { LoginErrorView } from './login-error.view';
 import { ElectionsComponent } from './elections/elections.component';
+import { ShelvesComponent } from './shelves/shelves.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, data: { title: 'Home' } },
@@ -12,6 +13,12 @@ export const routes: Routes = [
     component: ElectionsComponent,
     data: { title: 'My elections' },
   },
+  {
+    path: 'shelves',
+    component: ShelvesComponent,
+    data: { title: 'My shelves' },
+  },
+
   {
     path: 'login-error',
     component: LoginErrorView,

@@ -42,6 +42,10 @@ export class ElectionHttpService extends BaseHttpService {
     );
   }
 
+  getAllElections(): Observable<ElectionResponse[]> {
+    return this.get<ElectionResponse[]>(`${this.baseUrl}/all`);
+  }
+
   getElectionById(id: string): Observable<ElectionResponse> {
     return this.get<ElectionResponse>(`${this.baseUrl}/${id}`);
   }
