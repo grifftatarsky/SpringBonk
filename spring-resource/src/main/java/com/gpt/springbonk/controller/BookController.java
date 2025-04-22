@@ -113,14 +113,14 @@ public class BookController {
     return ResponseEntity.ok(updatedBook);
   }
 
-  @GetMapping("/{googleId}/shelves")
-  @Operation(summary = "Get a book's shelfIds by GoogleId")
-  public ResponseEntity<List<UUID>> getShelfIdsByBookGoogleId(
-      @PathVariable String googleId,
+  @GetMapping("/{openLibraryId}/shelves")
+  @Operation(summary = "Get a book's shelfIds by Open Library ID")
+  public ResponseEntity<List<UUID>> getShelfIdsByBookOpenLibraryId(
+      @PathVariable String openLibraryId,
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
-    List<UUID> shelfIds = bookService.getShelfIdsByBookGoogleId(googleId, userId);
+    List<UUID> shelfIds = bookService.getShelfIdsByBookOpenLibraryId(openLibraryId, userId);
     return ResponseEntity.ok(shelfIds);
   }
 }

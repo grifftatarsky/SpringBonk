@@ -30,7 +30,7 @@ public class Book {
   private UUID id;
 
   @Column
-  private String googleID;
+  private String openLibraryId;
 
   @Column(nullable = false)
   private String title;
@@ -63,11 +63,11 @@ public class Book {
     this.author = author;
   }
 
-  public Book(String title, String author, String imageURL, String blurb, String googleID) {
+  public Book(String title, String author, String imageURL, String blurb, String openLibraryId) {
     this.title = title;
     this.author = author;
     this.imageURL = imageURL;
     this.blurb = blurb;
-    this.googleID = googleID;
+    this.openLibraryId = openLibraryId;
   }
 }

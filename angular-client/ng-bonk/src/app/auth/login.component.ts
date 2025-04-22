@@ -37,7 +37,7 @@ export class LoginComponent {
     loginOptions(http).subscribe((opts: LoginOptionDto[]): void => {
       if (opts.length) {
         this.loginUri = opts[0].loginUri;
-        // MARK // NOTE: To check if same authority, use opts[0].isSameAuthority.
+        // NOTE: To check if same authority, use opts[0].isSameAuthority.
       }
     });
   }

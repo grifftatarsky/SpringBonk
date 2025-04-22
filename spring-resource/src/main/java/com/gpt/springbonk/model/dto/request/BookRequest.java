@@ -15,6 +15,6 @@ public class BookRequest {
 
   private String imageURL;
   private String blurb;
-  private String googleID;
+  private String openLibraryId;
   private Set<UUID> shelfIds;
 }

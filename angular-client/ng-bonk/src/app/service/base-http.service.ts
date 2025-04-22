@@ -119,7 +119,7 @@ export class BaseHttpService {
     if (!headers) return undefined;
     if (headers instanceof HttpHeaders) return headers;
 
-    let httpHeaders = new HttpHeaders();
+    let httpHeaders: HttpHeaders = new HttpHeaders();
     Object.entries(headers).forEach(([key, value]): void => {
       httpHeaders = httpHeaders.set(key, value);
     });
@@ -130,7 +130,7 @@ export class BaseHttpService {
    * Global error handler for all HTTP requests
    */
   private handleError(error: HttpErrorResponse): Observable<never> {
-    // MARK // TODO: add a toast message, and let's add an error type.
+    // TODO: add a toast message, and let's add an error type.
     console.error(`[HTTP ERROR] ${error.status}: ${error.message}`);
     return throwError((): HttpErrorResponse => error);
   }

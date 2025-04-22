@@ -39,7 +39,8 @@ public class BookService {
 
     Book book;
 
-    Optional<Book> optionalExistingBook = bookRepository.findByGoogleID(bookRequest.getGoogleID());
+    Optional<Book> optionalExistingBook =
+        bookRepository.findByOpenLibraryId(bookRequest.getOpenLibraryId());
 
     if (optionalExistingBook.isEmpty()) {
       // CASE NEW BOOK!
@@ -49,10 +50,10 @@ public class BookService {
           bookRequest.getAuthor(),
           bookRequest.getImageURL(),
           bookRequest.getBlurb(),
-          bookRequest.getGoogleID()
+          bookRequest.getOpenLibraryId()
       );
       // Update the shelves.
-      if (!shelfIds.isEmpty()) {
+      if (shelfIds != null && !shelfIds.isEmpty()) {
         shelfIds.forEach(shelfId -> addBookToShelf(book, shelfId, userId));
       } else {
         Shelf unshelvedShelf = shelfRepository.findByUserIdAndDefaultShelfAndTitle(
@@ -68,7 +69,8 @@ public class BookService {
       // CASE BOOK ALREADY IN SYSTEM!
       book = optionalExistingBook.get();
       // Grab the IDs of the user's shelves.
-      List<UUID> previousUserShelvesForBook = getShelfIdsByBookGoogleId(book.getGoogleID(), userId);
+      List<UUID> previousUserShelvesForBook =
+          getShelfIdsByBookOpenLibraryId(book.getOpenLibraryId(), userId);
       // Slate!
       List<UUID> toRemove =
           previousUserShelvesForBook.stream().filter(id -> !shelfIds.contains(id)).toList();
@@ -127,7 +129,7 @@ public class BookService {
     Set<UUID> shelfIds = bookUpdateRequest.getShelfIds();
     // If shelf update is requested
     // TODO: Fix this duplicated code.
-    if (!shelfIds.isEmpty()) {
+    if (shelfIds != null && !shelfIds.isEmpty()) {
       shelfIds.forEach(shelfId -> addBookToShelf(book, shelfId, userId));
     } else {
       Shelf unshelvedShelf = shelfRepository.findByUserIdAndDefaultShelfAndTitle(
@@ -221,9 +223,9 @@ public class BookService {
     }
   }
 
-  public List<UUID> getShelfIdsByBookGoogleId(String googleId, UUID userId) {
-    Book existingBook = bookRepository.findByGoogleID(googleId).orElseThrow(
-        () -> new ResourceNotFoundException("Book not found with id: " + googleId)
+  public List<UUID> getShelfIdsByBookOpenLibraryId(String openLibraryId, UUID userId) {
+    Book existingBook = bookRepository.findByOpenLibraryId(openLibraryId).orElseThrow(
+        () -> new ResourceNotFoundException("Book not found with Open Library ID: " + openLibraryId)
     );
 
     List<UUID> shelfIds = new ArrayList<>();

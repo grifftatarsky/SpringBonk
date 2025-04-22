@@ -11,7 +11,7 @@ public class SimpleBookResponse {
   private String author;
   private String imageURL;
   private String blurb;
-  private String googleID;
+  private String openLibraryId;
 
   public SimpleBookResponse(Book book) {
     this.id = book.getId();
@@ -19,6 +19,6 @@ public class SimpleBookResponse {
     this.author = book.getAuthor();
     this.imageURL = book.getImageURL();
     this.blurb = book.getBlurb();
-    this.googleID = book.getGoogleID();
+    this.openLibraryId = book.getOpenLibraryId();
   }
 }

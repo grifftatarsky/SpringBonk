@@ -104,6 +104,11 @@ mat-toolbar {
 
 .mat-mdc-table {
 
+  .table-no-data-bar {
+    padding-left: 2rem;
+    margin-top: 1rem;
+  }
+
   thead {
     background-color: $light-gray !important;
 
@@ -175,6 +180,25 @@ mat-chip {
 
   mat-icon {
     color: $white !important;
+  }
+}
+
+// MAT: SHEET
+
+.sheet-max {
+  width: 100vw;
+  margin: 2rem;
+
+  mat-bottom-sheet-container {
+    padding-top: 2rem;
+    width: 100%;
+    max-width: unset;
+    height: calc(100vh - 6rem);
+    overflow: scroll;
+  }
+
+  .sheet-search-bar {
+    display: flex;
   }
 }
 

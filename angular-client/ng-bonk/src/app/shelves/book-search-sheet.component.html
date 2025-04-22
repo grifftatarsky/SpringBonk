@@ -1,0 +1,56 @@
+<div class="sheet-search-bar">
+  <!--  <mat-form-field class="w-full" appearance="outline">-->
+  <!--    <mat-label>Search Title or Author</mat-label>-->
+  <!--    <input-->
+  <!--      matInput-->
+  <!--      [(ngModel)]="searchValue"-->
+  <!--      (ngModelChange)="onSearchInput($event)"-->
+  <!--      autocomplete="off" />-->
+  <!--  </mat-form-field>-->
+  <!--  <div class="spacer"></div>-->
+  <button mat-button (click)="cancel()">Cancel</button>
+  <mat-paginator
+    [length]="total"
+    [pageSize]="10"
+    [pageSizeOptions]="[5, 10, 25]"
+    aria-label="Shelf Pagination">
+  </mat-paginator>
+</div>
+
+<div *ngIf="loading$ | async">
+  <mat-progress-bar mode="indeterminate" />
+</div>
+
+<table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+  <!-- No Data -->
+  <div class="table-no-data-bar" *matNoDataRow>Search away, cap-i-tan.</div>
+
+  <ng-container matColumnDef="title">
+    <th mat-header-cell *matHeaderCellDef>Title</th>
+    <td mat-cell *matCellDef="let book">{{ book.title }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="author">
+    <th mat-header-cell *matHeaderCellDef>Author</th>
+    <td mat-cell *matCellDef="let book">{{ book.author_name?.[0] ?? '—' }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="year">
+    <th mat-header-cell *matHeaderCellDef>First Published</th>
+    <td mat-cell *matCellDef="let book">
+      {{ book.first_publish_year ?? '—' }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="select">
+    <th mat-header-cell *matHeaderCellDef></th>
+    <td mat-cell *matCellDef="let book">
+      <button mat-icon-button (click)="select(book)">
+        <mat-icon>check</mat-icon>
+      </button>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+</table>

@@ -34,7 +34,7 @@ import { MatChipsModule } from '@angular/material/chips';
   styleUrls: ['./elections.component.scss'],
 })
 export class ElectionsComponent implements AfterViewInit {
-  // MARK // TODO: Replace the loading circle with a nice, clean progress bar.
+  // TODO: Replace the loading circle with a nice, clean progress bar.
   displayedColumns: string[] = [
     'title',
     'status',

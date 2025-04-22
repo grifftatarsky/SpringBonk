@@ -7,5 +7,5 @@ export interface SimpleBookResponse {
   author: string;
   imageURL: string;
   blurb: string;
-  googleID: string;
+  openLibraryId: string;
 }
