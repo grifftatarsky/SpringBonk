@@ -9,7 +9,7 @@ import {
 import { AuthenticationComponent } from './auth/authentication.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatMenuModule } from '@angular/material/menu';
-import { MenuNavigationComponent } from './menu-navigation.component';
+import { MenuNavigationComponent } from './common/menu-navigation.component';
 import { MatButtonModule } from '@angular/material/button';
 import { filter, map, Observable, startWith } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';

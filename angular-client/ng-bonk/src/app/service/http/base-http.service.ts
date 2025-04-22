@@ -7,6 +7,7 @@ import {
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +15,10 @@ import { catchError, map } from 'rxjs/operators';
 export class BaseHttpService {
   protected apiBase: string = '/bff/api';
 
-  constructor(protected http: HttpClient) {}
+  constructor(
+    protected http: HttpClient,
+    protected snackBar: MatSnackBar
+  ) {}
 
   /**
    * Perform a GET request
@@ -130,8 +134,51 @@ export class BaseHttpService {
    * Global error handler for all HTTP requests
    */
   private handleError(error: HttpErrorResponse): Observable<never> {
-    // TODO: add a toast message, and let's add an error type.
+    // Get an appropriate error message to display
+    const displayMessage: string = this.getErrorDisplayMessage(error);
+
+    this.snackBar.open(displayMessage, 'Dismiss', {
+      duration: 5000,
+      panelClass: ['error-snackbar'],
+      horizontalPosition: 'end',
+      verticalPosition: 'bottom',
+    });
+
+    // Log the error to console for debugging
     console.error(`[HTTP ERROR] ${error.status}: ${error.message}`);
+
+    // Return the error observable
     return throwError((): HttpErrorResponse => error);
+  }
+
+  /**
+   * Get a user-friendly error message based on HTTP error!
+   */
+  private getErrorDisplayMessage(error: HttpErrorResponse): string {
+    // Check if error has a specific message from the server
+    if (error.error?.message) {
+      return error.error.message;
+    }
+
+    switch (error.status) {
+      case 400:
+        return 'Invalid request. Please check your input.';
+      case 401:
+        return 'Authentication required. Please log in again.';
+      case 403:
+        return 'You do not have permission to perform this action.';
+      case 404:
+        return 'The requested resource was not found.';
+      case 409:
+        return 'Conflict occurred. The resource may have been modified.';
+      case 500:
+        return 'Server error. Please try again later.';
+      case 503:
+        return 'Service unavailable. Please try again later.';
+      case 0:
+        return 'Network error. Please check your connection.';
+      default:
+        return `Error ${error.status}: ${error.statusText || 'Unknown error'}`;
+    }
   }
 }

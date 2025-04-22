@@ -9,10 +9,7 @@ import { LogoutComponent } from './logout.component';
   selector: 'app-authentication',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, LoginComponent, LogoutComponent],
-  template: `<span>
-    <app-login *ngIf="!isAuthenticated"></app-login>
-    <app-logout *ngIf="isAuthenticated"></app-logout>
-  </span>`,
+  templateUrl: './authentication.component.html',
   styles: ``,
 })
 export class AuthenticationComponent {

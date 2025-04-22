@@ -9,7 +9,7 @@ import { MatButton } from '@angular/material/button';
   selector: 'app-logout',
   standalone: true,
   imports: [MatButton],
-  template: ` <button mat-stroked-button (click)="logout()">Logout</button> `,
+  templateUrl: './logout.component.html',
   styles: ``,
 })
 export class LogoutComponent {
