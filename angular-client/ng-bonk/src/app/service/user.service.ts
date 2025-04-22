@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subscription, interval } from 'rxjs';
-import { User } from '../model/user.model';
-import { UserHttpService } from './user-http.service';
-import { UserInfoResponse } from '../model/user-info-response.model';
+import { BehaviorSubject, interval, Observable, Subscription } from 'rxjs';
+import { User } from '../auth/user.model';
+import { UserHttpService } from './http/user-http.service';
+import { UserInfoResponse } from '../model/response/user-info-response.model';
 
 @Injectable({
   providedIn: 'root',

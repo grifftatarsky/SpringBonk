@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { BaseHttpService } from '../../service/base-http.service';
+import { BaseHttpService } from './base-http.service';
 import { ElectionResponse } from '../../model/response/election-response.model';
 import { ElectionRequest } from '../../model/request/election-request.model';
 import { CandidateResponse } from '../../model/response/candidate-response.model';

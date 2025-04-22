@@ -16,7 +16,7 @@ import { map } from 'rxjs/operators';
 import { BookResponse } from '../../model/response/book-response.model';
 import { ElectionResponse } from '../../model/response/election-response.model';
 import { NotificationService } from '../../service/notification.service';
-import { ElectionHttpService } from '../../elections/service/election-http.service';
+import { ElectionHttpService } from '../../service/http/election-http.service';
 
 @Component({
   selector: 'app-book-nominate-dialog',

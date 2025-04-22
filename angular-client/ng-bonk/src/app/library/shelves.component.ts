@@ -13,18 +13,18 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
-import { ShelvesDataSource } from './datasource/shelves.datasource';
-import { ShelfHttpService } from './service/shelves-http.service';
+import { ShelvesDataSource } from '../datasource/shelves.datasource';
+import { ShelfHttpService } from '../service/http/shelves-http.service';
 import { ShelfDialog } from './dialog/shelf-dialog.component';
 import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
-import { BookHttpService } from './service/books-http.service';
+import { BookHttpService } from '../service/http/books-http.service';
 import { BookRequest } from '../model/request/book-request.model';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { BookSearchSheet } from './book-search-sheet.component';
 import { BookResponse } from '../model/response/book-response.model';
 import { BookDetailDialog } from './dialog/book-detail-dialog.component';
 import { NotificationService } from '../service/notification.service';
-import { ElectionHttpService } from '../elections/service/election-http.service';
+import { ElectionHttpService } from '../service/http/election-http.service';
 import { BookNominateDialog } from './dialog/book-nominate.component';
 
 @Component({

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { UserService } from './service/user.service';
+import { UserService } from '../service/user.service';
 import { lastValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { baseUri } from '../app.config';

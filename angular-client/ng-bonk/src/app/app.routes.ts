@@ -3,7 +3,7 @@ import { AboutView } from './about.view';
 import { HomeComponent } from './home/home.component';
 import { LoginErrorView } from './login-error.view';
 import { ElectionsComponent } from './elections/elections.component';
-import { ShelvesComponent } from './shelves/shelves.component';
+import { ShelvesComponent } from './library/shelves.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, data: { title: 'Home' } },

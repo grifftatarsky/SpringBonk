@@ -1,13 +1,13 @@
 import { DataSource } from '@angular/cdk/collections';
-import { ElectionResponse } from '../model/response/election-response.model';
-import { Observable, BehaviorSubject, of } from 'rxjs';
-import { catchError, map, finalize } from 'rxjs/operators';
-import { ElectionHttpService } from './service/election-http.service';
+import { ShelfResponse } from '../model/response/shelf-response.model';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, finalize, map } from 'rxjs/operators';
 import { PagedResponse } from '../model/response/paged-response.model';
+import { ShelfHttpService } from '../service/http/shelves-http.service';
 
-export class ElectionsDataSource extends DataSource<ElectionResponse> {
-  private _electionsSubject: BehaviorSubject<ElectionResponse[]> =
-    new BehaviorSubject<ElectionResponse[]>([]);
+export class ShelvesDataSource extends DataSource<ShelfResponse> {
+  private _shelvesSubject: BehaviorSubject<ShelfResponse[]> =
+    new BehaviorSubject<ShelfResponse[]>([]);
 
   private _loadingSubject: BehaviorSubject<boolean> =
     new BehaviorSubject<boolean>(false);
@@ -19,27 +19,27 @@ export class ElectionsDataSource extends DataSource<ElectionResponse> {
   public loading$: Observable<boolean> = this._loadingSubject.asObservable();
   public total$: Observable<number> = this._totalSubject.asObservable();
 
-  constructor(private http: ElectionHttpService) {
+  constructor(private http: ShelfHttpService) {
     super();
   }
 
-  connect(): Observable<ElectionResponse[]> {
-    return this._electionsSubject.asObservable();
+  connect(): Observable<ShelfResponse[]> {
+    return this._shelvesSubject.asObservable();
   }
 
   disconnect(): void {
-    this._electionsSubject.complete();
+    this._shelvesSubject.complete();
     this._loadingSubject.complete();
     this._totalSubject.complete();
   }
 
-  loadElections(pageIndex = 0, pageSize = 10): void {
+  loadShelves(pageIndex = 0, pageSize = 10): void {
     this._loadingSubject.next(true);
 
     this.http
-      .getPagedElections(pageIndex, pageSize)
+      .getPagedShelves(pageIndex, pageSize)
       .pipe(
-        map((res: PagedResponse<ElectionResponse>): ElectionResponse[] => {
+        map((res: PagedResponse<ShelfResponse>): ShelfResponse[] => {
           const embeddedKey: string = Object.keys(res._embedded)[0];
           this._totalSubject.next(res.page.totalElements);
           return res._embedded[embeddedKey];
@@ -47,8 +47,8 @@ export class ElectionsDataSource extends DataSource<ElectionResponse> {
         catchError((): Observable<never[]> => of([])),
         finalize((): void => this._loadingSubject.next(false))
       )
-      .subscribe((elections: ElectionResponse[] | never[]): void =>
-        this._electionsSubject.next(elections)
+      .subscribe((shelves: ShelfResponse[] | never[]): void =>
+        this._shelvesSubject.next(shelves)
       );
   }
 }

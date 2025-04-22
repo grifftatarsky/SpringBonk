@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { map, Observable } from 'rxjs';
-import { UserService } from './service/user.service';
+import { UserService } from '../service/user.service';
 import { baseUri } from '../app.config';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';

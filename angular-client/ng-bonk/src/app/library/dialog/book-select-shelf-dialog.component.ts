@@ -14,8 +14,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { finalize, map } from 'rxjs/operators';
 import { ShelfResponse } from '../../model/response/shelf-response.model';
 import { OpenLibraryBookResponse } from '../../model/response/open-library-book-response.model';
-import { ShelfHttpService } from '../service/shelves-http.service';
-import { BookHttpService } from '../service/books-http.service';
+import { ShelfHttpService } from '../../service/http/shelves-http.service';
+import { BookHttpService } from '../../service/http/books-http.service';
 
 @Component({
   selector: 'app-book-select-shelf-dialog',

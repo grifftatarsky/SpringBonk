@@ -4,8 +4,8 @@ import { catchError, finalize, map } from 'rxjs/operators';
 import {
   OpenLibraryBookResponse,
   PagedOpenLibraryResponse,
-} from '../../model/response/open-library-book-response.model';
-import { BookHttpService } from '../service/books-http.service';
+} from '../model/response/open-library-book-response.model';
+import { BookHttpService } from '../service/http/books-http.service';
 
 export class OpenLibraryBooksDatasource extends DataSource<OpenLibraryBookResponse> {
   private _openLibrarySubject: BehaviorSubject<OpenLibraryBookResponse[]> =

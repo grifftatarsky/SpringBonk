@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { BaseHttpService } from '../../service/base-http.service';
+import { BaseHttpService } from './base-http.service';
 import { BookRequest } from '../../model/request/book-request.model';
 import { BookResponse } from '../../model/response/book-response.model';
 import { PagedOpenLibraryResponse } from '../../model/response/open-library-book-response.model';

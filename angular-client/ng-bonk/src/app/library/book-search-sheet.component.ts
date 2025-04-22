@@ -18,8 +18,8 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { MatIconModule } from '@angular/material/icon';
 import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { OpenLibraryBooksDatasource } from './datasource/open-library-books.datasource';
-import { BookHttpService } from './service/books-http.service';
+import { OpenLibraryBooksDatasource } from '../datasource/open-library-books.datasource';
+import { BookHttpService } from '../service/http/books-http.service';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { BookSelectShelfDialog } from './dialog/book-select-shelf-dialog.component';
 

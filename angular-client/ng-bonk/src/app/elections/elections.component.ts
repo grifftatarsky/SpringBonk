@@ -1,8 +1,8 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
-import { ElectionHttpService } from './service/election-http.service';
-import { ElectionsDataSource } from './elections.datasource';
+import { ElectionHttpService } from '../service/http/election-http.service';
+import { ElectionsDataSource } from '../datasource/elections.datasource';
 import { ElectionDialog } from './election-dialog.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';

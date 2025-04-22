@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { BaseHttpService } from '../../service/base-http.service';
+import { BaseHttpService } from './base-http.service';
 import { ShelfResponse } from '../../model/response/shelf-response.model';
 import { ShelfRequest } from '../../model/request/shelf-request.model';
 import { PagedResponse } from '../../model/response/paged-response.model';
