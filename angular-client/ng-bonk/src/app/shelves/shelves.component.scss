@@ -1,0 +1,106 @@
+.shelves-container {
+  padding: 16px;
+}
+
+.shelves-accordion {
+  .mat-expansion-panel-header {
+    height: 64px;
+  }
+
+  mat-panel-title {
+    flex: 0 0 200px;
+    font-weight: 500;
+  }
+
+  mat-panel-description {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .shelf-date {
+      color: rgba(0, 0, 0, 0.54);
+      font-size: 14px;
+    }
+
+    .default-badge {
+      background-color: #2196f3;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+  }
+}
+
+.shelf-actions {
+  display: flex;
+  margin-left: auto;
+}
+
+.books-container {
+  padding: 16px 0;
+}
+
+.loading-books {
+  margin: 16px 0;
+}
+
+.no-books-message {
+  text-align: center;
+  padding: 24px;
+  color: rgba(0, 0, 0, 0.54);
+  font-style: italic;
+}
+
+.books-table {
+  width: 100%;
+
+  .book-cover-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+  }
+
+  .book-row {
+    cursor: pointer;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    td {
+      padding: 12px 16px;
+    }
+  }
+
+  td.mat-cell:not(.mat-column-actions) {
+    cursor: pointer;
+  }
+}
+
+.spacer {
+  flex: 1;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: rgba(0, 0, 0, 0.12);
+  margin: 0 8px;
+}
+
+.table-no-data-bar {
+  text-align: center;
+  padding: 24px;
+  color: rgba(0, 0, 0, 0.54);
+}

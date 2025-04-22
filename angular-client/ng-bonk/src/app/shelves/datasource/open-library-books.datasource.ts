@@ -4,8 +4,8 @@ import { catchError, finalize, map } from 'rxjs/operators';
 import {
   OpenLibraryBookResponse,
   PagedOpenLibraryResponse,
-} from '../model/response/open-library-book-response.model';
-import { BookHttpService } from './service/books-http.service';
+} from '../../model/response/open-library-book-response.model';
+import { BookHttpService } from '../service/books-http.service';
 
 export class OpenLibraryBooksDatasource extends DataSource<OpenLibraryBookResponse> {
   private _openLibrarySubject: BehaviorSubject<OpenLibraryBookResponse[]> =
@@ -35,16 +35,11 @@ export class OpenLibraryBooksDatasource extends DataSource<OpenLibraryBookRespon
     this._totalSubject.complete();
   }
 
-  loadBooks(
-    title?: string,
-    author?: string,
-    pageIndex = 0,
-    pageSize = 10
-  ): void {
+  loadBooks(searchTerm?: string, pageIndex = 0, pageSize = 10): void {
     this._loadingSubject.next(true);
 
     this.http
-      .getOpenLibraryBooks(pageIndex, pageSize, title, author)
+      .getOpenLibraryBooks(pageIndex, pageSize, searchTerm)
       .pipe(
         map((res: PagedOpenLibraryResponse): OpenLibraryBookResponse[] => {
           this._totalSubject.next(res.num_found);
@@ -53,8 +48,8 @@ export class OpenLibraryBooksDatasource extends DataSource<OpenLibraryBookRespon
         catchError((): Observable<never[]> => of([])),
         finalize((): void => this._loadingSubject.next(false))
       )
-      .subscribe((shelves: OpenLibraryBookResponse[] | never[]): void =>
-        this._openLibrarySubject.next(shelves)
+      .subscribe((books: OpenLibraryBookResponse[] | never[]): void =>
+        this._openLibrarySubject.next(books)
       );
   }
 }

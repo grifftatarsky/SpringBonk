@@ -4,7 +4,7 @@ export interface BookResponse {
   id: string;
   title: string;
   author: string;
-  imageUrl: string;
+  imageURL: string;
   blurb: string;
   openLibraryId: string;
   shelves: SimpleShelfResponse[];

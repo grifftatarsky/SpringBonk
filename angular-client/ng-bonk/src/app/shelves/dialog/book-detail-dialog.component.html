@@ -1,0 +1,34 @@
+<h2 mat-dialog-title>Book Details</h2>
+
+<mat-dialog-content>
+  <div class="book-detail-container">
+    <div class="book-cover">
+      <img [src]="data.book.imageURL" alt="Book cover" />
+    </div>
+
+    <div class="book-info">
+      <h3>{{ data.book.title }}</h3>
+      <p class="author">{{ data.book.author }}</p>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Book Description</mat-label>
+        <textarea
+          matInput
+          [formControl]="blurbControl"
+          rows="5"
+          placeholder="Add a description..."></textarea>
+      </mat-form-field>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="!blurbControl.valid"
+    (click)="onSave()">
+    Save
+  </button>
+</mat-dialog-actions>

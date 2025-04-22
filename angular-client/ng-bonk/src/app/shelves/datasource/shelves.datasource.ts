@@ -1,9 +1,9 @@
 import { DataSource } from '@angular/cdk/collections';
-import { ShelfResponse } from '../model/response/shelf-response.model';
+import { ShelfResponse } from '../../model/response/shelf-response.model';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, finalize, map } from 'rxjs/operators';
-import { PagedResponse } from '../model/response/paged-response.model';
-import { ShelfHttpService } from './service/shelves-http.service';
+import { PagedResponse } from '../../model/response/paged-response.model';
+import { ShelfHttpService } from '../service/shelves-http.service';
 
 export class ShelvesDataSource extends DataSource<ShelfResponse> {
   private _shelvesSubject: BehaviorSubject<ShelfResponse[]> =

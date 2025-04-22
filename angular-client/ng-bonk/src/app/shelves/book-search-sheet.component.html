@@ -1,19 +1,23 @@
 <div class="sheet-search-bar">
-  <!--  <mat-form-field class="w-full" appearance="outline">-->
-  <!--    <mat-label>Search Title or Author</mat-label>-->
-  <!--    <input-->
-  <!--      matInput-->
-  <!--      [(ngModel)]="searchValue"-->
-  <!--      (ngModelChange)="onSearchInput($event)"-->
-  <!--      autocomplete="off" />-->
-  <!--  </mat-form-field>-->
-  <!--  <div class="spacer"></div>-->
+  <mat-form-field class="w-full" appearance="outline">
+    <mat-label>Search books</mat-label>
+    <input
+      matInput
+      [formControl]="searchControl"
+      placeholder="Title, author, etc."
+      autocomplete="off" />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <div class="spacer"></div>
+
   <button mat-button (click)="cancel()">Cancel</button>
+
   <mat-paginator
     [length]="total"
     [pageSize]="10"
     [pageSizeOptions]="[5, 10, 25]"
-    aria-label="Shelf Pagination">
+    aria-label="Book search results pagination">
   </mat-paginator>
 </div>
 
@@ -23,7 +27,9 @@
 
 <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
   <!-- No Data -->
-  <div class="table-no-data-bar" *matNoDataRow>Search away, cap-i-tan.</div>
+  <div class="table-no-data-bar" *matNoDataRow>
+    Enter a search term to find books
+  </div>
 
   <ng-container matColumnDef="title">
     <th mat-header-cell *matHeaderCellDef>Title</th>

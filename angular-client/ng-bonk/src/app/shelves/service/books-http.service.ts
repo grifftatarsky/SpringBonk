@@ -20,24 +20,21 @@ export class BookHttpService extends BaseHttpService {
   getOpenLibraryBooks(
     page = 0,
     size = 10,
-    title?: string,
-    author?: string
+    searchTerm?: string
   ): Observable<PagedOpenLibraryResponse> {
-    if (!title && !author) {
-      return of(); // No query? No dice.
+    if (!searchTerm) {
+      return of({
+        start: 0,
+        num_found: 0,
+        docs: [],
+      } as PagedOpenLibraryResponse); // Empty response when no search term
     }
 
     const params: { [key: string]: string | number } = {
-      page: page + 1, // still 1-indexed
+      q: searchTerm,
+      page: page + 1, // OpenLibrary is 1-indexed!
       limit: size,
     };
-
-    if (title) {
-      params['title'] = title;
-    }
-    if (author) {
-      params['author'] = author;
-    }
 
     return this.get<PagedOpenLibraryResponse>(this.openLibraryBaseUrl, params);
   }

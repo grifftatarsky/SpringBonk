@@ -221,3 +221,42 @@ mat-chip {
 #logo-image {
   width: 2rem;
 }
+
+// MAT: SNACKBAR
+
+.success-snackbar {
+  background-color: $dc_metro_green;
+  color: $white;
+
+  .mat-simple-snackbar-action {
+    color: $white;
+  }
+}
+
+.error-snackbar {
+  background-color: $dc_metro_red;
+  color: $white;
+
+  .mat-simple-snackbar-action {
+    color: $white;
+  }
+}
+
+// SPECIFIC: BOOK
+
+.book-cover-avatar {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+}
