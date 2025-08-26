@@ -14,7 +14,7 @@
   <button mat-button (click)="cancel()">Cancel</button>
 
   <mat-paginator
-    [length]="total"
+    [length]="(total$ | async) ?? 0"
     [pageSize]="10"
     [pageSizeOptions]="[5, 10, 25]"
     aria-label="Book search results pagination">
@@ -25,7 +25,7 @@
   <mat-progress-bar mode="indeterminate" />
 </div>
 
-<table mat-table [dataSource]="results$ | async" class="mat-elevation-z8">
+<table mat-table [dataSource]="(results$ | async) ?? []" class="mat-elevation-z8">
   <!-- No Data -->
   <div class="table-no-data-bar" *matNoDataRow>
     Enter a search term to find books

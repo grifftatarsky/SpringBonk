@@ -55,7 +55,7 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   searchControl = new FormControl('');
   results$: Observable<OpenLibraryBookResponse[]>;
   loading$: Observable<boolean>;
-  total = 0;
+  total$: Observable<number>;
 
   private destroy$ = new Subject<void>();
   private searchSubscription?: Subscription;
@@ -69,7 +69,7 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   ) {
     this.results$ = this.store.select(selectOpenLibraryResults);
     this.loading$ = this.store.select(selectSearchLoading);
-    this.store.select(selectOpenLibraryTotal).subscribe(t => (this.total = t));
+    this.total$ = this.store.select(selectOpenLibraryTotal);
   }
 
   ngAfterViewInit(): void {

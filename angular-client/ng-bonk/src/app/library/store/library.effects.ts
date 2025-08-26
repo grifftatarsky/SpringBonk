@@ -1,24 +1,30 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import * as LibraryActions from './library.actions';
 import { ShelfHttpService } from '../../service/http/shelves-http.service';
 import { BookHttpService } from '../../service/http/books-http.service';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { BookRequest } from '../../model/request/book-request.model';
 
 @Injectable()
 export class LibraryEffects {
-  constructor(
-    private actions$: Actions,
-    private shelfHttp: ShelfHttpService,
-    private bookHttp: BookHttpService
-  ) {}
+  private actions$ = inject(Actions);
+  private shelfHttp = inject(ShelfHttpService);
+  private bookHttp = inject(BookHttpService);
 
   loadShelves$ = createEffect(() =>
     this.actions$.pipe(
       ofType(LibraryActions.loadShelves),
+      tap(({ pageIndex = 0, pageSize = 10 }) =>
+        console.log('[LibraryEffects] loadShelves', { pageIndex, pageSize })
+      ),
       switchMap(({ pageIndex = 0, pageSize = 10 }) =>
         this.shelfHttp.getPagedShelves(pageIndex, pageSize).pipe(
+          tap(res =>
+            console.log('[LibraryEffects] loadShelves success', {
+              total: res.page.totalElements,
+            })
+          ),
           map(res => {
             const embeddedKey = Object.keys(res._embedded)[0];
             return LibraryActions.loadShelvesSuccess({
@@ -26,7 +32,10 @@ export class LibraryEffects {
               total: res.page.totalElements,
             });
           }),
-          catchError(() => of(LibraryActions.loadShelvesFailure()))
+          catchError(error => {
+            console.error('[LibraryEffects] loadShelves failure', error);
+            return of(LibraryActions.loadShelvesFailure());
+          })
         )
       )
     )
@@ -68,12 +77,24 @@ export class LibraryEffects {
   loadShelfBooks$ = createEffect(() =>
     this.actions$.pipe(
       ofType(LibraryActions.loadShelfBooks),
+      tap(({ shelfId }) =>
+        console.log('[LibraryEffects] loadShelfBooks', { shelfId })
+      ),
       switchMap(({ shelfId }) =>
         this.bookHttp.getBooksByShelfId(shelfId).pipe(
+          tap(books =>
+            console.log('[LibraryEffects] loadShelfBooks success', {
+              shelfId,
+              count: books.length,
+            })
+          ),
           map(books => LibraryActions.loadShelfBooksSuccess({ shelfId, books })),
-          catchError(() =>
-            of(LibraryActions.loadShelfBooksSuccess({ shelfId, books: [] }))
-          )
+          catchError(error => {
+            console.error('[LibraryEffects] loadShelfBooks failure', error);
+            return of(
+              LibraryActions.loadShelfBooksSuccess({ shelfId, books: [] })
+            );
+          })
         )
       )
     )
@@ -82,6 +103,12 @@ export class LibraryEffects {
   addBookFromOpenLibrary$ = createEffect(() =>
     this.actions$.pipe(
       ofType(LibraryActions.addBookFromOpenLibrary),
+      tap(({ shelfId, book }) =>
+        console.log('[LibraryEffects] addBookFromOpenLibrary', {
+          shelfId,
+          title: book.title,
+        })
+      ),
       switchMap(({ book, shelfId }) => {
         const payload: BookRequest = {
           title: book.title,
@@ -93,9 +120,17 @@ export class LibraryEffects {
           openLibraryId: book.key,
           shelfIds: [shelfId],
         };
-        return this.bookHttp
-          .createBook(payload)
-          .pipe(map(created => LibraryActions.addBookSuccess({ shelfId, book: created })));
+        return this.bookHttp.createBook(payload).pipe(
+          tap(created =>
+            console.log('[LibraryEffects] addBookFromOpenLibrary success', {
+              shelfId,
+              bookId: created.id,
+            })
+          ),
+          map(created =>
+            LibraryActions.addBookSuccess({ shelfId, book: created })
+          )
+        );
       })
     )
   );
@@ -125,15 +160,26 @@ export class LibraryEffects {
   searchOpenLibrary$ = createEffect(() =>
     this.actions$.pipe(
       ofType(LibraryActions.searchOpenLibrary),
+      tap(({ query }) =>
+        console.log('[LibraryEffects] searchOpenLibrary', { query })
+      ),
       switchMap(({ query, pageIndex = 0, pageSize = 10 }) =>
         this.bookHttp.getOpenLibraryBooks(pageIndex, pageSize, query).pipe(
+          tap(res =>
+            console.log('[LibraryEffects] searchOpenLibrary success', {
+              total: res.num_found,
+            })
+          ),
           map(res =>
             LibraryActions.searchOpenLibrarySuccess({
               results: res.docs,
               total: res.num_found,
             })
           ),
-          catchError(() => of(LibraryActions.searchOpenLibraryFailure()))
+          catchError(error => {
+            console.error('[LibraryEffects] searchOpenLibrary failure', error);
+            return of(LibraryActions.searchOpenLibraryFailure());
+          })
         )
       )
     )
