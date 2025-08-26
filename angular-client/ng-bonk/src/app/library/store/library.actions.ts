@@ -10,7 +10,7 @@ export const loadShelves = createAction(
 );
 export const loadShelvesSuccess = createAction(
   '[Library] Load Shelves Success',
-  props<{ shelves: ShelfResponse[]; total: number }>()
+  props<{ shelves: ShelfResponse[]; total: number; pageIndex: number }>()
 );
 export const loadShelvesFailure = createAction('[Library] Load Shelves Failure');
 

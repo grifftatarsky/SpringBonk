@@ -30,6 +30,7 @@ export class LibraryEffects {
             return LibraryActions.loadShelvesSuccess({
               shelves: res._embedded[embeddedKey],
               total: res.page.totalElements,
+              pageIndex,
             });
           }),
           catchError(error => {

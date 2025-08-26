@@ -1,5 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import {
   ActivatedRoute,
   NavigationEnd,
@@ -15,6 +18,7 @@ import { filter, map, Observable, startWith } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { UserService } from './service/user.service';
+import { animate, style, transition, trigger } from '@angular/animations';
 
 @Component({
   selector: 'app-root',
@@ -33,6 +37,17 @@ import { UserService } from './service/user.service';
   templateUrl: './app.component.html',
   styles: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger('routeFadeAnimation', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('300ms ease-out', style({ opacity: 1 })),
+      ]),
+      transition(':leave', [
+        animate('300ms ease-in', style({ opacity: 0 })),
+      ]),
+    ]),
+  ],
 })
 export class AppComponent {
   title$: Observable<string>;

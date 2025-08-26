@@ -13,9 +13,20 @@ describe('Library Reducer', () => {
 
   it('should handle loadShelvesSuccess', () => {
     const shelves: ShelfResponse[] = [
-      { id: '1', title: 'Test', createdDate: '', userID: '', defaultShelf: false, books: [] },
+      {
+        id: '1',
+        title: 'Test',
+        createdDate: '',
+        userID: '',
+        defaultShelf: false,
+        books: [],
+      },
     ];
-    const action = LibraryActions.loadShelvesSuccess({ shelves, total: 1 });
+    const action = LibraryActions.loadShelvesSuccess({
+      shelves,
+      total: 1,
+      pageIndex: 0,
+    });
     const state = libraryReducer(initialState, action);
     expect(state.shelves.length).toBe(1);
     expect(state.total).toBe(1);

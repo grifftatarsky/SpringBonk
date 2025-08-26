@@ -14,7 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 import { Observable, Subject, Subscription, merge } from 'rxjs';
-import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -88,11 +88,11 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     // Set up search with debounce across all controls
     this.searchSubscription = merge(
-      this.searchControl.valueChanges,
-      this.titleControl.valueChanges,
-      this.authorControl.valueChanges,
-      this.subjectControl.valueChanges,
-      this.sortControl.valueChanges
+      this.searchControl.valueChanges.pipe(skip(1)),
+      this.titleControl.valueChanges.pipe(skip(1)),
+      this.authorControl.valueChanges.pipe(skip(1)),
+      this.subjectControl.valueChanges.pipe(skip(1)),
+      this.sortControl.valueChanges.pipe(skip(1))
     )
       .pipe(takeUntil(this.destroy$), debounceTime(300), distinctUntilChanged())
       .subscribe((): void => {

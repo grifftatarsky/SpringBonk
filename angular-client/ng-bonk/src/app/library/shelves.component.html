@@ -16,14 +16,6 @@
   <div class="spacer"></div>
 </mat-toolbar>
 
-<mat-paginator
-  class="shelf-paginator"
-  [length]="(total$ | async) ?? 0"
-  [pageSize]="10"
-  [pageSizeOptions]="[5, 10, 25]"
-  aria-label="Shelf Pagination">
-</mat-paginator>
-
 <div *ngIf="loading$ | async">
   <mat-progress-bar mode="indeterminate" />
 </div>
@@ -89,7 +81,13 @@
 
             <table
               mat-table
-              [dataSource]="shelfBooks[shelf.id] || []"
+              [dataSource]="
+                (shelfBooks[shelf.id] || []) |
+                slice:
+                  (bookPageIndex[shelf.id] || 0) * bookPageSize:
+                  (bookPageIndex[shelf.id] || 0) * bookPageSize +
+                    bookPageSize
+              "
               *ngIf="
                 !loadingBooks[shelf.id] &&
                 shelfBooks[shelf.id] &&
@@ -193,6 +191,19 @@
                 *matRowDef="let row; columns: bookColumns"
                 class="book-row"></tr>
             </table>
+            <mat-paginator
+              class="books-paginator"
+              *ngIf="
+                shelfBooks[shelf.id] &&
+                shelfBooks[shelf.id].length > bookPageSize
+              "
+              [length]="shelfBooks[shelf.id]?.length ?? 0"
+              [pageSize]="bookPageSize"
+              [pageIndex]="bookPageIndex[shelf.id] || 0"
+              [pageSizeOptions]="[5, 10, 25]"
+              aria-label="Shelf books pagination"
+              (page)="onBookPage($event, shelf.id)">
+            </mat-paginator>
           </div>
         </mat-expansion-panel>
       </mat-accordion>

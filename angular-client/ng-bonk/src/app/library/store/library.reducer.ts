@@ -39,10 +39,15 @@ const reducer = createReducer(
     LibraryActions.loadShelvesSuccess,
     (
       state: LibraryState,
-      { shelves, total }: { shelves: ShelfResponse[]; total: number }
+      {
+        shelves,
+        total,
+        pageIndex,
+      }: { shelves: ShelfResponse[]; total: number; pageIndex: number }
     ): LibraryState => ({
       ...state,
-      shelves,
+      shelves:
+        pageIndex > 0 ? [...state.shelves, ...shelves] : shelves,
       total,
       loadingShelves: false,
     })

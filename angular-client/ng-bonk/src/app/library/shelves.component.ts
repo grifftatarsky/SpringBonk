@@ -1,17 +1,17 @@
 import {
-  AfterViewInit,
   Component,
-  ViewChild,
   ChangeDetectionStrategy,
+  HostListener,
+  OnInit,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AsyncPipe, NgForOf, NgIf } from '@angular/common';
+import { AsyncPipe, NgForOf, NgIf, SlicePipe } from '@angular/common';
 import { ShelfRequest } from '../model/request/shelf-request.model';
 import { ShelfResponse } from '../model/response/shelf-response.model';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Observable } from 'rxjs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -36,6 +36,7 @@ import {
 } from './store/library.selectors';
 import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
 import { ShelfDialog } from './dialog/shelf-dialog.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-shelves',
@@ -55,12 +56,13 @@ import { ShelfDialog } from './dialog/shelf-dialog.component';
     AsyncPipe,
     NgIf,
     NgForOf,
+    SlicePipe,
   ],
   templateUrl: './shelves.component.html',
   styleUrls: ['./shelves.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ShelvesComponent implements AfterViewInit {
+export class ShelvesComponent implements OnInit {
   bookColumns: string[] = ['cover', 'title', 'author', 'published', 'actions'];
   shelves$: Observable<ShelfResponse[]>;
   loading$: Observable<boolean>;
@@ -71,8 +73,14 @@ export class ShelvesComponent implements AfterViewInit {
   expandedShelf: string | null = null;
   shelfBooks: { [shelfId: string]: BookResponse[] } = {};
   loadingBooks: { [shelfId: string]: boolean } = {};
+  bookPageIndex: { [shelfId: string]: number } = {};
+  bookPageSize = 5;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  private pageIndex = 0;
+  private pageSize = 10;
+  private shelvesCount = 0;
+  private totalCount = 0;
+  private loadingShelves = false;
 
   constructor(
     private store: Store,
@@ -84,34 +92,64 @@ export class ShelvesComponent implements AfterViewInit {
     this.total$ = this.store.select(selectShelvesTotal);
     this.shelfBooks$ = this.store.select(selectShelfBooks);
     this.loadingBooks$ = this.store.select(selectLoadingBooks);
-    this.shelfBooks$.subscribe(sb => (this.shelfBooks = sb));
-    this.loadingBooks$.subscribe(lb => (this.loadingBooks = lb));
+    this.shelfBooks$.pipe(takeUntilDestroyed()).subscribe(sb => (this.shelfBooks = sb));
+    this.loadingBooks$
+      .pipe(takeUntilDestroyed())
+      .subscribe(lb => (this.loadingBooks = lb));
+    this.loading$
+      .pipe(takeUntilDestroyed())
+      .subscribe(l => (this.loadingShelves = l));
+    this.shelves$
+      .pipe(takeUntilDestroyed())
+      .subscribe(s => (this.shelvesCount = s.length));
+    this.total$
+      .pipe(takeUntilDestroyed())
+      .subscribe(t => (this.totalCount = t));
   }
 
-  ngAfterViewInit(): void {
-    this.paginator.page.subscribe((): void => {
-      this.store.dispatch(
-        LibraryActions.loadShelves({
-          pageIndex: this.paginator.pageIndex,
-          pageSize: this.paginator.pageSize,
-        })
-      );
-    });
-
-    this.store.dispatch(LibraryActions.loadShelves({}));
+  ngOnInit(): void {
+    this.store.dispatch(
+      LibraryActions.loadShelves({
+        pageIndex: this.pageIndex,
+        pageSize: this.pageSize,
+      })
+    );
   }
 
   refresh(): void {
+    this.pageIndex = 0;
     this.store.dispatch(
       LibraryActions.loadShelves({
-        pageIndex: this.paginator.pageIndex,
-        pageSize: this.paginator.pageSize,
+        pageIndex: this.pageIndex,
+        pageSize: this.pageSize,
       })
     );
 
     if (this.expandedShelf) {
       this.loadBooksForShelf(this.expandedShelf);
     }
+  }
+
+  @HostListener('window:scroll', [])
+  onWindowScroll(): void {
+    if (
+      window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 200 &&
+      !this.loadingShelves &&
+      this.shelvesCount < this.totalCount
+    ) {
+      this.pageIndex++;
+      this.store.dispatch(
+        LibraryActions.loadShelves({
+          pageIndex: this.pageIndex,
+          pageSize: this.pageSize,
+        })
+      );
+    }
+  }
+
+  onBookPage(event: PageEvent, shelfId: string): void {
+    this.bookPageIndex[shelfId] = event.pageIndex;
   }
 
   toggleExpand(shelfId: string): void {
