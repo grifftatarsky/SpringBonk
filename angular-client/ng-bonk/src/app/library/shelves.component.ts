@@ -4,7 +4,8 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AsyncPipe, DatePipe, NgForOf, NgIf } from '@angular/common';
-import { ElectionRequest } from '../model/request/election-request.model';
+import { ShelfRequest } from '../model/request/shelf-request.model';
+import { ShelfResponse } from '../model/response/shelf-response.model';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { Observable } from 'rxjs';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -13,19 +14,22 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
-import { ShelvesDataSource } from '../datasource/shelves.datasource';
-import { ShelfHttpService } from '../service/http/shelves-http.service';
-import { ShelfDialog } from './dialog/shelf-dialog.component';
-import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
-import { BookHttpService } from '../service/http/books-http.service';
-import { BookRequest } from '../model/request/book-request.model';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { BookSearchSheet } from './book-search-sheet.component';
 import { BookResponse } from '../model/response/book-response.model';
 import { BookDetailDialog } from './dialog/book-detail-dialog.component';
-import { NotificationService } from '../service/notification.service';
-import { ElectionHttpService } from '../service/http/election-http.service';
 import { BookNominateDialog } from './dialog/book-nominate.component';
+import { Store } from '@ngrx/store';
+import * as LibraryActions from './store/library.actions';
+import {
+  selectShelves,
+  selectShelvesLoading,
+  selectShelvesTotal,
+  selectShelfBooks,
+  selectLoadingBooks,
+} from './store/library.selectors';
+import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
+import { ShelfDialog } from './dialog/shelf-dialog.component';
 
 @Component({
   selector: 'app-shelves',
@@ -58,8 +62,7 @@ export class ShelvesComponent implements AfterViewInit {
   ];
 
   bookColumns: string[] = ['cover', 'title', 'author', 'actions'];
-
-  dataSource: ShelvesDataSource;
+  shelves$: Observable<ShelfResponse[]>;
   loading$: Observable<boolean>;
   total: number = 0;
 
@@ -70,35 +73,42 @@ export class ShelvesComponent implements AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
-    private http: ShelfHttpService,
-    private bookHttp: BookHttpService,
-    private electionHttp: ElectionHttpService,
+    private store: Store,
     private dialog: MatDialog,
-    private sheet: MatBottomSheet,
-    private notification: NotificationService
+    private sheet: MatBottomSheet
   ) {
-    this.dataSource = new ShelvesDataSource(this.http);
-    this.loading$ = this.dataSource.loading$;
-    this.dataSource.total$.subscribe(
-      (count: number): number => (this.total = count)
-    );
+    this.shelves$ = this.store.select(selectShelves);
+    this.loading$ = this.store.select(selectShelvesLoading);
+    this.store
+      .select(selectShelvesTotal)
+      .subscribe(count => (this.total = count));
+    this.store.select(selectShelfBooks).subscribe(sb => (this.shelfBooks = sb));
+    this.store
+      .select(selectLoadingBooks)
+      .subscribe(lb => (this.loadingBooks = lb));
   }
 
   ngAfterViewInit(): void {
     this.paginator.page.subscribe((): void => {
-      this.dataSource.loadShelves(
-        this.paginator.pageIndex,
-        this.paginator.pageSize
+      this.store.dispatch(
+        LibraryActions.loadShelves({
+          pageIndex: this.paginator.pageIndex,
+          pageSize: this.paginator.pageSize,
+        })
       );
     });
 
-    this.dataSource.loadShelves();
+    this.store.dispatch(LibraryActions.loadShelves({}));
   }
 
   refresh(): void {
-    this.dataSource.loadShelves();
+    this.store.dispatch(
+      LibraryActions.loadShelves({
+        pageIndex: this.paginator.pageIndex,
+        pageSize: this.paginator.pageSize,
+      })
+    );
 
-    // Also refresh any expanded shelf's books
     if (this.expandedShelf) {
       this.loadBooksForShelf(this.expandedShelf);
     }
@@ -114,18 +124,7 @@ export class ShelvesComponent implements AfterViewInit {
   }
 
   loadBooksForShelf(shelfId: string): void {
-    this.loadingBooks[shelfId] = true;
-
-    this.bookHttp.getBooksByShelfId(shelfId).subscribe({
-      next: (books: BookResponse[]) => {
-        this.shelfBooks[shelfId] = books;
-        this.loadingBooks[shelfId] = false;
-      },
-      error: () => {
-        this.loadingBooks[shelfId] = false;
-        this.shelfBooks[shelfId] = [];
-      },
-    });
+    this.store.dispatch(LibraryActions.loadShelfBooks({ shelfId }));
   }
 
   openCreateDialog(): void {
@@ -133,14 +132,9 @@ export class ShelvesComponent implements AfterViewInit {
       width: '400px',
     });
 
-    dialogRef.afterClosed().subscribe((result: ElectionRequest): void => {
+    dialogRef.afterClosed().subscribe((result: ShelfRequest): void => {
       if (result) {
-        this.http.createShelf(result).subscribe((): void => {
-          this.dataSource.loadShelves(
-            this.paginator.pageIndex,
-            this.paginator.pageSize
-          );
-        });
+        this.store.dispatch(LibraryActions.createShelf({ request: result }));
       }
     });
   }
@@ -155,31 +149,12 @@ export class ShelvesComponent implements AfterViewInit {
       .subscribe(
         (result?: { book: OpenLibraryBookResponse; shelfId: string }): void => {
           if (result && result.book) {
-            const payload: BookRequest = {
-              title: result.book.title,
-              author: result.book.author_name?.[0] || 'Unknown',
-              imageURL: result.book.cover_i
-                ? this.bookHttp.getOpenLibraryCoverImageUrl(
-                    result.book.cover_i,
-                    'L'
-                  )
-                : '',
-              blurb: 'No blurb added. TODO!',
-              openLibraryId: result.book.key,
-              shelfIds: [result.shelfId],
-            };
-
-            this.bookHttp.createBook(payload).subscribe((): void => {
-              this.dataSource.loadShelves(
-                this.paginator.pageIndex,
-                this.paginator.pageSize
-              );
-
-              // Refresh the book list if the shelf is expanded
-              if (this.expandedShelf === result.shelfId) {
-                this.loadBooksForShelf(result.shelfId);
-              }
-            });
+            this.store.dispatch(
+              LibraryActions.addBookFromOpenLibrary({
+                book: result.book,
+                shelfId: result.shelfId,
+              })
+            );
           }
         }
       );
@@ -187,18 +162,7 @@ export class ShelvesComponent implements AfterViewInit {
 
   deleteShelf(shelfId: string, event: Event): void {
     event.stopPropagation(); // Prevent expansion panel toggle
-    this.http.deleteShelf(shelfId).subscribe((): void => {
-      this.dataSource.loadShelves(
-        this.paginator.pageIndex,
-        this.paginator.pageSize
-      );
-      if (
-        this.total - 1 <=
-        this.paginator.pageSize * this.paginator.pageIndex
-      ) {
-        this.paginator.previousPage();
-      }
-    });
+    this.store.dispatch(LibraryActions.deleteShelf({ shelfId }));
   }
 
   openEditDialog(shelfId: string, event: Event): void {
@@ -207,14 +171,11 @@ export class ShelvesComponent implements AfterViewInit {
       width: '400px',
     });
 
-    dialogRef.afterClosed().subscribe((result: ElectionRequest): void => {
+    dialogRef.afterClosed().subscribe((result: ShelfRequest): void => {
       if (result) {
-        this.http.updateShelf(shelfId, result).subscribe((): void => {
-          this.dataSource.loadShelves(
-            this.paginator.pageIndex,
-            this.paginator.pageSize
-          );
-        });
+        this.store.dispatch(
+          LibraryActions.updateShelf({ shelfId, request: result })
+        );
       }
     });
   }
@@ -238,19 +199,14 @@ export class ShelvesComponent implements AfterViewInit {
 
   removeBookFromShelf(bookId: string, shelfId: string, event: Event): void {
     event.stopPropagation(); // Prevent opening book details
-    this.bookHttp.removeBookFromShelf(bookId, shelfId).subscribe((): void => {
-      this.loadBooksForShelf(shelfId);
-    });
+    this.store.dispatch(
+      LibraryActions.removeBookFromShelf({ bookId, shelfId })
+    );
   }
 
   deleteBook(bookId: string, event: Event): void {
     event.stopPropagation(); // Prevent opening book details
-    this.bookHttp.deleteBook(bookId).subscribe((): void => {
-      // Refresh all shelf book lists that are loaded
-      Object.keys(this.shelfBooks).forEach((shelfId: string): void => {
-        this.loadBooksForShelf(shelfId);
-      });
-    });
+    this.store.dispatch(LibraryActions.deleteBook({ bookId }));
   }
 
   nominateBook(book: BookResponse, event: Event): void {

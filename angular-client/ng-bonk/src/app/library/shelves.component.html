@@ -37,14 +37,14 @@
   <!-- No Data -->
   <div
     class="table-no-data-bar"
-    *ngIf="(dataSource.connect() | async)?.length === 0">
+    *ngIf="(shelves$ | async)?.length === 0">
     You do not currently have any shelves. This should not be possible.
   </div>
 
   <!-- Shelves with expansion panels -->
   <mat-accordion class="shelves-accordion" multi>
     <mat-expansion-panel
-      *ngFor="let shelf of dataSource.connect() | async"
+      *ngFor="let shelf of shelves$ | async"
       [expanded]="expandedShelf === shelf.id"
       (opened)="toggleExpand(shelf.id)">
       <mat-expansion-panel-header>

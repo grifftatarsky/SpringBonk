@@ -20,6 +20,9 @@
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
     "angular-oauth2-oidc": "^19.0.0",
+    "@ngrx/store": "^18.0.0",
+    "@ngrx/effects": "^18.0.0",
+    "@ngrx/entity": "^18.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
@@ -35,6 +38,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "@ngrx/store-devtools": "^18.0.0",
     "prettier": "3.5.3",
     "typescript": "~5.7.2"
   }

@@ -18,10 +18,15 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { MatIconModule } from '@angular/material/icon';
 import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { OpenLibraryBooksDatasource } from '../datasource/open-library-books.datasource';
-import { BookHttpService } from '../service/http/books-http.service';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { BookSelectShelfDialog } from './dialog/book-select-shelf-dialog.component';
+import { Store } from '@ngrx/store';
+import * as LibraryActions from './store/library.actions';
+import {
+  selectOpenLibraryResults,
+  selectSearchLoading,
+  selectOpenLibraryTotal,
+} from './store/library.selectors';
 
 @Component({
   selector: 'app-book-search-dialog',
@@ -48,7 +53,7 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   displayedColumns: string[] = ['title', 'author', 'year', 'select'];
 
   searchControl = new FormControl('');
-  dataSource: OpenLibraryBooksDatasource;
+  results$: Observable<OpenLibraryBookResponse[]>;
   loading$: Observable<boolean>;
   total = 0;
 
@@ -58,15 +63,13 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
-    private http: BookHttpService,
     private dialogRef: MatBottomSheetRef<BookSearchSheet>,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private store: Store
   ) {
-    this.dataSource = new OpenLibraryBooksDatasource(this.http);
-    this.loading$ = this.dataSource.loading$;
-    this.dataSource.total$.subscribe(
-      (count: number): number => (this.total = count)
-    );
+    this.results$ = this.store.select(selectOpenLibraryResults);
+    this.loading$ = this.store.select(selectSearchLoading);
+    this.store.select(selectOpenLibraryTotal).subscribe(t => (this.total = t));
   }
 
   ngAfterViewInit(): void {
@@ -93,10 +96,15 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   }
 
   loadData(searchTerm?: string): void {
-    this.dataSource.loadBooks(
-      searchTerm,
-      this.paginator.pageIndex,
-      this.paginator.pageSize
+    if (searchTerm === undefined) {
+      searchTerm = '';
+    }
+    this.store.dispatch(
+      LibraryActions.searchOpenLibrary({
+        query: searchTerm,
+        pageIndex: this.paginator.pageIndex,
+        pageSize: this.paginator.pageSize,
+      })
     );
   }
 
