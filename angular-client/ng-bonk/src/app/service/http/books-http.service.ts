@@ -20,10 +20,10 @@ export class BookHttpService extends BaseHttpService {
   getOpenLibraryBooks(
     page = 0,
     size = 10,
-    searchTerm?: string,
+    query?: string,
     sort: string = 'relevance'
   ): Observable<PagedOpenLibraryResponse> {
-    if (!searchTerm) {
+    if (!query) {
       return of({
         start: 0,
         num_found: 0,
@@ -32,11 +32,15 @@ export class BookHttpService extends BaseHttpService {
     }
 
     const params: { [key: string]: string | number } = {
-      q: searchTerm,
+      q: query,
       page: page + 1, // OpenLibrary is 1-indexed!
       limit: size,
-      sort,
     };
+
+    // OpenLibrary defaults to relevance. Avoid passing an unsupported sort.
+    if (sort && sort !== 'relevance') {
+      params['sort'] = sort;
+    }
 
     return this.get<PagedOpenLibraryResponse>(this.openLibraryBaseUrl, params);
   }

@@ -1,59 +1,67 @@
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
   background-color: #001b00;
-  color: #00ff00;
-  font-family: 'VT323', monospace;
+  color: #00ff41;
+  font-family: 'Roboto Mono', monospace;
 }
 
 * {
   border-radius: 0 !important;
 }
 
-.mat-typography {
-  color: inherit;
+a {
+  color: #00ff41;
 }
 
-mat-toolbar,
+mat-toolbar {
+  background: #001000;
+  color: inherit;
+  border-bottom: 2px solid #00ff41;
+}
+
+#logo-image {
+  height: 32px;
+  margin-right: 0.5rem;
+}
+
 mat-expansion-panel,
 mat-dialog-container,
 .mat-mdc-card,
 .mat-mdc-table,
 mat-paginator {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.25);
   color: inherit;
-  border: 1px solid #00ff00;
+  border: 1px solid #00ff41;
+  box-shadow: none;
 }
 
-.mat-mdc-table {
-  background: transparent;
+.mat-mdc-header-cell,
+.mat-mdc-cell {
   color: inherit;
-}
-
-.mat-mdc-header-cell, .mat-mdc-cell {
-  color: inherit;
-}
-
-.default-badge {
-  border: 1px solid currentColor;
-}
-
-.toolbar-divider {
-  border-left: 1px solid currentColor;
-}
-
-.cover-thumb, .book-cover-avatar img {
-  border: 1px solid #00ff00;
 }
 
 .mat-mdc-form-field .mdc-notched-outline__leading,
 .mat-mdc-form-field .mdc-notched-outline__trailing,
 .mat-mdc-form-field .mdc-notched-outline__notch {
-  border-color: #00ff00 !important;
+  border-color: #00ff41 !important;
+}
+
+.mat-icon {
+  color: #00ff41;
+}
+
+.cover-thumb,
+.book-cover-avatar img {
+  border: 1px solid #00ff41;
 }
 
 .table-no-data-bar {
   opacity: 0.6;
 }
 
-.spacer { flex: 1; }
+.spacer {
+  flex: 1;
+}
+
