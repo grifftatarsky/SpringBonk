@@ -22,13 +22,6 @@
   <div class="spacer"></div>
 
   <button mat-button (click)="cancel()">Cancel</button>
-
-  <mat-paginator
-    [length]="(total$ | async) ?? 0"
-    [pageSize]="10"
-    [pageSizeOptions]="[5, 10, 25]"
-    aria-label="Book search results pagination">
-  </mat-paginator>
 </div>
 
 <mat-expansion-panel
@@ -114,3 +107,11 @@
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 </table>
+
+<mat-paginator
+  class="search-paginator"
+  [length]="(total$ | async) ?? 0"
+  [pageSize]="10"
+  [pageSizeOptions]="[5, 10, 25]"
+  aria-label="Book search results pagination">
+</mat-paginator>

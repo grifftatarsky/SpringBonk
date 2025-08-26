@@ -83,13 +83,10 @@
 
 #toolbar-shelves {
   flex-wrap: wrap;
+}
 
-  mat-paginator {
-    flex: 1 0 100%;
-    border: none;
-    background: transparent;
-    padding: 0;
-  }
+.shelf-paginator {
+  margin: 8px 0;
 }
 
 .table-no-data-bar {

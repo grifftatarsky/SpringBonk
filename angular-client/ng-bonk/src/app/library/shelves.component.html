@@ -14,13 +14,15 @@
   </button>
   <!--Divider, then TODO: chits for categories.-->
   <div class="spacer"></div>
-  <mat-paginator
-    [length]="(total$ | async) ?? 0"
-    [pageSize]="10"
-    [pageSizeOptions]="[5, 10, 25]"
-    aria-label="Shelf Pagination">
-  </mat-paginator>
 </mat-toolbar>
+
+<mat-paginator
+  class="shelf-paginator"
+  [length]="(total$ | async) ?? 0"
+  [pageSize]="10"
+  [pageSizeOptions]="[5, 10, 25]"
+  aria-label="Shelf Pagination">
+</mat-paginator>
 
 <div *ngIf="loading$ | async">
   <mat-progress-bar mode="indeterminate" />
