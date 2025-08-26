@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { map, Observable } from 'rxjs';
 import { UserService } from '../service/user.service';
@@ -25,6 +25,7 @@ function loginOptions(http: HttpClient): Observable<Array<LoginOptionDto>> {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatButton],
   templateUrl: 'login.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
   private loginUri?: string;
@@ -37,7 +38,6 @@ export class LoginComponent {
     loginOptions(http).subscribe((opts: LoginOptionDto[]): void => {
       if (opts.length) {
         this.loginUri = opts[0].loginUri;
-        // NOTE: To check if same authority, use opts[0].isSameAuthority.
       }
     });
   }
@@ -52,14 +52,11 @@ export class LoginComponent {
     }
 
     const url = new URL(this.loginUri);
-    console.log('DBG: 1');
     url.searchParams.append(
       'post_login_success_uri',
       `${baseUri}${this.router.url}`
     );
-    console.log('DBG: 2');
     url.searchParams.append('post_login_failure_uri', `${baseUri}login-error`);
-    console.log('DBG: 3');
     window.location.href = url.toString();
   }
 }

@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -34,6 +34,7 @@ import { ElectionHttpService } from '../../service/http/election-http.service';
   ],
   templateUrl: './book-nominate.component.html',
   styleUrls: ['./book-nominate.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookNominateDialog implements OnInit {
   electionControl = new FormControl<string | null>(null, [Validators.required]);

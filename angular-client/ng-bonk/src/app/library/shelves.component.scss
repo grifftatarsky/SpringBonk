@@ -70,6 +70,35 @@
   }
 }
 
+/* Mobile-first list styling */
+.books-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.sort-field {
+  min-width: 160px;
+}
+
+.books-list .book-item {
+  border-bottom: 1px solid rgba(0, 255, 65, 0.25);
+}
+
+.books-list .muted {
+  opacity: 0.75;
+}
+
+.item-actions {
+  display: flex;
+  align-items: center;
+}
+
+.sort-dir {
+  text-transform: uppercase;
+}
+
 .spacer {
   flex: 1;
 }

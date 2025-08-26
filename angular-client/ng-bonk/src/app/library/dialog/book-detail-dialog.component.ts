@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,6 +26,7 @@ import { BookRequest } from '../../model/request/book-request.model';
   ],
   templateUrl: './book-detail-dialog.component.html',
   styleUrls: ['./book-detail-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookDetailDialog implements OnInit {
   blurbControl = new FormControl('', [Validators.required]);

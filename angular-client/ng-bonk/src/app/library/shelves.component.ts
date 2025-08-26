@@ -19,6 +19,10 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSortModule, Sort } from '@angular/material/sort';
+import { MatListModule } from '@angular/material/list';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { FormsModule } from '@angular/forms';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { RouterModule } from '@angular/router';
 import { BookSearchSheet } from './book-search-sheet.component';
@@ -52,6 +56,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     MatTooltipModule,
     MatMenuModule,
     MatSortModule,
+    // Mobile-first list UI
+    MatListModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    FormsModule,
     RouterModule,
     AsyncPipe,
     NgIf,
@@ -75,6 +84,8 @@ export class ShelvesComponent implements OnInit {
   loadingBooks: { [shelfId: string]: boolean } = {};
   bookPageIndex: { [shelfId: string]: number } = {};
   bookPageSize = 5;
+  sortBy: { [shelfId: string]: 'title' | 'author' | 'published' } = {};
+  sortDir: { [shelfId: string]: 'asc' | 'desc' } = {};
 
   private pageIndex = 0;
   private pageSize = 10;
@@ -282,6 +293,13 @@ export class ShelvesComponent implements OnInit {
           return 0;
       }
     });
+  }
+
+  // Mobile controls map to Sort type to reuse sorting logic
+  onMobileSortChange(shelfId: string): void {
+    const active = this.sortBy[shelfId] || 'title';
+    const direction = this.sortDir[shelfId] || 'asc';
+    this.sortShelfBooks({ active, direction } as Sort, shelfId);
   }
 }
 

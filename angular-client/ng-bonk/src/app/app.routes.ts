@@ -5,7 +5,7 @@ import { LoginErrorView } from './login-error.view';
 import { ElectionsComponent } from './elections/elections.component';
 import { ShelvesComponent } from './library/shelves.component';
 import { ShelfDetailComponent } from './library/shelf-detail.component';
-import { authGuard } from './auth/auth.guard';
+import { authGuard, authMatch } from './auth/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, data: { title: 'Home' } },
@@ -13,19 +13,19 @@ export const routes: Routes = [
   {
     path: 'elections',
     component: ElectionsComponent,
-    canActivate: [authGuard],
+    canMatch: [authMatch],
     data: { title: 'My elections' },
   },
   {
     path: 'shelves/:id',
     component: ShelfDetailComponent,
-    canActivate: [authGuard],
+    canMatch: [authMatch],
     data: { title: 'Shelf' },
   },
   {
     path: 'shelves',
     component: ShelvesComponent,
-    canActivate: [authGuard],
+    canMatch: [authMatch],
     data: { title: 'My shelves' },
   },
 

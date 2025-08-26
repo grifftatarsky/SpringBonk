@@ -96,3 +96,12 @@ mat-paginator {
 .spacer {
   flex: 1;
 }
+
+/* Bottom sheet: wide, tall panel with pip-boy border */
+.sheet-max .mat-bottom-sheet-container {
+  max-height: 80vh;
+  width: min(900px, 96vw);
+  background: #001000; /* solid green-on-black panel */
+  color: inherit;
+  border: 1px solid #00ff41;
+}

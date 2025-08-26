@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -15,6 +15,8 @@ import {
 import { Observable } from 'rxjs';
 import { BookResponse } from '../model/response/book-response.model';
 import { AsyncPipe } from '@angular/common';
+import { ShelfResponse } from '../model/response/shelf-response.model';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-shelf-detail',
@@ -35,24 +37,27 @@ import { AsyncPipe } from '@angular/common';
 })
 export class ShelfDetailComponent implements OnInit {
   shelfId!: string;
-  shelf$!: Observable<any>;
+  shelf$!: Observable<ShelfResponse | undefined>;
   books: BookResponse[] = [];
   sortedBooks: BookResponse[] = [];
 
   displayedColumns: string[] = ['cover', 'title', 'author', 'published'];
 
-  constructor(
-    private route: ActivatedRoute,
-    private store: Store
-  ) {}
+  private readonly route = inject(ActivatedRoute);
+  private readonly store = inject(Store);
+
+  constructor() {}
 
   ngOnInit(): void {
     this.shelfId = this.route.snapshot.paramMap.get('id')!;
     this.shelf$ = this.store.select(selectShelfById(this.shelfId));
-    this.store.select(selectBooksForShelf(this.shelfId)).subscribe(books => {
-      this.books = books;
-      this.sortedBooks = [...books];
-    });
+    this.store
+      .select(selectBooksForShelf(this.shelfId))
+      .pipe(takeUntilDestroyed())
+      .subscribe(books => {
+        this.books = books;
+        this.sortedBooks = [...books];
+      });
     this.store.dispatch(
       LibraryActions.loadShelfBooks({ shelfId: this.shelfId })
     );

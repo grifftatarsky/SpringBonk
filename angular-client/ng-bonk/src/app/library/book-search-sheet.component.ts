@@ -17,7 +17,7 @@ import { Observable, Subject, Subscription, merge } from 'rxjs';
 import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
-import { MatExpansionModule } from '@angular/material/expansion';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { AsyncPipe, NgIf } from '@angular/common';
@@ -46,7 +46,7 @@ import { BookHttpService } from '../service/http/books-http.service';
     MatPaginatorModule,
     MatIconModule,
     MatSelectModule,
-    MatExpansionModule,
+    MatSidenavModule,
     AsyncPipe,
     NgIf,
   ],
@@ -73,6 +73,7 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   private searchSubscription?: Subscription;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild('filtersDrawer') filtersDrawer: any;
 
   constructor(
     private dialogRef: MatBottomSheetRef<BookSearchSheet>,
@@ -172,5 +173,12 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
 
   cancel(): void {
     this.dialogRef.dismiss();
+  }
+
+  toggleFilters(): void {
+    this.showFilters = !this.showFilters;
+    if (this.filtersDrawer) {
+      this.filtersDrawer.toggle();
+    }
   }
 }

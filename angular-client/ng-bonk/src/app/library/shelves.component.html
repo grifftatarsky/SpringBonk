@@ -1,15 +1,15 @@
 <mat-toolbar id="toolbar-shelves" class="gap-2">
-  <button mat-icon-button (click)="refresh()">
+  <button mat-icon-button (click)="refresh()" aria-label="Refresh shelves">
     <mat-icon>refresh</mat-icon>
   </button>
-  <div class="toolbar-divider">&nbsp;</div>
-  <button mat-button (click)="openCreateDialog()">
-    <mat-icon>shelves</mat-icon>
-    Add Shelf
+  <div class="toolbar-divider" aria-hidden="true">&nbsp;</div>
+  <button mat-button (click)="openCreateDialog()" aria-label="Create shelf">
+    <mat-icon>library_add</mat-icon>
+    New Shelf
   </button>
-  <div class="toolbar-divider">&nbsp;</div>
-  <button mat-button (click)="openBookSearchDialog()">
-    <mat-icon>book_ribbon</mat-icon>
+  <div class="toolbar-divider" aria-hidden="true">&nbsp;</div>
+  <button mat-button (click)="openBookSearchDialog()" aria-label="Add book">
+    <mat-icon>menu_book</mat-icon>
     Add Book
   </button>
   <!--Divider, then TODO: chits for categories.-->
@@ -64,7 +64,7 @@
             </mat-panel-description>
           </mat-expansion-panel-header>
 
-          <!-- Books table inside the expansion panel -->
+          <!-- Books content inside the expansion panel, mobile-first list -->
           <div class="books-container">
             <div *ngIf="loadingBooks[shelf.id]" class="loading-books">
               <mat-progress-bar mode="indeterminate"></mat-progress-bar>
@@ -79,125 +79,71 @@
               This shelf has no books yet.
             </div>
 
-            <table
-              mat-table
-              [dataSource]="
-                (shelfBooks[shelf.id] || []) |
-                slice:
-                  (bookPageIndex[shelf.id] || 0) * bookPageSize:
-                  (bookPageIndex[shelf.id] || 0) * bookPageSize +
-                    bookPageSize
-              "
-              *ngIf="
-                !loadingBooks[shelf.id] &&
-                shelfBooks[shelf.id] &&
-                shelfBooks[shelf.id].length > 0
-              "
-              matSort
-              (matSortChange)="sortShelfBooks($event, shelf.id)"
-              matSortDisableClear
-              class="books-table mat-elevation-z0">
-              <!-- Cover Column -->
-              <ng-container matColumnDef="cover">
-                <th mat-header-cell *matHeaderCellDef>Cover</th>
-                <td mat-cell *matCellDef="let book">
-                  <div
-                    class="book-cover-avatar"
-                    (click)="openBookDetails(book)">
+            <!-- Mobile sort controls -->
+            <div class="books-controls" *ngIf="(shelfBooks[shelf.id] || []).length">
+              <mat-form-field appearance="outline" class="sort-field">
+                <mat-label>Sort by</mat-label>
+                <mat-select [(ngModel)]="sortBy[shelf.id]" (selectionChange)="onMobileSortChange(shelf.id)">
+                  <mat-option value="title">Title</mat-option>
+                  <mat-option value="author">Author</mat-option>
+                  <mat-option value="published">Published</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <button mat-stroked-button class="sort-dir" (click)="sortDir[shelf.id] = (sortDir[shelf.id] === 'desc' ? 'asc' : 'desc'); onMobileSortChange(shelf.id)">
+                <mat-icon>{{ sortDir[shelf.id] === 'desc' ? 'south' : 'north' }}</mat-icon>
+                {{ (sortDir[shelf.id] || 'asc') }}
+              </button>
+            </div>
+
+            <!-- List of books, paged in memory -->
+            <mat-list
+              *ngIf="(shelfBooks[shelf.id] || []).length"
+              class="books-list"
+              role="list">
+              <ng-container
+                *ngFor="let book of (shelfBooks[shelf.id] || []) |
+                  slice: (bookPageIndex[shelf.id] || 0) * bookPageSize : (bookPageIndex[shelf.id] || 0) * bookPageSize + bookPageSize">
+                <mat-list-item role="listitem" (click)="openBookDetails(book)" class="book-item">
+                  <div matListItemAvatar class="book-cover-avatar">
                     <img [src]="book.imageURL" alt="{{ book.title }} cover" />
                   </div>
-                </td>
-              </ng-container>
-
-              <!-- Title Column -->
-              <ng-container matColumnDef="title">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header="title">
-                  Title
-                </th>
-                <td
-                  mat-cell
-                  *matCellDef="let book"
-                  (click)="openBookDetails(book)">
-                  {{ book.title }}
-                </td>
-              </ng-container>
-
-              <!-- Author Column -->
-              <ng-container matColumnDef="author">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header="author">
-                  Author
-                </th>
-                <td
-                  mat-cell
-                  *matCellDef="let book"
-                  (click)="openBookDetails(book)">
-                  {{ book.author }}
-                </td>
-              </ng-container>
-
-              <!-- Published Column -->
-              <ng-container matColumnDef="published">
-                <th
-                  mat-header-cell
-                  *matHeaderCellDef
-                  mat-sort-header="published">
-                  Published
-                </th>
-                <td
-                  mat-cell
-                  *matCellDef="let book"
-                  (click)="openBookDetails(book)">
-                  {{ book.publishedYear ?? '—' }}
-                </td>
-              </ng-container>
-
-              <!-- Actions Column -->
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef>Actions</th>
-                <td mat-cell *matCellDef="let book">
-                  <button
-                    mat-icon-button
-                    [matMenuTriggerFor]="bookMenu"
-                    aria-label="Book options">
-                    <mat-icon>more_vert</mat-icon>
-                  </button>
-
-                  <mat-menu #bookMenu="matMenu">
-                    <button mat-menu-item (click)="openBookDetails(book)">
-                      <mat-icon>info</mat-icon>
-                      <span>Details</span>
+                  <div matListItemTitle>{{ book.title }}</div>
+                  <div matListItemLine>{{ book.author }}</div>
+                  <div matListItemLine class="muted">{{ book.publishedYear ?? '—' }}</div>
+                  <div class="item-actions" matListItemMeta (click)="$event.stopPropagation()">
+                    <button mat-icon-button [matMenuTriggerFor]="bookMenu" [matMenuTriggerData]="{ book: book, shelfId: shelf.id }" aria-label="Book options">
+                      <mat-icon>more_vert</mat-icon>
                     </button>
-                    <button mat-menu-item (click)="nominateBook(book, $event)">
-                      <mat-icon>star</mat-icon>
-                      <span>Nominate</span>
-                    </button>
-                    <button
-                      mat-menu-item
-                      (click)="removeBookFromShelf(book.id, shelf.id, $event)">
-                      <mat-icon>remove_circle</mat-icon>
-                      <span>Remove from shelf</span>
-                    </button>
-                    <button mat-menu-item (click)="deleteBook(book.id, $event)">
-                      <mat-icon color="warn">delete</mat-icon>
-                      <span>Delete book</span>
-                    </button>
-                  </mat-menu>
-                </td>
+                  </div>
+                </mat-list-item>
               </ng-container>
+            </mat-list>
 
-              <tr mat-header-row *matHeaderRowDef="bookColumns"></tr>
-              <tr
-                mat-row
-                *matRowDef="let row; columns: bookColumns"
-                class="book-row"></tr>
-            </table>
+            <mat-menu #bookMenu="matMenu">
+              <ng-template matMenuContent let-data="matMenuTriggerData">
+                <button mat-menu-item (click)="openBookDetails(data.book)">
+                  <mat-icon>info</mat-icon>
+                  <span>Details</span>
+                </button>
+                <button mat-menu-item (click)="nominateBook(data.book, $event)">
+                  <mat-icon>star</mat-icon>
+                  <span>Nominate</span>
+                </button>
+                <button mat-menu-item (click)="removeBookFromShelf(data.book.id, data.shelfId, $event)">
+                  <mat-icon>remove_circle</mat-icon>
+                  <span>Remove from shelf</span>
+                </button>
+                <button mat-menu-item (click)="deleteBook(data.book.id, $event)">
+                  <mat-icon color="warn">delete</mat-icon>
+                  <span>Delete book</span>
+                </button>
+              </ng-template>
+            </mat-menu>
+
             <mat-paginator
               class="books-paginator"
-              *ngIf="
-                shelfBooks[shelf.id] &&
-                shelfBooks[shelf.id].length > bookPageSize
-              "
-              [length]="shelfBooks[shelf.id]?.length ?? 0"
+              *ngIf="(shelfBooks[shelf.id] || []).length > bookPageSize"
+              [length]="(shelfBooks[shelf.id] || []).length"
               [pageSize]="bookPageSize"
               [pageIndex]="bookPageIndex[shelf.id] || 0"
               [pageSizeOptions]="[5, 10, 25]"
