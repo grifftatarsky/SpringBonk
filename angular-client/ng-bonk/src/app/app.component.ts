@@ -13,6 +13,7 @@ import { MenuNavigationComponent } from './common/menu-navigation.component';
 import { MatButtonModule } from '@angular/material/button';
 import { filter, map, Observable, startWith } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-root',
@@ -25,6 +26,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatMenuModule,
     MatButtonModule,
     MatIconModule,
+    MatDividerModule,
     MenuNavigationComponent,
   ],
   templateUrl: './app.component.html',

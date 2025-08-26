@@ -1,1 +1,12 @@
-<p>{{ message }}</p>
+<div class="home-container">
+  <ng-container *ngIf="user$ | async as u">
+    <div *ngIf="u.isAuthenticated; else guest">
+      <h1>Welcome {{ u.name }}</h1>
+      <a mat-button routerLink="/shelves">Go to your shelves</a>
+    </div>
+    <ng-template #guest>
+      <h1>Welcome to Akira</h1>
+      <p>Please log in to manage your library.</p>
+    </ng-template>
+  </ng-container>
+</div>

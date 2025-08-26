@@ -21,6 +21,10 @@ mat-toolbar {
   border-bottom: 2px solid #00ff41;
 }
 
+mat-divider {
+  border-color: #00ff41;
+}
+
 #logo-image {
   height: 32px;
   margin-right: 0.5rem;
@@ -59,6 +63,18 @@ mat-paginator {
 
 .table-no-data-bar {
   opacity: 0.6;
+}
+
+.success-snackbar {
+  background: #003300;
+  color: #00ff41;
+  border: 1px solid #00ff41;
+}
+
+.error-snackbar {
+  background: #330000;
+  color: #ff5555;
+  border: 1px solid #ff5555;
 }
 
 .spacer {

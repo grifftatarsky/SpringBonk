@@ -1,36 +1,25 @@
-import { Component, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { AsyncPipe, NgIf } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { UserService } from '../service/user.service';
-import { User } from '../auth/user.model';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [],
+  imports: [AsyncPipe, NgIf, RouterLink, MatButtonModule],
   templateUrl: 'home.component.html',
-  styles: [],
+  styles: [
+    `
+      .home-container {
+        padding: 2rem;
+        text-align: center;
+      }
+    `,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomeComponent implements OnDestroy {
-  message: string = '';
-
-  private userSubscription?: Subscription;
-
-  constructor(user: UserService) {
-    this.userSubscription = user.valueChanges.subscribe((u: User): void => {
-      this.message = u.isAuthenticated
-        ? `Hi ${u.name}, you are granted with ${HomeComponent.rolesStr(u)}.`
-        : 'You are not authenticated.';
-    });
-  }
-
-  static rolesStr(user: User): string {
-    if (!user?.roles?.length) {
-      return '[]';
-    }
-    return `["${user.roles.join('", "')}"]`;
-  }
-
-  ngOnDestroy(): void {
-    this.userSubscription?.unsubscribe();
-  }
+export class HomeComponent {
+  private user = inject(UserService);
+  readonly user$ = this.user.valueChanges;
 }
