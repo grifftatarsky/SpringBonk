@@ -6,13 +6,23 @@ html, body {
   font-family: 'VT323', monospace;
 }
 
+* {
+  border-radius: 0 !important;
+}
+
 .mat-typography {
   color: inherit;
 }
 
-mat-toolbar, mat-expansion-panel, mat-dialog-container {
+mat-toolbar,
+mat-expansion-panel,
+mat-dialog-container,
+.mat-mdc-card,
+.mat-mdc-table,
+mat-paginator {
   background: transparent;
   color: inherit;
+  border: 1px solid #00ff00;
 }
 
 .mat-mdc-table {
@@ -34,6 +44,12 @@ mat-toolbar, mat-expansion-panel, mat-dialog-container {
 
 .cover-thumb, .book-cover-avatar img {
   border: 1px solid #00ff00;
+}
+
+.mat-mdc-form-field .mdc-notched-outline__leading,
+.mat-mdc-form-field .mdc-notched-outline__trailing,
+.mat-mdc-form-field .mdc-notched-outline__notch {
+  border-color: #00ff00 !important;
 }
 
 .table-no-data-bar {
