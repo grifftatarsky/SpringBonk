@@ -2,6 +2,7 @@ import { libraryReducer, initialState } from './library.reducer';
 import * as LibraryActions from './library.actions';
 import { ShelfResponse } from '../../model/response/shelf-response.model';
 import { BookResponse } from '../../model/response/book-response.model';
+import { selectBooksForShelf, selectShelfById } from './library.selectors';
 
 describe('Library Reducer', () => {
   it('should return the initial state', () => {
@@ -35,5 +36,34 @@ describe('Library Reducer', () => {
     const action = LibraryActions.addBookSuccess({ shelfId: '1', book });
     const state = libraryReducer(starting, action);
     expect(state.shelfBooks['1'].length).toBe(1);
+  });
+
+  it('should select shelf by id and books for shelf', () => {
+    const shelf: ShelfResponse = {
+      id: '1',
+      title: 'Shelf',
+      createdDate: '',
+      userID: '',
+      defaultShelf: false,
+      books: [],
+    };
+    const book: BookResponse = {
+      id: 'b1',
+      title: 'Book',
+      author: 'Author',
+      imageURL: '',
+      blurb: '',
+      openLibraryId: '',
+      shelves: [],
+    };
+    const state = {
+      ...initialState,
+      shelves: [shelf],
+      shelfBooks: { '1': [book] },
+    };
+    const selectedShelf = selectShelfById('1')(state as any);
+    const books = selectBooksForShelf('1')(state as any);
+    expect(selectedShelf?.title).toBe('Shelf');
+    expect(books.length).toBe(1);
   });
 });

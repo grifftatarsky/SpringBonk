@@ -1,1 +1,19 @@
 
+
+.sheet-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.advanced-search {
+  display: flex;
+  gap: 1rem;
+  margin: 0.5rem 0;
+}
+
+.cover-thumb {
+  width: 40px;
+  height: 60px;
+  object-fit: cover;
+}

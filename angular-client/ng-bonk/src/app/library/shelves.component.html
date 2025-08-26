@@ -49,7 +49,9 @@
       (opened)="toggleExpand(shelf.id)">
       <mat-expansion-panel-header>
         <mat-panel-title>
-          {{ shelf.title }}
+          <a [routerLink]="['/shelves', shelf.id]" (click)="$event.stopPropagation()">
+            {{ shelf.title }}
+          </a>
         </mat-panel-title>
         <mat-panel-description>
           <span class="shelf-date">{{

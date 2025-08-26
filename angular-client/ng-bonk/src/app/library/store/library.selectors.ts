@@ -41,3 +41,11 @@ export const selectSearchLoading = createSelector(
   state => state.searchLoading
 );
 
+export const selectBooksForShelf = (shelfId: string) =>
+  createSelector(selectShelfBooks, books => books[shelfId] || []);
+
+export const selectShelfById = (shelfId: string) =>
+  createSelector(selectShelves, shelves =>
+    shelves.find(shelf => shelf.id === shelfId)
+  );
+

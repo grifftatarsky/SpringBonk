@@ -15,6 +15,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
+import { RouterModule } from '@angular/router';
 import { BookSearchSheet } from './book-search-sheet.component';
 import { BookResponse } from '../model/response/book-response.model';
 import { BookDetailDialog } from './dialog/book-detail-dialog.component';
@@ -45,6 +46,7 @@ import { ShelfDialog } from './dialog/shelf-dialog.component';
     MatExpansionModule,
     MatTooltipModule,
     MatMenuModule,
+    RouterModule,
     DatePipe,
     AsyncPipe,
     NgIf,
