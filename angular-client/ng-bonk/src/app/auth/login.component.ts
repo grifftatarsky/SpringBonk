@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { map, Observable } from 'rxjs';
 import { UserService } from '../service/user.service';
-import { baseUri } from '../app.config';
+import { baseUri, reverseProxyUri } from '../app.config';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButton } from '@angular/material/button';
@@ -16,7 +16,7 @@ interface LoginOptionDto {
 
 function loginOptions(http: HttpClient): Observable<Array<LoginOptionDto>> {
   return http
-    .get('/bff/login-options')
+    .get(`${reverseProxyUri}/login-options`)
     .pipe(map((dto: any): LoginOptionDto[] => dto as LoginOptionDto[]));
 }
 

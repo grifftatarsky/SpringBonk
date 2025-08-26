@@ -8,12 +8,13 @@ import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { reverseProxyUri } from '../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BaseHttpService {
-  protected apiBase: string = '/bff/api';
+  protected apiBase: string = `${reverseProxyUri}/api`;
 
   constructor(
     protected http: HttpClient,

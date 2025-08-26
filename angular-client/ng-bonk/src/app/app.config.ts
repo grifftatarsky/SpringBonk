@@ -9,6 +9,7 @@ import { provideEffects } from '@ngrx/effects';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { libraryFeature } from './library/store/library.reducer';
 import { LibraryEffects } from './library/store/library.effects';
+import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -22,5 +23,5 @@ export const appConfig: ApplicationConfig = {
   ],
 };
 
-export const reverseProxyUri = 'http://localhost:7080';
-export const baseUri = `${reverseProxyUri}`;
+export const reverseProxyUri = `${environment.apiBaseUrl}${environment.bffPath}`;
+export const baseUri = environment.apiBaseUrl || window.location.origin;
