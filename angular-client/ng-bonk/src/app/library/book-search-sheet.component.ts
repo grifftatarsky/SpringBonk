@@ -16,6 +16,8 @@ import { MatTableModule } from '@angular/material/table';
 import { Observable, Subject, Subscription, merge } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { AsyncPipe, NgIf } from '@angular/common';
@@ -43,6 +45,8 @@ import { BookHttpService } from '../service/http/books-http.service';
     MatTableModule,
     MatPaginatorModule,
     MatIconModule,
+    MatSelectModule,
+    MatExpansionModule,
     AsyncPipe,
     NgIf,
   ],
@@ -56,6 +60,8 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   searchControl = new FormControl('');
   titleControl = new FormControl('');
   authorControl = new FormControl('');
+  subjectControl = new FormControl('');
+  sortControl = new FormControl('relevance');
   showFilters = false;
   hasSearched = false;
 
@@ -84,7 +90,9 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
     this.searchSubscription = merge(
       this.searchControl.valueChanges,
       this.titleControl.valueChanges,
-      this.authorControl.valueChanges
+      this.authorControl.valueChanges,
+      this.subjectControl.valueChanges,
+      this.sortControl.valueChanges
     )
       .pipe(takeUntil(this.destroy$), debounceTime(300), distinctUntilChanged())
       .subscribe((): void => {
@@ -111,6 +119,8 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
     const q = this.searchControl.value?.trim();
     const title = this.titleControl.value?.trim();
     const author = this.authorControl.value?.trim();
+    const subject = this.subjectControl.value?.trim();
+    const sort = this.sortControl.value || 'relevance';
     if (q) {
       terms.push(q);
     }
@@ -120,11 +130,15 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
     if (author) {
       terms.push(`author:${author}`);
     }
+    if (subject) {
+      terms.push(`subject:${subject}`);
+    }
     const query = terms.join(' ');
     this.hasSearched = true;
     this.store.dispatch(
       LibraryActions.searchOpenLibrary({
         query,
+        sort,
         pageIndex: this.paginator.pageIndex,
         pageSize: this.paginator.pageSize,
       })

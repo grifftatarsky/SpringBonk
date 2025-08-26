@@ -160,27 +160,29 @@ export class LibraryEffects {
   searchOpenLibrary$ = createEffect(() =>
     this.actions$.pipe(
       ofType(LibraryActions.searchOpenLibrary),
-      tap(({ query }) =>
-        console.log('[LibraryEffects] searchOpenLibrary', { query })
+      tap(({ query, sort }) =>
+        console.log('[LibraryEffects] searchOpenLibrary', { query, sort })
       ),
-      switchMap(({ query, pageIndex = 0, pageSize = 10 }) =>
-        this.bookHttp.getOpenLibraryBooks(pageIndex, pageSize, query).pipe(
-          tap(res =>
-            console.log('[LibraryEffects] searchOpenLibrary success', {
-              total: res.num_found,
+      switchMap(({ query, sort = 'relevance', pageIndex = 0, pageSize = 10 }) =>
+        this.bookHttp
+          .getOpenLibraryBooks(pageIndex, pageSize, query, sort)
+          .pipe(
+            tap(res =>
+              console.log('[LibraryEffects] searchOpenLibrary success', {
+                total: res.num_found,
+              })
+            ),
+            map(res =>
+              LibraryActions.searchOpenLibrarySuccess({
+                results: res.docs,
+                total: res.num_found,
+              })
+            ),
+            catchError(error => {
+              console.error('[LibraryEffects] searchOpenLibrary failure', error);
+              return of(LibraryActions.searchOpenLibraryFailure());
             })
-          ),
-          map(res =>
-            LibraryActions.searchOpenLibrarySuccess({
-              results: res.docs,
-              total: res.num_found,
-            })
-          ),
-          catchError(error => {
-            console.error('[LibraryEffects] searchOpenLibrary failure', error);
-            return of(LibraryActions.searchOpenLibraryFailure());
-          })
-        )
+          )
       )
     )
   );

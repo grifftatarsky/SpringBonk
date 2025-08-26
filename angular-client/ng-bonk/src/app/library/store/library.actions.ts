@@ -79,7 +79,7 @@ export const deleteBookSuccess = createAction(
 
 export const searchOpenLibrary = createAction(
   '[Library] Search OpenLibrary',
-  props<{ query: string; pageIndex?: number; pageSize?: number }>()
+  props<{ query: string; sort?: string; pageIndex?: number; pageSize?: number }>()
 );
 export const searchOpenLibrarySuccess = createAction(
   '[Library] Search OpenLibrary Success',

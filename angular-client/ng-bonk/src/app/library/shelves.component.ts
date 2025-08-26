@@ -3,17 +3,17 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AsyncPipe, DatePipe, NgForOf, NgIf } from '@angular/common';
+import { AsyncPipe, NgForOf, NgIf } from '@angular/common';
 import { ShelfRequest } from '../model/request/shelf-request.model';
 import { ShelfResponse } from '../model/response/shelf-response.model';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { Observable } from 'rxjs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { RouterModule } from '@angular/router';
 import { BookSearchSheet } from './book-search-sheet.component';
@@ -41,13 +41,12 @@ import { ShelfDialog } from './dialog/shelf-dialog.component';
     MatPaginatorModule,
     MatButtonModule,
     MatProgressBarModule,
-    MatChipsModule,
     MatIconModule,
     MatExpansionModule,
     MatTooltipModule,
     MatMenuModule,
+    MatSortModule,
     RouterModule,
-    DatePipe,
     AsyncPipe,
     NgIf,
     NgForOf,
@@ -56,14 +55,7 @@ import { ShelfDialog } from './dialog/shelf-dialog.component';
   styleUrls: ['./shelves.component.scss'],
 })
 export class ShelvesComponent implements AfterViewInit {
-  displayedColumns: string[] = [
-    'title',
-    'createdDate',
-    'defaultShelf',
-    'actions',
-  ];
-
-  bookColumns: string[] = ['cover', 'title', 'author', 'actions'];
+  bookColumns: string[] = ['cover', 'title', 'author', 'published', 'actions'];
   shelves$: Observable<ShelfResponse[]>;
   loading$: Observable<boolean>;
   total: number = 0;
@@ -226,4 +218,29 @@ export class ShelvesComponent implements AfterViewInit {
       }
     });
   }
+
+  sortShelfBooks(sort: Sort, shelfId: string): void {
+    const books = [...(this.shelfBooks[shelfId] || [])];
+    if (!sort.active || sort.direction === '') {
+      this.shelfBooks[shelfId] = books;
+      return;
+    }
+    const isAsc = sort.direction === 'asc';
+    this.shelfBooks[shelfId] = books.sort((a, b) => {
+      switch (sort.active) {
+        case 'title':
+          return compare(a.title, b.title, isAsc);
+        case 'author':
+          return compare(a.author, b.author, isAsc);
+        case 'published':
+          return compare(a.publishedYear ?? 0, b.publishedYear ?? 0, isAsc);
+        default:
+          return 0;
+      }
+    });
+  }
+}
+
+function compare(a: string | number, b: string | number, isAsc: boolean): number {
+  return (a < b ? -1 : a > b ? 1 : 0) * (isAsc ? 1 : -1);
 }

@@ -20,7 +20,8 @@ export class BookHttpService extends BaseHttpService {
   getOpenLibraryBooks(
     page = 0,
     size = 10,
-    searchTerm?: string
+    searchTerm?: string,
+    sort: string = 'relevance'
   ): Observable<PagedOpenLibraryResponse> {
     if (!searchTerm) {
       return of({
@@ -34,6 +35,7 @@ export class BookHttpService extends BaseHttpService {
       q: searchTerm,
       page: page + 1, // OpenLibrary is 1-indexed!
       limit: size,
+      sort,
     };
 
     return this.get<PagedOpenLibraryResponse>(this.openLibraryBaseUrl, params);
