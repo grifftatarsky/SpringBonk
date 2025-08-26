@@ -1,0 +1,45 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button routerLink="/shelves">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>{{ (shelf$ | async)?.title }}</span>
+  <span class="spacer"></span>
+  <span *ngIf="(shelf$ | async)?.defaultShelf" class="default-badge"
+    >Default</span
+  >
+</mat-toolbar>
+
+<div class="shelf-content">
+  <table
+    mat-table
+    [dataSource]="sortedBooks"
+    matSort
+    (matSortChange)="sortData($event)"
+    matSortDisableClear
+    class="books-table mat-elevation-z8">
+    <ng-container matColumnDef="cover">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let book">
+        <div class="book-cover-avatar">
+          <img [src]="book.imageURL" alt="{{ book.title }} cover" />
+        </div>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="title">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="title">Title</th>
+      <td mat-cell *matCellDef="let book">{{ book.title }}</td>
+    </ng-container>
+    <ng-container matColumnDef="author">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="author">Author</th>
+      <td mat-cell *matCellDef="let book">{{ book.author }}</td>
+    </ng-container>
+    <ng-container matColumnDef="published">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="published">
+        Published
+      </th>
+      <td mat-cell *matCellDef="let book">{{ book.publishedYear ?? '—' }}</td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+</div>

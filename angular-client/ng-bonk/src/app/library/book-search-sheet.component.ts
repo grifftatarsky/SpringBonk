@@ -13,15 +13,23 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
-import { Observable, Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { Observable, Subject, Subscription, merge } from 'rxjs';
+import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { OpenLibraryBooksDatasource } from '../datasource/open-library-books.datasource';
-import { BookHttpService } from '../service/http/books-http.service';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { BookSelectShelfDialog } from './dialog/book-select-shelf-dialog.component';
+import { Store } from '@ngrx/store';
+import * as LibraryActions from './store/library.actions';
+import {
+  selectOpenLibraryResults,
+  selectSearchLoading,
+  selectOpenLibraryTotal,
+} from './store/library.selectors';
+import { BookHttpService } from '../service/http/books-http.service';
 
 @Component({
   selector: 'app-book-search-dialog',
@@ -37,6 +45,8 @@ import { BookSelectShelfDialog } from './dialog/book-select-shelf-dialog.compone
     MatTableModule,
     MatPaginatorModule,
     MatIconModule,
+    MatSelectModule,
+    MatExpansionModule,
     AsyncPipe,
     NgIf,
   ],
@@ -45,12 +55,19 @@ import { BookSelectShelfDialog } from './dialog/book-select-shelf-dialog.compone
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookSearchSheet implements AfterViewInit, OnDestroy {
-  displayedColumns: string[] = ['title', 'author', 'year', 'select'];
+  displayedColumns: string[] = ['cover', 'title', 'author', 'year', 'select'];
 
   searchControl = new FormControl('');
-  dataSource: OpenLibraryBooksDatasource;
+  titleControl = new FormControl('');
+  authorControl = new FormControl('');
+  subjectControl = new FormControl('');
+  sortControl = new FormControl('relevance');
+  showFilters = false;
+  hasSearched = false;
+
+  results$: Observable<OpenLibraryBookResponse[]>;
   loading$: Observable<boolean>;
-  total = 0;
+  total$: Observable<number>;
 
   private destroy$ = new Subject<void>();
   private searchSubscription?: Subscription;
@@ -58,29 +75,34 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
-    private http: BookHttpService,
     private dialogRef: MatBottomSheetRef<BookSearchSheet>,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private store: Store,
+    private bookHttp: BookHttpService
   ) {
-    this.dataSource = new OpenLibraryBooksDatasource(this.http);
-    this.loading$ = this.dataSource.loading$;
-    this.dataSource.total$.subscribe(
-      (count: number): number => (this.total = count)
-    );
+    this.results$ = this.store.select(selectOpenLibraryResults);
+    this.loading$ = this.store.select(selectSearchLoading);
+    this.total$ = this.store.select(selectOpenLibraryTotal);
   }
 
   ngAfterViewInit(): void {
-    // Set up search with debounce
-    this.searchSubscription = this.searchControl.valueChanges
+    // Set up search with debounce across all controls
+    this.searchSubscription = merge(
+      this.searchControl.valueChanges.pipe(skip(1)),
+      this.titleControl.valueChanges.pipe(skip(1)),
+      this.authorControl.valueChanges.pipe(skip(1)),
+      this.subjectControl.valueChanges.pipe(skip(1)),
+      this.sortControl.valueChanges.pipe(skip(1))
+    )
       .pipe(takeUntil(this.destroy$), debounceTime(300), distinctUntilChanged())
-      .subscribe((searchTerm: string | null): void => {
+      .subscribe((): void => {
         this.paginator.pageIndex = 0;
-        this.loadData(searchTerm || undefined);
+        this.loadData();
       });
 
     // Set up paginator
     this.paginator.page.pipe(takeUntil(this.destroy$)).subscribe((): void => {
-      this.loadData(this.searchControl.value || undefined);
+      this.loadData();
     });
 
     // Initial empty state - don't load any data
@@ -92,12 +114,41 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
     this.searchSubscription?.unsubscribe();
   }
 
-  loadData(searchTerm?: string): void {
-    this.dataSource.loadBooks(
-      searchTerm,
-      this.paginator.pageIndex,
-      this.paginator.pageSize
+  loadData(): void {
+    const terms: string[] = [];
+    const q = this.searchControl.value?.trim();
+    const title = this.titleControl.value?.trim();
+    const author = this.authorControl.value?.trim();
+    const subject = this.subjectControl.value?.trim();
+    const sort = this.sortControl.value || 'relevance';
+    if (q) {
+      terms.push(q);
+    }
+    if (title) {
+      terms.push(`title:${title}`);
+    }
+    if (author) {
+      terms.push(`author:${author}`);
+    }
+    if (subject) {
+      terms.push(`subject:${subject}`);
+    }
+    const query = terms.join(' ');
+    this.hasSearched = true;
+    this.store.dispatch(
+      LibraryActions.searchOpenLibrary({
+        query,
+        sort,
+        pageIndex: this.paginator.pageIndex,
+        pageSize: this.paginator.pageSize,
+      })
     );
+  }
+
+  getCover(book: OpenLibraryBookResponse): string {
+    return book.cover_i
+      ? this.bookHttp.getOpenLibraryCoverImageUrl(book.cover_i, 'S')
+      : 'assets/placeholder-book-cover.jpg';
   }
 
   select(book: OpenLibraryBookResponse): void {

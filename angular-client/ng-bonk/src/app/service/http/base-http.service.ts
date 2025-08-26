@@ -8,12 +8,13 @@ import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { reverseProxyUri } from '../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BaseHttpService {
-  protected apiBase: string = '/bff/api';
+  protected apiBase: string = `${reverseProxyUri}/api`;
 
   constructor(
     protected http: HttpClient,
@@ -35,7 +36,7 @@ export class BaseHttpService {
       })
       .pipe(
         map(res => res),
-        catchError(this.handleError)
+        catchError(error => this.handleError(error))
       );
   }
 
@@ -53,7 +54,7 @@ export class BaseHttpService {
       })
       .pipe(
         map(res => res),
-        catchError(this.handleError)
+        catchError(error => this.handleError(error))
       );
   }
 
@@ -71,7 +72,7 @@ export class BaseHttpService {
       })
       .pipe(
         map(res => res),
-        catchError(this.handleError)
+        catchError(error => this.handleError(error))
       );
   }
 
@@ -90,7 +91,7 @@ export class BaseHttpService {
       })
       .pipe(
         map(res => res),
-        catchError(this.handleError)
+        catchError(error => this.handleError(error))
       );
   }
 
@@ -133,7 +134,7 @@ export class BaseHttpService {
   /**
    * Global error handler for all HTTP requests
    */
-  private handleError(error: HttpErrorResponse): Observable<never> {
+  private handleError = (error: HttpErrorResponse): Observable<never> => {
     // Get an appropriate error message to display
     const displayMessage: string = this.getErrorDisplayMessage(error);
 
@@ -154,7 +155,7 @@ export class BaseHttpService {
   /**
    * Get a user-friendly error message based on HTTP error!
    */
-  private getErrorDisplayMessage(error: HttpErrorResponse): string {
+  private getErrorDisplayMessage = (error: HttpErrorResponse): string => {
     // Check if error has a specific message from the server
     if (error.error?.message) {
       return error.error.message;

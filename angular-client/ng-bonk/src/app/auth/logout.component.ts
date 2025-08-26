@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { UserService } from '../service/user.service';
 import { lastValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { baseUri } from '../app.config';
+import { baseUri, reverseProxyUri } from '../app.config';
 import { MatButton } from '@angular/material/button';
 
 @Component({
@@ -20,7 +20,7 @@ export class LogoutComponent {
 
   logout() {
     lastValueFrom(
-      this.http.post('/bff/logout', null, {
+      this.http.post(`${reverseProxyUri}/logout`, null, {
         headers: {
           'X-POST-LOGOUT-SUCCESS-URI': baseUri,
         },

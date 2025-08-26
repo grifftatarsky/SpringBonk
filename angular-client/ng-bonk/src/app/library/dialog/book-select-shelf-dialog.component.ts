@@ -100,6 +100,11 @@ export class BookSelectShelfDialog implements OnInit {
             a.title.localeCompare(b.title)
           );
         }
+
+        const defaultShelf = shelves.find(s => s.defaultShelf) ?? this.unshelvedShelf;
+        if (defaultShelf) {
+          this.shelfControl.setValue(defaultShelf.id);
+        }
       });
   }
 

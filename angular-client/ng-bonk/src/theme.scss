@@ -1,0 +1,25 @@
+@use '@angular/material' as mat;
+
+$terminal-theme: mat.define-theme((
+  color: (
+    theme-type: dark,
+    primary: mat.$green-palette,
+    tertiary: mat.$red-palette,
+  ),
+  typography: (
+    brand-family: 'VT323, monospace',
+    plain-family: 'VT323, monospace',
+  ),
+));
+
+@include mat.core();
+
+:root {
+  --mdc-shape-small: 0;
+  --mdc-shape-medium: 0;
+  --mdc-shape-large: 0;
+  --mdc-outlined-text-field-outline-color: #00ff00;
+  --mdc-outlined-text-field-hover-outline-color: #00ff00;
+  --mdc-outlined-text-field-focused-outline-color: #00ff00;
+  @include mat.all-component-themes($terminal-theme);
+}

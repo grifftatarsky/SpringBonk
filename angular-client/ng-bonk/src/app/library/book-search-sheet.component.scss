@@ -1,1 +1,37 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+}
 
+.sheet-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.advanced-search {
+  margin: 0.5rem 0;
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+}
+
+.results-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.results-container .mat-table {
+  flex: 1;
+  overflow: auto;
+}
+
+.search-paginator {
+  margin-top: 0.5rem;
+}

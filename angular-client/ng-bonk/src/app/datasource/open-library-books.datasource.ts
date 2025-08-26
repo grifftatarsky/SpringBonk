@@ -35,11 +35,16 @@ export class OpenLibraryBooksDatasource extends DataSource<OpenLibraryBookRespon
     this._totalSubject.complete();
   }
 
-  loadBooks(searchTerm?: string, pageIndex = 0, pageSize = 10): void {
+  loadBooks(
+    searchTerm?: string,
+    pageIndex = 0,
+    pageSize = 10,
+    sort = 'relevance'
+  ): void {
     this._loadingSubject.next(true);
 
     this.http
-      .getOpenLibraryBooks(pageIndex, pageSize, searchTerm)
+      .getOpenLibraryBooks(pageIndex, pageSize, searchTerm, sort)
       .pipe(
         map((res: PagedOpenLibraryResponse): OpenLibraryBookResponse[] => {
           this._totalSubject.next(res.num_found);

@@ -17,16 +17,9 @@
     justify-content: space-between;
     align-items: center;
 
-    .shelf-date {
-      color: rgba(0, 0, 0, 0.54);
-      font-size: 14px;
-    }
-
     .default-badge {
-      background-color: #2196f3;
-      color: white;
+      border: 1px solid currentColor;
       padding: 2px 8px;
-      border-radius: 12px;
       font-size: 12px;
       margin-left: 8px;
     }
@@ -49,7 +42,7 @@
 .no-books-message {
   text-align: center;
   padding: 24px;
-  color: rgba(0, 0, 0, 0.54);
+  opacity: 0.6;
   font-style: italic;
 }
 
@@ -57,25 +50,14 @@
   width: 100%;
 
   .book-cover-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    overflow: hidden;
     cursor: pointer;
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
-    }
   }
 
   .book-row {
     cursor: pointer;
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.04);
+      background-color: rgba(0, 255, 0, 0.1);
     }
 
     td {
@@ -95,12 +77,21 @@
 .toolbar-divider {
   width: 1px;
   height: 24px;
-  background-color: rgba(0, 0, 0, 0.12);
+  background-color: currentColor;
   margin: 0 8px;
+}
+
+#toolbar-shelves {
+  flex-wrap: wrap;
+}
+
+
+.books-paginator {
+  margin-top: 8px;
 }
 
 .table-no-data-bar {
   text-align: center;
   padding: 24px;
-  color: rgba(0, 0, 0, 0.54);
+  opacity: 0.6;
 }

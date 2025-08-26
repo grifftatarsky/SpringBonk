@@ -1,262 +1,98 @@
-@use '@angular/material' as mat;
-
-// VARIABLES
-
-$dc_metro_blue: #003DA5;
-$dc_metro_red: #DA291C;
-$dc_metro_green: #00843D;
-$dc_metro_yellow: #FFC72C;
-$dc_metro_orange: #ED8B00;
-$dc_metro_silver: #7C878E;
-
-$disabled: #CCC;
-
-$white: #FFF;
-$light-gray: #f0f0f0;
-$dark-gray: #555;
-
-// BASE
-
-html, body {
+html,
+body {
+  height: 100%;
   margin: 0;
-  padding: 0;
+  background-color: #001b00;
+  color: #00ff41;
+  font-family: 'Roboto Mono', monospace;
 }
 
-// UTILITY
-
-.spacer {
-  flex: 1;
+* {
+  border-radius: 0 !important;
 }
 
-// MAT: TOOLBAR
+a {
+  color: #00ff41;
+}
 
 mat-toolbar {
-  padding: 2rem !important;
+  background: #001000;
+  color: inherit;
+  border-bottom: 2px solid #00ff41;
 }
 
-#toolbar-primary {
-  display: flex;
-
-  @include mat.toolbar-overrides((
-    container-background-color: $dc_metro_blue,
-    container-text-color: white,
-  ));
+mat-divider {
+  border-color: #00ff41;
 }
 
-#toolbar-secondary {
-  padding: 0 1rem !important;
+#logo-image {
+  height: 32px;
+  margin-right: 0.5rem;
 }
 
-#toolbar-elections {
-  display: flex;
-  padding: 0 1.5rem !important;
-}
-
-.toolbar-divider {
-  width: 0;
-  border-left: 2px solid $disabled;
-}
-
-.toolbar-icon-button {
-  transition: color .3s;
-
-  &:hover {
-    cursor: pointer;
-    color: $dc_metro_blue
-  }
-}
-
-// MAT: MENU
-.secondary-toolbar-menu-trigger {
-  font-weight: 600;
-  font-size: 1rem;
-
-  display: flex;
-  flex-flow: row;
-  align-items: center;
-  justify-content: center;
-
-  transition: color .3s;
-
-  &:hover {
-    cursor: pointer;
-    color: $dc_metro_blue
-  }
-
-  &[aria-expanded="true"] {
-    color: $dc_metro_blue
-  }
-}
-
-.mat-mdc-menu-panel {
-  padding: 0;
-
-  background-color: $white !important;
-  border: 1px solid $dc_metro_blue
-}
-
-// MAT: TABLE
-:root {
-  @include mat.table-overrides((
-    background-color: $white,
-  ));
-}
-
+mat-expansion-panel,
+mat-dialog-container,
+.mat-mdc-card,
 .mat-mdc-table {
+  background: rgba(0, 0, 0, 0.25);
+  color: inherit;
+  border: 1px solid #00ff41;
+  box-shadow: none;
+}
 
-  .table-no-data-bar {
-    padding-left: 2rem;
-    margin-top: 1rem;
-  }
+mat-paginator {
+  background: transparent;
+  color: inherit;
+  border: none;
+}
 
-  thead {
-    background-color: $light-gray !important;
+.mat-mdc-header-cell,
+.mat-mdc-cell {
+  color: inherit;
+}
 
-    th {
-      border-bottom: none;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      font-size: .75rem;
-      color: $dark-gray;
-      background-color: $light-gray !important;
+.mat-mdc-form-field .mdc-notched-outline__leading,
+.mat-mdc-form-field .mdc-notched-outline__trailing,
+.mat-mdc-form-field .mdc-notched-outline__notch {
+  border-color: #00ff41 !important;
+}
 
-      &:first-child {
-        padding-left: 2rem;
-      }
-    }
-  }
+.mat-icon {
+  color: #00ff41;
+}
 
-  tbody {
-    td {
-      &:first-child {
-        padding-left: 2rem;
-      }
-    }
+.book-cover-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #00ff41;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
   }
 }
 
 .table-no-data-bar {
-  width: 100%;
+  opacity: 0.6;
 }
-
-// MAT: CHIP
-
-mat-chip {
-  transition: background-color 200ms ease, color 200ms ease;
-}
-
-.status-chip-endless {
-  min-width: 102px;
-  @include mat.chips-overrides((
-    outline-color: $dc_metro_green,
-    label-text-color: $dc_metro_green,
-  ));
-
-  mat-icon {
-    color: $dc_metro_green !important;
-  }
-}
-
-.status-chip-ongoing {
-  min-width: 102px;
-  @include mat.chips-overrides((
-    outline-color: $dc_metro_green,
-    elevated-container-color: $dc_metro_green,
-    label-text-color: $white,
-  ));
-
-  mat-icon {
-    color: $white !important;
-  }
-}
-
-.status-chip-ended {
-  min-width: 102px;
-  @include mat.chips-overrides((
-    outline-color: $white,
-    elevated-container-color: $dc_metro_red,
-    label-text-color: $white,
-  ));
-
-  mat-icon {
-    color: $white !important;
-  }
-}
-
-// MAT: SHEET
-
-.sheet-max {
-  width: 100vw;
-  margin: 2rem;
-
-  mat-bottom-sheet-container {
-    padding-top: 2rem;
-    width: 100%;
-    max-width: unset;
-    height: calc(100vh - 6rem);
-    overflow: scroll;
-  }
-
-  .sheet-search-bar {
-    display: flex;
-  }
-}
-
-// These are equivalent to tailwind or bootstrap classes.
-// If I have enough, I'll re-eval using the lib.
-.flex-row-reverse {
-  flex-direction: row-reverse;
-}
-
-.gap-1 {
-  gap: .25rem;
-}
-
-.gap-2 {
-  gap: .5rem;
-}
-
-// BRANDING
-
-#logo-image {
-  width: 2rem;
-}
-
-// MAT: SNACKBAR
 
 .success-snackbar {
-  background-color: $dc_metro_green;
-  color: $white;
-
-  .mat-simple-snackbar-action {
-    color: $white;
-  }
+  background: #003300;
+  color: #00ff41;
+  border: 1px solid #00ff41;
 }
 
 .error-snackbar {
-  background-color: $dc_metro_red;
-  color: $white;
-
-  .mat-simple-snackbar-action {
-    color: $white;
-  }
+  background: #330000;
+  color: #ff5555;
+  border: 1px solid #ff5555;
 }
 
-// SPECIFIC: BOOK
-
-.book-cover-avatar {
-  position: relative;
-  overflow: hidden;
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
-    border-radius: 50%;
-    pointer-events: none;
-  }
+.spacer {
+  flex: 1;
 }

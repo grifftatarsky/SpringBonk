@@ -8,4 +8,5 @@ export interface BookResponse {
   blurb: string;
   openLibraryId: string;
   shelves: SimpleShelfResponse[];
+  publishedYear?: number;
 }
