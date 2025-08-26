@@ -11,7 +11,10 @@
       <mat-hint>Combined title and author search</mat-hint>
     </mat-form-field>
 
-    <button mat-icon-button (click)="showFilters = !showFilters" aria-label="Advanced filters">
+    <button
+      mat-icon-button
+      (click)="showFilters = !showFilters"
+      aria-label="Advanced filters">
       <mat-icon>{{ showFilters ? 'expand_less' : 'tune' }}</mat-icon>
     </button>
   </div>
@@ -28,7 +31,11 @@
   </mat-paginator>
 </div>
 
-<mat-expansion-panel class="advanced-search" [expanded]="showFilters" (opened)="showFilters=true" (closed)="showFilters=false">
+<mat-expansion-panel
+  class="advanced-search"
+  [expanded]="showFilters"
+  (opened)="showFilters = true"
+  (closed)="showFilters = false">
   <mat-expansion-panel-header>
     <mat-panel-title>Advanced Filters</mat-panel-title>
   </mat-expansion-panel-header>
@@ -60,7 +67,10 @@
   <mat-progress-bar mode="indeterminate" />
 </div>
 
-<table mat-table [dataSource]="(results$ | async) ?? []" class="mat-elevation-z8">
+<table
+  mat-table
+  [dataSource]="(results$ | async) ?? []"
+  class="mat-elevation-z8">
   <!-- No Data -->
   <div class="table-no-data-bar" *matNoDataRow>
     Enter a search term to find books
@@ -69,7 +79,9 @@
   <ng-container matColumnDef="cover">
     <th mat-header-cell *matHeaderCellDef></th>
     <td mat-cell *matCellDef="let book">
-      <img [src]="getCover(book)" alt="{{ book.title }} cover" class="cover-thumb" />
+      <div class="book-cover-avatar">
+        <img [src]="getCover(book)" alt="{{ book.title }} cover" />
+      </div>
     </td>
   </ng-container>
 

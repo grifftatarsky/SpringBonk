@@ -1,4 +1,9 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -53,12 +58,15 @@ import { ShelfDialog } from './dialog/shelf-dialog.component';
   ],
   templateUrl: './shelves.component.html',
   styleUrls: ['./shelves.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShelvesComponent implements AfterViewInit {
   bookColumns: string[] = ['cover', 'title', 'author', 'published', 'actions'];
   shelves$: Observable<ShelfResponse[]>;
   loading$: Observable<boolean>;
-  total: number = 0;
+  total$: Observable<number>;
+  shelfBooks$!: Observable<{ [shelfId: string]: BookResponse[] }>;
+  loadingBooks$!: Observable<{ [shelfId: string]: boolean }>;
 
   expandedShelf: string | null = null;
   shelfBooks: { [shelfId: string]: BookResponse[] } = {};
@@ -73,13 +81,11 @@ export class ShelvesComponent implements AfterViewInit {
   ) {
     this.shelves$ = this.store.select(selectShelves);
     this.loading$ = this.store.select(selectShelvesLoading);
-    this.store
-      .select(selectShelvesTotal)
-      .subscribe(count => (this.total = count));
-    this.store.select(selectShelfBooks).subscribe(sb => (this.shelfBooks = sb));
-    this.store
-      .select(selectLoadingBooks)
-      .subscribe(lb => (this.loadingBooks = lb));
+    this.total$ = this.store.select(selectShelvesTotal);
+    this.shelfBooks$ = this.store.select(selectShelfBooks);
+    this.loadingBooks$ = this.store.select(selectLoadingBooks);
+    this.shelfBooks$.subscribe(sb => (this.shelfBooks = sb));
+    this.loadingBooks$.subscribe(lb => (this.loadingBooks = lb));
   }
 
   ngAfterViewInit(): void {
@@ -241,6 +247,10 @@ export class ShelvesComponent implements AfterViewInit {
   }
 }
 
-function compare(a: string | number, b: string | number, isAsc: boolean): number {
+function compare(
+  a: string | number,
+  b: string | number,
+  isAsc: boolean
+): number {
   return (a < b ? -1 : a > b ? 1 : 0) * (isAsc ? 1 : -1);
 }

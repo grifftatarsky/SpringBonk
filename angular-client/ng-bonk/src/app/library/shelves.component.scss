@@ -50,18 +50,7 @@
   width: 100%;
 
   .book-cover-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    overflow: hidden;
     cursor: pointer;
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
-    }
   }
 
   .book-row {
@@ -90,6 +79,17 @@
   height: 24px;
   background-color: currentColor;
   margin: 0 8px;
+}
+
+#toolbar-shelves {
+  flex-wrap: wrap;
+
+  mat-paginator {
+    flex: 1 0 100%;
+    border: none;
+    background: transparent;
+    padding: 0;
+  }
 }
 
 .table-no-data-bar {

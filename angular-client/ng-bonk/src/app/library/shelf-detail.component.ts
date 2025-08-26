@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -8,7 +8,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { Store } from '@ngrx/store';
 import * as LibraryActions from './store/library.actions';
-import { selectBooksForShelf, selectShelfById } from './store/library.selectors';
+import {
+  selectBooksForShelf,
+  selectShelfById,
+} from './store/library.selectors';
 import { Observable } from 'rxjs';
 import { BookResponse } from '../model/response/book-response.model';
 import { AsyncPipe } from '@angular/common';
@@ -28,6 +31,7 @@ import { AsyncPipe } from '@angular/common';
   ],
   templateUrl: './shelf-detail.component.html',
   styleUrls: ['./shelf-detail.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShelfDetailComponent implements OnInit {
   shelfId!: string;
@@ -37,18 +41,21 @@ export class ShelfDetailComponent implements OnInit {
 
   displayedColumns: string[] = ['cover', 'title', 'author', 'published'];
 
-  constructor(private route: ActivatedRoute, private store: Store) {}
+  constructor(
+    private route: ActivatedRoute,
+    private store: Store
+  ) {}
 
   ngOnInit(): void {
     this.shelfId = this.route.snapshot.paramMap.get('id')!;
     this.shelf$ = this.store.select(selectShelfById(this.shelfId));
-    this.store
-      .select(selectBooksForShelf(this.shelfId))
-      .subscribe(books => {
-        this.books = books;
-        this.sortedBooks = [...books];
-      });
-    this.store.dispatch(LibraryActions.loadShelfBooks({ shelfId: this.shelfId }));
+    this.store.select(selectBooksForShelf(this.shelfId)).subscribe(books => {
+      this.books = books;
+      this.sortedBooks = [...books];
+    });
+    this.store.dispatch(
+      LibraryActions.loadShelfBooks({ shelfId: this.shelfId })
+    );
   }
 
   sortData(sort: Sort): void {
@@ -73,6 +80,10 @@ export class ShelfDetailComponent implements OnInit {
   }
 }
 
-function compare(a: string | number, b: string | number, isAsc: boolean): number {
+function compare(
+  a: string | number,
+  b: string | number,
+  isAsc: boolean
+): number {
   return (a < b ? -1 : a > b ? 1 : 0) * (isAsc ? 1 : -1);
 }

@@ -1,9 +1,15 @@
-
-
 .sheet-search-bar {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
+
+  mat-paginator {
+    flex: 1 0 100%;
+    border: none;
+    background: transparent;
+    padding: 0;
+  }
 }
 
 .advanced-search {
@@ -14,11 +20,4 @@
     flex-wrap: wrap;
     gap: 1rem;
   }
-}
-
-.cover-thumb {
-  width: 40px;
-  height: 60px;
-  object-fit: cover;
-  border: 1px solid #00ff00;
 }
