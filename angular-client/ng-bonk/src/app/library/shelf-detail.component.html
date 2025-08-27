@@ -9,44 +9,34 @@
   >
 </mat-toolbar>
 
-<div class="shelf-content" *ngIf="sortedBooks$ | async as rows">
-  <table
-    mat-table
-    [dataSource]="rows"
-    matSort
-    (matSortChange)="sortData($event)"
-    matSortDisableClear
-    class="books-table mat-elevation-z8">
-    <ng-container matColumnDef="cover">
-      <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let book">
-        <div class="book-cover-avatar">
-          <img [src]="book.imageURL" alt="{{ book.title }} cover" />
-        </div>
-      </td>
+<div class="shelf-content" (scroll)="onDetailScroll($event)">
+  <div *ngIf="loading$ | async">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  </div>
+  <ng-container *ngIf="(displayedBooks$ | async) as books">
+    <ng-container *ngIf="books.length > 0; else emptyBooks">
+      <div class="book-cards">
+        <mat-card class="book-card" *ngFor="let book of books" (click)="openBookSheet(book)">
+          <div class="cover">
+            <img [src]="book.imageURL" alt="{{ book.title }} cover" />
+          </div>
+          <div class="meta">
+            <div class="title">{{ book.title }}</div>
+            <mat-chip-set>
+              <mat-chip appearance="outlined">{{ book.author }}</mat-chip>
+              <mat-chip appearance="outlined">{{ book.publishedYear ?? '—' }}</mat-chip>
+            </mat-chip-set>
+          </div>
+          <div class="actions" (click)="$event.stopPropagation()">
+            <button mat-icon-button aria-label="Book details" (click)="openBookSheet(book)">
+              <mat-icon>info</mat-icon>
+            </button>
+          </div>
+        </mat-card>
+      </div>
     </ng-container>
-    <ng-container matColumnDef="title">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header="title">Title</th>
-      <td mat-cell *matCellDef="let book">{{ book.title }}</td>
-    </ng-container>
-    <ng-container matColumnDef="author">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header="author">Author</th>
-      <td mat-cell *matCellDef="let book">{{ book.author }}</td>
-    </ng-container>
-    <ng-container matColumnDef="published">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header="published">
-        Published
-      </th>
-      <td mat-cell *matCellDef="let book">{{ book.publishedYear ?? '—' }}</td>
-    </ng-container>
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" [attr.colspan]="displayedColumns.length">
-        <div class="no-data">
-          This shelf has no books yet.
-        </div>
-      </td>
-    </tr>
-  </table>
+  </ng-container>
+  <ng-template #emptyBooks>
+    <div class="no-data">This shelf has no books yet.</div>
+  </ng-template>
 </div>

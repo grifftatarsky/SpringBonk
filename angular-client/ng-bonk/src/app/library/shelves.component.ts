@@ -22,7 +22,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatCardModule } from '@angular/material/card';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
-import { ActivatedRoute, Router, RouterOutlet, RouterLink, NavigationEnd } from '@angular/router';
+import { ActivatedRoute, Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { BookSearchSheet } from './book-search-sheet.component';
 import { BookResponse } from '../model/response/book-response.model';
 import { BookDetailDialog } from './dialog/book-detail-dialog.component';
@@ -55,7 +55,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     MatTooltipModule,
     MatSortModule,
     RouterOutlet,
-    RouterLink,
     AsyncPipe,
     NgIf,
     NgForOf,

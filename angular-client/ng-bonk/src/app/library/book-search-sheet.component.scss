@@ -48,6 +48,36 @@
   overflow: auto;
 }
 
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.result-card {
+  border: 1px solid #00ff41;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.result-row {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+}
+.result-row .cover { width: 64px; height: 92px; border: 1px solid #00ff41; overflow: hidden; }
+.result-row .cover img { width: 100%; height: 100%; object-fit: cover; }
+.result-row .meta .title { font-weight: 600; }
+.result-row .meta .author, .result-row .meta .year { opacity: 0.8; font-size: 12px; }
+.no-data { text-align: center; opacity: 0.7; padding: 12px; }
+
+@media (max-width: 600px) {
+  .result-row { grid-template-columns: 64px 1fr; grid-template-rows: auto auto auto; }
+  .result-row .actions { grid-column: 1 / -1; }
+  .result-row .actions button { width: 100%; justify-content: center; }
+}
+
 .search-paginator {
   position: sticky;
   bottom: 0;

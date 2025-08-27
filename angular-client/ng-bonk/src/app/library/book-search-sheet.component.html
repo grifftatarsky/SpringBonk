@@ -57,55 +57,27 @@
     </div>
 
     <div class="results-scroll">
-      <table
-        mat-table
-        [dataSource]="(results$ | async) ?? []"
-        class="mat-elevation-z8">
-    <!-- No Data -->
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" [attr.colspan]="displayedColumns.length">
-        {{ hasSearched ? 'No results found' : 'Enter a search term to find books' }}
-      </td>
-    </tr>
-
-  <ng-container matColumnDef="cover">
-    <th mat-header-cell *matHeaderCellDef></th>
-    <td mat-cell *matCellDef="let book">
-      <div class="book-cover-avatar">
-        <img [src]="getCover(book)" alt="{{ book.title }} cover" />
+      <div class="results-grid" *ngIf="(results$ | async) as results">
+        <mat-card class="result-card" *ngFor="let book of results">
+          <div class="result-row">
+            <div class="cover"><img [src]="getCover(book)" alt="{{ book.title }} cover" /></div>
+            <div class="meta">
+              <div class="title">{{ book.title }}</div>
+              <div class="author">{{ book.author_name?.[0] ?? '—' }}</div>
+              <div class="year">{{ book.first_publish_year ?? '—' }}</div>
+            </div>
+            <div class="actions">
+              <button mat-stroked-button color="primary" (click)="select(book)">
+                <mat-icon>add</mat-icon>
+                Add
+              </button>
+            </div>
+          </div>
+        </mat-card>
+        <div class="no-data" *ngIf="!results.length">
+          {{ hasSearched ? 'No results found' : 'Enter a search term to find books' }}
+        </div>
       </div>
-    </td>
-  </ng-container>
-
-  <ng-container matColumnDef="title">
-    <th mat-header-cell *matHeaderCellDef>Title</th>
-    <td mat-cell *matCellDef="let book">{{ book.title }}</td>
-  </ng-container>
-
-  <ng-container matColumnDef="author">
-    <th mat-header-cell *matHeaderCellDef>Author</th>
-    <td mat-cell *matCellDef="let book">{{ book.author_name?.[0] ?? '—' }}</td>
-  </ng-container>
-
-  <ng-container matColumnDef="year">
-    <th mat-header-cell *matHeaderCellDef>First Published</th>
-    <td mat-cell *matCellDef="let book">
-      {{ book.first_publish_year ?? '—' }}
-    </td>
-  </ng-container>
-
-  <ng-container matColumnDef="select">
-    <th mat-header-cell *matHeaderCellDef></th>
-    <td mat-cell *matCellDef="let book">
-      <button mat-icon-button (click)="select(book)">
-        <mat-icon>add</mat-icon>
-      </button>
-    </td>
-  </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
     </div>
 
     <mat-paginator

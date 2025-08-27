@@ -81,6 +81,7 @@
 }
 
 .list-pane {
+  padding: 16px;
   max-width: 720px;
   overflow: auto;
 }
@@ -172,6 +173,7 @@
 
 @media (min-width: 1024px) {
   .shelves-layout {
+    padding: 16px;
     grid-template-columns: minmax(320px, 420px) 1fr;
   }
   .detail-pane {

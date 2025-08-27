@@ -5,6 +5,7 @@ body {
   background-color: #001b00;
   color: #00ff41;
   font-family: 'Roboto Mono', monospace;
+  overflow: hidden; /* contain scroll within app components */
 }
 
 * {
@@ -95,6 +96,12 @@ mat-paginator {
 
 .spacer {
   flex: 1;
+}
+
+/* Route content should scroll within its own components, not the whole page */
+.route-container {
+  height: 100%;
+  overflow: hidden;
 }
 
 /* Bottom sheet: wide, tall panel with pip-boy border */

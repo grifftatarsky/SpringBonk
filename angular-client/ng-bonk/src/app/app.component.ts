@@ -35,7 +35,23 @@ import { animate, style, transition, trigger } from '@angular/animations';
     MenuNavigationComponent,
   ],
   templateUrl: './app.component.html',
-  styles: [],
+  styles: [
+    `
+      :host {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        max-height: 100vh;
+        overflow: hidden;
+      }
+      .route-container {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+        display: block;
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('routeFadeAnimation', [

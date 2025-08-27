@@ -12,7 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatTableModule } from '@angular/material/table';
+import { MatCardModule } from '@angular/material/card';
 import { Observable, Subject, Subscription, merge } from 'rxjs';
 import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,7 +20,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe, NgIf, NgForOf } from '@angular/common';
 import { BookSelectShelfDialog } from './dialog/book-select-shelf-dialog.component';
 import { Store } from '@ngrx/store';
 import * as LibraryActions from './store/library.actions';
@@ -42,21 +42,20 @@ import { BookHttpService } from '../service/http/books-http.service';
     MatInputModule,
     MatButtonModule,
     MatProgressBarModule,
-    MatTableModule,
+    MatCardModule,
     MatPaginatorModule,
     MatIconModule,
     MatSelectModule,
     MatSidenavModule,
     AsyncPipe,
     NgIf,
+    NgForOf,
   ],
   templateUrl: './book-search-sheet.component.html',
   styleUrls: ['./book-search-sheet.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookSearchSheet implements AfterViewInit, OnDestroy {
-  displayedColumns: string[] = ['cover', 'title', 'author', 'year', 'select'];
-
   searchControl = new FormControl('');
   titleControl = new FormControl('');
   authorControl = new FormControl('');
@@ -116,25 +115,17 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   }
 
   loadData(): void {
-    const terms: string[] = [];
-    const q = this.searchControl.value?.trim();
-    const title = this.titleControl.value?.trim();
-    const author = this.authorControl.value?.trim();
-    const subject = this.subjectControl.value?.trim();
+    const parts: string[] = [];
+    const q = (this.searchControl.value || '').toString().trim();
+    const title = (this.titleControl.value || '').toString().trim();
+    const author = (this.authorControl.value || '').toString().trim();
+    const subject = (this.subjectControl.value || '').toString().trim();
     const sort = this.sortControl.value || 'relevance';
-    if (q) {
-      terms.push(q);
-    }
-    if (title) {
-      terms.push(`title:${title}`);
-    }
-    if (author) {
-      terms.push(`author:${author}`);
-    }
-    if (subject) {
-      terms.push(`subject:${subject}`);
-    }
-    const query = terms.join(' ');
+    if (q.length) parts.push(q);
+    if (title.length) parts.push(`title:${title}`);
+    if (author.length) parts.push(`author:${author}`);
+    if (subject.length) parts.push(`subject:${subject}`);
+    const query = parts.join(' ').trim();
     this.hasSearched = true;
     this.store.dispatch(
       LibraryActions.searchOpenLibrary({
