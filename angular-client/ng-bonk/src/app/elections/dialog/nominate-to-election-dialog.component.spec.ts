@@ -49,7 +49,7 @@ class MockBookHttpService {
 }
 
 describe('NominateToElectionDialogComponent', () => {
-  it('renders book nodes for shelf', async () => {
+  it('shows book select after choosing shelf', async () => {
     const { ElectionHttpService } = await import('../../service/http/election-http.service');
     const { ShelfHttpService } = await import('../../service/http/shelves-http.service');
     const { BookHttpService } = await import('../../service/http/books-http.service');
@@ -73,14 +73,14 @@ describe('NominateToElectionDialogComponent', () => {
     comp.ngOnInit();
     fixture.detectChanges();
 
-    // Expand first shelf to render its children
-    const shelves = comp.data$.value;
+    // Select the first shelf
+    const shelves = comp.shelves$.value;
     expect(shelves.length).toBeGreaterThan(0);
-    comp.treeControl.expand(shelves[0] as any);
+    comp.onShelfSelected(shelves[0].id);
     fixture.detectChanges();
 
-    const bookNodes = fixture.nativeElement.querySelectorAll('.book-node');
-    expect(bookNodes.length).toBeGreaterThan(0);
+    // Book select container should be present
+    const bookSelect = fixture.nativeElement.querySelector('.book-select');
+    expect(bookSelect).toBeTruthy();
   });
 });
-

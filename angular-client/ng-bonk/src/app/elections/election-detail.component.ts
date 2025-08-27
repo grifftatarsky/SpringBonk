@@ -10,6 +10,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { NominateToElectionDialogComponent } from './dialog/nominate-to-election-dialog.component';
 import { UserService } from '../service/user.service';
 import { ElectionHttpService } from '../service/http/election-http.service';
@@ -51,6 +52,7 @@ import { Actions, ofType } from '@ngrx/effects';
     MatMenuModule,
     MatCardModule,
     MatProgressBarModule,
+    MatBottomSheetModule,
     DragDropModule,
     BookCoverComponent,
     DatePipe,
@@ -64,6 +66,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly store = inject(Store);
   private readonly dialog = inject(MatDialog);
+  private readonly bottomSheet = inject(MatBottomSheet);
   private readonly user = inject(UserService);
   private readonly electionHttp = inject(ElectionHttpService);
   private readonly bookHttp = inject(BookHttpService);
@@ -75,7 +78,6 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   submitting$!: Observable<boolean>;
   running$!: Observable<boolean>;
   runResult$!: Observable<ElectionResult | null>;
-  terminalLines$!: Observable<string[]>;
 
   ranked$!: Observable<CandidateResponse[]>;
   unranked$!: Observable<CandidateResponse[]>;
@@ -137,54 +139,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
         startWith(false)
       );
 
-    this.terminalLines$ = combineLatest([
-      this.runResult$,
-      this.store.select(selectCandidates),
-    ]).pipe(
-      map(([res, candidates]) => {
-        if (!res) return [];
-        const nameOf = (id: string) =>
-          candidates.find(c => c.id === id)?.base.title || id;
-        const lines: string[] = [];
-        for (const round of res.rounds) {
-          lines.push(`Round ${round.roundNumber}`);
-          const entries = Object.entries(round.votes || {}).sort(
-            (a, b) => b[1] - a[1]
-          );
-          for (const [cid, count] of entries) {
-            lines.push(`- ${nameOf(cid)}: ${count}`);
-          }
-          switch (round.eliminationMessage) {
-            case EliminationMessage.WINNER_MAJORITY:
-              lines.push('> Winner by majority');
-              break;
-            case EliminationMessage.WINNER_ATTRITION:
-              lines.push('> Winner by attrition');
-              break;
-            case EliminationMessage.TIE_ALL_WAY_TIE_ELIMINATION_MESSAGE:
-              lines.push('> All-way tie correction round (no eliminations)');
-              break;
-            case EliminationMessage.TIE_ELIMINATION_MESSAGE:
-              lines.push('> Tie: eliminating lowest tied candidates');
-              break;
-            case EliminationMessage.NO_TIE_ELIMINATION_MESSAGE:
-              lines.push('> Eliminating lowest candidate');
-              break;
-          }
-          if (
-            round.eliminatedCandidateIds &&
-            round.eliminatedCandidateIds.length
-          ) {
-            lines.push(
-              `> Eliminated: ${round.eliminatedCandidateIds.map(nameOf).join(', ')}`
-            );
-          }
-        }
-        const winnerName = nameOf(res.winnerId);
-        lines.push(`Winner: ${winnerName} (${res.totalVotes} total votes)`);
-        return lines;
-      })
-    );
+    // Terminal output moved to bottom sheet.
 
     // Determine if the current user has a nomination in this election
     this.myNominationId$ = combineLatest([
@@ -336,9 +291,13 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   }
 
   runElection(): void {
-    this.store.dispatch(
-      ElectionsActions.runElection({ electionId: this.electionId })
-    );
+    // Open fun results sheet instead of inline
+    import('./sheet/election-run.sheet').then(m => {
+      this.bottomSheet.open(m.ElectionRunSheetComponent, {
+        data: { electionId: this.electionId },
+        disableClose: false,
+      });
+    });
   }
 
   moveUp(index: number, ranked: CandidateResponse[]): void {

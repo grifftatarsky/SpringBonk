@@ -15,8 +15,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatTreeModule, MatTreeNestedDataSource } from '@angular/material/tree';
-import { NestedTreeControl } from '@angular/cdk/tree';
 import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { ElectionHttpService } from '../../service/http/election-http.service';
@@ -34,22 +32,6 @@ export interface NominateToElectionDialogData {
   book?: BookResponse; // If provided, skip tree and show book details only
 }
 
-type TreeNode = ShelfNode | BookNode;
-interface ShelfNode {
-  type: 'shelf';
-  id: string;
-  title: string;
-  children?: BookNode[];
-  loading?: boolean;
-}
-interface BookNode {
-  type: 'book';
-  id: string;
-  title: string;
-  author: string;
-  imageURL: string;
-}
-
 @Component({
   selector: 'app-nominate-to-election-dialog',
   standalone: true,
@@ -62,7 +44,6 @@ interface BookNode {
     MatSelectModule,
     MatIconModule,
     MatProgressBarModule,
-    MatTreeModule,
     BookCoverComponent,
   ],
   templateUrl: './nominate-to-election-dialog.component.html',
@@ -79,14 +60,12 @@ export class NominateToElectionDialogComponent implements OnInit {
   // Book selection
   selectedBook$ = new BehaviorSubject<BookResponse | null>(null);
 
-  // Tree control
-  treeControl = new NestedTreeControl<TreeNode>(node =>
-    node.type === 'shelf' ? node.children || [] : []
-  );
-  data$ = new BehaviorSubject<ShelfNode[]>([]);
-  dataSource = new MatTreeNestedDataSource<TreeNode>();
+  // Dropdown data
+  shelves$ = new BehaviorSubject<ShelfResponse[]>([]);
+  selectedShelfId$ = new BehaviorSubject<string | null>(null);
+  booksForSelectedShelf$ = new BehaviorSubject<BookResponse[]>([]);
   loadingShelves$ = new BehaviorSubject<boolean>(true);
-  loadingBooksFor: { [shelfId: string]: boolean } = {};
+  loadingBooks$ = new BehaviorSubject<boolean>(false);
 
   // Action states
   nominating = false;
@@ -156,20 +135,7 @@ export class NominateToElectionDialogComponent implements OnInit {
       this.shelvesHttp.getUserShelves().subscribe({
         next: (shelves: ShelfResponse[]) => {
           const filtered = shelves.filter(s => s.title !== 'My Nominations');
-          const nodes: ShelfNode[] = filtered.map(s => ({
-            type: 'shelf',
-            id: s.id,
-            title: s.title,
-            children: (s.books || []).map(b => ({
-              type: 'book',
-              id: b.id,
-              title: b.title,
-              author: b.author,
-              imageURL: b.imageURL,
-            })),
-          }));
-          this.data$.next(nodes);
-          this.dataSource.data = nodes;
+          this.shelves$.next(filtered);
           this.loadingShelves$.next(false);
         },
         error: () => {
@@ -182,44 +148,20 @@ export class NominateToElectionDialogComponent implements OnInit {
     }
   }
 
-  hasChild = (_: number, node: TreeNode) => node.type === 'shelf';
-
-  toggleShelf(node: ShelfNode): void {
-    if (!node.children && !this.loadingBooksFor[node.id]) {
-      this.loadingBooksFor[node.id] = true;
-      this.booksHttp.getBooksByShelfId(node.id).subscribe({
-        next: books => {
-          node.children = books.map(b => ({
-            type: 'book',
-            id: b.id,
-            title: b.title,
-            author: b.author,
-            imageURL: b.imageURL,
-          }));
-          this.loadingBooksFor[node.id] = false;
-          // Re-emit to update tree
-          const updated = [...this.data$.value];
-          this.data$.next(updated);
-          this.dataSource.data = updated;
-          this.treeControl.expand(node);
-        },
-        error: () => {
-          this.loadingBooksFor[node.id] = false;
-          this.notify.error('Failed to load books for shelf');
-        },
-      });
-    }
-  }
-
-  pickBookFromNode(node: BookNode): void {
-    // Convert node to BookResponse shape for consistency
-    const book: BookResponse = {
-      id: node.id,
-      title: node.title,
-      author: node.author,
-      imageURL: node.imageURL,
-    } as any;
-    this.selectedBook$.next(book);
+  onShelfSelected(shelfId: string): void {
+    this.selectedShelfId$.next(shelfId);
+    this.booksForSelectedShelf$.next([]);
+    this.loadingBooks$.next(true);
+    this.booksHttp.getBooksByShelfId(shelfId).subscribe({
+      next: (books) => {
+        this.booksForSelectedShelf$.next(books);
+        this.loadingBooks$.next(false);
+      },
+      error: () => {
+        this.loadingBooks$.next(false);
+        this.notify.error('Failed to load books for shelf');
+      },
+    });
   }
 
   nominate(): void {

@@ -183,26 +183,6 @@
         </div>
       }
     }
-    <!-- Run results -->
-    @if ((running$ | async) || (runResult$ | async)) {
-      <mat-card class="run-panel">
-        <mat-card-header>
-          <mat-card-title>Results</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          @if (running$ | async) {
-            <div class="running">
-              <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-              <div class="hint">Running election…</div>
-            </div>
-          }
-          @if (terminalLines$ | async; as lines) {
-            <pre class="terminal">@for (line of lines; track line) {
-              {{ line }}
-            }</pre>
-          }
-        </mat-card-content>
-      </mat-card>
-    }
+    <!-- Run results moved to bottom sheet -->
   </div>
 }

@@ -36,43 +36,35 @@
         </div>
       } @else {
         @if (!(loadingShelves$ | async)) {
-          <div class="tree-container">
-            <mat-tree
-              [dataSource]="dataSource"
-              [treeControl]="treeControl"
-              class="nominate-tree">
-              <!-- Shelf node (nested) -->
-              <mat-nested-tree-node
-                *matTreeNodeDef="let node; when: hasChild"
-                class="shelf-node">
-                <div class="mat-tree-node">
-                  <button
-                    mat-icon-button
-                    matTreeNodeToggle
-                    (click)="toggleShelf(node)"
-                    aria-label="Toggle shelf">
-                    <mat-icon>{{
-                      treeControl.isExpanded(node)
-                        ? 'expand_more'
-                        : 'chevron_right'
-                    }}</mat-icon>
-                  </button>
-                  <span class="shelf-title">{{ node.title }}</span>
-                  @if (loadingBooksFor[node.id]) {
-                    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-                  }
-                </div>
-                <div class="children">
-                  <ng-container matTreeNodeOutlet></ng-container>
-                </div>
-              </mat-nested-tree-node>
+          <div class="dropdowns">
+            <mat-form-field appearance="outline" class="w-full shelf-select">
+              <mat-label>Select shelf</mat-label>
+              <mat-select
+                [value]="(selectedShelfId$ | async) ?? null"
+                (selectionChange)="onShelfSelected($event.value)">
+                @for (s of (shelves$ | async) ?? []; track s.id) {
+                  <mat-option [value]="s.id">{{ s.title }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
 
-              <!-- Book node (leaf) -->
-              <mat-tree-node *matTreeNodeDef="let node" class="book-node" matTreeNodePadding (click)="pickBookFromNode(node)">
-                <button mat-icon-button disabled aria-hidden="true"></button>
-                {{ node.title }}
-              </mat-tree-node>
-            </mat-tree>
+            @if (selectedShelfId$ | async) {
+              <div class="book-select slide-in">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Select book</mat-label>
+                  <mat-select
+                    [disabled]="loadingBooks$ | async"
+                    (selectionChange)="selectedBook$.next($event.value)">
+                    @for (b of (booksForSelectedShelf$ | async) ?? []; track b.id) {
+                      <mat-option [value]="b">{{ b.title }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                @if (loadingBooks$ | async) {
+                  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                }
+              </div>
+            }
           </div>
         } @else {
           <mat-progress-bar mode="indeterminate"></mat-progress-bar>
