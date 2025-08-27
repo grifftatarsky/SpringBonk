@@ -76,7 +76,6 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
-  padding: 16px;
   height: calc(100vh - 120px);
   position: relative;
 }
@@ -110,22 +109,85 @@
   border-color: #57ff99;
 }
 
-.shelf-card-body { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; }
-.shelf-title { font-weight: 600; letter-spacing: 0.4px; }
-.shelf-tags { display: flex; gap: 6px; }
-.tag { border: 1px solid currentColor; padding: 2px 6px; font-size: 12px; opacity: 0.9; }
+.shelf-card-body {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-.detail-pane { display: none; height: 100%; overflow: auto; }
+.shelf-title {
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+.shelf-tags {
+  display: flex;
+  gap: 6px;
+}
+
+.tag {
+  border: 1px solid currentColor;
+  padding: 2px 6px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* Retro pulse on click */
+.shelf-card-body.pulse {
+  animation: pulseGlow 250ms ease-out;
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 rgba(0, 255, 65, 0);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(0, 255, 65, 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(0, 255, 65, 0);
+  }
+}
+
+.detail-pane {
+  display: none;
+  height: 100%;
+  overflow: auto;
+}
+
+.detail-content {
+  opacity: 1;
+  transition: opacity 180ms ease;
+}
+
+.detail-content.fade-out {
+  opacity: 0;
+}
+
+.detail-content.fade-in {
+  opacity: 1;
+  transition: opacity 220ms ease;
+}
 
 @media (min-width: 1024px) {
-  .shelves-layout { grid-template-columns: minmax(320px, 420px) 1fr; }
-  .detail-pane { display: block; border-left: 1px solid #00ff41; padding-left: 8px; }
+  .shelves-layout {
+    grid-template-columns: minmax(320px, 420px) 1fr;
+  }
+  .detail-pane {
+    display: block;
+    border: 1px solid #00ff41;
+  }
 }
 
 /* Mobile behavior: when a shelf is selected, hide the list and show detail */
 @media (max-width: 1023px) {
-  .mobile-hidden { display: none; }
-  .mobile-shown { display: block; }
+  .mobile-hidden {
+    display: none;
+  }
+  .mobile-shown {
+    display: block;
+  }
 }
 
 /* Transition line */
@@ -134,7 +196,9 @@
   height: 2px;
   background: #00ff41;
   box-shadow: 0 0 6px #00ff41;
-  transition: width 450ms ease-in-out;
+  transition: width 320ms ease-out;
+  z-index: 10;
+  pointer-events: none;
 }
 
 /* Detail fade-in */
@@ -143,12 +207,24 @@
 }
 
 @keyframes terminalFade {
-  0% { opacity: 0; }
-  20% { opacity: 0.2; }
-  40% { opacity: 0.35; }
-  60% { opacity: 0.55; }
-  80% { opacity: 0.8; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 0.35;
+  }
+  60% {
+    opacity: 0.55;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .spacer {

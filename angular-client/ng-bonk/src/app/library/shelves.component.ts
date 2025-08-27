@@ -99,6 +99,7 @@ export class ShelvesComponent implements OnInit {
   @ViewChild('shelvesLayout', { static: true }) layoutRef!: ElementRef<HTMLElement>;
   @ViewChild('listPane', { static: true }) listPaneRef!: ElementRef<HTMLElement>;
   @ViewChild('detailPane', { static: true }) detailPaneRef!: ElementRef<HTMLElement>;
+  @ViewChild('detailContent', { static: false }) detailContentRef?: ElementRef<HTMLElement>;
 
   constructor(
     private store: Store,
