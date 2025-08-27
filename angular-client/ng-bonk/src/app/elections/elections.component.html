@@ -1,83 +1,53 @@
-<mat-toolbar id="toolbar-elections" class="gap-2">
-  <button mat-icon-button>
-    <mat-icon>tune</mat-icon>
-  </button>
-  <button mat-icon-button (click)="refresh()">
+<mat-toolbar id="toolbar-shelves" class="gap-2">
+  <button mat-icon-button (click)="refresh()" aria-label="Refresh elections">
     <mat-icon>refresh</mat-icon>
   </button>
-  <button mat-icon-button>
-    <mat-icon>filter_alt</mat-icon>
-  </button>
-  <div class="toolbar-divider">&nbsp;</div>
-  <button mat-button (click)="openCreateDialog()">
+  <div class="toolbar-divider" aria-hidden="true">&nbsp;</div>
+  <button mat-button (click)="openCreateDialog()" aria-label="Create election">
     <mat-icon>how_to_vote</mat-icon>
     Add Election
   </button>
-  <div class="toolbar-divider">&nbsp;</div>
-  <!--Divider, then TODO: chits for categories.-->
   <div class="spacer"></div>
-  <mat-paginator
-    [length]="total"
-    [pageSize]="10"
-    [pageSizeOptions]="[5, 10, 25]"
-    aria-label="Election Pagination">
-  </mat-paginator>
 </mat-toolbar>
+
 <div *ngIf="loading$ | async">
   <mat-progress-bar mode="indeterminate" />
-</div>
-
-<table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-  <!-- No Data -->
-  <div class="table-no-data-bar" *matNoDataRow>
-    You are not participating in any elections.
   </div>
 
-  <!-- Title Column -->
-  <ng-container matColumnDef="title">
-    <th mat-header-cell *matHeaderCellDef>TITLE</th>
-    <td mat-cell *matCellDef="let element">{{ element.title }}</td>
-  </ng-container>
-
-  <!-- Status Column (derived) -->
-  <ng-container matColumnDef="status">
-    <th mat-header-cell *matHeaderCellDef>STATUS</th>
-    <td mat-cell *matCellDef="let element">
-      <ng-container *ngIf="getStatus(element.endDateTime) as status">
-        <mat-chip [ngClass]="status.class" disableRipple>
-          <mat-icon matChipAvatar inline>{{ status.icon }}</mat-icon>
-          {{ status.text }}
-        </mat-chip>
+<div class="elections-layout">
+  <div class="list-pane" [class.mobile-hidden]="(hasSelection$ | async)">
+    <div class="elections-list" (scroll)="onListScroll($event)" #listContainer>
+      <ng-container *ngIf="elections$ | async as elections; else emptyState">
+        <mat-card
+          class="election-card"
+          *ngFor="let e of elections"
+          [class.active]="(selectedId$ | async) === e.id"
+          tabindex="0"
+          role="button">
+          <div
+            class="election-card-body"
+            matRipple
+            [matRippleColor]="'rgba(0,255,65,0.3)'"
+            [matRippleCentered]="true"
+            (click)="navigateToDetail(e.id)">
+            <div class="election-title">{{ e.title }}</div>
+            <div class="election-status" *ngIf="getStatus(e.endDateTime) as status">
+              <mat-chip [ngClass]="status.class" disableRipple
+                        [matTooltip]="status.text === 'Ongoing' ? ('Ends ' + (e.endDateTime | date: 'short')) : ''">
+                <mat-icon matChipAvatar inline>{{ status.icon }}</mat-icon>
+                {{ status.text }}
+              </mat-chip>
+            </div>
+          </div>
+        </mat-card>
       </ng-container>
-    </td>
-  </ng-container>
+    </div>
+  </div>
+  <div class="detail-pane" [class.mobile-shown]="(hasSelection$ | async)">
+    <router-outlet></router-outlet>
+  </div>
+</div>
 
-  <!-- End Date Column -->
-  <ng-container matColumnDef="endDateTime">
-    <th mat-header-cell *matHeaderCellDef>ENDS ON</th>
-    <td mat-cell *matCellDef="let element">
-      {{ element.endDateTime | date: 'short' }}
-    </td>
-  </ng-container>
-
-  <!-- Create Date Column -->
-  <ng-container matColumnDef="createDate">
-    <th mat-header-cell *matHeaderCellDef>CREATED ON</th>
-    <td mat-cell *matCellDef="let element">
-      {{ element.createDate | date: 'short' }}
-    </td>
-  </ng-container>
-
-  <!-- Actions Column -->
-  <ng-container matColumnDef="actions">
-    <th mat-header-cell *matHeaderCellDef>ACTIONS</th>
-    <td mat-cell *matCellDef="let element">
-      <button mat-icon-button color="warn" (click)="deleteElection(element.id)">
-        <mat-icon>delete</mat-icon>
-      </button>
-    </td>
-  </ng-container>
-
-  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-</table>
+<ng-template #emptyState>
+  <div class="table-no-data-bar">No elections yet. Create one to get started.</div>
+</ng-template>

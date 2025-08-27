@@ -15,6 +15,7 @@ import { finalize, map } from 'rxjs/operators';
 import { ShelfResponse } from '../../model/response/shelf-response.model';
 import { OpenLibraryBookResponse } from '../../model/response/open-library-book-response.model';
 import { ShelfHttpService } from '../../service/http/shelves-http.service';
+import { BookCoverComponent } from '../../common/book-cover.component';
 import { BookHttpService } from '../../service/http/books-http.service';
 
 @Component({
@@ -29,6 +30,7 @@ import { BookHttpService } from '../../service/http/books-http.service';
     MatSelectModule,
     MatDividerModule,
     MatProgressSpinnerModule,
+    BookCoverComponent,
   ],
   templateUrl: './book-select-shelf-dialog.component.html',
   styleUrls: ['./book-select-shelf-dialog.component.scss'],
@@ -63,7 +65,7 @@ export class BookSelectShelfDialog implements OnInit {
   getCoverImageUrl(): string {
     return this.data.book.cover_i
       ? this.bookHttp.getOpenLibraryCoverImageUrl(this.data.book.cover_i, 'L')
-      : 'assets/placeholder-book-cover.jpg'; // TODO: Add a fallback image!
+      : '';
   }
 
   getAuthor(): string {

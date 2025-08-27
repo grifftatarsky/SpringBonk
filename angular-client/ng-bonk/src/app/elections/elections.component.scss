@@ -1,10 +1,95 @@
-.spinner-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 4px;
+.spacer { flex: 1; }
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: currentColor;
+  margin: 0 8px;
+}
+
+.table-no-data-bar {
+  text-align: center;
+  padding: 24px;
+  opacity: 0.6;
+}
+
+/* Layout similar to shelves */
+.elections-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.list-pane {
+  max-width: 720px;
+  overflow: auto;
+}
+
+.detail-pane {
+  display: none;
+  overflow: auto;
+  border: 1px solid #00ff41;
+}
+
+/* Card list styling replicating shelves */
+.elections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   padding: 16px;
+}
+
+.election-card {
+  display: block;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid #00ff41;
+  color: inherit;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.election-card:hover,
+.election-card:focus {
+  background: rgba(0, 64, 0, 0.5);
+  border-color: #3aff73;
+}
+
+.election-card.active {
+  background: rgba(0, 64, 0, 0.6);
+  border-color: #57ff99;
+}
+
+.election-card-body {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.election-title {
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+.election-status {
+  display: flex;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .elections-layout {
+    flex-direction: row;
+    padding: 16px;
+  }
+  .list-pane {
+    flex: 0 0 520px;
+  }
+  .detail-pane {
+    display: block;
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 1023px) {
+  .mobile-hidden { display: none; }
+  .mobile-shown { display: block; }
 }

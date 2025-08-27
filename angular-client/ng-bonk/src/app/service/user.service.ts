@@ -21,7 +21,6 @@ export class UserService {
     this.refreshSub?.unsubscribe();
     this.http.getDetails().subscribe({
       next: (user: UserInfoResponse): void => {
-        console.log(user);
         if (
           user.username !== this.user$.value.name ||
           user.email !== this.user$.value.email ||
@@ -65,13 +64,10 @@ export class UserService {
   }
 
   get valueChanges(): Observable<User> {
-    console.log('User service valueChanges [dbg]');
-
     return this.user$;
   }
 
   get current(): User {
-    console.log('User service current [dbg]');
     return this.user$.value;
   }
 }

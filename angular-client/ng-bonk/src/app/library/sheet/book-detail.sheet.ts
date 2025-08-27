@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
+import { BookCoverComponent } from '../../common/book-cover.component';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { BookResponse } from '../../model/response/book-response.model';
 import { BookHttpService } from '../../service/http/books-http.service';
@@ -28,10 +29,11 @@ export interface BookDetailSheetData {
     MatIconModule,
     MatChipsModule,
     MatDividerModule,
+    BookCoverComponent,
   ],
   template: `
     <div class="sheet-header">
-      <div class="cover"><img [src]="data.book.imageURL" alt="{{ data.book.title }} cover" /></div>
+      <div class="cover"><app-book-cover [src]="data.book.imageURL" [alt]="data.book.title + ' cover'"></app-book-cover></div>
       <div class="meta">
         <div class="title">{{ data.book.title }}</div>
         <mat-chip-set>
@@ -65,8 +67,7 @@ export interface BookDetailSheetData {
     `
       :host { display: block; padding: 12px; }
       .sheet-header { display: flex; align-items: center; gap: 12px; }
-      .cover { width: 80px; height: 112px; border: 1px solid #00ff41; overflow: hidden; }
-      .cover img { width: 100%; height: 100%; object-fit: cover; }
+      .cover { width: 80px; height: 112px; }
       .meta .title { font-weight: 600; margin-bottom: 6px; }
       .sheet-actions { display: flex; align-items: center; gap: 8px; padding-top: 12px; flex-wrap: wrap; }
       .spacer { flex: 1; }

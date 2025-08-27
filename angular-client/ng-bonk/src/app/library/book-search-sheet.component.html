@@ -72,7 +72,7 @@
             <div class="results-list">
               <mat-card class="result-row-card" *ngFor="let book of results">
                 <div class="cover">
-                  <img [src]="getCover(book)" alt="{{ book.title }} cover" />
+                  <app-book-cover [src]="getCover(book)" [alt]="book.title + ' cover'"></app-book-cover>
                 </div>
                 <div class="meta">
                   <div class="title">{{ book.title }}</div>

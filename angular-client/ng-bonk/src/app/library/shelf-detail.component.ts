@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
+import { BookCoverComponent } from '../common/book-cover.component';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -39,6 +40,7 @@ import { selectLoadingBooks } from './store/library.selectors';
     MatCardModule,
     MatChipsModule,
     MatProgressBarModule,
+    BookCoverComponent,
   ],
   templateUrl: './shelf-detail.component.html',
   styleUrls: ['./shelf-detail.component.scss'],

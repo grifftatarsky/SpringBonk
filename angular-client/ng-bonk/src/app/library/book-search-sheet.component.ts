@@ -30,6 +30,7 @@ import {
   selectOpenLibraryTotal,
 } from './store/library.selectors';
 import { BookHttpService } from '../service/http/books-http.service';
+import { BookCoverComponent } from '../common/book-cover.component';
 
 @Component({
   selector: 'app-book-search-dialog',
@@ -47,6 +48,7 @@ import { BookHttpService } from '../service/http/books-http.service';
     MatIconModule,
     MatSelectModule,
     MatSidenavModule,
+    BookCoverComponent,
     AsyncPipe,
     NgIf,
     NgForOf,
@@ -140,7 +142,7 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   getCover(book: OpenLibraryBookResponse): string {
     return book.cover_i
       ? this.bookHttp.getOpenLibraryCoverImageUrl(book.cover_i, 'S')
-      : 'assets/placeholder-book-cover.jpg';
+      : '';
   }
 
   select(book: OpenLibraryBookResponse): void {

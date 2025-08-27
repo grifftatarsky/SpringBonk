@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { BookResponse } from '../../model/response/book-response.model';
 import { BookHttpService } from '../../service/http/books-http.service';
 import { BookRequest } from '../../model/request/book-request.model';
+import { BookCoverComponent } from '../../common/book-cover.component';
 
 @Component({
   selector: 'app-book-detail-dialog',
@@ -23,6 +24,7 @@ import { BookRequest } from '../../model/request/book-request.model';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    BookCoverComponent,
   ],
   templateUrl: './book-detail-dialog.component.html',
   styleUrls: ['./book-detail-dialog.component.scss'],

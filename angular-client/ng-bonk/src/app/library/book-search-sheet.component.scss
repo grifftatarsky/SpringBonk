@@ -1,8 +1,7 @@
 :host {
   display: flex;
   flex-direction: column;
-  height: 80vh;
-  min-height: 420px;
+  min-height: 80vh;
 }
 
 .sheet-search-bar {
@@ -70,14 +69,6 @@
 .result-row-card .cover {
   width: 64px;
   height: 92px;
-  border: 1px solid #00ff41;
-  overflow: hidden;
-}
-
-.result-row-card .cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .result-row-card .meta .title {
@@ -122,7 +113,7 @@
   z-index: 2;
 }
 
-.mat-bottom-sheet-container {
+::ng-deep .mat-bottom-sheet-container {
   padding: 0;
 }
 

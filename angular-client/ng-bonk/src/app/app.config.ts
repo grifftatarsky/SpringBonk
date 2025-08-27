@@ -10,6 +10,8 @@ import { provideEffects } from '@ngrx/effects';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { libraryFeature } from './library/store/library.reducer';
 import { LibraryEffects } from './library/store/library.effects';
+import { electionsFeature } from './elections/store/elections.reducer';
+import { ElectionsEffects } from './elections/store/elections.effects';
 import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
@@ -18,8 +20,9 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     importProvidersFrom(MatSnackBarModule),
     provideStore(),
-    provideEffects(LibraryEffects),
+    provideEffects(LibraryEffects, ElectionsEffects),
     provideState(libraryFeature),
+    provideState(electionsFeature),
     provideStoreDevtools(),
     provideAnimations(),
   ],

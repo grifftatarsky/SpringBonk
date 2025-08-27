@@ -51,7 +51,8 @@ export class ElectionHttpService extends BaseHttpService {
   }
 
   getCandidatesByElection(id: string): Observable<CandidateResponse[]> {
-    return this.get<CandidateResponse[]>(`${this.baseUrl}/${id}/candidates`);
+    // Backend exposes candidates under "/{id}/candidates/all"
+    return this.get<CandidateResponse[]>(`${this.baseUrl}/${id}/candidates/all`);
   }
 
   // ----- ELECTION RUN -----

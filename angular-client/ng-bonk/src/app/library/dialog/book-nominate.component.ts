@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
+import { BookCoverComponent } from '../../common/book-cover.component';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +32,7 @@ import { ElectionHttpService } from '../../service/http/election-http.service';
     MatProgressSpinnerModule,
     MatChipsModule,
     MatIconModule,
+    BookCoverComponent,
   ],
   templateUrl: './book-nominate.component.html',
   styleUrls: ['./book-nominate.component.scss'],

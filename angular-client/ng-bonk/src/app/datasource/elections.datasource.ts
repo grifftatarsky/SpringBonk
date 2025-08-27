@@ -42,7 +42,9 @@ export class ElectionsDataSource extends DataSource<ElectionResponse> {
         map((res: PagedResponse<ElectionResponse>): ElectionResponse[] => {
           const embeddedKey: string = Object.keys(res._embedded)[0];
           this._totalSubject.next(res.page.totalElements);
-          return res._embedded[embeddedKey];
+          const incoming = res._embedded[embeddedKey];
+          const existing = this._electionsSubject.value || [];
+          return pageIndex > 0 ? [...existing, ...incoming] : incoming;
         }),
         catchError((): Observable<never[]> => of([])),
         finalize((): void => this._loadingSubject.next(false))

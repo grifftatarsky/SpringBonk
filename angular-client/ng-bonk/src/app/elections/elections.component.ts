@@ -1,58 +1,70 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MatTableModule } from '@angular/material/table';
 import { ElectionHttpService } from '../service/http/election-http.service';
 import { ElectionsDataSource } from '../datasource/elections.datasource';
 import { ElectionDialog } from './election-dialog.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AsyncPipe, DatePipe, NgClass, NgIf } from '@angular/common';
+import { AsyncPipe, DatePipe, NgClass, NgIf, NgForOf } from '@angular/common';
 import { ElectionRequest } from '../model/request/election-request.model';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { Observable } from 'rxjs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatCardModule } from '@angular/material/card';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { filter, map, startWith } from 'rxjs/operators';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatRippleModule } from '@angular/material/core';
+import { ElectionResponse } from '../model/response/election-response.model';
 
 @Component({
   selector: 'app-elections',
   standalone: true,
   imports: [
     MatToolbarModule,
-    MatTableModule,
-    MatPaginatorModule,
     MatButtonModule,
     MatProgressBarModule,
     MatChipsModule,
     MatIconModule,
+    MatCardModule,
+    MatTooltipModule,
+    MatRippleModule,
+    RouterOutlet,
     DatePipe,
     AsyncPipe,
     NgIf,
     NgClass,
+    NgForOf,
   ],
   templateUrl: './elections.component.html',
   styleUrls: ['./elections.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ElectionsComponent implements AfterViewInit {
-  // TODO: Replace the loading circle with a nice, clean progress bar.
-  displayedColumns: string[] = [
-    'title',
-    'status',
-    'endDateTime',
-    'createDate',
-    'actions',
-  ];
-
+export class ElectionsComponent implements OnInit, AfterViewInit {
   dataSource: ElectionsDataSource;
   loading$: Observable<boolean>;
   total: number = 0;
+  elections$!: Observable<ElectionResponse[]>;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild('listContainer', { static: true }) listContainer!: ElementRef<HTMLElement>;
 
-  constructor(
-    private http: ElectionHttpService,
-    private dialog: MatDialog
-  ) {
+  private readonly http = inject(ElectionHttpService);
+  private readonly dialog = inject(MatDialog);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  hasSelection$ = this.router.events.pipe(
+    filter(e => e instanceof NavigationEnd),
+    startWith(null),
+    map(() => !!this.route.firstChild?.snapshot.paramMap.get('id'))
+  );
+  selectedId$ = this.router.events.pipe(
+    filter(e => e instanceof NavigationEnd),
+    startWith(null),
+    map(() => this.route.firstChild?.snapshot.paramMap.get('id') ?? null)
+  );
+
+  constructor() {
     this.dataSource = new ElectionsDataSource(this.http);
     this.loading$ = this.dataSource.loading$;
     this.dataSource.total$.subscribe(
@@ -60,19 +72,23 @@ export class ElectionsComponent implements AfterViewInit {
     );
   }
 
-  ngAfterViewInit(): void {
-    this.paginator.page.subscribe((): void => {
-      this.dataSource.loadElections(
-        this.paginator.pageIndex,
-        this.paginator.pageSize
-      );
-    });
+  private pageIndex = 0;
+  private pageSize = 10;
+  private electionCount = 0;
 
-    this.dataSource.loadElections();
+  ngOnInit(): void {
+    this.elections$ = this.dataSource.connect();
+    this.elections$.subscribe(list => (this.electionCount = list.length));
+    this.dataSource.loadElections(this.pageIndex, this.pageSize);
+  }
+
+  ngAfterViewInit(): void {
+    // nothing extra for now
   }
 
   refresh(): void {
-    this.dataSource.loadElections();
+    this.pageIndex = 0;
+    this.dataSource.loadElections(this.pageIndex, this.pageSize);
   }
 
   openCreateDialog(): void {
@@ -84,28 +100,30 @@ export class ElectionsComponent implements AfterViewInit {
     dialogRef.afterClosed().subscribe((result: ElectionRequest): void => {
       if (result) {
         this.http.createElection(result).subscribe((): void => {
-          this.dataSource.loadElections(
-            this.paginator.pageIndex,
-            this.paginator.pageSize
-          );
+          this.dataSource.loadElections(this.pageIndex, this.pageSize);
         });
       }
     });
   }
 
+  navigateToDetail(electionId: string): void {
+    this.router.navigate([electionId], { relativeTo: this.route });
+  }
+
   deleteElection(electionId: string): void {
     this.http.deleteElection(electionId).subscribe((): void => {
-      this.dataSource.loadElections(
-        this.paginator.pageIndex,
-        this.paginator.pageSize
-      );
-      if (
-        this.total - 1 <=
-        this.paginator.pageSize * this.paginator.pageIndex
-      ) {
-        this.paginator.previousPage();
-      }
+      this.pageIndex = 0;
+      this.dataSource.loadElections(this.pageIndex, this.pageSize);
     });
+  }
+
+  onListScroll(event: Event): void {
+    const el = event.target as HTMLElement;
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 200;
+    if (nearBottom && this.electionCount < this.total) {
+      this.pageIndex++;
+      this.dataSource.loadElections(this.pageIndex, this.pageSize);
+    }
   }
 
   getStatus(endDateTime?: string): {

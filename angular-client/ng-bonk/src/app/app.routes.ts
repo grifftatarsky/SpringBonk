@@ -3,6 +3,7 @@ import { AboutView } from './about.view';
 import { HomeComponent } from './home/home.component';
 import { LoginErrorView } from './login-error.view';
 import { ElectionsComponent } from './elections/elections.component';
+import { ElectionDetailComponent } from './elections/election-detail.component';
 import { ShelvesComponent } from './library/shelves.component';
 import { ShelfDetailComponent } from './library/shelf-detail.component';
 import { authGuard, authMatch } from './auth/auth.guard';
@@ -15,6 +16,13 @@ export const routes: Routes = [
     component: ElectionsComponent,
     canMatch: [authMatch],
     data: { title: 'My elections' },
+    children: [
+      {
+        path: ':id',
+        component: ElectionDetailComponent,
+        data: { title: 'Election' },
+      },
+    ],
   },
   {
     path: 'shelves',

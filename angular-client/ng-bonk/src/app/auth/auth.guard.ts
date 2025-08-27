@@ -1,11 +1,11 @@
 import { inject } from '@angular/core';
 import {
+  ActivatedRouteSnapshot,
   CanActivateFn,
   CanMatchFn,
+  Route,
   Router,
   RouterStateSnapshot,
-  ActivatedRouteSnapshot,
-  Route,
   UrlSegment,
 } from '@angular/router';
 import { UserService } from '../service/user.service';
@@ -22,7 +22,6 @@ export const authGuard: CanActivateFn = (
 
   // If already authenticated, allow immediately.
   if (user.current.isAuthenticated) {
-    console.log('AuthGuard: access granted for', state.url);
     return true;
   }
 
@@ -32,7 +31,6 @@ export const authGuard: CanActivateFn = (
     take(1),
     map(u => {
       if (u.isAuthenticated) {
-        console.log('AuthGuard: access granted after refresh', state.url);
         return true;
       }
       console.warn('AuthGuard: blocked access to', state.url);
@@ -45,10 +43,7 @@ export const authGuard: CanActivateFn = (
   );
 };
 
-export const authMatch: CanMatchFn = (
-  route: Route,
-  segments: UrlSegment[]
-) => {
+export const authMatch: CanMatchFn = (route: Route, segments: UrlSegment[]) => {
   const user = inject(UserService);
   const router = inject(Router);
   const snack = inject(MatSnackBar);
