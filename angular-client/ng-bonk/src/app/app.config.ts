@@ -1,8 +1,9 @@
-import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { httpErrorInterceptor } from './service/http/http-error.interceptor';
 import { routes } from './app.routes';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { provideState, provideStore } from '@ngrx/store';
@@ -17,14 +18,15 @@ import { API_BASE_URL } from './config/app-tokens';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([httpErrorInterceptor])),
     importProvidersFrom(MatSnackBarModule),
     provideStore(),
     provideEffects(LibraryEffects, ElectionsEffects),
     provideState(libraryFeature),
     provideState(electionsFeature),
-    provideStoreDevtools(),
+    provideStoreDevtools({ maxAge: 25, logOnly: environment.production }),
     provideAnimations(),
     { provide: API_BASE_URL, useValue: `${environment.apiBaseUrl}${environment.bffPath}/api` },
   ],

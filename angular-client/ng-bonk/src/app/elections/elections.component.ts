@@ -13,7 +13,7 @@ import { ElectionsDataSource } from '../datasource/elections.datasource';
 import { ElectionDialog } from './election-dialog.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AsyncPipe, DatePipe, NgClass, NgForOf, NgIf } from '@angular/common';
+import { AsyncPipe, DatePipe, NgClass } from '@angular/common';
 import { ElectionRequest } from '../model/request/election-request.model';
 import { Observable } from 'rxjs';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -46,10 +46,8 @@ import { ElectionResponse } from '../model/response/election-response.model';
     RouterOutlet,
     DatePipe,
     AsyncPipe,
-    NgIf,
-    NgClass,
-    NgForOf,
-  ],
+    NgClass
+],
   templateUrl: './elections.component.html',
   styleUrls: ['./elections.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

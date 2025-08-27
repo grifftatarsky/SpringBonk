@@ -42,6 +42,22 @@ export const clearBallot = createAction(
   props<{ electionId: string }>()
 );
 
+// Persisted clear: delete all votes for this election and show success toast
+export const resetBallot = createAction(
+  '[Elections] Reset Ballot',
+  props<{ electionId: string }>()
+);
+
+export const resetBallotSuccess = createAction(
+  '[Elections] Reset Ballot Success',
+  props<{ electionId: string }>()
+);
+
+export const resetBallotFailure = createAction(
+  '[Elections] Reset Ballot Failure',
+  props<{ error?: unknown }>()
+);
+
 export const submitBallot = createAction(
   '[Elections] Submit Ballot',
   props<{ electionId: string }>()

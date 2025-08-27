@@ -7,21 +7,23 @@
   <span>Akira</span>
   <div class="spacer"></div>
 
-  <!-- Primary nav moved here -->
-  <button
-    mat-button
-    [matMenuTriggerFor]="primaryMenu"
-    aria-label="Navigate"
-    class="gap-1">
-    <mat-icon>menu</mat-icon>
-    Menu
-  </button>
-  <mat-menu #primaryMenu="matMenu">
-    <app-menu-navigation [destination]="['']" label="Home" />
-    <app-menu-navigation [destination]="['about']" label="About" />
-    <app-menu-navigation [destination]="['elections']" label="My elections" />
-    <app-menu-navigation [destination]="['shelves']" label="My shelves" />
-  </mat-menu>
+  <!-- Primary nav is only shown when authenticated -->
+  @if (isAuthenticated$ | async) {
+    <button
+      mat-button
+      [matMenuTriggerFor]="primaryMenu"
+      aria-label="Navigate"
+      class="gap-1">
+      <mat-icon>menu</mat-icon>
+      Menu
+    </button>
+    <mat-menu #primaryMenu="matMenu">
+      <app-menu-navigation [destination]="['']" label="Home" />
+      <app-menu-navigation [destination]="['about']" label="About" />
+      <app-menu-navigation [destination]="['elections']" label="My elections" />
+      <app-menu-navigation [destination]="['shelves']" label="My shelves" />
+    </mat-menu>
+  }
 
   <app-authentication />
 </mat-toolbar>

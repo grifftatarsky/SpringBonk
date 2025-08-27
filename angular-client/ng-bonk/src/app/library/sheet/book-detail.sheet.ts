@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
@@ -17,23 +17,28 @@ import { MatDialog } from '@angular/material/dialog';
 import { BookSelectShelfDialog } from '../dialog/book-select-shelf-dialog.component';
 import { NotificationService } from '../../service/notification.service';
 import { NominateToElectionDialogComponent } from '../../elections/dialog/nominate-to-election-dialog.component';
+import { ConfirmDialogComponent } from '../../common/confirm-dialog.component';
+import { ElectionHttpService } from '../../service/http/election-http.service';
+import { UserService } from '../../service/user.service';
+import { forkJoin, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 export interface BookDetailSheetData {
   book: BookResponse;
   shelfId: string;
+  isNominationsShelf?: boolean;
 }
 
 @Component({
   selector: 'app-book-detail-sheet',
   standalone: true,
   imports: [
-    CommonModule,
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
     MatDividerModule,
-    BookCoverComponent,
-  ],
+    BookCoverComponent
+],
   template: `
     <div class="sheet-header">
       <div class="cover">
@@ -125,18 +130,62 @@ export class BookDetailSheetComponent {
     private bookHttp: BookHttpService,
     private store: Store,
     private dialog: MatDialog,
-    private notify: NotificationService
+    private notify: NotificationService,
+    private electionHttp: ElectionHttpService,
+    private user: UserService
   ) {}
 
   removeFromShelf(): void {
-    this.store.dispatch(
-      LibraryActions.removeBookFromShelf({
-        bookId: this.data.book.id,
-        shelfId: this.data.shelfId,
-      })
-    );
-    this.notify.success('Removed from shelf');
-    this.ref.dismiss(true);
+    const proceed = () => {
+      this.store.dispatch(
+        LibraryActions.removeBookFromShelf({
+          bookId: this.data.book.id,
+          shelfId: this.data.shelfId,
+        })
+      );
+      this.notify.success('Removed from shelf');
+      this.ref.dismiss(true);
+    };
+
+    if (this.data.isNominationsShelf) {
+      const dlg = this.dialog.open(ConfirmDialogComponent, {
+        data: {
+          title: 'Remove nomination',
+          message:
+            'Removing this book from your nominations will remove it from the election where it is nominated, which may change the election results. Continue?',
+          confirmText: 'Remove',
+          cancelText: 'Keep',
+        },
+        width: '520px',
+      });
+      dlg.afterClosed().subscribe(confirm => {
+        if (!confirm) return;
+        const myId = this.user.current.id;
+        this.electionHttp
+          .getAllElections()
+          .pipe(
+            switchMap(elections => {
+              const tasks = elections.map(e =>
+                this.electionHttp.getCandidatesByElection(e.id).pipe(
+                  switchMap(cands => {
+                    const mine = cands.filter(
+                      c => c.base.id === this.data.book.id && c.nominatorId === myId
+                    );
+                    if (!mine.length) return of(null);
+                    return forkJoin(
+                      mine.map(c => this.electionHttp.deleteCandidate(e.id, c.id))
+                    );
+                  })
+                )
+              );
+              return tasks.length ? forkJoin(tasks) : of(null);
+            })
+          )
+          .subscribe({ next: () => proceed(), error: () => proceed() });
+      });
+    } else {
+      proceed();
+    }
   }
 
   delete(): void {

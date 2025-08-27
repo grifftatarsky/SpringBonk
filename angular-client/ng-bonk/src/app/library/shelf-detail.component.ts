@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { BookCoverComponent } from '../common/book-cover.component';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { AsyncPipe, CommonModule, NgForOf, NgIf } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -45,13 +45,11 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     MatButtonModule,
     MatIconModule,
     AsyncPipe,
-    NgIf,
-    NgForOf,
     MatCardModule,
     MatChipsModule,
     MatProgressBarModule,
-    BookCoverComponent,
-  ],
+    BookCoverComponent
+],
   templateUrl: './shelf-detail.component.html',
   styleUrls: ['./shelf-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -69,6 +67,7 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
   private visibleCount$ = new BehaviorSubject<number>(20);
   loading$!: Observable<boolean>;
   private booksLength = 0;
+  private isNominationsShelf = false;
 
   displayedColumns: string[] = ['cover', 'title', 'author', 'published'];
 
@@ -127,12 +126,15 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
       this.visibleCount$,
     ]).pipe(map(([books, count]) => books.slice(0, count)));
 
-    // Loading bar for this shelf id
+    // Track shelf meta and loading bar for this shelf id
     this.loading$ = id$.pipe(
       switchMap(id =>
         this.store.select(selectLoadingBooks).pipe(map(mapObj => !!mapObj[id]))
       )
     );
+    this.shelf$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(s => (this.isNominationsShelf = (s?.title ?? '') === 'My Nominations'));
 
     // Dispatch load when id changes
     id$.pipe(takeUntil(this.destroy$)).subscribe(id => {
@@ -152,7 +154,7 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
 
   openBookSheet(book: BookResponse): void {
     this.sheet.open(BookDetailSheetComponent, {
-      data: { book, shelfId: this.shelfId },
+      data: { book, shelfId: this.shelfId, isNominationsShelf: this.isNominationsShelf },
       panelClass: ['sheet-max', 'book-sheet'],
     });
   }
@@ -166,6 +168,10 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
         this.visibleCount$.next(next);
       }
     }
+  }
+
+  trackByBookId(_index: number, book: BookResponse): string {
+    return book.id;
   }
 }
 

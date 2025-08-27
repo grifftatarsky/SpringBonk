@@ -6,10 +6,12 @@
 
 #toolbar-election-detail {
   flex-wrap: wrap;
+  background-color: transparent;
 }
 
 #toolbar-election-actions {
   flex-wrap: wrap;
+  background-color: transparent;
   margin-top: 4px;
 }
 
@@ -31,7 +33,10 @@
 .ballot-layout {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+}
+
+.candidate-pane {
+  border-bottom: 0;
 }
 
 .candidate-pane, .ballot-pane {
@@ -53,7 +58,7 @@
 
 @media (min-width: 1024px) {
   .ballot-layout {
-    flex-direction: row;
+    // I converted this to column so not sure this is needed now.
   }
   .candidate-pane {
     flex: 1;

@@ -10,9 +10,11 @@
   <div class="spacer"></div>
 </mat-toolbar>
 
-<div *ngIf="loading$ | async">
-  <mat-progress-bar mode="indeterminate" />
-</div>
+@if (loading$ | async) {
+  <div>
+    <mat-progress-bar mode="indeterminate" />
+  </div>
+}
 
 <div class="elections-layout">
   <div
@@ -21,49 +23,51 @@
     [class.mobile-hidden]="hasSelection$ | async"
     (scroll)="onListScroll($event)">
     <div class="elections-list">
-      <ng-container *ngIf="elections$ | async as elections">
-        <ng-container *ngIf="elections.length > 0; else noElections">
-          <mat-card
-            class="election-card"
-            *ngFor="let e of elections"
-            [class.active]="(selectedId$ | async) === e.id"
-            tabindex="0"
-            role="button">
-            <div
-              class="election-card-body"
-              matRipple
-              [matRippleColor]="'rgba(0,255,65,0.3)'"
-              [matRippleCentered]="true"
-              (click)="navigateToDetail(e.id)">
-              <div class="election-title">{{ e.title }}</div>
+      @if (elections$ | async; as elections) {
+        @if (elections.length > 0) {
+          @for (e of elections; track e) {
+            <mat-card
+              class="election-card"
+              [class.active]="(selectedId$ | async) === e.id"
+              tabindex="0"
+              role="button">
               <div
-                class="election-status"
-                *ngIf="getStatus(e.endDateTime) as status">
-                <mat-chip
-                  [ngClass]="status.class"
-                  disableRipple
+                class="election-card-body"
+                matRipple
+                [matRippleColor]="'rgba(0,255,65,0.3)'"
+                [matRippleCentered]="true"
+                (click)="navigateToDetail(e.id)">
+                <div class="election-title">{{ e.title }}</div>
+                @if (getStatus(e.endDateTime); as status) {
+                  <div
+                    class="election-status"
+                    >
+                    <mat-chip
+                      [ngClass]="status.class"
+                      disableRipple
                   [matTooltip]="
                     status.text === 'Ongoing'
                       ? 'Ends ' + (e.endDateTime | date: 'short')
                       : ''
                   ">
-                  <mat-icon matChipAvatar inline>{{ status.icon }}</mat-icon>
-                  {{ status.text }}
-                </mat-chip>
+                      <mat-icon matChipAvatar inline>{{ status.icon }}</mat-icon>
+                      {{ status.text }}
+                    </mat-chip>
+                  </div>
+                }
               </div>
-            </div>
-          </mat-card>
-        </ng-container>
-      </ng-container>
-      <ng-template #noElections>
-        <ng-container *ngIf="!(loading$ | async)">
-          <mat-card class="election-card">
-            <div class="election-card-body">
-              <div class="election-title">No elections</div>
-            </div>
-          </mat-card>
-        </ng-container>
-      </ng-template>
+            </mat-card>
+          }
+        } @else {
+          @if (!(loading$ | async)) {
+            <mat-card class="election-card">
+              <div class="election-card-body">
+                <div class="election-title">No elections</div>
+              </div>
+            </mat-card>
+          }
+        }
+      }
     </div>
   </div>
   <div class="detail-pane" [class.mobile-shown]="hasSelection$ | async">

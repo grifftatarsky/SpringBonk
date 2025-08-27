@@ -4,7 +4,7 @@ import {
   Inject,
   OnInit,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -23,14 +23,13 @@ import { BookCoverComponent } from '../../common/book-cover.component';
   selector: 'app-book-detail-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    BookCoverComponent,
-  ],
+    BookCoverComponent
+],
   templateUrl: './book-detail-dialog.component.html',
   styleUrls: ['./book-detail-dialog.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

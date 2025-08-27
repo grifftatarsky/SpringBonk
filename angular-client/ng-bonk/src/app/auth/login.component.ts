@@ -5,7 +5,7 @@ import { map, Observable } from 'rxjs';
 import { UserService } from '../service/user.service';
 import { baseUri, reverseProxyUri } from '../app.config';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { MatButton } from '@angular/material/button';
 
 interface LoginOptionDto {
@@ -14,16 +14,14 @@ interface LoginOptionDto {
   isSameAuthority: boolean;
 }
 
-function loginOptions(http: HttpClient): Observable<Array<LoginOptionDto>> {
-  return http
-    .get(`${reverseProxyUri}/login-options`)
-    .pipe(map((dto: any): LoginOptionDto[] => dto as LoginOptionDto[]));
+function loginOptions(http: HttpClient): Observable<LoginOptionDto[]> {
+  return http.get<LoginOptionDto[]>(`${reverseProxyUri}/login-options`);
 }
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButton],
+  imports: [ReactiveFormsModule, MatButton],
   templateUrl: 'login.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

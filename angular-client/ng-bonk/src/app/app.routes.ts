@@ -1,11 +1,13 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
 import { authMatch } from './auth/auth.guard';
+import { pendingBallotGuard } from './elections/pending-ballot.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, data: { title: 'Home' } },
   {
     path: 'about',
+    canMatch: [authMatch],
     loadComponent: () => import('./about.view').then(m => m.AboutView),
     data: { title: 'About' },
   },
@@ -22,6 +24,7 @@ export const routes: Routes = [
           import('./elections/election-detail.component').then(
             m => m.ElectionDetailComponent
           ),
+        canDeactivate: [pendingBallotGuard],
         data: { title: 'Election' },
       },
     ],

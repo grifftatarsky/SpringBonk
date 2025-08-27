@@ -15,7 +15,7 @@ export interface ElectionsState {
   runResult: import('../../model/election-result.model').ElectionResult | null;
 }
 
-const initialState: ElectionsState = {
+export const initialState: ElectionsState = {
   currentElectionId: null,
   election: null,
   candidates: [],
@@ -95,6 +95,14 @@ const reducer = createReducer(
     (state, { electionId }): ElectionsState => ({
       ...state,
       ballotByElection: { ...state.ballotByElection, [electionId]: [] },
+    })
+  ),
+  on(
+    ElectionsActions.resetBallotSuccess,
+    (state, { electionId }): ElectionsState => ({
+      ...state,
+      ballotByElection: { ...state.ballotByElection, [electionId]: [] },
+      submitting: false,
     })
   ),
 

@@ -5,33 +5,38 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-book-cover',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [MatIconModule, MatProgressSpinnerModule],
   template: `
     <div class="cover-box">
-      <img
-        *ngIf="hasImage"
-        class="cover-img"
-        [src]="src!"
-        [attr.alt]="alt || ''"
-        (load)="onLoad()"
-        (error)="onError()" />
-
-      <div class="spinner" *ngIf="loading">
-        <mat-progress-spinner diameter="24"></mat-progress-spinner>
-      </div>
-
-      <div class="placeholder" *ngIf="showIcon">
-        <mat-icon>menu_book</mat-icon>
-      </div>
+      @if (hasImage) {
+        <img
+          class="cover-img"
+          [src]="src!"
+          [attr.alt]="alt || ''"
+          (load)="onLoad()"
+          (error)="onError()" />
+      }
+    
+      @if (loading) {
+        <div class="spinner">
+          <mat-progress-spinner diameter="24"></mat-progress-spinner>
+        </div>
+      }
+    
+      @if (showIcon) {
+        <div class="placeholder">
+          <mat-icon>menu_book</mat-icon>
+        </div>
+      }
     </div>
-  `,
+    `,
   styles: [
     `
       :host {

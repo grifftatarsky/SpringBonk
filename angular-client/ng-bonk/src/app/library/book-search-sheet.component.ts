@@ -18,7 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 // Removed select/sidenav (advanced filters)
 import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { BookSelectShelfDialog } from './dialog/book-select-shelf-dialog.component';
 import { Store } from '@ngrx/store';
 import * as LibraryActions from './store/library.actions';
@@ -49,9 +49,8 @@ import {
     MatIconModule,
     BookCoverComponent,
     ScrollingModule,
-    AsyncPipe,
-    NgIf,
-  ],
+    AsyncPipe
+],
   templateUrl: './book-search-sheet.component.html',
   styleUrls: ['./book-search-sheet.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

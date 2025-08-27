@@ -1,4 +1,5 @@
-import { CommonModule } from '@angular/common';
+
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import {
   ActivatedRoute,
@@ -22,7 +23,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule,
+    AsyncPipe,
     RouterOutlet,
     AuthenticationComponent,
     MatToolbarModule,
@@ -31,8 +32,8 @@ import { animate, style, transition, trigger } from '@angular/animations';
     MatIconModule,
     MatDividerModule,
     MenuNavigationComponent,
-    RouterLink,
-  ],
+    RouterLink
+],
   templateUrl: './app.component.html',
   styles: [
     `

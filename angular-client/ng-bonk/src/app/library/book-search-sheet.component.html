@@ -18,13 +18,15 @@
 
 <div class="sheet-container">
   <div class="results-container">
-    <div *ngIf="(loading$ | async) && hasSearched">
-      <mat-progress-bar mode="indeterminate" />
-    </div>
+    @if ((loading$ | async) && hasSearched) {
+      <div>
+        <mat-progress-bar mode="indeterminate" />
+      </div>
+    }
 
-    <ng-container *ngIf="results$ | async as results">
-      <ng-container *ngIf="hasSearched; else preSearch">
-        <ng-container *ngIf="results.length > 0; else noResults">
+    @if (results$ | async; as results) {
+      @if (hasSearched) {
+        @if (results.length > 0) {
           <cdk-virtual-scroll-viewport
             class="results-viewport"
             [itemSize]="itemSize"
@@ -35,7 +37,7 @@
               <div class="cover">
                 <app-book-cover
                   [src]="getCover(book)"
-                  [alt]="book.title + ' cover'"></app-book-cover>
+                [alt]="book.title + ' cover'"></app-book-cover>
               </div>
               <div class="meta">
                 <div class="title">{{ book.title }}</div>
@@ -53,16 +55,14 @@
               </div>
             </mat-card>
           </cdk-virtual-scroll-viewport>
-        </ng-container>
-        <ng-template #noResults>
+        } @else {
           <div class="placeholder">
             No results found. Try a different search.
           </div>
-        </ng-template>
-      </ng-container>
-      <ng-template #preSearch>
+        }
+      } @else {
         <div class="placeholder">Enter a search term to find books</div>
-      </ng-template>
-    </ng-container>
+      }
+    }
   </div>
 </div>

@@ -3,7 +3,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import * as ElectionsActions from './elections.actions';
 import { ElectionHttpService } from '../../service/http/election-http.service';
 import { Store } from '@ngrx/store';
-import { catchError, concat, concatMap, forkJoin, from, last, map, of, switchMap, tap, withLatestFrom } from 'rxjs';
+import { catchError, concat, forkJoin, last, map, of, switchMap, tap, withLatestFrom } from 'rxjs';
 import { NotificationService } from '../../service/notification.service';
 import { selectElectionsState } from './elections.reducer';
 
@@ -80,6 +80,27 @@ export class ElectionsEffects {
           catchError(error => {
             this.notify.error(error?.error?.message || 'Failed to run election.');
             return of(ElectionsActions.runElectionFailure({ error }));
+          })
+        )
+      )
+    )
+  );
+
+  // Reset ballot: delete all votes for this user/election, set empty order, show toast
+  resetBallot$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ElectionsActions.resetBallot),
+      switchMap(({ electionId }) =>
+        this.http.getMyVotes(electionId).pipe(
+          switchMap(currentVotes => {
+            const deleteOps = currentVotes.map(v => this.http.deleteVote(v.candidateId));
+            const steps = [deleteOps.length ? forkJoin(deleteOps) : of(void 0)];
+            return concat(...steps).pipe(
+              last(),
+              map(() => ElectionsActions.resetBallotSuccess({ electionId })),
+              tap(() => this.notify.success('All votes removed')),
+              catchError(error => of(ElectionsActions.resetBallotFailure({ error })))
+            );
           })
         )
       )

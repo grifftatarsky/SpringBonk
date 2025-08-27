@@ -9,7 +9,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AsyncPipe, NgForOf, NgIf, NgStyle } from '@angular/common';
+import { AsyncPipe, NgStyle } from '@angular/common';
 import { ShelfRequest } from '../model/request/shelf-request.model';
 import { ShelfResponse } from '../model/response/shelf-response.model';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -63,10 +63,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     RouterOutlet,
     MatRippleModule,
     AsyncPipe,
-    NgIf,
-    NgForOf,
-    NgStyle,
-  ],
+    NgStyle
+],
   templateUrl: './shelves.component.html',
   styleUrls: ['./shelves.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -256,6 +254,10 @@ export class ShelvesComponent implements OnInit {
     } catch {
       this.router.navigate([shelf.id], { relativeTo: this.route });
     }
+  }
+
+  trackByShelfId(_index: number, shelf: ShelfResponse): string {
+    return shelf.id;
   }
 
   onBookPage(event: PageEvent, shelfId: string): void {

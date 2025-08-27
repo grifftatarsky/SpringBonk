@@ -1,4 +1,4 @@
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../service/user.service';
@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [AsyncPipe, NgIf, RouterLink, MatButtonModule],
+  imports: [AsyncPipe, RouterLink, MatButtonModule],
   templateUrl: 'home.component.html',
   styles: [
     `

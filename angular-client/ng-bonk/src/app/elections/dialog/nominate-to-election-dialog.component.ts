@@ -4,7 +4,7 @@ import {
   Inject,
   OnInit,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
@@ -55,6 +55,7 @@ interface BookNode {
   standalone: true,
   imports: [
     CommonModule,
+    AsyncPipe,
     MatDialogModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -154,10 +155,18 @@ export class NominateToElectionDialogComponent implements OnInit {
     if (!this.data.book) {
       this.shelvesHttp.getUserShelves().subscribe({
         next: (shelves: ShelfResponse[]) => {
-          const nodes: ShelfNode[] = shelves.map(s => ({
+          const filtered = shelves.filter(s => s.title !== 'My Nominations');
+          const nodes: ShelfNode[] = filtered.map(s => ({
             type: 'shelf',
             id: s.id,
             title: s.title,
+            children: (s.books || []).map(b => ({
+              type: 'book',
+              id: b.id,
+              title: b.title,
+              author: b.author,
+              imageURL: b.imageURL,
+            })),
           }));
           this.data$.next(nodes);
           this.dataSource.data = nodes;
@@ -192,6 +201,7 @@ export class NominateToElectionDialogComponent implements OnInit {
           const updated = [...this.data$.value];
           this.data$.next(updated);
           this.dataSource.data = updated;
+          this.treeControl.expand(node);
         },
         error: () => {
           this.loadingBooksFor[node.id] = false;

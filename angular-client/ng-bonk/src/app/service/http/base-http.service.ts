@@ -7,7 +7,7 @@ import {
 import { Inject, Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { MatSnackBar } from '@angular/material/snack-bar';
+// Interceptor handles errors globally via NotificationService
 import { API_BASE_URL } from '../../config/app-tokens';
 
 @Injectable({ providedIn: 'root' })
@@ -16,7 +16,6 @@ export class BaseHttpService {
 
   constructor(
     protected http: HttpClient,
-    protected snackBar: MatSnackBar,
     @Inject(API_BASE_URL) apiBaseUrl: string
   ) {
     this.apiBase = apiBaseUrl;
@@ -30,15 +29,10 @@ export class BaseHttpService {
     params?: HttpParams | { [param: string]: string | number | boolean },
     headers?: HttpHeaders
   ): Observable<T> {
-    return this.http
-      .get<T>(url, {
-        params: this.normalizeParams(params),
-        headers: this.normalizeHeaders(headers),
-      })
-      .pipe(
-        map(res => res),
-        catchError(error => this.handleError(error))
-      );
+    return this.http.get<T>(url, {
+      params: this.normalizeParams(params),
+      headers: this.normalizeHeaders(headers),
+    });
   }
 
   /**
@@ -46,17 +40,12 @@ export class BaseHttpService {
    */
   protected post<T>(
     url: string,
-    body: any,
+    body: unknown,
     headers?: HttpHeaders
   ): Observable<T> {
-    return this.http
-      .post<T>(url, body, {
-        headers: this.normalizeHeaders(headers),
-      })
-      .pipe(
-        map(res => res),
-        catchError(error => this.handleError(error))
-      );
+    return this.http.post<T>(url, body, {
+      headers: this.normalizeHeaders(headers),
+    });
   }
 
   /**
@@ -64,17 +53,12 @@ export class BaseHttpService {
    */
   protected put<T>(
     url: string,
-    body: any,
+    body: unknown,
     headers?: HttpHeaders
   ): Observable<T> {
-    return this.http
-      .put<T>(url, body, {
-        headers: this.normalizeHeaders(headers),
-      })
-      .pipe(
-        map(res => res),
-        catchError(error => this.handleError(error))
-      );
+    return this.http.put<T>(url, body, {
+      headers: this.normalizeHeaders(headers),
+    });
   }
 
   /**
@@ -85,15 +69,10 @@ export class BaseHttpService {
     params?: HttpParams | { [param: string]: string | number | boolean },
     headers?: HttpHeaders
   ): Observable<T> {
-    return this.http
-      .delete<T>(url, {
-        params: this.normalizeParams(params),
-        headers: this.normalizeHeaders(headers),
-      })
-      .pipe(
-        map(res => res),
-        catchError(error => this.handleError(error))
-      );
+    return this.http.delete<T>(url, {
+      params: this.normalizeParams(params),
+      headers: this.normalizeHeaders(headers),
+    });
   }
 
   /**
@@ -132,55 +111,5 @@ export class BaseHttpService {
     return httpHeaders;
   }
 
-  /**
-   * Global error handler for all HTTP requests
-   */
-  private handleError = (error: HttpErrorResponse): Observable<never> => {
-    // Get an appropriate error message to display
-    const displayMessage: string = this.getErrorDisplayMessage(error);
-
-    this.snackBar.open(displayMessage, 'Dismiss', {
-      duration: 5000,
-      panelClass: ['error-snackbar'],
-      horizontalPosition: 'end',
-      verticalPosition: 'bottom',
-    });
-
-    // Log the error to console for debugging
-    console.error(`[HTTP ERROR] ${error.status}: ${error.message}`);
-
-    // Return the error observable
-    return throwError((): HttpErrorResponse => error);
-  };
-
-  /**
-   * Get a user-friendly error message based on HTTP error!
-   */
-  private getErrorDisplayMessage = (error: HttpErrorResponse): string => {
-    // Check if error has a specific message from the server
-    if (error.error?.message) {
-      return error.error.message;
-    }
-
-    switch (error.status) {
-      case 400:
-        return 'Invalid request. Please check your input.';
-      case 401:
-        return 'Authentication required. Please log in again.';
-      case 403:
-        return 'You do not have permission to perform this action.';
-      case 404:
-        return 'The requested resource was not found.';
-      case 409:
-        return 'Conflict occurred. The resource may have been modified.';
-      case 500:
-        return 'Server error. Please try again later.';
-      case 503:
-        return 'Service unavailable. Please try again later.';
-      case 0:
-        return 'Network error. Please check your connection.';
-      default:
-        return `Error ${error.status}: ${error.statusText || 'Unknown error'}`;
-    }
-  };
+  // Errors are surfaced by a global interceptor; callers may still handle them locally if needed
 }

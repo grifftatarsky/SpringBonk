@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -22,7 +22,6 @@ import { BookHttpService } from '../../service/http/books-http.service';
   selector: 'app-book-select-shelf-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
@@ -30,8 +29,8 @@ import { BookHttpService } from '../../service/http/books-http.service';
     MatSelectModule,
     MatDividerModule,
     MatProgressSpinnerModule,
-    BookCoverComponent,
-  ],
+    BookCoverComponent
+],
   templateUrl: './book-select-shelf-dialog.component.html',
   styleUrls: ['./book-select-shelf-dialog.component.scss'],
 })

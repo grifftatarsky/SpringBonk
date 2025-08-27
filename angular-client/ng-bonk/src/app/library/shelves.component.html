@@ -16,22 +16,25 @@
   <div class="spacer"></div>
 </mat-toolbar>
 
-<div *ngIf="loading$ | async">
-  <mat-progress-bar mode="indeterminate" />
-</div>
+@if (loading$ | async) {
+  <div>
+    <mat-progress-bar mode="indeterminate" />
+  </div>
+}
 
 <div class="shelves-layout" #shelvesLayout>
   <!-- Transition line overlay -->
-  <div
-    *ngIf="showLine"
-    #transLine
-    class="transition-line"
-    [class.instant]="lineInstant"
+  @if (showLine) {
+    <div
+      #transLine
+      class="transition-line"
+      [class.instant]="lineInstant"
     [ngStyle]="{
       top: lineStyle.top,
       left: lineStyle.left,
       width: lineStyle.width,
     }"></div>
+  }
 
   <div
     class="list-pane"
@@ -39,26 +42,33 @@
     [class.mobile-hidden]="hasSelection$ | async"
     (scroll)="onListScroll($event)">
     <div class="shelves-list">
-      <ng-container *ngIf="shelves$ | async as shelves; else emptyState">
-        <mat-card
-          class="shelf-card"
-          *ngFor="let shelf of shelves"
-          [class.active]="(selectedId$ | async) === shelf.id"
-          tabindex="0"
-          role="button">
-          <div
-            class="shelf-card-body"
-            matRipple
-            [matRippleColor]="'rgba(0,255,65,0.3)'"
-            [matRippleCentered]="true"
-            (click)="onShelfClick(shelf, $event)">
-            <div class="shelf-title">{{ shelf.title }}</div>
-            <div class="shelf-tags">
-              <span *ngIf="shelf.defaultShelf" class="tag">Default</span>
+      @if (shelves$ | async; as shelves) {
+        @for (shelf of shelves; track trackByShelfId($index, shelf)) {
+          <mat-card
+            class="shelf-card"
+            [class.active]="(selectedId$ | async) === shelf.id"
+            tabindex="0"
+            role="button">
+            <div
+              class="shelf-card-body"
+              matRipple
+              [matRippleColor]="'rgba(0,255,65,0.3)'"
+              [matRippleCentered]="true"
+              (click)="onShelfClick(shelf, $event)">
+              <div class="shelf-title">{{ shelf.title }}</div>
+              <div class="shelf-tags">
+                @if (shelf.defaultShelf) {
+                  <span class="tag">Default</span>
+                }
+              </div>
             </div>
-          </div>
-        </mat-card>
-      </ng-container>
+          </mat-card>
+        }
+      } @else {
+        <div class="table-no-data-bar">
+          No shelves yet. Create your first to get started.
+        </div>
+      }
     </div>
   </div>
   <div
@@ -71,8 +81,3 @@
   </div>
 </div>
 
-<ng-template #emptyState>
-  <div class="table-no-data-bar">
-    No shelves yet. Create your first to get started.
-  </div>
-</ng-template>

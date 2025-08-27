@@ -1,18 +1,21 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { AsyncPipe, CommonModule, DatePipe, NgForOf, NgIf } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, } from '@angular/core';
+import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { NominateToElectionDialogComponent } from './dialog/nominate-to-election-dialog.component';
 import { UserService } from '../service/user.service';
 import { ElectionHttpService } from '../service/http/election-http.service';
-import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { BookHttpService } from '../service/http/books-http.service';
+import { ShelfHttpService } from '../service/http/shelves-http.service';
+import { CdkDragDrop, DragDropModule, moveItemInArray, } from '@angular/cdk/drag-drop';
 import { BookCoverComponent } from '../common/book-cover.component';
 import * as ElectionsActions from './store/elections.actions';
 import {
@@ -27,11 +30,14 @@ import {
   selectSubmitting,
   selectUnrankedCandidates,
 } from './store/elections.selectors';
-import { combineLatest, map, Observable, Subject, switchMap, takeUntil } from 'rxjs';
+import { combineLatest, distinctUntilChanged, map, Observable, startWith, Subject, switchMap, take, takeUntil, filter as rxFilter } from 'rxjs';
 import { ElectionResult } from '../model/election-result.model';
 import { EliminationMessage } from '../model/type/elimination-message.enum';
 import { CandidateResponse } from '../model/response/candidate-response.model';
 import { ElectionResponse } from '../model/response/election-response.model';
+import { ShelfResponse } from '../model/response/shelf-response.model';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { Actions, ofType } from '@ngrx/effects';
 
 @Component({
   selector: 'app-election-detail',
@@ -42,14 +48,13 @@ import { ElectionResponse } from '../model/response/election-response.model';
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
+    MatMenuModule,
     MatCardModule,
     MatProgressBarModule,
     DragDropModule,
     BookCoverComponent,
     DatePipe,
     AsyncPipe,
-    NgIf,
-    NgForOf,
   ],
   templateUrl: './election-detail.component.html',
   styleUrls: ['./election-detail.component.scss'],
@@ -61,6 +66,8 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(MatDialog);
   private readonly user = inject(UserService);
   private readonly electionHttp = inject(ElectionHttpService);
+  private readonly bookHttp = inject(BookHttpService);
+  private readonly shelfHttp = inject(ShelfHttpService);
 
   election$!: Observable<ElectionResponse | null>;
   loadingElection$!: Observable<boolean>;
@@ -74,14 +81,18 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   unranked$!: Observable<CandidateResponse[]>;
   order$!: Observable<string[]>;
   myNominationId$!: Observable<string | null>;
+  isHandset$!: Observable<boolean>;
+  private pending = false;
 
   electionId!: string;
   private readonly destroy$ = new Subject<void>();
+  private readonly bp = inject(BreakpointObserver);
+  private readonly actions$ = inject(Actions);
 
   ngOnInit(): void {
     const id$ = this.route.paramMap.pipe(
       map(params => params.get('id') || ''),
-      takeUntil(this.destroy$),
+      takeUntil(this.destroy$)
     );
 
     // React to id changes: dispatch loads and update local id
@@ -90,7 +101,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       if (id) {
         this.store.dispatch(ElectionsActions.loadElection({ electionId: id }));
         this.store.dispatch(
-          ElectionsActions.loadCandidates({ electionId: id }),
+          ElectionsActions.loadCandidates({ electionId: id })
         );
         this.store.dispatch(ElectionsActions.loadMyBallot({ electionId: id }));
       }
@@ -106,17 +117,25 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
     const orderFactory$ = this.store.select(selectBallotOrder);
 
     this.ranked$ = id$.pipe(
-      switchMap(id => rankedFactory$.pipe(map(f => f(id)))),
+      switchMap(id => rankedFactory$.pipe(map(f => f(id))))
     );
     this.unranked$ = id$.pipe(
-      switchMap(id => unrankedFactory$.pipe(map(f => f(id)))),
+      switchMap(id => unrankedFactory$.pipe(map(f => f(id))))
     );
     this.order$ = id$.pipe(
-      switchMap(id => orderFactory$.pipe(map(f => f(id)))),
+      switchMap(id => orderFactory$.pipe(map(f => f(id))))
     );
 
     this.running$ = this.store.select(selectRunning);
     this.runResult$ = this.store.select(selectRunResult);
+
+    // Responsive toolbar behavior
+    this.isHandset$ = this.bp
+      .observe([Breakpoints.XSmall, Breakpoints.Small])
+      .pipe(
+        map(state => state.matches),
+        startWith(false)
+      );
 
     this.terminalLines$ = combineLatest([
       this.runResult$,
@@ -130,7 +149,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
         for (const round of res.rounds) {
           lines.push(`Round ${round.roundNumber}`);
           const entries = Object.entries(round.votes || {}).sort(
-            (a, b) => b[1] - a[1],
+            (a, b) => b[1] - a[1]
           );
           for (const [cid, count] of entries) {
             lines.push(`- ${nameOf(cid)}: ${count}`);
@@ -153,28 +172,44 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
               break;
           }
           if (
-            (round as any).eliminatedCandidateIds &&
-            (round as any).eliminatedCandidateIds.length
+            round.eliminatedCandidateIds &&
+            round.eliminatedCandidateIds.length
           ) {
             lines.push(
-              `> Eliminated: ${(round as any).eliminatedCandidateIds.map(nameOf).join(', ')}`,
+              `> Eliminated: ${round.eliminatedCandidateIds.map(nameOf).join(', ')}`
             );
           }
         }
         const winnerName = nameOf(res.winnerId);
         lines.push(`Winner: ${winnerName} (${res.totalVotes} total votes)`);
         return lines;
-      }),
+      })
     );
 
     // Determine if the current user has a nomination in this election
-    this.myNominationId$ = this.store.select(selectCandidates).pipe(
-      map((cands: CandidateResponse[]) => {
-        const myId = this.user.current.name; // Keycloak subject UUID
+    this.myNominationId$ = combineLatest([
+      this.store.select(selectCandidates),
+      this.user.valueChanges,
+    ]).pipe(
+      map(([cands, u]: [CandidateResponse[], { id: string }]) => {
+        const myId: string = u?.id ?? '';
         const mine = cands.find(c => c.nominatorId === myId);
-        return mine ? mine.id : null;
+        return mine?.id ?? null;
       }),
+      distinctUntilChanged()
     );
+
+    // When save or reset succeed for this election, clear pending flag
+    this.actions$
+      .pipe(
+        ofType(
+          ElectionsActions.submitBallotSuccess,
+          ElectionsActions.resetBallotSuccess
+        ),
+        rxFilter(a => a.electionId === this.electionId),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => (this.pending = false));
   }
 
   ngOnDestroy(): void {
@@ -190,8 +225,9 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       ElectionsActions.setBallotOrder({
         electionId: this.electionId,
         orderedCandidateIds: newOrder,
-      }),
+      })
     );
+    this.pending = true;
   }
 
   // Move from unranked to ranked (append at end)
@@ -201,8 +237,9 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       ElectionsActions.setBallotOrder({
         electionId: this.electionId,
         orderedCandidateIds: newOrder,
-      }),
+      })
     );
+    this.pending = true;
   }
 
   // Remove from ranked
@@ -212,8 +249,9 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       ElectionsActions.setBallotOrder({
         electionId: this.electionId,
         orderedCandidateIds: newOrder,
-      }),
+      })
     );
+    this.pending = true;
   }
 
   trackByCandidate(_index: number, c: CandidateResponse): string {
@@ -222,14 +260,28 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
 
   clearBallot(): void {
     this.store.dispatch(
-      ElectionsActions.clearBallot({ electionId: this.electionId }),
+      ElectionsActions.clearBallot({ electionId: this.electionId })
+    );
+  }
+
+  resetBallot(): void {
+    this.store.dispatch(
+      ElectionsActions.resetBallot({ electionId: this.electionId })
     );
   }
 
   submitBallot(): void {
     this.store.dispatch(
-      ElectionsActions.submitBallot({ electionId: this.electionId }),
+      ElectionsActions.submitBallot({ electionId: this.electionId })
     );
+  }
+
+  hasPendingChanges(): boolean {
+    return this.pending;
+  }
+
+  getElectionId(): string {
+    return this.electionId;
   }
 
   openNominateDialog(): void {
@@ -243,25 +295,49 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
         if (changed) {
           // Refresh candidates
           this.store.dispatch(
-            ElectionsActions.loadCandidates({ electionId: this.electionId }),
+            ElectionsActions.loadCandidates({ electionId: this.electionId })
           );
         }
       });
   }
 
   removeMyNomination(candidateId: string): void {
-    this.electionHttp
-      .deleteCandidate(this.electionId, candidateId)
-      .subscribe(() => {
-        this.store.dispatch(
-          ElectionsActions.loadCandidates({ electionId: this.electionId }),
-        );
+    // Find bookId for candidate so we can also remove it from "My Nominations" shelf
+    this.store
+      .select(selectCandidates)
+      .pipe(take(1))
+      .subscribe((cands: CandidateResponse[]) => {
+        const cand = cands.find((c: CandidateResponse) => c.id === candidateId);
+        const bookId = cand?.base?.id;
+        this.electionHttp
+          .deleteCandidate(this.electionId, candidateId)
+          .subscribe(() => {
+            this.store.dispatch(
+              ElectionsActions.loadCandidates({ electionId: this.electionId })
+            );
+            if (bookId) {
+              this.shelfHttp
+                .getUserShelves()
+                .pipe(take(1))
+                .subscribe((shelves: ShelfResponse[]) => {
+                  const nominationsShelf = shelves.find(
+                    (s: ShelfResponse) => s.title === 'My Nominations'
+                  );
+                  if (nominationsShelf) {
+                    this.bookHttp
+                      .removeBookFromShelf(bookId, nominationsShelf.id)
+                      .pipe(take(1))
+                      .subscribe({ next: () => {}, error: () => {} });
+                  }
+                });
+            }
+          });
       });
   }
 
   runElection(): void {
     this.store.dispatch(
-      ElectionsActions.runElection({ electionId: this.electionId }),
+      ElectionsActions.runElection({ electionId: this.electionId })
     );
   }
 
@@ -275,8 +351,9 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       ElectionsActions.setBallotOrder({
         electionId: this.electionId,
         orderedCandidateIds: order,
-      }),
+      })
     );
+    this.pending = true;
   }
 
   moveDown(index: number, ranked: CandidateResponse[]): void {
@@ -289,7 +366,8 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       ElectionsActions.setBallotOrder({
         electionId: this.electionId,
         orderedCandidateIds: order,
-      }),
+      })
     );
+    this.pending = true;
   }
 }

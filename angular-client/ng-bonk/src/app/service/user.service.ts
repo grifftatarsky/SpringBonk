@@ -22,13 +22,17 @@ export class UserService {
     this.http.getDetails().subscribe({
       next: (user: UserInfoResponse): void => {
         if (
+          user.id !== this.user$.value.id ||
           user.username !== this.user$.value.name ||
           user.email !== this.user$.value.email ||
           (user.roles || []).toString() !== this.user$.value.roles.toString()
         ) {
+          const id = (user.id || '').toString();
+          const normalizedId = id && id !== '00000000-0000-0000-0000-000000000000' ? id : '';
           this.user$.next(
-            user.username
+            normalizedId
               ? new User(
+                  normalizedId,
                   user.username || '',
                   user.email || '',
                   user.roles || []
