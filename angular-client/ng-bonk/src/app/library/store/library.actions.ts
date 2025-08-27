@@ -45,11 +45,16 @@ export const deleteShelfSuccess = createAction(
 
 export const loadShelfBooks = createAction(
   '[Library] Load Shelf Books',
-  props<{ shelfId: string }>()
+  props<{ shelfId: string; pageIndex?: number; pageSize?: number }>()
 );
 export const loadShelfBooksSuccess = createAction(
   '[Library] Load Shelf Books Success',
-  props<{ shelfId: string; books: BookResponse[] }>()
+  props<{
+    shelfId: string;
+    books: BookResponse[];
+    total: number;
+    pageIndex: number;
+  }>()
 );
 
 export const addBookFromOpenLibrary = createAction(

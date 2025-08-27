@@ -78,24 +78,41 @@ export class LibraryEffects {
   loadShelfBooks$ = createEffect(() =>
     this.actions$.pipe(
       ofType(LibraryActions.loadShelfBooks),
-      tap(({ shelfId }) =>
-        console.log('[LibraryEffects] loadShelfBooks', { shelfId })
+      tap(({ shelfId, pageIndex = 0, pageSize = 20 }) =>
+        console.log('[LibraryEffects] loadShelfBooks', {
+          shelfId,
+          pageIndex,
+          pageSize,
+        })
       ),
-      switchMap(({ shelfId }) =>
-        this.bookHttp.getBooksByShelfId(shelfId).pipe(
-          tap(books =>
+      switchMap(({ shelfId, pageIndex = 0, pageSize = 20 }) =>
+        this.bookHttp.getPagedBooksByShelfId(shelfId, pageIndex, pageSize).pipe(
+          tap(res =>
             console.log('[LibraryEffects] loadShelfBooks success', {
               shelfId,
-              count: books.length,
+              returned: Object.values(res._embedded)[0]?.length ?? 0,
+              total: res.page.totalElements,
+              page: res.page.number,
             })
           ),
-          map(books =>
-            LibraryActions.loadShelfBooksSuccess({ shelfId, books })
-          ),
+          map(res => {
+            const embeddedKey = Object.keys(res._embedded)[0];
+            return LibraryActions.loadShelfBooksSuccess({
+              shelfId,
+              books: res._embedded[embeddedKey],
+              total: res.page.totalElements,
+              pageIndex,
+            });
+          }),
           catchError(error => {
             console.error('[LibraryEffects] loadShelfBooks failure', error);
             return of(
-              LibraryActions.loadShelfBooksSuccess({ shelfId, books: [] })
+              LibraryActions.loadShelfBooksSuccess({
+                shelfId,
+                books: [],
+                total: 0,
+                pageIndex,
+              })
             );
           })
         )

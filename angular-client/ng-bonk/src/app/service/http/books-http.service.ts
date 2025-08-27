@@ -85,6 +85,16 @@ export class BookHttpService extends BaseHttpService {
     return this.get<BookResponse[]>(`${this.baseUrl}/shelf/${shelfId}/all`);
   }
 
+  getPagedBooksByShelfId(
+    shelfId: string,
+    page = 0,
+    size = 20
+  ): Observable<PagedResponse<BookResponse>> {
+    return this.get<PagedResponse<BookResponse>>(
+      `${this.baseUrl}/shelf/${shelfId}?page=${page}&size=${size}`
+    );
+  }
+
   getShelfIdsByBookOpenLibraryId(openLibraryId: string): Observable<string[]> {
     return this.get<string[]>(`${this.baseUrl}/${openLibraryId}/shelves`);
   }

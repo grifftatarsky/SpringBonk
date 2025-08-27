@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -87,6 +91,19 @@ public class BookController {
     UUID userId = UUID.fromString(jwt.getSubject());
     List<BookResponse> books = bookService.getBooksByShelfId(shelfId, userId);
     return ResponseEntity.ok(books);
+  }
+
+  @GetMapping("/shelf/{shelfId}")
+  @Operation(summary = "Get paged books on a shelf by shelf ID")
+  public ResponseEntity<PagedModel<BookResponse>> getPagedBooksByShelfId(
+      @PathVariable UUID shelfId,
+      Pageable pageable,
+      PagedResourcesAssembler assembler,
+      @AuthenticationPrincipal Jwt jwt
+  ) {
+    UUID userId = UUID.fromString(jwt.getSubject());
+    Page<BookResponse> page = bookService.getPagedBooksByShelfId(shelfId, userId, pageable);
+    return ResponseEntity.ok(assembler.toModel(page));
   }
 
   @PutMapping("/{bookId}/shelf/{shelfId}")

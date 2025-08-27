@@ -1,3 +1,10 @@
+:host {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+  overflow: hidden;
+}
+
 .shelves-container {
   padding: 16px;
 }
@@ -77,11 +84,15 @@
   flex-direction: column;
   gap: 16px;
   position: relative;
+  flex: 1 1 auto;
+  min-height: 0; /* enable children to scroll */
 }
 
 .list-pane {
   max-width: 720px;
   overflow: auto;
+  height: 100%;
+  min-height: 0;
 }
 
 .shelves-list {
@@ -138,12 +149,20 @@
 
 .detail-pane {
   display: none;
-  overflow: auto;
+  overflow: hidden; /* scrolling handled inside shelf detail */
+  height: 100%;
+  min-height: 0;
 }
 
 .detail-content {
   opacity: 1;
   transition: opacity 180ms ease;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden; /* Routed child fills; inner child handles scroll */
 }
 
 .detail-content.fade-out {
@@ -159,17 +178,25 @@
   .shelves-layout {
     flex-direction: row;
     padding: 16px;
+    height: 100%;
+    min-height: 0;
   }
   .shelves-list {
     padding: 0;
   }
   .list-pane {
     flex: 0 0 380px;
+    height: 100%;
+    min-height: 0;
   }
   .detail-pane {
-    display: block;
+    display: flex;
+    flex-direction: column;
     flex: 1 1 auto;
     border: 1px solid #00ff41;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden; /* inner component scrolls */
   }
 }
 
@@ -179,7 +206,11 @@
     display: none;
   }
   .mobile-shown {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto; /* ensure it fills available height */
+    height: 100%;
+    min-height: 0;
   }
 }
 
@@ -244,6 +275,15 @@
 
 #toolbar-shelves {
   flex-wrap: wrap;
+
+  .root-host,
+  :host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0; /* allow inner scroll containers to size */
+    overflow: hidden;
+  }
 }
 
 

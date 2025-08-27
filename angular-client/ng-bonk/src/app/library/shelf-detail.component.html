@@ -7,9 +7,10 @@
   @if ((shelf$ | async)?.defaultShelf) {
     <span class="default-badge">Default</span>
   }
+  <span class="count-badge" *ngIf="total$ | async as total">{{ total }}</span>
 </mat-toolbar>
 
-<div class="shelf-content" (scroll)="onDetailScroll($event)">
+<div class="shelf-content">
   @if (loading$ | async) {
     <div>
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
@@ -17,7 +18,7 @@
   }
   @if (displayedBooks$ | async; as books) {
     @if (books.length > 0) {
-      <div class="book-cards">
+      <div class="book-cards" (scroll)="onDetailScroll($event)">
         @for (book of books; track trackByBookId($index, book)) {
           <mat-card class="book-card" (click)="openBookSheet(book)">
             <div class="cover">

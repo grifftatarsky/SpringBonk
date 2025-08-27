@@ -18,6 +18,7 @@ import {
   selectBooksForShelf,
   selectLoadingBooks,
   selectShelfById,
+  selectShelfTotal,
 } from './store/library.selectors';
 import {
   BehaviorSubject,
@@ -60,6 +61,7 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
   books$!: Observable<BookResponse[]>;
   sortedBooks$!: Observable<BookResponse[]>;
   displayedBooks$!: Observable<BookResponse[]>;
+  total$!: Observable<number>;
   private sort$ = new BehaviorSubject<Sort>({
     active: 'title',
     direction: 'asc' as 'asc',
@@ -68,6 +70,8 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
   loading$!: Observable<boolean>;
   private booksLength = 0;
   private isNominationsShelf = false;
+  private pageIndex = 0;
+  private pageSize = 20;
 
   displayedColumns: string[] = ['cover', 'title', 'author', 'published'];
 
@@ -75,6 +79,9 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
   private readonly destroy$ = new Subject<void>();
   private readonly sheet = inject(MatBottomSheet);
+  // Snapshots for event handling
+  private loadingSnapshot: { [key: string]: boolean } = {};
+  private totalSnapshot: number | undefined;
 
   constructor() {}
 
@@ -98,6 +105,11 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(b => (this.booksLength = b.length));
 
+    // Total for badge
+    this.total$ = id$.pipe(
+      switchMap(id => this.store.select(selectShelfTotal(id)))
+    );
+
     // Combine books with sort state to produce sortedBooks$
     this.sortedBooks$ = combineLatest([this.books$, this.sort$]).pipe(
       map(([books, sort]) => {
@@ -120,11 +132,8 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
       startWith([] as BookResponse[])
     );
 
-    // Slice for infinite scroll
-    this.displayedBooks$ = combineLatest([
-      this.sortedBooks$,
-      this.visibleCount$,
-    ]).pipe(map(([books, count]) => books.slice(0, count)));
+    // Display all loaded books (paging happens via API)
+    this.displayedBooks$ = this.sortedBooks$;
 
     // Track shelf meta and loading bar for this shelf id
     this.loading$ = id$.pipe(
@@ -132,16 +141,31 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
         this.store.select(selectLoadingBooks).pipe(map(mapObj => !!mapObj[id]))
       )
     );
+    this.store
+      .select(selectLoadingBooks)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(mapObj => (this.loadingSnapshot = mapObj));
     this.shelf$
       .pipe(takeUntil(this.destroy$))
       .subscribe(
         s => (this.isNominationsShelf = (s?.title ?? '') === 'My Nominations')
       );
 
-    // Dispatch load when id changes
+    this.total$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(total => (this.totalSnapshot = total));
+
+    // Dispatch initial page when id changes
     id$.pipe(takeUntil(this.destroy$)).subscribe(id => {
       this.shelfId = id;
-      this.store.dispatch(LibraryActions.loadShelfBooks({ shelfId: id }));
+      this.pageIndex = 0;
+      this.store.dispatch(
+        LibraryActions.loadShelfBooks({
+          shelfId: id,
+          pageIndex: this.pageIndex,
+          pageSize: this.pageSize,
+        })
+      );
     });
   }
 
@@ -169,9 +193,22 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
     const el = event.target as HTMLElement;
     const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 100;
     if (nearBottom) {
-      const next = Math.min(this.visibleCount$.value + 20, this.booksLength);
-      if (next > this.visibleCount$.value) {
-        this.visibleCount$.next(next);
+      // If we haven't loaded all items yet, request next page
+      const total = (this as any).totalSnapshot as number | undefined;
+      const loadingMap = (this as any).loadingSnapshot as
+        | { [key: string]: boolean }
+        | undefined;
+      const isLoading = loadingMap?.[this.shelfId] ?? false;
+      const haveAll = total !== undefined && this.booksLength >= total;
+      if (!isLoading && !haveAll) {
+        this.pageIndex++;
+        this.store.dispatch(
+          LibraryActions.loadShelfBooks({
+            shelfId: this.shelfId,
+            pageIndex: this.pageIndex,
+            pageSize: this.pageSize,
+          })
+        );
       }
     }
   }

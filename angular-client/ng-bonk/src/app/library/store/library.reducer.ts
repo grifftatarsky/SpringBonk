@@ -10,6 +10,7 @@ export interface LibraryState {
   loadingShelves: boolean;
   shelfBooks: { [shelfId: string]: BookResponse[] };
   loadingBooks: { [shelfId: string]: boolean };
+  shelfTotals: { [shelfId: string]: number };
   searchResults: OpenLibraryBookResponse[];
   searchTotal: number;
   searchLoading: boolean;
@@ -21,6 +22,7 @@ export const initialState: LibraryState = {
   loadingShelves: false,
   shelfBooks: {},
   loadingBooks: {},
+  shelfTotals: {},
   searchResults: [],
   searchTotal: 0,
   searchLoading: false,
@@ -91,7 +93,10 @@ const reducer = createReducer(
   ),
   on(
     LibraryActions.loadShelfBooks,
-    (state: LibraryState, { shelfId }: { shelfId: string }): LibraryState => ({
+    (
+      state: LibraryState,
+      { shelfId }: { shelfId: string }
+    ): LibraryState => ({
       ...state,
       loadingBooks: { ...state.loadingBooks, [shelfId]: true },
     })
@@ -100,40 +105,71 @@ const reducer = createReducer(
     LibraryActions.loadShelfBooksSuccess,
     (
       state: LibraryState,
-      { shelfId, books }: { shelfId: string; books: BookResponse[] }
-    ): LibraryState => ({
-      ...state,
-      shelfBooks: { ...state.shelfBooks, [shelfId]: books },
-      loadingBooks: { ...state.loadingBooks, [shelfId]: false },
-    })
+      {
+        shelfId,
+        books,
+        total,
+        pageIndex,
+      }: {
+        shelfId: string;
+        books: BookResponse[];
+        total: number;
+        pageIndex: number;
+      }
+    ): LibraryState => {
+      const current = state.shelfBooks[shelfId] || [];
+      const merged = pageIndex && pageIndex > 0 ? [...current, ...books] : books;
+      return {
+        ...state,
+        shelfBooks: { ...state.shelfBooks, [shelfId]: merged },
+        shelfTotals: { ...state.shelfTotals, [shelfId]: total },
+        loadingBooks: { ...state.loadingBooks, [shelfId]: false },
+      };
+    }
   ),
   on(
     LibraryActions.addBookSuccess,
     (
       state: LibraryState,
       { shelfId, book }: { shelfId: string; book: BookResponse }
-    ): LibraryState => ({
-      ...state,
-      shelfBooks: {
-        ...state.shelfBooks,
-        [shelfId]: [...(state.shelfBooks[shelfId] || []), book],
-      },
-    })
+    ): LibraryState => {
+      const currentBooks = state.shelfBooks[shelfId] || [];
+      const nextBooks = [...currentBooks, book];
+      const currentTotal = state.shelfTotals[shelfId] ?? nextBooks.length - 1;
+      return {
+        ...state,
+        shelfBooks: {
+          ...state.shelfBooks,
+          [shelfId]: nextBooks,
+        },
+        shelfTotals: {
+          ...state.shelfTotals,
+          [shelfId]: currentTotal + 1,
+        },
+      };
+    }
   ),
   on(
     LibraryActions.removeBookFromShelfSuccess,
     (
       state: LibraryState,
       { bookId, shelfId }: { bookId: string; shelfId: string }
-    ): LibraryState => ({
-      ...state,
-      shelfBooks: {
-        ...state.shelfBooks,
-        [shelfId]: (state.shelfBooks[shelfId] || []).filter(
-          (b: BookResponse) => b.id !== bookId
-        ),
-      },
-    })
+    ): LibraryState => {
+      const currentBooks = state.shelfBooks[shelfId] || [];
+      const filtered = currentBooks.filter((b: BookResponse) => b.id !== bookId);
+      const currentTotal = state.shelfTotals[shelfId] ?? currentBooks.length;
+      return {
+        ...state,
+        shelfBooks: {
+          ...state.shelfBooks,
+          [shelfId]: filtered,
+        },
+        shelfTotals: {
+          ...state.shelfTotals,
+          [shelfId]: Math.max(0, currentTotal - 1),
+        },
+      };
+    }
   ),
   on(
     LibraryActions.deleteBookSuccess,
@@ -147,9 +183,23 @@ const reducer = createReducer(
         }),
         {} as { [key: string]: BookResponse[] }
       );
+      const updatedTotals = Object.keys(state.shelfBooks).reduce(
+        (acc: { [key: string]: number }, key: string) => {
+          const hadBook = state.shelfBooks[key].some(
+            (b: BookResponse) => b.id === bookId
+          );
+          const currentTotal = state.shelfTotals[key] ?? state.shelfBooks[key].length;
+          return {
+            ...acc,
+            [key]: hadBook ? Math.max(0, currentTotal - 1) : currentTotal,
+          };
+        },
+        { ...state.shelfTotals }
+      );
       return {
         ...state,
         shelfBooks: updatedShelfBooks,
+        shelfTotals: updatedTotals,
       };
     }
   ),

@@ -1,11 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import {
-  ActivatedRoute,
-  NavigationEnd,
-  Router,
-  RouterOutlet,
-} from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet, } from '@angular/router';
 import { AuthenticationComponent } from './auth/authentication.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatMenuModule } from '@angular/material/menu';
@@ -45,7 +40,8 @@ import { animate, style, transition, trigger } from '@angular/animations';
         flex: 1 1 auto;
         min-height: 0;
         overflow: hidden;
-        display: block;
+        display: flex;
+        flex-flow: column;
       }
     `,
   ],
