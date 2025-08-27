@@ -2,12 +2,14 @@ import {
   Component,
   ChangeDetectionStrategy,
   OnInit,
+  ElementRef,
+  ViewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AsyncPipe, NgForOf, NgIf } from '@angular/common';
+import { AsyncPipe, NgForOf, NgIf, NgStyle } from '@angular/common';
 import { ShelfRequest } from '../model/request/shelf-request.model';
 import { ShelfResponse } from '../model/response/shelf-response.model';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -57,6 +59,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     AsyncPipe,
     NgIf,
     NgForOf,
+    NgStyle,
   ],
   templateUrl: './shelves.component.html',
   styleUrls: ['./shelves.component.scss'],
@@ -84,6 +87,18 @@ export class ShelvesComponent implements OnInit {
   private totalCount = 0;
   private loadingShelves = false;
   hasSelection$!: Observable<boolean>;
+  selectedId$!: Observable<string | null>;
+
+  // Animation state
+  showLine = false;
+  lineStyle: { top: string; left: string; width: string } = {
+    top: '0px',
+    left: '0px',
+    width: '0px',
+  };
+  @ViewChild('shelvesLayout', { static: true }) layoutRef!: ElementRef<HTMLElement>;
+  @ViewChild('listPane', { static: true }) listPaneRef!: ElementRef<HTMLElement>;
+  @ViewChild('detailPane', { static: true }) detailPaneRef!: ElementRef<HTMLElement>;
 
   constructor(
     private store: Store,
@@ -114,6 +129,11 @@ export class ShelvesComponent implements OnInit {
       filter(e => e instanceof NavigationEnd),
       startWith(null),
       map(() => !!this.route.firstChild?.snapshot.paramMap.get('id'))
+    );
+    this.selectedId$ = this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      startWith(null),
+      map(() => this.route.firstChild?.snapshot.paramMap.get('id') ?? null)
     );
   }
 
@@ -152,6 +172,60 @@ export class ShelvesComponent implements OnInit {
       this.store.dispatch(
         LibraryActions.loadShelves({ pageIndex: this.pageIndex, pageSize: this.pageSize })
       );
+    }
+  }
+
+  onShelfClick(shelf: ShelfResponse, event: MouseEvent): void {
+    try {
+      const listEl = this.listPaneRef?.nativeElement;
+      const layoutEl = this.layoutRef?.nativeElement;
+      const targetEl = (event.currentTarget as HTMLElement) ?? (event.target as HTMLElement);
+      if (!listEl || !layoutEl || !targetEl) {
+        this.router.navigate([shelf.id], { relativeTo: this.route });
+        return;
+      }
+
+      // Pulse
+      targetEl.classList.remove('pulse');
+      void targetEl.offsetWidth;
+      targetEl.classList.add('pulse');
+
+      const listRect = listEl.getBoundingClientRect();
+      const layoutRect = layoutEl.getBoundingClientRect();
+      const targetRect = targetEl.getBoundingClientRect();
+      const startX = targetRect.right - layoutRect.left;
+      const startY = targetRect.top - layoutRect.top + targetRect.height / 2;
+      const destX = listRect.right - layoutRect.left;
+      const distance = Math.max(0, destX - startX);
+
+      const content = (this as any).detailContentRef?.nativeElement as HTMLElement | undefined;
+      if (content) {
+        content.classList.remove('fade-in');
+        content.classList.add('fade-out');
+      }
+
+      this.lineStyle = { top: `${startY}px`, left: `${startX}px`, width: `0px` };
+      this.showLine = true;
+
+      const fadeOutMs = 150;
+      const lineMs = 350;
+
+      setTimeout(() => {
+        // start line and navigate
+        this.lineStyle = { ...this.lineStyle, width: `${distance}px` };
+        this.router.navigate([shelf.id], { relativeTo: this.route });
+
+        setTimeout(() => {
+          this.showLine = false;
+          if (content) {
+            content.classList.remove('fade-out');
+            void content.offsetWidth;
+            content.classList.add('fade-in');
+          }
+        }, lineMs);
+      }, fadeOutMs);
+    } catch {
+      this.router.navigate([shelf.id], { relativeTo: this.route });
     }
   }
 

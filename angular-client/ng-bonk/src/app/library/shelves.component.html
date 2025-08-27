@@ -20,16 +20,23 @@
   <mat-progress-bar mode="indeterminate" />
 </div>
 
-<div class="shelves-layout">
-  <div class="list-pane" [class.mobile-hidden]="(hasSelection$ | async)">
+<div class="shelves-layout" #shelvesLayout>
+  <!-- Transition line overlay -->
+  <div
+    *ngIf="showLine"
+    class="transition-line"
+    [ngStyle]="{ top: lineStyle.top, left: lineStyle.left, width: lineStyle.width }"></div>
+
+  <div class="list-pane" #listPane [class.mobile-hidden]="(hasSelection$ | async)">
     <div class="shelves-list" (scroll)="onListScroll($event)">
       <ng-container *ngIf="shelves$ | async as shelves; else emptyState">
         <mat-card
           class="shelf-card"
           *ngFor="let shelf of shelves"
-          [routerLink]="[shelf.id]"
-          tabindex="0">
-          <div class="shelf-card-body">
+          [class.active]="(selectedId$ | async) === shelf.id"
+          tabindex="0"
+          role="button">
+          <div class="shelf-card-body" (click)="onShelfClick(shelf, $event)">
             <div class="shelf-title">{{ shelf.title }}</div>
             <div class="shelf-tags">
               <span *ngIf="shelf.defaultShelf" class="tag">Default</span>
@@ -39,8 +46,10 @@
       </ng-container>
     </div>
   </div>
-  <div class="detail-pane" [class.mobile-shown]="(hasSelection$ | async)">
-    <router-outlet></router-outlet>
+  <div class="detail-pane" #detailPane [class.mobile-shown]="(hasSelection$ | async)">
+    <div class="detail-content" #detailContent>
+      <router-outlet></router-outlet>
+    </div>
   </div>
 </div>
 

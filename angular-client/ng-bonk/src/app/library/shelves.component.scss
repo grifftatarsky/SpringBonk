@@ -78,6 +78,7 @@
   gap: 16px;
   padding: 16px;
   height: calc(100vh - 120px);
+  position: relative;
 }
 
 .list-pane {
@@ -104,6 +105,11 @@
   border-color: #3aff73;
 }
 
+.shelf-card.active {
+  background: rgba(0, 64, 0, 0.6);
+  border-color: #57ff99;
+}
+
 .shelf-card-body { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; }
 .shelf-title { font-weight: 600; letter-spacing: 0.4px; }
 .shelf-tags { display: flex; gap: 6px; }
@@ -117,8 +123,33 @@
 }
 
 /* Mobile behavior: when a shelf is selected, hide the list and show detail */
-.mobile-hidden { display: none; }
-.mobile-shown { display: block; }
+@media (max-width: 1023px) {
+  .mobile-hidden { display: none; }
+  .mobile-shown { display: block; }
+}
+
+/* Transition line */
+.transition-line {
+  position: absolute;
+  height: 2px;
+  background: #00ff41;
+  box-shadow: 0 0 6px #00ff41;
+  transition: width 450ms ease-in-out;
+}
+
+/* Detail fade-in */
+.detail-pane.fade-in {
+  animation: terminalFade 350ms ease-out;
+}
+
+@keyframes terminalFade {
+  0% { opacity: 0; }
+  20% { opacity: 0.2; }
+  40% { opacity: 0.35; }
+  60% { opacity: 0.55; }
+  80% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
 
 .spacer {
   flex: 1;
