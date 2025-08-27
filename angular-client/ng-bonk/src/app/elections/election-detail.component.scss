@@ -40,14 +40,14 @@
 }
 
 .candidates {
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
 @media (min-width: 640px) {
   .candidates {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    // This was grid...might not be needed now
   }
 }
 
@@ -62,7 +62,7 @@
     flex: 1;
   }
   .candidates {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    // probably unnecessary now.
   }
 }
 

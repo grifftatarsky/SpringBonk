@@ -4,22 +4,23 @@ import {
   HttpHeaders,
   HttpParams,
 } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { reverseProxyUri } from '../../app.config';
+import { API_BASE_URL } from '../../config/app-tokens';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class BaseHttpService {
-  protected apiBase: string = `${reverseProxyUri}/api`;
+  protected apiBase: string;
 
   constructor(
     protected http: HttpClient,
-    protected snackBar: MatSnackBar
-  ) {}
+    protected snackBar: MatSnackBar,
+    @Inject(API_BASE_URL) apiBaseUrl: string
+  ) {
+    this.apiBase = apiBaseUrl;
+  }
 
   /**
    * Perform a GET request

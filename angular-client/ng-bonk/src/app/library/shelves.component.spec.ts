@@ -1,4 +1,5 @@
 import { ShelvesComponent } from './shelves.component';
+import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
 class StoreStub {
@@ -11,12 +12,16 @@ class StoreStub {
 describe('ShelvesComponent', () => {
   it('dispatches loadShelves on near-bottom scroll', () => {
     const store = new StoreStub() as any;
-    const comp = new ShelvesComponent(
-      store,
-      {} as any,
-      {} as any,
-      { events: of() } as any,
-      { firstChild: null } as any
+    TestBed.configureTestingModule({});
+    const comp = TestBed.runInInjectionContext(
+      () =>
+        new ShelvesComponent(
+          store,
+          {} as any,
+          {} as any,
+          { events: of() } as any,
+          { firstChild: null } as any
+        )
     );
 
     // Set internal state to allow paging

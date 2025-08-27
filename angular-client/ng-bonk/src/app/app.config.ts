@@ -13,6 +13,7 @@ import { LibraryEffects } from './library/store/library.effects';
 import { electionsFeature } from './elections/store/elections.reducer';
 import { ElectionsEffects } from './elections/store/elections.effects';
 import { environment } from '../environments/environment';
+import { API_BASE_URL } from './config/app-tokens';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,6 +26,7 @@ export const appConfig: ApplicationConfig = {
     provideState(electionsFeature),
     provideStoreDevtools(),
     provideAnimations(),
+    { provide: API_BASE_URL, useValue: `${environment.apiBaseUrl}${environment.bffPath}/api` },
   ],
 };
 

@@ -72,8 +72,9 @@ describe('Library Reducer', () => {
       shelves: [shelf],
       shelfBooks: { '1': [book] },
     };
-    const selectedShelf = selectShelfById('1')(state as any);
-    const books = selectBooksForShelf('1')(state as any);
+    const rootState = { library: state } as any;
+    const selectedShelf = selectShelfById('1')(rootState);
+    const books = selectBooksForShelf('1')(rootState);
     expect(selectedShelf?.title).toBe('Shelf');
     expect(books.length).toBe(1);
   });
