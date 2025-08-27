@@ -1,15 +1,28 @@
-import { ChangeDetectionStrategy, Component, Inject, OnDestroy, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from '@angular/material/bottom-sheet';
+import {
+  MAT_BOTTOM_SHEET_DATA,
+  MatBottomSheetRef,
+} from '@angular/material/bottom-sheet';
 import { Store } from '@ngrx/store';
-import { BehaviorSubject, Subject, combineLatest, takeUntil } from 'rxjs';
+import { BehaviorSubject, combineLatest, Subject, takeUntil } from 'rxjs';
 import * as ElectionsActions from '../store/elections.actions';
-import { selectCandidates, selectRunResult, selectRunning } from '../store/elections.selectors';
-import { CandidateResponse } from '../../model/response/candidate-response.model';
+import {
+  selectCandidates,
+  selectRunning,
+  selectRunResult,
+} from '../store/elections.selectors';
 import { EliminationMessage } from '../../model/type/elimination-message.enum';
 
 export interface ElectionRunSheetData {
@@ -19,7 +32,13 @@ export interface ElectionRunSheetData {
 @Component({
   selector: 'app-election-run-sheet',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatDividerModule, MatProgressBarModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDividerModule,
+    MatProgressBarModule,
+  ],
   template: `
     <div class="sheet-root">
       <div class="sheet-header">
@@ -41,7 +60,9 @@ export interface ElectionRunSheetData {
           </div>
         }
         <pre class="terminal" [innerText]="typedText$ | async"></pre>
-        <div class="cursor" [class.hidden]="!(runningDone) && !(typedStarted)"></div>
+        <div
+          class="cursor"
+          [class.hidden]="!runningDone && !typedStarted"></div>
         @if (finished && winnerName) {
           <div class="winner-banner">Winner: {{ winnerName }}</div>
         }
@@ -55,20 +76,117 @@ export interface ElectionRunSheetData {
   `,
   styles: [
     `
-      .sheet-root { padding: 12px; }
-      .sheet-header { display: flex; align-items: center; gap: 8px; font-weight: 600; }
-      .spacer { flex: 1; }
-      .terminal-wrapper { position: relative; background: #001a00; border: 1px solid #00ff41; padding: 12px; border-radius: 4px; min-height: 220px; overflow: hidden; }
-      .terminal { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; color: #00ff41; white-space: pre-wrap; position: relative; z-index: 1; }
-      .cursor { position: absolute; width: 8px; height: 16px; background: #00ff41; right: 12px; bottom: 12px; animation: blink 1s step-start infinite; z-index: 6; }
-      .cursor.hidden { opacity: 0; }
-      @keyframes blink { 50% { opacity: 0; } }
-      .running-row { display:flex; align-items:center; gap:8px; margin-bottom: 8px; }
-      .actions { display: flex; align-items: center; margin-top: 12px; }
-      .scanlines { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: repeating-linear-gradient( to bottom, rgba(0,255,65,0.04) 0, rgba(0,255,65,0.04) 1px, transparent 3px, transparent 4px ); animation: scan 7s linear infinite; }
-      @keyframes scan { from { background-position-y: 0; } to { background-position-y: 100%; } }
-      .winner-banner { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); color: #001a00; background: #00ff41; border: 1px solid #00ff41; padding: 4px 10px; border-radius: 3px; font-weight: 700; letter-spacing: 0.5px; z-index: 7; animation: pulse 800ms ease-in-out 2; }
-      @keyframes pulse { 0% { transform: translateX(-50%) scale(0.9); box-shadow: 0 0 0 rgba(0,255,65,0.7); } 60% { transform: translateX(-50%) scale(1.06); box-shadow: 0 0 18px rgba(0,255,65,0.4); } 100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 0 rgba(0,255,65,0.0); } }
+      .sheet-root {
+        padding: 12px;
+      }
+      .sheet-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+      }
+      .spacer {
+        flex: 1;
+      }
+      .terminal-wrapper {
+        position: relative;
+        background: #001a00;
+        border: 1px solid #00ff41;
+        padding: 12px;
+        border-radius: 4px;
+        min-height: 220px;
+        overflow: hidden;
+      }
+      .terminal {
+        margin: 0;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          'Liberation Mono', 'Courier New', monospace;
+        color: #00ff41;
+        white-space: pre-wrap;
+        position: relative;
+        z-index: 1;
+      }
+      .cursor {
+        position: absolute;
+        width: 8px;
+        height: 16px;
+        background: #00ff41;
+        right: 12px;
+        bottom: 12px;
+        animation: blink 1s step-start infinite;
+        z-index: 6;
+      }
+      .cursor.hidden {
+        opacity: 0;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+      .running-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .actions {
+        display: flex;
+        align-items: center;
+        margin-top: 12px;
+      }
+      .scanlines {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(0, 255, 65, 0.04) 0,
+          rgba(0, 255, 65, 0.04) 1px,
+          transparent 3px,
+          transparent 4px
+        );
+        animation: scan 7s linear infinite;
+      }
+      @keyframes scan {
+        from {
+          background-position-y: 0;
+        }
+        to {
+          background-position-y: 100%;
+        }
+      }
+      .winner-banner {
+        position: absolute;
+        left: 50%;
+        bottom: 12px;
+        transform: translateX(-50%);
+        color: #001a00;
+        background: #00ff41;
+        border: 1px solid #00ff41;
+        padding: 4px 10px;
+        border-radius: 3px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        z-index: 7;
+        animation: pulse 800ms ease-in-out 2;
+      }
+      @keyframes pulse {
+        0% {
+          transform: translateX(-50%) scale(0.9);
+          box-shadow: 0 0 0 rgba(0, 255, 65, 0.7);
+        }
+        60% {
+          transform: translateX(-50%) scale(1.06);
+          box-shadow: 0 0 18px rgba(0, 255, 65, 0.4);
+        }
+        100% {
+          transform: translateX(-50%) scale(1);
+          box-shadow: 0 0 0 rgba(0, 255, 65, 0);
+        }
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -87,7 +205,7 @@ export class ElectionRunSheetComponent implements OnInit, OnDestroy {
 
   constructor(
     private ref: MatBottomSheetRef<ElectionRunSheetComponent>,
-    @Inject(MAT_BOTTOM_SHEET_DATA) public data: ElectionRunSheetData,
+    @Inject(MAT_BOTTOM_SHEET_DATA) public data: ElectionRunSheetData
   ) {}
 
   ngOnInit(): void {
@@ -97,19 +215,27 @@ export class ElectionRunSheetComponent implements OnInit, OnDestroy {
     this.typedStarted = false;
     this.runningDone = false;
     console.log('[ElectionRunSheet] Starting run for', this.data.electionId);
-    this.store.dispatch(ElectionsActions.runElection({ electionId: this.data.electionId }));
+    this.store.dispatch(
+      ElectionsActions.runElection({ electionId: this.data.electionId })
+    );
 
-    combineLatest([this.store.select(selectRunResult), this.store.select(selectCandidates)])
+    combineLatest([
+      this.store.select(selectRunResult),
+      this.store.select(selectCandidates),
+    ])
       .pipe(takeUntil(this.destroy$))
       .subscribe(([res, candidates]) => {
         if (!res) return;
         // Build pretty script once
-        const nameOf = (id: string) => candidates.find(c => c.id === id)?.base.title || id;
+        const nameOf = (id: string) =>
+          candidates.find(c => c.id === id)?.base.title || id;
         const lines: string[] = [];
         for (const round of res.rounds) {
           const title = `==== Round ${round.roundNumber} ====`;
           lines.push(title);
-          const entries = Object.entries(round.votes || {}).sort((a, b) => b[1] - a[1]);
+          const entries = Object.entries(round.votes || {}).sort(
+            (a, b) => b[1] - a[1]
+          );
           for (const [cid, count] of entries) {
             const nm = nameOf(cid);
             const pad = '.'.repeat(Math.max(2, 40 - nm.length));
@@ -133,7 +259,9 @@ export class ElectionRunSheetComponent implements OnInit, OnDestroy {
               break;
           }
           if (round.eliminatedCandidateIds?.length) {
-            lines.push(`> Eliminated: ${round.eliminatedCandidateIds.map(nameOf).join(', ')}`);
+            lines.push(
+              `> Eliminated: ${round.eliminatedCandidateIds.map(nameOf).join(', ')}`
+            );
           }
           lines.push('');
         }

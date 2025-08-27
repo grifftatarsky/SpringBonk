@@ -28,7 +28,8 @@ export class UserService {
           (user.roles || []).toString() !== this.user$.value.roles.toString()
         ) {
           const id = (user.id || '').toString();
-          const normalizedId = id && id !== '00000000-0000-0000-0000-000000000000' ? id : '';
+          const normalizedId =
+            id && id !== '00000000-0000-0000-0000-000000000000' ? id : '';
           this.user$.next(
             normalizedId
               ? new User(

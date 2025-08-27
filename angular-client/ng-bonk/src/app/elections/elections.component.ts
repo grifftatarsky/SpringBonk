@@ -46,8 +46,8 @@ import { ElectionResponse } from '../model/response/election-response.model';
     RouterOutlet,
     DatePipe,
     AsyncPipe,
-    NgClass
-],
+    NgClass,
+  ],
   templateUrl: './elections.component.html',
   styleUrls: ['./elections.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

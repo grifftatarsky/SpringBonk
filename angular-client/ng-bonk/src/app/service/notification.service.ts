@@ -21,7 +21,12 @@ export class NotificationService {
     this.openDedupe(`info:${message}`, message, [], 3000);
   }
 
-  private openDedupe(key: string, message: string, panelClass: string[], duration: number) {
+  private openDedupe(
+    key: string,
+    message: string,
+    panelClass: string[],
+    duration: number
+  ) {
     const now = Date.now();
     if (key === this.lastKey && now - this.lastAt < 600) return;
     this.lastKey = key;

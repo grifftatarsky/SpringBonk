@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { map, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { UserService } from '../service/user.service';
 import { baseUri, reverseProxyUri } from '../app.config';
 import { Router } from '@angular/router';

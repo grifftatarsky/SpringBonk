@@ -28,8 +28,8 @@ import { BookCoverComponent } from '../../common/book-cover.component';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    BookCoverComponent
-],
+    BookCoverComponent,
+  ],
   templateUrl: './book-detail-dialog.component.html',
   styleUrls: ['./book-detail-dialog.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

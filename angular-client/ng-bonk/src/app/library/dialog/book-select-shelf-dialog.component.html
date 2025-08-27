@@ -5,15 +5,13 @@
     <div class="book-cover">
       <app-book-cover
         [src]="getCoverImageUrl()"
-      [alt]="data.book.title + ' cover'"></app-book-cover>
+        [alt]="data.book.title + ' cover'"></app-book-cover>
     </div>
     <div class="book-info">
       <h3>{{ data.book.title }}</h3>
       <p class="author">{{ getAuthor() }}</p>
       @if (data.book.first_publish_year) {
-        <p class="year">
-          First published: {{ data.book.first_publish_year }}
-        </p>
+        <p class="year">First published: {{ data.book.first_publish_year }}</p>
       }
     </div>
   </div>
@@ -29,8 +27,7 @@
             </mat-option>
           }
           @if (unshelvedShelf && regularShelves.length > 0) {
-            <mat-divider
-            ></mat-divider>
+            <mat-divider></mat-divider>
           }
           @for (shelf of regularShelves; track shelf) {
             <mat-option [value]="shelf.id">
@@ -46,7 +43,6 @@
       <span>Loading shelves...</span>
     </div>
   }
-
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">

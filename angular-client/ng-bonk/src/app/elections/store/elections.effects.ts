@@ -1,9 +1,19 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import * as ElectionsActions from './elections.actions';
 import { ElectionHttpService } from '../../service/http/election-http.service';
 import { Store } from '@ngrx/store';
-import { catchError, concat, forkJoin, last, map, of, switchMap, tap, withLatestFrom } from 'rxjs';
+import {
+  catchError,
+  concat,
+  forkJoin,
+  last,
+  map,
+  of,
+  switchMap,
+  tap,
+  withLatestFrom,
+} from 'rxjs';
 import { NotificationService } from '../../service/notification.service';
 import { selectElectionsState } from './elections.reducer';
 
@@ -20,7 +30,9 @@ export class ElectionsEffects {
       switchMap(({ electionId }) =>
         this.http.getElectionById(electionId).pipe(
           map(election => ElectionsActions.loadElectionSuccess({ election })),
-          catchError(error => of(ElectionsActions.loadElectionFailure({ error })))
+          catchError(error =>
+            of(ElectionsActions.loadElectionFailure({ error }))
+          )
         )
       )
     )
@@ -31,8 +43,12 @@ export class ElectionsEffects {
       ofType(ElectionsActions.loadCandidates),
       switchMap(({ electionId }) =>
         this.http.getCandidatesByElection(electionId).pipe(
-          map(candidates => ElectionsActions.loadCandidatesSuccess({ electionId, candidates })),
-          catchError(error => of(ElectionsActions.loadCandidatesFailure({ error })))
+          map(candidates =>
+            ElectionsActions.loadCandidatesSuccess({ electionId, candidates })
+          ),
+          catchError(error =>
+            of(ElectionsActions.loadCandidatesFailure({ error }))
+          )
         )
       )
     )
@@ -47,9 +63,13 @@ export class ElectionsEffects {
         const order = state.ballotByElection[electionId] || [];
         return this.http.getMyVotes(electionId).pipe(
           switchMap(currentVotes => {
-            const deleteOps = currentVotes.map(v => this.http.deleteVote(v.candidateId));
+            const deleteOps = currentVotes.map(v =>
+              this.http.deleteVote(v.candidateId)
+            );
             const saveOps = order.map((cid, idx) =>
-              this.http.voteForCandidate(cid, idx + 1).pipe(catchError(() => of(void 0)))
+              this.http
+                .voteForCandidate(cid, idx + 1)
+                .pipe(catchError(() => of(void 0)))
             );
 
             // Build sequence: clear (if any) then save (if any). Ensure at least one emission with of(void 0)
@@ -61,8 +81,14 @@ export class ElectionsEffects {
             return concat(...steps).pipe(
               last(),
               map(() => ElectionsActions.submitBallotSuccess({ electionId })),
-              tap(() => this.notify.success(order.length ? 'Ballot saved.' : 'Ballot cleared.')),
-              catchError(error => of(ElectionsActions.submitBallotFailure({ error })))
+              tap(() =>
+                this.notify.success(
+                  order.length ? 'Ballot saved.' : 'Ballot cleared.'
+                )
+              ),
+              catchError(error =>
+                of(ElectionsActions.submitBallotFailure({ error }))
+              )
             );
           })
         );
@@ -75,9 +101,13 @@ export class ElectionsEffects {
       ofType(ElectionsActions.runElection),
       switchMap(({ electionId }) =>
         this.http.runElection(electionId).pipe(
-          map(result => ElectionsActions.runElectionSuccess({ electionId, result })),
+          map(result =>
+            ElectionsActions.runElectionSuccess({ electionId, result })
+          ),
           catchError(error => {
-            this.notify.error(error?.error?.message || 'Failed to run election.');
+            this.notify.error(
+              error?.error?.message || 'Failed to run election.'
+            );
             return of(ElectionsActions.runElectionFailure({ error }));
           })
         )
@@ -92,13 +122,17 @@ export class ElectionsEffects {
       switchMap(({ electionId }) =>
         this.http.getMyVotes(electionId).pipe(
           switchMap(currentVotes => {
-            const deleteOps = currentVotes.map(v => this.http.deleteVote(v.candidateId));
+            const deleteOps = currentVotes.map(v =>
+              this.http.deleteVote(v.candidateId)
+            );
             const steps = [deleteOps.length ? forkJoin(deleteOps) : of(void 0)];
             return concat(...steps).pipe(
               last(),
               map(() => ElectionsActions.resetBallotSuccess({ electionId })),
               tap(() => this.notify.success('All votes removed')),
-              catchError(error => of(ElectionsActions.resetBallotFailure({ error })))
+              catchError(error =>
+                of(ElectionsActions.resetBallotFailure({ error }))
+              )
             );
           })
         )
@@ -124,8 +158,12 @@ export class ElectionsEffects {
               .sort((a, b) => a[1] - b[1])
               .map(([cid]) => cid);
           }),
-          map(order => ElectionsActions.loadMyBallotSuccess({ electionId, order })),
-          catchError(error => of(ElectionsActions.loadMyBallotFailure({ error })))
+          map(order =>
+            ElectionsActions.loadMyBallotSuccess({ electionId, order })
+          ),
+          catchError(error =>
+            of(ElectionsActions.loadMyBallotFailure({ error }))
+          )
         )
       )
     )

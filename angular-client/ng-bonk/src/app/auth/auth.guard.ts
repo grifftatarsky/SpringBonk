@@ -9,7 +9,7 @@ import {
   UrlSegment,
 } from '@angular/router';
 import { UserService } from '../service/user.service';
-import { map, skip, take, timeout, catchError, of } from 'rxjs';
+import { catchError, map, of, skip, take, timeout } from 'rxjs';
 
 export const authGuard: CanActivateFn = (
   route: ActivatedRouteSnapshot,
@@ -25,7 +25,7 @@ export const authGuard: CanActivateFn = (
     take(1),
     timeout(3000),
     catchError(() => of(user.current)),
-    map(u => (u.isAuthenticated ? true : router.createUrlTree(['/']))),
+    map(u => (u.isAuthenticated ? true : router.createUrlTree(['/'])))
   );
 };
 

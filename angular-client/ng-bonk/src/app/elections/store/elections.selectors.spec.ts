@@ -1,4 +1,8 @@
-import { selectRankedCandidates, selectUnrankedCandidates, selectBallotOrder } from './elections.selectors';
+import {
+  selectBallotOrder,
+  selectRankedCandidates,
+  selectUnrankedCandidates,
+} from './elections.selectors';
 import { ElectionsState } from './elections.reducer';
 import { CandidateResponse } from '../../model/response/candidate-response.model';
 
@@ -38,4 +42,3 @@ describe('Elections Selectors', () => {
     expect(unrankedFactory('e1').map(c => c.id)).toEqual(['c3']);
   });
 });
-

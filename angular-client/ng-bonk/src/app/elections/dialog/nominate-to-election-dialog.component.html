@@ -55,7 +55,10 @@
                   <mat-select
                     [disabled]="loadingBooks$ | async"
                     (selectionChange)="selectedBook$.next($event.value)">
-                    @for (b of (booksForSelectedShelf$ | async) ?? []; track b.id) {
+                    @for (
+                      b of (booksForSelectedShelf$ | async) ?? [];
+                      track b.id
+                    ) {
                       <mat-option [value]="b">{{ b.title }}</mat-option>
                     }
                   </mat-select>

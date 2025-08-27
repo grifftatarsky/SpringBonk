@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -10,13 +16,20 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
+import {
+  MatBottomSheet,
+  MatBottomSheetModule,
+} from '@angular/material/bottom-sheet';
 import { NominateToElectionDialogComponent } from './dialog/nominate-to-election-dialog.component';
 import { UserService } from '../service/user.service';
 import { ElectionHttpService } from '../service/http/election-http.service';
 import { BookHttpService } from '../service/http/books-http.service';
 import { ShelfHttpService } from '../service/http/shelves-http.service';
-import { CdkDragDrop, DragDropModule, moveItemInArray, } from '@angular/cdk/drag-drop';
+import {
+  CdkDragDrop,
+  DragDropModule,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 import { BookCoverComponent } from '../common/book-cover.component';
 import * as ElectionsActions from './store/elections.actions';
 import {
@@ -31,9 +44,19 @@ import {
   selectSubmitting,
   selectUnrankedCandidates,
 } from './store/elections.selectors';
-import { combineLatest, distinctUntilChanged, map, Observable, startWith, Subject, switchMap, take, takeUntil, filter as rxFilter } from 'rxjs';
+import {
+  combineLatest,
+  distinctUntilChanged,
+  filter as rxFilter,
+  map,
+  Observable,
+  startWith,
+  Subject,
+  switchMap,
+  take,
+  takeUntil,
+} from 'rxjs';
 import { ElectionResult } from '../model/election-result.model';
-import { EliminationMessage } from '../model/type/elimination-message.enum';
 import { CandidateResponse } from '../model/response/candidate-response.model';
 import { ElectionResponse } from '../model/response/election-response.model';
 import { ShelfResponse } from '../model/response/shelf-response.model';

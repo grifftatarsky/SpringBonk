@@ -37,8 +37,8 @@ export interface BookDetailSheetData {
     MatIconModule,
     MatChipsModule,
     MatDividerModule,
-    BookCoverComponent
-],
+    BookCoverComponent,
+  ],
   template: `
     <div class="sheet-header">
       <div class="cover">
@@ -169,11 +169,15 @@ export class BookDetailSheetComponent {
                 this.electionHttp.getCandidatesByElection(e.id).pipe(
                   switchMap(cands => {
                     const mine = cands.filter(
-                      c => c.base.id === this.data.book.id && c.nominatorId === myId
+                      c =>
+                        c.base.id === this.data.book.id &&
+                        c.nominatorId === myId
                     );
                     if (!mine.length) return of(null);
                     return forkJoin(
-                      mine.map(c => this.electionHttp.deleteCandidate(e.id, c.id))
+                      mine.map(c =>
+                        this.electionHttp.deleteCandidate(e.id, c.id)
+                      )
                     );
                   })
                 )

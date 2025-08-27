@@ -153,7 +153,7 @@ export class NominateToElectionDialogComponent implements OnInit {
     this.booksForSelectedShelf$.next([]);
     this.loadingBooks$.next(true);
     this.booksHttp.getBooksByShelfId(shelfId).subscribe({
-      next: (books) => {
+      next: books => {
         this.booksForSelectedShelf$.next(books);
         this.loadingBooks$.next(false);
       },

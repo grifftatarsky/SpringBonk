@@ -23,20 +23,20 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
           (load)="onLoad()"
           (error)="onError()" />
       }
-    
+
       @if (loading) {
         <div class="spinner">
           <mat-progress-spinner diameter="24"></mat-progress-spinner>
         </div>
       }
-    
+
       @if (showIcon) {
         <div class="placeholder">
           <mat-icon>menu_book</mat-icon>
         </div>
       }
     </div>
-    `,
+  `,
   styles: [
     `
       :host {

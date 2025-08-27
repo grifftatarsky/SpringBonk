@@ -50,4 +50,3 @@ describe('Elections Reducer', () => {
     expect(state.runResult).toEqual(result);
   });
 });
-

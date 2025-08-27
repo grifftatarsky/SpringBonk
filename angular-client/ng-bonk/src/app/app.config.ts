@@ -1,4 +1,8 @@
-import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  importProvidersFrom,
+  provideZoneChangeDetection,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 
@@ -28,7 +32,10 @@ export const appConfig: ApplicationConfig = {
     provideState(electionsFeature),
     provideStoreDevtools({ maxAge: 25, logOnly: environment.production }),
     provideAnimations(),
-    { provide: API_BASE_URL, useValue: `${environment.apiBaseUrl}${environment.bffPath}/api` },
+    {
+      provide: API_BASE_URL,
+      useValue: `${environment.apiBaseUrl}${environment.bffPath}/api`,
+    },
   ],
 };
 

@@ -49,8 +49,8 @@ import {
     MatIconModule,
     BookCoverComponent,
     ScrollingModule,
-    AsyncPipe
-],
+    AsyncPipe,
+  ],
   templateUrl: './book-search-sheet.component.html',
   styleUrls: ['./book-search-sheet.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

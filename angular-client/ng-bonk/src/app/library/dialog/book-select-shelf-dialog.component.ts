@@ -29,8 +29,8 @@ import { BookHttpService } from '../../service/http/books-http.service';
     MatSelectModule,
     MatDividerModule,
     MatProgressSpinnerModule,
-    BookCoverComponent
-],
+    BookCoverComponent,
+  ],
   templateUrl: './book-select-shelf-dialog.component.html',
   styleUrls: ['./book-select-shelf-dialog.component.scss'],
 })

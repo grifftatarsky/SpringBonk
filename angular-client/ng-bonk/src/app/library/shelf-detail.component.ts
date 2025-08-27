@@ -48,8 +48,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     MatCardModule,
     MatChipsModule,
     MatProgressBarModule,
-    BookCoverComponent
-],
+    BookCoverComponent,
+  ],
   templateUrl: './shelf-detail.component.html',
   styleUrls: ['./shelf-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -134,7 +134,9 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
     );
     this.shelf$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(s => (this.isNominationsShelf = (s?.title ?? '') === 'My Nominations'));
+      .subscribe(
+        s => (this.isNominationsShelf = (s?.title ?? '') === 'My Nominations')
+      );
 
     // Dispatch load when id changes
     id$.pipe(takeUntil(this.destroy$)).subscribe(id => {
@@ -154,7 +156,11 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
 
   openBookSheet(book: BookResponse): void {
     this.sheet.open(BookDetailSheetComponent, {
-      data: { book, shelfId: this.shelfId, isNominationsShelf: this.isNominationsShelf },
+      data: {
+        book,
+        shelfId: this.shelfId,
+        isNominationsShelf: this.isNominationsShelf,
+      },
       panelClass: ['sheet-max', 'book-sheet'],
     });
   }

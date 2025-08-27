@@ -63,8 +63,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     RouterOutlet,
     MatRippleModule,
     AsyncPipe,
-    NgStyle
-],
+    NgStyle,
+  ],
   templateUrl: './shelves.component.html',
   styleUrls: ['./shelves.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

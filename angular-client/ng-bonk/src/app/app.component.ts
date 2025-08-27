@@ -1,11 +1,9 @@
-
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import {
   ActivatedRoute,
   NavigationEnd,
   Router,
-  RouterLink,
   RouterOutlet,
 } from '@angular/router';
 import { AuthenticationComponent } from './auth/authentication.component';
@@ -32,8 +30,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
     MatIconModule,
     MatDividerModule,
     MenuNavigationComponent,
-    RouterLink
-],
+  ],
   templateUrl: './app.component.html',
   styles: [
     `
