@@ -9,10 +9,10 @@
   >
 </mat-toolbar>
 
-<div class="shelf-content">
+<div class="shelf-content" *ngIf="sortedBooks$ | async as rows">
   <table
     mat-table
-    [dataSource]="sortedBooks"
+    [dataSource]="rows"
     matSort
     (matSortChange)="sortData($event)"
     matSortDisableClear
@@ -41,5 +41,12 @@
     </ng-container>
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+        <div class="no-data">
+          This shelf has no books yet.
+        </div>
+      </td>
+    </tr>
   </table>
 </div>

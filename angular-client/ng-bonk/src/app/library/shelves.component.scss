@@ -71,33 +71,54 @@
 }
 
 /* Mobile-first list styling */
-.books-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px 0 12px;
+/* New shelves layout */
+.shelves-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 16px;
+  height: calc(100vh - 120px);
 }
 
-.sort-field {
-  min-width: 160px;
+.list-pane {
+  max-width: 720px;
+  overflow: auto;
 }
 
-.books-list .book-item {
-  border-bottom: 1px solid rgba(0, 255, 65, 0.25);
+.shelves-list {
+  display: grid;
+  gap: 12px;
 }
 
-.books-list .muted {
-  opacity: 0.75;
+.shelf-card {
+  display: block;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid #00ff41;
+  color: inherit;
+  transition: background-color 120ms ease, border-color 120ms ease;
 }
 
-.item-actions {
-  display: flex;
-  align-items: center;
+.shelf-card:hover,
+.shelf-card:focus {
+  background: rgba(0, 64, 0, 0.5);
+  border-color: #3aff73;
 }
 
-.sort-dir {
-  text-transform: uppercase;
+.shelf-card-body { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; }
+.shelf-title { font-weight: 600; letter-spacing: 0.4px; }
+.shelf-tags { display: flex; gap: 6px; }
+.tag { border: 1px solid currentColor; padding: 2px 6px; font-size: 12px; opacity: 0.9; }
+
+.detail-pane { display: none; height: 100%; overflow: auto; }
+
+@media (min-width: 1024px) {
+  .shelves-layout { grid-template-columns: minmax(320px, 420px) 1fr; }
+  .detail-pane { display: block; border-left: 1px solid #00ff41; padding-left: 8px; }
 }
+
+/* Mobile behavior: when a shelf is selected, hide the list and show detail */
+.mobile-hidden { display: none; }
+.mobile-shown { display: block; }
 
 .spacer {
   flex: 1;

@@ -20,139 +20,30 @@
   <mat-progress-bar mode="indeterminate" />
 </div>
 
-<!-- Main shelves table -->
-<div class="shelves-container">
-  <!-- No Data -->
-  <div class="table-no-data-bar" *ngIf="(shelves$ | async)?.length === 0">
-    You do not currently have any shelves. This should not be possible.
-  </div>
-
-  <!-- Shelves with expansion panels -->
-  <ng-container *ngIf="shelfBooks$ | async as shelfBooks">
-    <ng-container *ngIf="loadingBooks$ | async as loadingBooks">
-      <mat-accordion class="shelves-accordion" multi>
-        <mat-expansion-panel
-          *ngFor="let shelf of shelves$ | async"
-          [expanded]="expandedShelf === shelf.id"
-          (opened)="toggleExpand(shelf.id)">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <a
-                [routerLink]="['/shelves', shelf.id]"
-                (click)="$event.stopPropagation()">
-                {{ shelf.title }}
-              </a>
-            </mat-panel-title>
-            <mat-panel-description>
-              <span *ngIf="shelf.defaultShelf" class="default-badge"
-                >Default</span
-              >
-              <div class="shelf-actions" *ngIf="!shelf.defaultShelf">
-                <button
-                  mat-icon-button
-                  matTooltip="Delete shelf"
-                  (click)="deleteShelf(shelf.id, $event)">
-                  <mat-icon color="warn">delete</mat-icon>
-                </button>
-                <button
-                  mat-icon-button
-                  matTooltip="Edit shelf"
-                  (click)="openEditDialog(shelf.id, $event)">
-                  <mat-icon color="primary">edit</mat-icon>
-                </button>
-              </div>
-            </mat-panel-description>
-          </mat-expansion-panel-header>
-
-          <!-- Books content inside the expansion panel, mobile-first list -->
-          <div class="books-container">
-            <div *ngIf="loadingBooks[shelf.id]" class="loading-books">
-              <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+<div class="shelves-layout">
+  <div class="list-pane" [class.mobile-hidden]="(hasSelection$ | async)">
+    <div class="shelves-list" (scroll)="onListScroll($event)">
+      <ng-container *ngIf="shelves$ | async as shelves; else emptyState">
+        <mat-card
+          class="shelf-card"
+          *ngFor="let shelf of shelves"
+          [routerLink]="[shelf.id]"
+          tabindex="0">
+          <div class="shelf-card-body">
+            <div class="shelf-title">{{ shelf.title }}</div>
+            <div class="shelf-tags">
+              <span *ngIf="shelf.defaultShelf" class="tag">Default</span>
             </div>
-
-            <div
-              *ngIf="
-                !loadingBooks[shelf.id] &&
-                (!shelfBooks[shelf.id] || shelfBooks[shelf.id].length === 0)
-              "
-              class="no-books-message">
-              This shelf has no books yet.
-            </div>
-
-            <!-- Mobile sort controls -->
-            <div class="books-controls" *ngIf="(shelfBooks[shelf.id] || []).length">
-              <mat-form-field appearance="outline" class="sort-field">
-                <mat-label>Sort by</mat-label>
-                <mat-select [(ngModel)]="sortBy[shelf.id]" (selectionChange)="onMobileSortChange(shelf.id)">
-                  <mat-option value="title">Title</mat-option>
-                  <mat-option value="author">Author</mat-option>
-                  <mat-option value="published">Published</mat-option>
-                </mat-select>
-              </mat-form-field>
-              <button mat-stroked-button class="sort-dir" (click)="sortDir[shelf.id] = (sortDir[shelf.id] === 'desc' ? 'asc' : 'desc'); onMobileSortChange(shelf.id)">
-                <mat-icon>{{ sortDir[shelf.id] === 'desc' ? 'south' : 'north' }}</mat-icon>
-                {{ (sortDir[shelf.id] || 'asc') }}
-              </button>
-            </div>
-
-            <!-- List of books, paged in memory -->
-            <mat-list
-              *ngIf="(shelfBooks[shelf.id] || []).length"
-              class="books-list"
-              role="list">
-              <ng-container
-                *ngFor="let book of (shelfBooks[shelf.id] || []) |
-                  slice: (bookPageIndex[shelf.id] || 0) * bookPageSize : (bookPageIndex[shelf.id] || 0) * bookPageSize + bookPageSize">
-                <mat-list-item role="listitem" (click)="openBookDetails(book)" class="book-item">
-                  <div matListItemAvatar class="book-cover-avatar">
-                    <img [src]="book.imageURL" alt="{{ book.title }} cover" />
-                  </div>
-                  <div matListItemTitle>{{ book.title }}</div>
-                  <div matListItemLine>{{ book.author }}</div>
-                  <div matListItemLine class="muted">{{ book.publishedYear ?? '—' }}</div>
-                  <div class="item-actions" matListItemMeta (click)="$event.stopPropagation()">
-                    <button mat-icon-button [matMenuTriggerFor]="bookMenu" [matMenuTriggerData]="{ book: book, shelfId: shelf.id }" aria-label="Book options">
-                      <mat-icon>more_vert</mat-icon>
-                    </button>
-                  </div>
-                </mat-list-item>
-              </ng-container>
-            </mat-list>
-
-            <mat-menu #bookMenu="matMenu">
-              <ng-template matMenuContent let-data="matMenuTriggerData">
-                <button mat-menu-item (click)="openBookDetails(data.book)">
-                  <mat-icon>info</mat-icon>
-                  <span>Details</span>
-                </button>
-                <button mat-menu-item (click)="nominateBook(data.book, $event)">
-                  <mat-icon>star</mat-icon>
-                  <span>Nominate</span>
-                </button>
-                <button mat-menu-item (click)="removeBookFromShelf(data.book.id, data.shelfId, $event)">
-                  <mat-icon>remove_circle</mat-icon>
-                  <span>Remove from shelf</span>
-                </button>
-                <button mat-menu-item (click)="deleteBook(data.book.id, $event)">
-                  <mat-icon color="warn">delete</mat-icon>
-                  <span>Delete book</span>
-                </button>
-              </ng-template>
-            </mat-menu>
-
-            <mat-paginator
-              class="books-paginator"
-              *ngIf="(shelfBooks[shelf.id] || []).length > bookPageSize"
-              [length]="(shelfBooks[shelf.id] || []).length"
-              [pageSize]="bookPageSize"
-              [pageIndex]="bookPageIndex[shelf.id] || 0"
-              [pageSizeOptions]="[5, 10, 25]"
-              aria-label="Shelf books pagination"
-              (page)="onBookPage($event, shelf.id)">
-            </mat-paginator>
           </div>
-        </mat-expansion-panel>
-      </mat-accordion>
-    </ng-container>
-  </ng-container>
+        </mat-card>
+      </ng-container>
+    </div>
+  </div>
+  <div class="detail-pane" [class.mobile-shown]="(hasSelection$ | async)">
+    <router-outlet></router-outlet>
+  </div>
 </div>
+
+<ng-template #emptyState>
+  <div class="table-no-data-bar">No shelves yet. Create your first to get started.</div>
+</ng-template>

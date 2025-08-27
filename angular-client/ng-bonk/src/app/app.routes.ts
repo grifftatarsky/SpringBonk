@@ -17,16 +17,17 @@ export const routes: Routes = [
     data: { title: 'My elections' },
   },
   {
-    path: 'shelves/:id',
-    component: ShelfDetailComponent,
-    canMatch: [authMatch],
-    data: { title: 'Shelf' },
-  },
-  {
     path: 'shelves',
     component: ShelvesComponent,
     canMatch: [authMatch],
     data: { title: 'My shelves' },
+    children: [
+      {
+        path: ':id',
+        component: ShelfDetailComponent,
+        data: { title: 'Shelf' },
+      },
+    ],
   },
 
   {

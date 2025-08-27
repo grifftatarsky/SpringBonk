@@ -1,30 +1,26 @@
 import {
   Component,
   ChangeDetectionStrategy,
-  HostListener,
   OnInit,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AsyncPipe, NgForOf, NgIf, SlicePipe } from '@angular/common';
+import { AsyncPipe, NgForOf, NgIf } from '@angular/common';
 import { ShelfRequest } from '../model/request/shelf-request.model';
 import { ShelfResponse } from '../model/response/shelf-response.model';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Observable } from 'rxjs';
+import { filter, map, startWith } from 'rxjs/operators';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatSortModule, Sort } from '@angular/material/sort';
-import { MatListModule } from '@angular/material/list';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { FormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterOutlet, RouterLink, NavigationEnd } from '@angular/router';
 import { BookSearchSheet } from './book-search-sheet.component';
 import { BookResponse } from '../model/response/book-response.model';
 import { BookDetailDialog } from './dialog/book-detail-dialog.component';
@@ -47,6 +43,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   standalone: true,
   imports: [
     MatToolbarModule,
+    MatCardModule,
     MatTableModule,
     MatPaginatorModule,
     MatButtonModule,
@@ -54,18 +51,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     MatIconModule,
     MatExpansionModule,
     MatTooltipModule,
-    MatMenuModule,
     MatSortModule,
-    // Mobile-first list UI
-    MatListModule,
-    MatSelectModule,
-    MatFormFieldModule,
-    FormsModule,
-    RouterModule,
+    RouterOutlet,
+    RouterLink,
     AsyncPipe,
     NgIf,
     NgForOf,
-    SlicePipe,
   ],
   templateUrl: './shelves.component.html',
   styleUrls: ['./shelves.component.scss'],
@@ -92,11 +83,14 @@ export class ShelvesComponent implements OnInit {
   private shelvesCount = 0;
   private totalCount = 0;
   private loadingShelves = false;
+  hasSelection$!: Observable<boolean>;
 
   constructor(
     private store: Store,
     private dialog: MatDialog,
-    private sheet: MatBottomSheet
+    private sheet: MatBottomSheet,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.shelves$ = this.store.select(selectShelves);
     this.loading$ = this.store.select(selectShelvesLoading);
@@ -116,6 +110,11 @@ export class ShelvesComponent implements OnInit {
     this.total$
       .pipe(takeUntilDestroyed())
       .subscribe(t => (this.totalCount = t));
+    this.hasSelection$ = this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      startWith(null),
+      map(() => !!this.route.firstChild?.snapshot.paramMap.get('id'))
+    );
   }
 
   ngOnInit(): void {
@@ -141,20 +140,17 @@ export class ShelvesComponent implements OnInit {
     }
   }
 
-  @HostListener('window:scroll', [])
-  onWindowScroll(): void {
+  onListScroll(event: Event): void {
+    const el = event.target as HTMLElement;
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 200;
     if (
-      window.innerHeight + window.scrollY >=
-        document.body.offsetHeight - 200 &&
+      nearBottom &&
       !this.loadingShelves &&
       this.shelvesCount < this.totalCount
     ) {
       this.pageIndex++;
       this.store.dispatch(
-        LibraryActions.loadShelves({
-          pageIndex: this.pageIndex,
-          pageSize: this.pageSize,
-        })
+        LibraryActions.loadShelves({ pageIndex: this.pageIndex, pageSize: this.pageSize })
       );
     }
   }
