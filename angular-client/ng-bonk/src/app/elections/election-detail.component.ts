@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -26,7 +26,7 @@ import {
   selectSubmitting,
   selectUnrankedCandidates,
 } from './store/elections.selectors';
-import { Observable, combineLatest, map } from 'rxjs';
+import { Observable, Subject, map, switchMap, takeUntil } from 'rxjs';
 import { CandidateResponse } from '../model/response/candidate-response.model';
 import { ElectionResponse } from '../model/response/election-response.model';
 
@@ -52,7 +52,7 @@ import { ElectionResponse } from '../model/response/election-response.model';
   styleUrls: ['./election-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ElectionDetailComponent implements OnInit {
+export class ElectionDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly store = inject(Store);
   private readonly dialog = inject(MatDialog);
@@ -70,13 +70,22 @@ export class ElectionDetailComponent implements OnInit {
   myNominationId$!: Observable<string | null>;
 
   electionId!: string;
+  private readonly destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.electionId = this.route.snapshot.paramMap.get('id') || '';
-    if (!this.electionId) return;
+    const id$ = this.route.paramMap.pipe(
+      map(params => params.get('id') || ''),
+      takeUntil(this.destroy$)
+    );
 
-    this.store.dispatch(ElectionsActions.loadElection({ electionId: this.electionId }));
-    this.store.dispatch(ElectionsActions.loadCandidates({ electionId: this.electionId }));
+    // React to id changes: dispatch loads and update local id
+    id$.pipe(takeUntil(this.destroy$)).subscribe(id => {
+      this.electionId = id;
+      if (id) {
+        this.store.dispatch(ElectionsActions.loadElection({ electionId: id }));
+        this.store.dispatch(ElectionsActions.loadCandidates({ electionId: id }));
+      }
+    });
 
     this.election$ = this.store.select(selectCurrentElection);
     this.loadingElection$ = this.store.select(selectLoadingElection);
@@ -87,9 +96,9 @@ export class ElectionDetailComponent implements OnInit {
     const unrankedFactory$ = this.store.select(selectUnrankedCandidates);
     const orderFactory$ = this.store.select(selectBallotOrder);
 
-    this.ranked$ = rankedFactory$.pipe(map(f => f(this.electionId)));
-    this.unranked$ = unrankedFactory$.pipe(map(f => f(this.electionId)));
-    this.order$ = orderFactory$.pipe(map(f => f(this.electionId)));
+    this.ranked$ = id$.pipe(switchMap(id => rankedFactory$.pipe(map(f => f(id)))));
+    this.unranked$ = id$.pipe(switchMap(id => unrankedFactory$.pipe(map(f => f(id)))));
+    this.order$ = id$.pipe(switchMap(id => orderFactory$.pipe(map(f => f(id)))));
 
     // Determine if the current user has a nomination in this election
     this.myNominationId$ = this.store.select(selectCandidates).pipe(
@@ -99,6 +108,11 @@ export class ElectionDetailComponent implements OnInit {
         return mine ? mine.id : null;
       })
     );
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // Drag within ranked list

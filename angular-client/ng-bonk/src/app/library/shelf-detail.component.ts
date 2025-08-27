@@ -141,7 +141,7 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
   openBookSheet(book: BookResponse): void {
     this.sheet.open(BookDetailSheetComponent, {
       data: { book, shelfId: this.shelfId },
-      panelClass: 'sheet-max book-sheet',
+      panelClass: ['sheet-max', 'book-sheet'],
     });
   }
 
