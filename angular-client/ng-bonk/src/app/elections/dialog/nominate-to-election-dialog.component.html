@@ -1,0 +1,87 @@
+<h2 mat-dialog-title>Nominate to Election</h2>
+
+<mat-dialog-content>
+  <div class="dialog-grid">
+    <!-- Left: Election picker (hidden if fixed) -->
+    <div class="election-picker" *ngIf="!data.electionId">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Select election</mat-label>
+        <mat-select [value]="(selectedElectionId$ | async) ?? null" (selectionChange)="selectedElectionId$.next($event.value)">
+          <mat-option *ngFor="let e of (elections$ | async) ?? []" [value]="e.id">
+            {{ e.title }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Right: Book chooser or selected book -->
+    <div class="book-chooser">
+      <ng-container *ngIf="(selectedBook$ | async) as book; else chooseBook">
+        <div class="book-card">
+          <div class="cover">
+            <app-book-cover [src]="book.imageURL" [alt]="book.title + ' cover'"></app-book-cover>
+          </div>
+          <div class="meta">
+            <div class="title">{{ book.title }}</div>
+            <div class="author">{{ book.author }}</div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #chooseBook>
+        <div class="tree-container" *ngIf="!(loadingShelves$ | async); else loadingShelves">
+          <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="nominate-tree">
+            <!-- Shelf node -->
+            <mat-tree-node *matTreeNodeDef="let node; when: hasChild" class="shelf-node">
+              <button mat-icon-button matTreeNodeToggle (click)="toggleShelf(node)">
+                <mat-icon>
+                  {{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
+                </mat-icon>
+              </button>
+              <span class="shelf-title">{{ node.title }}</span>
+              <mat-progress-bar *ngIf="loadingBooksFor[node.id]" mode="indeterminate"></mat-progress-bar>
+            </mat-tree-node>
+
+            <!-- Book node -->
+            <mat-tree-node *matTreeNodeDef="let node" class="book-node">
+              <button mat-icon-button disabled></button>
+              <div class="book-row" (click)="pickBookFromNode(node)">
+                <div class="thumb">
+                  <app-book-cover [src]="node.imageURL" [alt]="node.title + ' cover'"></app-book-cover>
+                </div>
+                <div class="text">
+                  <div class="title">{{ node.title }}</div>
+                  <div class="author">{{ node.author }}</div>
+                </div>
+              </div>
+            </mat-tree-node>
+          </mat-tree>
+        </div>
+        <ng-template #loadingShelves>
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        </ng-template>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- Existing nomination info for the selected election -->
+  <div class="existing" *ngIf="(candidatesForElection$ | async) as candidates">
+    <div class="note" *ngIf="candidates.length === 0">No nominations yet in this election.</div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Cancel</button>
+
+  <!-- Show remove if the selected book is already nominated in this election -->
+  <ng-container *ngIf="existingCandidate$ | async as existing">
+    <button mat-button color="warn" [disabled]="removing" (click)="removeNomination(existing.id)">
+      <mat-icon>remove_circle</mat-icon>
+      {{ removing ? 'Removing...' : 'Remove nomination' }}
+    </button>
+  </ng-container>
+
+  <button mat-raised-button color="primary" [disabled]="nominating || !(selectedElectionId$ | async) || !(selectedBook$ | async)" (click)="nominate()">
+    <mat-icon>star</mat-icon>
+    {{ nominating ? 'Nominating...' : 'Nominate' }}
+  </button>
+</mat-dialog-actions>

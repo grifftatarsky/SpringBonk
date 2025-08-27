@@ -86,6 +86,25 @@ public class ElectionService {
     return new CandidateResponse(candidateRepository.saveAndFlush(candidate));
   }
 
+  public void deleteCandidate(
+      @NotNull UUID electionId,
+      @NotNull UUID candidateId,
+      @NotNull UUID userId
+  ) {
+    Candidate candidate = getCandidate(candidateId);
+    // Ensure the candidate belongs to the election
+    if (!candidate.getElection().getId().equals(electionId)) {
+      throw new ResourceNotFoundException("Candidate does not belong to this election.");
+    }
+    // Only the nominator or the election creator can remove a nomination
+    UUID nominatorId = candidate.getNominator().getId();
+    UUID creatorId = candidate.getElection().getCreator().getId();
+    if (!nominatorId.equals(userId) && !creatorId.equals(userId)) {
+      throw new AccessDeniedException("User not permitted to remove this nomination.");
+    }
+    candidateRepository.delete(candidate);
+  }
+
   // Election Methods
 
   public List<CandidateResponse> getCandidatesByElection(

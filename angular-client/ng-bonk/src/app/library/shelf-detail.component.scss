@@ -72,6 +72,10 @@
   padding: 12px;
 }
 
+.book-sheet .mat-bottom-sheet-container {
+  height: unset;
+}
+
 @media (min-width: 1024px) {
   .mobile-back-button {
     display: none;

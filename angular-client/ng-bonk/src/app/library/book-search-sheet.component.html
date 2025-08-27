@@ -5,17 +5,10 @@
       <input
         matInput
         [formControl]="searchControl"
-        placeholder="Combined search"
+        placeholder="Search books"
         autocomplete="off" />
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
-
-    <button
-      mat-icon-button
-      (click)="toggleFilters()"
-      aria-label="Advanced filters">
-      <mat-icon>{{ showFilters ? 'close' : 'tune' }}</mat-icon>
-    </button>
   </div>
 
   <div class="spacer"></div>
@@ -23,92 +16,49 @@
   <button mat-button (click)="cancel()">Cancel</button>
 </div>
 
-<mat-drawer-container class="sheet-container" autosize>
-  <mat-drawer
-    #filtersDrawer
-    mode="over"
-    position="end"
-    [opened]="showFilters"
-    class="filters-drawer">
-    <div class="filters">
-      <h3>Advanced Filters</h3>
-      <mat-form-field appearance="outline">
-        <mat-label>Title</mat-label>
-        <input matInput [formControl]="titleControl" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Author</mat-label>
-        <input matInput [formControl]="authorControl" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Subject</mat-label>
-        <input matInput [formControl]="subjectControl" />
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <mat-label>Sort</mat-label>
-        <mat-select [formControl]="sortControl">
-          <mat-option value="relevance">Relevance</mat-option>
-          <mat-option value="new">Newest</mat-option>
-          <mat-option value="old">Oldest</mat-option>
-        </mat-select>
-      </mat-form-field>
-      <div class="filters-actions">
-        <button mat-stroked-button color="primary" (click)="toggleFilters()">
-          Close
-        </button>
-      </div>
-    </div>
-  </mat-drawer>
-
+<div class="sheet-container">
   <div class="results-container">
     <div *ngIf="(loading$ | async) && hasSearched">
       <mat-progress-bar mode="indeterminate" />
     </div>
 
-    <div class="results-scroll">
-      <ng-container *ngIf="results$ | async as results">
-        <ng-container *ngIf="hasSearched; else preSearch">
-          <ng-container *ngIf="results.length > 0; else noResults">
-            <div class="results-list">
-              <mat-card class="result-row-card" *ngFor="let book of results">
-                <div class="cover">
-                  <app-book-cover [src]="getCover(book)" [alt]="book.title + ' cover'"></app-book-cover>
-                </div>
-                <div class="meta">
-                  <div class="title">{{ book.title }}</div>
-                  <div class="author">{{ book.author_name?.[0] ?? '—' }}</div>
-                  <div class="year">{{ book.first_publish_year ?? '—' }}</div>
-                </div>
-                <div class="actions">
-                  <button
-                    mat-icon-button
-                    color="primary"
-                    aria-label="Add book"
-                    (click)="select(book)">
-                    <mat-icon>add</mat-icon>
-                  </button>
-                </div>
-              </mat-card>
-            </div>
-          </ng-container>
-          <ng-template #noResults>
-            <div class="placeholder">
-              No results found. Try refining your search.
-            </div>
-          </ng-template>
+    <ng-container *ngIf="results$ | async as results">
+      <ng-container *ngIf="hasSearched; else preSearch">
+        <ng-container *ngIf="results.length > 0; else noResults">
+          <cdk-virtual-scroll-viewport
+            class="results-viewport"
+            [itemSize]="itemSize"
+            (scrolledIndexChange)="onScrolledIndexChange($event)">
+            <mat-card class="result-row-card" *cdkVirtualFor="let book of results">
+              <div class="cover">
+                <app-book-cover [src]="getCover(book)" [alt]="book.title + ' cover'"></app-book-cover>
+              </div>
+              <div class="meta">
+                <div class="title">{{ book.title }}</div>
+                <div class="author">{{ book.author_name?.[0] ?? '—' }}</div>
+                <div class="year">{{ book.first_publish_year ?? '—' }}</div>
+              </div>
+              <div class="actions">
+                <button
+                  mat-icon-button
+                  color="primary"
+                  aria-label="Add book"
+                  (click)="select(book)">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            </mat-card>
+          </cdk-virtual-scroll-viewport>
         </ng-container>
-        <ng-template #preSearch>
-          <div class="placeholder">Enter a search term to find books</div>
+        <ng-template #noResults>
+          <div class="placeholder">
+            No results found. Try a different search.
+          </div>
         </ng-template>
       </ng-container>
-    </div>
-
-    <mat-paginator
-      class="search-paginator"
-      [length]="(total$ | async) ?? 0"
-      [pageSize]="10"
-      [pageSizeOptions]="[5, 10, 25]"
-      aria-label="Book search results pagination">
-    </mat-paginator>
+      <ng-template #preSearch>
+        <div class="placeholder">Enter a search term to find books</div>
+      </ng-template>
+    </ng-container>
   </div>
-</mat-drawer-container>
+</div>

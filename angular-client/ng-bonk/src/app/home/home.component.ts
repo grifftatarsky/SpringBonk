@@ -15,6 +15,15 @@ import { MatButtonModule } from '@angular/material/button';
         padding: 2rem;
         text-align: center;
       }
+      .ascii {
+        display: inline-block;
+        margin: 0 auto 1rem;
+        text-align: left;
+        white-space: pre;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        line-height: 1.1;
+        font-size: 14px;
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

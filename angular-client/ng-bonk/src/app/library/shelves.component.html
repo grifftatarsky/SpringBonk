@@ -29,8 +29,8 @@
     [class.instant]="lineInstant"
     [ngStyle]="{ top: lineStyle.top, left: lineStyle.left, width: lineStyle.width }"></div>
 
-  <div class="list-pane" #listPane [class.mobile-hidden]="(hasSelection$ | async)">
-    <div class="shelves-list" (scroll)="onListScroll($event)">
+  <div class="list-pane" #listPane [class.mobile-hidden]="(hasSelection$ | async)" (scroll)="onListScroll($event)">
+    <div class="shelves-list">
       <ng-container *ngIf="shelves$ | async as shelves; else emptyState">
         <mat-card
           class="shelf-card"

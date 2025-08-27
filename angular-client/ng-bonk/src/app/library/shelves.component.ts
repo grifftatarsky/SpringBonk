@@ -32,7 +32,7 @@ import {
 import { BookSearchSheet } from './book-search-sheet.component';
 import { BookResponse } from '../model/response/book-response.model';
 import { BookDetailDialog } from './dialog/book-detail-dialog.component';
-import { BookNominateDialog } from './dialog/book-nominate.component';
+import { NominateToElectionDialogComponent } from '../elections/dialog/nominate-to-election-dialog.component';
 import { Store } from '@ngrx/store';
 import * as LibraryActions from './store/library.actions';
 import {
@@ -360,9 +360,9 @@ export class ShelvesComponent implements OnInit {
   nominateBook(book: BookResponse, event: Event): void {
     event.stopPropagation(); // Prevent opening book details
 
-    const dialogRef = this.dialog.open(BookNominateDialog, {
+    const dialogRef = this.dialog.open(NominateToElectionDialogComponent, {
       data: { book },
-      width: '500px',
+      width: '640px',
     });
 
     dialogRef.afterClosed().subscribe(result => {

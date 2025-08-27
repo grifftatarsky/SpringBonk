@@ -106,7 +106,12 @@ mat-paginator {
 
 /* Bottom sheet: wide, tall panel with pip-boy border */
 .sheet-max .mat-bottom-sheet-container {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  height: 80vh;
   max-height: 80vh;
+  overflow: hidden; /* scrolling happens inside */
   width: min(900px, 96vw);
   background: #001000; /* solid green-on-black panel */
   color: inherit;

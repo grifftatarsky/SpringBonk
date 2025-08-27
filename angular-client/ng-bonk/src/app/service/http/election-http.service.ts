@@ -73,6 +73,10 @@ export class ElectionHttpService extends BaseHttpService {
     );
   }
 
+  deleteCandidate(electionId: string, candidateId: string): Observable<void> {
+    return this.delete<void>(`${this.baseUrl}/${electionId}/candidate/${candidateId}`);
+  }
+
   // ----- VOTING -----
 
   voteForCandidate(

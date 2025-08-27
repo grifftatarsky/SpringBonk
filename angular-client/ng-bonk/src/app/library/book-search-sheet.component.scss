@@ -14,40 +14,23 @@
 
 .sheet-container {
   flex: 1;
-  background-color: transparent;
-}
-
-.filters-drawer {
-  width: min(320px, 90vw);
-  background: #001000;
-  color: inherit;
-  border-left: 1px solid #00ff41;
-  display: flex;
-  flex-flow: column;
-  flex-grow: 1;
-}
-
-.filters {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
-}
-
-.filters-actions {
-  display: flex;
-  justify-content: flex-end;
+  min-height: 0; /* allow inner viewport to size */
+  background-color: transparent;
 }
 
 .results-container {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0; /* critical for nested flex scroll */
 }
 
-.results-scroll {
+.results-viewport {
   flex: 1;
   min-height: 0;
+  width: 100%;
   overflow: auto;
 }
 
@@ -64,6 +47,7 @@
   padding: 8px;
   border: 1px solid #00ff41;
   background: rgba(0, 0, 0, 0.25);
+  margin: 0;
 }
 
 .result-row-card .cover {
@@ -90,6 +74,8 @@
   justify-content: center;
 }
 
+/* sentinel removed; using CDK viewport */
+
 @media (max-width: 600px) {
   .result-row-card {
     grid-template-columns: 64px 1fr;
@@ -104,17 +90,15 @@
   }
 }
 
-.search-paginator {
-  position: sticky;
-  bottom: 0;
-  margin-top: 0.5rem;
-  background: #001000;
-  border-top: 1px solid #00ff41;
-  z-index: 2;
-}
+/* pagination removed; infinite scroll active */
 
 ::ng-deep .mat-bottom-sheet-container {
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+  max-height: 80vh;
+  overflow: hidden; /* ensure inner panel scrolls, not the container */
 }
 
 // TODO: I don't want to have to do this. Why is this subscript container even present?

@@ -177,6 +177,7 @@ export class LibraryEffects {
               LibraryActions.searchOpenLibrarySuccess({
                 results: res.docs,
                 total: res.num_found,
+                pageIndex,
               })
             ),
             catchError(error => {
@@ -188,4 +189,3 @@ export class LibraryEffects {
     )
   );
 }
-

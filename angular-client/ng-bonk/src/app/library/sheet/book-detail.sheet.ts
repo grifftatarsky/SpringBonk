@@ -5,7 +5,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { BookCoverComponent } from '../../common/book-cover.component';
-import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from '@angular/material/bottom-sheet';
+import {
+  MAT_BOTTOM_SHEET_DATA,
+  MatBottomSheetRef,
+} from '@angular/material/bottom-sheet';
 import { BookResponse } from '../../model/response/book-response.model';
 import { BookHttpService } from '../../service/http/books-http.service';
 import { Store } from '@ngrx/store';
@@ -13,7 +16,7 @@ import * as LibraryActions from '../store/library.actions';
 import { MatDialog } from '@angular/material/dialog';
 import { BookSelectShelfDialog } from '../dialog/book-select-shelf-dialog.component';
 import { NotificationService } from '../../service/notification.service';
-import { BookNominateDialog } from '../dialog/book-nominate.component';
+import { NominateToElectionDialogComponent } from '../../elections/dialog/nominate-to-election-dialog.component';
 
 export interface BookDetailSheetData {
   book: BookResponse;
@@ -33,12 +36,18 @@ export interface BookDetailSheetData {
   ],
   template: `
     <div class="sheet-header">
-      <div class="cover"><app-book-cover [src]="data.book.imageURL" [alt]="data.book.title + ' cover'"></app-book-cover></div>
+      <div class="cover">
+        <app-book-cover
+          [src]="data.book.imageURL"
+          [alt]="data.book.title + ' cover'"></app-book-cover>
+      </div>
       <div class="meta">
         <div class="title">{{ data.book.title }}</div>
         <mat-chip-set>
           <mat-chip appearance="outlined">{{ data.book.author }}</mat-chip>
-          <mat-chip appearance="outlined">{{ data.book.publishedYear ?? '—' }}</mat-chip>
+          <mat-chip appearance="outlined">{{
+            data.book.publishedYear ?? '—'
+          }}</mat-chip>
         </mat-chip-set>
       </div>
     </div>
@@ -65,16 +74,45 @@ export interface BookDetailSheetData {
   `,
   styles: [
     `
-      :host { display: block; padding: 12px; }
-      .sheet-header { display: flex; align-items: center; gap: 12px; }
-      .cover { width: 80px; height: 112px; }
-      .meta .title { font-weight: 600; margin-bottom: 6px; }
-      .sheet-actions { display: flex; align-items: center; gap: 8px; padding-top: 12px; flex-wrap: wrap; }
-      .spacer { flex: 1; }
+      :host {
+        display: block;
+        padding: 12px;
+      }
+      .sheet-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .cover {
+        width: 80px;
+        height: 112px;
+      }
+      .meta .title {
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .sheet-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-top: 12px;
+        flex-wrap: wrap;
+      }
+      .spacer {
+        flex: 1;
+      }
       @media (max-width: 600px) {
-        .sheet-actions { flex-direction: column; align-items: stretch; }
-        .sheet-actions button { width: 100%; justify-content: center; }
-        .spacer { display: none; }
+        .sheet-actions {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .sheet-actions button {
+          width: 100%;
+          justify-content: center;
+        }
+        .spacer {
+          display: none;
+        }
       }
     `,
   ],
@@ -92,14 +130,19 @@ export class BookDetailSheetComponent {
 
   removeFromShelf(): void {
     this.store.dispatch(
-      LibraryActions.removeBookFromShelf({ bookId: this.data.book.id, shelfId: this.data.shelfId })
+      LibraryActions.removeBookFromShelf({
+        bookId: this.data.book.id,
+        shelfId: this.data.shelfId,
+      })
     );
     this.notify.success('Removed from shelf');
     this.ref.dismiss(true);
   }
 
   delete(): void {
-    this.store.dispatch(LibraryActions.deleteBook({ bookId: this.data.book.id }));
+    this.store.dispatch(
+      LibraryActions.deleteBook({ bookId: this.data.book.id })
+    );
     this.notify.success('Deleted book');
     this.ref.dismiss(true);
   }
@@ -113,10 +156,13 @@ export class BookDetailSheetComponent {
       if (result && result.shelfId) {
         const toShelf = result.shelfId as string;
         this.bookHttp.addBookToShelf(this.data.book.id, toShelf).subscribe({
-          next: () => {
+          next: (): void => {
             // Remove from current shelf to complete move
             this.store.dispatch(
-              LibraryActions.removeBookFromShelf({ bookId: this.data.book.id, shelfId: this.data.shelfId })
+              LibraryActions.removeBookFromShelf({
+                bookId: this.data.book.id,
+                shelfId: this.data.shelfId,
+              })
             );
             this.notify.success('Moved book to new shelf');
             this.ref.dismiss(true);
@@ -128,7 +174,10 @@ export class BookDetailSheetComponent {
   }
 
   nominate(): void {
-    const dlg = this.dialog.open(BookNominateDialog, { data: { book: this.data.book }, width: '500px' });
+    const dlg = this.dialog.open(NominateToElectionDialogComponent, {
+      data: { book: this.data.book },
+      width: '640px',
+    });
     dlg.afterClosed().subscribe();
   }
 }

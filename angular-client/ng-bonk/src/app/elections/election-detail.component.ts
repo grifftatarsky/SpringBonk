@@ -9,6 +9,10 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AsyncPipe, DatePipe, NgForOf, NgIf } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
+import { NominateToElectionDialogComponent } from './dialog/nominate-to-election-dialog.component';
+import { UserService } from '../service/user.service';
+import { ElectionHttpService } from '../service/http/election-http.service';
 import { CdkDrag, CdkDragHandle, CdkDragPlaceholder, CdkDropList, CdkDropListGroup, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { BookCoverComponent } from '../common/book-cover.component';
 import * as ElectionsActions from './store/elections.actions';
@@ -51,6 +55,9 @@ import { ElectionResponse } from '../model/response/election-response.model';
 export class ElectionDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly store = inject(Store);
+  private readonly dialog = inject(MatDialog);
+  private readonly user = inject(UserService);
+  private readonly electionHttp = inject(ElectionHttpService);
 
   election$!: Observable<ElectionResponse | null>;
   loadingElection$!: Observable<boolean>;
@@ -60,6 +67,7 @@ export class ElectionDetailComponent implements OnInit {
   ranked$!: Observable<CandidateResponse[]>;
   unranked$!: Observable<CandidateResponse[]>;
   order$!: Observable<string[]>;
+  myNominationId$!: Observable<string | null>;
 
   electionId!: string;
 
@@ -82,6 +90,15 @@ export class ElectionDetailComponent implements OnInit {
     this.ranked$ = rankedFactory$.pipe(map(f => f(this.electionId)));
     this.unranked$ = unrankedFactory$.pipe(map(f => f(this.electionId)));
     this.order$ = orderFactory$.pipe(map(f => f(this.electionId)));
+
+    // Determine if the current user has a nomination in this election
+    this.myNominationId$ = this.store.select(selectCandidates).pipe(
+      map((cands: CandidateResponse[]) => {
+        const myId = this.user.current.name; // Keycloak subject UUID
+        const mine = cands.find(c => c.nominatorId === myId);
+        return mine ? mine.id : null;
+      })
+    );
   }
 
   // Drag within ranked list
@@ -115,5 +132,23 @@ export class ElectionDetailComponent implements OnInit {
 
   submitBallot(): void {
     this.store.dispatch(ElectionsActions.submitBallot({ electionId: this.electionId }));
+  }
+
+  openNominateDialog(): void {
+    this.dialog.open(NominateToElectionDialogComponent, {
+      width: '720px',
+      data: { electionId: this.electionId },
+    }).afterClosed().subscribe(changed => {
+      if (changed) {
+        // Refresh candidates
+        this.store.dispatch(ElectionsActions.loadCandidates({ electionId: this.electionId }));
+      }
+    });
+  }
+
+  removeMyNomination(candidateId: string): void {
+    this.electionHttp.deleteCandidate(this.electionId, candidateId).subscribe(() => {
+      this.store.dispatch(ElectionsActions.loadCandidates({ electionId: this.electionId }));
+    });
   }
 }

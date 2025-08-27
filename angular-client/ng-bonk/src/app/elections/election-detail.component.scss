@@ -8,6 +8,17 @@
   flex-wrap: wrap;
 }
 
+#toolbar-election-actions {
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: currentColor;
+  margin: 0 8px;
+}
+
 .spacer { flex: 1; }
 
 .loading-bar { margin: 4px 0; }
@@ -66,7 +77,7 @@
 
 .candidate-card .add-btn { margin-left: auto; }
 
-.ballot-controls { display: flex; gap: 8px; margin-bottom: 8px; }
+/* ballot-controls moved to toolbar */
 
 .ballot-list { display: flex; flex-direction: column; gap: 6px; min-height: 48px; }
 
@@ -83,3 +94,5 @@
 .ballot-item .handle { cursor: grab; display: flex; align-items: center; }
 
 .empty { opacity: 0.7; font-style: italic; padding: 6px; }
+
+.placeholder { opacity: 0.7; font-style: italic; padding: 12px; text-align: center; }

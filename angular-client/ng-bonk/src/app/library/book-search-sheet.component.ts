@@ -6,31 +6,33 @@ import {
   ViewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatCardModule } from '@angular/material/card';
-import { Observable, Subject, Subscription, merge } from 'rxjs';
-import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
+import { Observable, Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSidenavModule } from '@angular/material/sidenav';
+// Removed select/sidenav (advanced filters)
 import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { AsyncPipe, NgIf, NgForOf } from '@angular/common';
+import { AsyncPipe, NgIf } from '@angular/common';
 import { BookSelectShelfDialog } from './dialog/book-select-shelf-dialog.component';
 import { Store } from '@ngrx/store';
 import * as LibraryActions from './store/library.actions';
 import {
   selectOpenLibraryResults,
-  selectSearchLoading,
   selectOpenLibraryTotal,
+  selectSearchLoading,
 } from './store/library.selectors';
 import { BookHttpService } from '../service/http/books-http.service';
 import { BookCoverComponent } from '../common/book-cover.component';
+import {
+  CdkVirtualScrollViewport,
+  ScrollingModule,
+} from '@angular/cdk/scrolling';
 
 @Component({
   selector: 'app-book-search-dialog',
@@ -44,14 +46,11 @@ import { BookCoverComponent } from '../common/book-cover.component';
     MatButtonModule,
     MatProgressBarModule,
     MatCardModule,
-    MatPaginatorModule,
     MatIconModule,
-    MatSelectModule,
-    MatSidenavModule,
     BookCoverComponent,
+    ScrollingModule,
     AsyncPipe,
     NgIf,
-    NgForOf,
   ],
   templateUrl: './book-search-sheet.component.html',
   styleUrls: ['./book-search-sheet.component.scss'],
@@ -59,11 +58,6 @@ import { BookCoverComponent } from '../common/book-cover.component';
 })
 export class BookSearchSheet implements AfterViewInit, OnDestroy {
   searchControl = new FormControl('');
-  titleControl = new FormControl('');
-  authorControl = new FormControl('');
-  subjectControl = new FormControl('');
-  sortControl = new FormControl('relevance');
-  showFilters = false;
   hasSearched = false;
 
   results$: Observable<OpenLibraryBookResponse[]>;
@@ -72,9 +66,15 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
   private searchSubscription?: Subscription;
+  private pageIndex = 0;
+  private pageSize = 10;
+  private currentCount = 0;
+  private totalCount = 0;
+  private isLoading = false;
+  readonly itemSize = 110;
+  private preloadThreshold = 3; // items beyond viewport to trigger prefetch
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild('filtersDrawer') filtersDrawer: any;
+  @ViewChild(CdkVirtualScrollViewport) viewport?: CdkVirtualScrollViewport;
 
   constructor(
     private dialogRef: MatBottomSheetRef<BookSearchSheet>,
@@ -88,26 +88,28 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Set up search with debounce across all controls
-    this.searchSubscription = merge(
-      this.searchControl.valueChanges.pipe(skip(1)),
-      this.titleControl.valueChanges.pipe(skip(1)),
-      this.authorControl.valueChanges.pipe(skip(1)),
-      this.subjectControl.valueChanges.pipe(skip(1)),
-      this.sortControl.valueChanges.pipe(skip(1))
-    )
+    // Track result length, total, and loading state for infinite scroll
+    this.results$.pipe(takeUntil(this.destroy$)).subscribe(r => {
+      this.currentCount = r.length;
+      // If initial results don't fill the viewport, prefetch more
+      this.maybePrefetchMore();
+    });
+    this.total$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(t => (this.totalCount = t ?? 0));
+    this.loading$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(l => (this.isLoading = !!l));
+
+    // Set up search with debounce on main control
+    this.searchSubscription = this.searchControl.valueChanges
       .pipe(takeUntil(this.destroy$), debounceTime(300), distinctUntilChanged())
       .subscribe((): void => {
-        this.paginator.pageIndex = 0;
+        this.pageIndex = 0;
         this.loadData();
       });
 
-    // Set up paginator
-    this.paginator.page.pipe(takeUntil(this.destroy$)).subscribe((): void => {
-      this.loadData();
-    });
-
-    // Initial empty state - don't load any data
+    // Initial empty state - no auto-load
   }
 
   ngOnDestroy(): void {
@@ -117,24 +119,13 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   }
 
   loadData(): void {
-    const parts: string[] = [];
-    const q = (this.searchControl.value || '').toString().trim();
-    const title = (this.titleControl.value || '').toString().trim();
-    const author = (this.authorControl.value || '').toString().trim();
-    const subject = (this.subjectControl.value || '').toString().trim();
-    const sort = this.sortControl.value || 'relevance';
-    if (q.length) parts.push(q);
-    if (title.length) parts.push(`title:${title}`);
-    if (author.length) parts.push(`author:${author}`);
-    if (subject.length) parts.push(`subject:${subject}`);
-    const query = parts.join(' ').trim();
+    const query: string = (this.searchControl.value || '').toString().trim();
     this.hasSearched = true;
     this.store.dispatch(
       LibraryActions.searchOpenLibrary({
         query,
-        sort,
-        pageIndex: this.paginator.pageIndex,
-        pageSize: this.paginator.pageSize,
+        pageIndex: this.pageIndex,
+        pageSize: this.pageSize,
       })
     );
   }
@@ -168,10 +159,40 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
     this.dialogRef.dismiss();
   }
 
-  toggleFilters(): void {
-    this.showFilters = !this.showFilters;
-    if (this.filtersDrawer) {
-      this.filtersDrawer.toggle();
+  private maybePrefetchMore(): void {
+    if (
+      !this.hasSearched ||
+      this.isLoading ||
+      this.currentCount >= this.totalCount
+    ) {
+      return;
+    }
+    const visible: number = this.viewport
+      ? Math.ceil(this.viewport.getViewportSize() / this.itemSize)
+      : 10;
+    if (
+      this.currentCount <
+      Math.max(visible + this.preloadThreshold, this.pageSize)
+    ) {
+      this.pageIndex++;
+      this.loadData();
+    }
+  }
+
+  onScrolledIndexChange(index: number): void {
+    const visible: number = this.viewport
+      ? Math.ceil(this.viewport.getViewportSize() / this.itemSize)
+      : 10;
+    const nearEnd =
+      index + visible + this.preloadThreshold >= this.currentCount;
+    if (
+      this.hasSearched &&
+      !this.isLoading &&
+      this.currentCount < this.totalCount &&
+      nearEnd
+    ) {
+      this.pageIndex++;
+      this.loadData();
     }
   }
 }

@@ -1,7 +1,7 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, } from '@angular/core';
 import { BookCoverComponent } from '../common/book-cover.component';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule, NgForOf, NgIf } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,20 +10,18 @@ import { Store } from '@ngrx/store';
 import * as LibraryActions from './store/library.actions';
 import {
   selectBooksForShelf,
+  selectLoadingBooks,
   selectShelfById,
 } from './store/library.selectors';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, startWith, Subject, } from 'rxjs';
 import { BookResponse } from '../model/response/book-response.model';
-import { AsyncPipe, NgForOf, NgIf } from '@angular/common';
 import { ShelfResponse } from '../model/response/shelf-response.model';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
-import { BehaviorSubject, Subject, combineLatest, startWith } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { BookDetailSheetComponent } from './sheet/book-detail.sheet';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { selectLoadingBooks } from './store/library.selectors';
 
 @Component({
   selector: 'app-shelf-detail',
@@ -52,7 +50,10 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
   books$!: Observable<BookResponse[]>;
   sortedBooks$!: Observable<BookResponse[]>;
   displayedBooks$!: Observable<BookResponse[]>;
-  private sort$ = new BehaviorSubject<Sort>({ active: 'title', direction: 'asc' as 'asc' });
+  private sort$ = new BehaviorSubject<Sort>({
+    active: 'title',
+    direction: 'asc' as 'asc',
+  });
   private visibleCount$ = new BehaviorSubject<number>(20);
   loading$!: Observable<boolean>;
   private booksLength = 0;
@@ -82,7 +83,9 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
       switchMap(id => this.store.select(selectBooksForShelf(id))),
       takeUntil(this.destroy$)
     );
-    this.books$.pipe(takeUntil(this.destroy$)).subscribe(b => (this.booksLength = b.length));
+    this.books$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(b => (this.booksLength = b.length));
 
     // Combine books with sort state to produce sortedBooks$
     this.sortedBooks$ = combineLatest([this.books$, this.sort$]).pipe(
@@ -107,13 +110,16 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
     );
 
     // Slice for infinite scroll
-    this.displayedBooks$ = combineLatest([this.sortedBooks$, this.visibleCount$]).pipe(
-      map(([books, count]) => books.slice(0, count))
-    );
+    this.displayedBooks$ = combineLatest([
+      this.sortedBooks$,
+      this.visibleCount$,
+    ]).pipe(map(([books, count]) => books.slice(0, count)));
 
     // Loading bar for this shelf id
     this.loading$ = id$.pipe(
-      switchMap(id => this.store.select(selectLoadingBooks).pipe(map(mapObj => !!mapObj[id])))
+      switchMap(id =>
+        this.store.select(selectLoadingBooks).pipe(map(mapObj => !!mapObj[id]))
+      )
     );
 
     // Dispatch load when id changes
@@ -135,7 +141,7 @@ export class ShelfDetailComponent implements OnInit, OnDestroy {
   openBookSheet(book: BookResponse): void {
     this.sheet.open(BookDetailSheetComponent, {
       data: { book, shelfId: this.shelfId },
-      panelClass: 'sheet-max',
+      panelClass: 'sheet-max book-sheet',
     });
   }
 

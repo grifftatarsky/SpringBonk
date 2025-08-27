@@ -11,6 +11,33 @@
     </mat-chip>
   </mat-toolbar>
 
+  <!-- Secondary actions toolbar -->
+  <mat-toolbar id="toolbar-election-actions" class="gap-2">
+    <span>Ballot</span>
+    <span class="spacer"></span>
+    <button mat-stroked-button color="primary" (click)="submitBallot()" [disabled]="(submitting$ | async) === true">
+      <mat-icon>how_to_vote</mat-icon>
+      Save Ballot
+    </button>
+    <button mat-button color="warn" (click)="clearBallot()">
+      <mat-icon>backspace</mat-icon>
+      Clear
+    </button>
+    <div class="toolbar-divider" aria-hidden="true">&nbsp;</div>
+    <ng-container *ngIf="myNominationId$ | async as myNominationId">
+      <button *ngIf="!myNominationId; else removeNomTpl" mat-stroked-button (click)="openNominateDialog()">
+        <mat-icon>star</mat-icon>
+        Nominate from shelf
+      </button>
+      <ng-template #removeNomTpl>
+        <button mat-button color="warn" (click)="removeMyNomination(myNominationId)">
+          <mat-icon>remove_circle</mat-icon>
+          Remove nomination
+        </button>
+      </ng-template>
+    </ng-container>
+  </mat-toolbar>
+
   <div *ngIf="(loadingElection$ | async) || (loadingCandidates$ | async)" class="loading-bar">
     <mat-progress-bar mode="indeterminate"></mat-progress-bar>
   </div>
@@ -22,7 +49,8 @@
         <!-- Candidates (unranked) -->
         <section class="candidate-pane">
           <h3>Nominees</h3>
-          <div class="candidates">
+          <div class="placeholder" *ngIf="unranked.length === 0">No nominations</div>
+          <div class="candidates" *ngIf="unranked.length > 0">
             <mat-card class="candidate-card" *ngFor="let c of unranked" (click)="addToRanked(c.id, ranked)">
               <div class="card-body">
                 <app-book-cover class="cover" [src]="c.base.imageURL" [alt]="c.base.title + ' cover'"></app-book-cover>
@@ -41,16 +69,7 @@
         <!-- Ballot (ranked) -->
         <section class="ballot-pane">
           <h3>Your Ballot</h3>
-          <div class="ballot-controls">
-            <button mat-stroked-button color="primary" (click)="submitBallot()" [disabled]="(submitting$ | async) === true">
-              <mat-icon>how_to_vote</mat-icon>
-              Save Ballot
-            </button>
-            <button mat-button color="warn" (click)="clearBallot()">
-              <mat-icon>backspace</mat-icon>
-              Clear
-            </button>
-          </div>
+          <!-- Controls moved to toolbar above -->
 
           <div
             cdkDropList

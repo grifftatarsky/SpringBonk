@@ -166,10 +166,14 @@ const reducer = createReducer(
       {
         results,
         total,
-      }: { results: OpenLibraryBookResponse[]; total: number }
+        pageIndex,
+      }: { results: OpenLibraryBookResponse[]; total: number; pageIndex: number }
     ): LibraryState => ({
       ...state,
-      searchResults: results,
+      searchResults:
+        pageIndex && pageIndex > 0
+          ? [...state.searchResults, ...results]
+          : results,
       searchTotal: total,
       searchLoading: false,
     })
@@ -193,4 +197,3 @@ export const {
   reducer: libraryReducer,
   selectLibraryState,
 } = libraryFeature;
-

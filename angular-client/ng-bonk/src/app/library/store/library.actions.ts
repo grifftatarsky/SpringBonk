@@ -83,9 +83,8 @@ export const searchOpenLibrary = createAction(
 );
 export const searchOpenLibrarySuccess = createAction(
   '[Library] Search OpenLibrary Success',
-  props<{ results: OpenLibraryBookResponse[]; total: number }>()
+  props<{ results: OpenLibraryBookResponse[]; total: number; pageIndex: number }>()
 );
 export const searchOpenLibraryFailure = createAction(
   '[Library] Search OpenLibrary Failure'
 );
-
