@@ -4,13 +4,15 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../common/confirm-dialog.component';
 import { Actions, ofType } from '@ngrx/effects';
 import * as ElectionsActions from './store/elections.actions';
-import { filter, map, mergeMap, of, take, timeout } from 'rxjs';
+import { filter, map, mergeMap, Observable, of, take, timeout } from 'rxjs';
 import { ElectionDetailComponent } from './election-detail.component';
 
-export const pendingBallotGuard: CanDeactivateFn<ElectionDetailComponent> = (comp) => {
+export const pendingBallotGuard: CanDeactivateFn<ElectionDetailComponent> = (
+  comp: ElectionDetailComponent
+): true | Observable<boolean> => {
   if (!comp || !comp.hasPendingChanges()) return true;
-  const dlg = inject(MatDialog);
-  const actions$ = inject(Actions);
+  const dlg: MatDialog = inject(MatDialog);
+  const actions$: Actions<any> = inject(Actions);
 
   const ref = dlg.open(ConfirmDialogComponent, {
     data: {
@@ -33,7 +35,10 @@ export const pendingBallotGuard: CanDeactivateFn<ElectionDetailComponent> = (com
       comp.submitBallot();
       const id = comp.getElectionId();
       return actions$.pipe(
-        ofType(ElectionsActions.submitBallotSuccess, ElectionsActions.submitBallotFailure),
+        ofType(
+          ElectionsActions.submitBallotSuccess,
+          ElectionsActions.submitBallotFailure
+        ),
         filter(a => 'electionId' in a && (a as any).electionId === id),
         take(1),
         map(a => a.type === ElectionsActions.submitBallotSuccess.type),
@@ -42,4 +47,3 @@ export const pendingBallotGuard: CanDeactivateFn<ElectionDetailComponent> = (com
     })
   );
 };
-

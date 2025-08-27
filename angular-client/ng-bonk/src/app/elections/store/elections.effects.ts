@@ -76,7 +76,6 @@ export class ElectionsEffects {
       switchMap(({ electionId }) =>
         this.http.runElection(electionId).pipe(
           map(result => ElectionsActions.runElectionSuccess({ electionId, result })),
-          tap(() => this.notify.success('Election completed.')),
           catchError(error => {
             this.notify.error(error?.error?.message || 'Failed to run election.');
             return of(ElectionsActions.runElectionFailure({ error }));

@@ -24,7 +24,12 @@ import { MatButtonModule } from '@angular/material/button';
           ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
           'Liberation Mono', 'Courier New', monospace;
         line-height: 1.1;
-        font-size: 14px;
+        font-size: 16px;
+      }
+      @media (max-width: 1023px) {
+        .ascii {
+          font-size: 8px;
+        }
       }
     `,
   ],
