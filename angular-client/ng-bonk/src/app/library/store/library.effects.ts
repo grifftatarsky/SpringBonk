@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import * as LibraryActions from './library.actions';
 import { ShelfHttpService } from '../../service/http/shelves-http.service';
@@ -89,7 +89,9 @@ export class LibraryEffects {
               count: books.length,
             })
           ),
-          map(books => LibraryActions.loadShelfBooksSuccess({ shelfId, books })),
+          map(books =>
+            LibraryActions.loadShelfBooksSuccess({ shelfId, books })
+          ),
           catchError(error => {
             console.error('[LibraryEffects] loadShelfBooks failure', error);
             return of(
@@ -142,7 +144,11 @@ export class LibraryEffects {
       switchMap(({ bookId, shelfId }) =>
         this.bookHttp
           .removeBookFromShelf(bookId, shelfId)
-          .pipe(map(() => LibraryActions.removeBookFromShelfSuccess({ bookId, shelfId })))
+          .pipe(
+            map(() =>
+              LibraryActions.removeBookFromShelfSuccess({ bookId, shelfId })
+            )
+          )
       )
     )
   );
@@ -181,7 +187,10 @@ export class LibraryEffects {
               })
             ),
             catchError(error => {
-              console.error('[LibraryEffects] searchOpenLibrary failure', error);
+              console.error(
+                '[LibraryEffects] searchOpenLibrary failure',
+                error
+              );
               return of(LibraryActions.searchOpenLibraryFailure());
             })
           )

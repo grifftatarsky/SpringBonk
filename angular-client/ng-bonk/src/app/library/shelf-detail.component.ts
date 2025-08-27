@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { BookCoverComponent } from '../common/book-cover.component';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AsyncPipe, CommonModule, NgForOf, NgIf } from '@angular/common';
@@ -13,7 +19,13 @@ import {
   selectLoadingBooks,
   selectShelfById,
 } from './store/library.selectors';
-import { BehaviorSubject, combineLatest, Observable, startWith, Subject, } from 'rxjs';
+import {
+  BehaviorSubject,
+  combineLatest,
+  Observable,
+  startWith,
+  Subject,
+} from 'rxjs';
 import { BookResponse } from '../model/response/book-response.model';
 import { ShelfResponse } from '../model/response/shelf-response.model';
 import { map, switchMap, takeUntil } from 'rxjs/operators';

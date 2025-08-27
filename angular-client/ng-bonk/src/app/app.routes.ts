@@ -6,7 +6,7 @@ import { ElectionsComponent } from './elections/elections.component';
 import { ElectionDetailComponent } from './elections/election-detail.component';
 import { ShelvesComponent } from './library/shelves.component';
 import { ShelfDetailComponent } from './library/shelf-detail.component';
-import { authGuard, authMatch } from './auth/auth.guard';
+import { authMatch } from './auth/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, data: { title: 'Home' } },

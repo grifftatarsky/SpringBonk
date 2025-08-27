@@ -30,7 +30,7 @@ const reducer = createReducer(
   initialState,
   on(
     LibraryActions.loadShelves,
-      (state: LibraryState): LibraryState => ({
+    (state: LibraryState): LibraryState => ({
       ...state,
       loadingShelves: true,
     })
@@ -46,15 +46,17 @@ const reducer = createReducer(
       }: { shelves: ShelfResponse[]; total: number; pageIndex: number }
     ): LibraryState => ({
       ...state,
-      shelves:
-        pageIndex > 0 ? [...state.shelves, ...shelves] : shelves,
+      shelves: pageIndex > 0 ? [...state.shelves, ...shelves] : shelves,
       total,
       loadingShelves: false,
     })
   ),
   on(
     LibraryActions.createShelfSuccess,
-    (state: LibraryState, { shelf }: { shelf: ShelfResponse }): LibraryState => ({
+    (
+      state: LibraryState,
+      { shelf }: { shelf: ShelfResponse }
+    ): LibraryState => ({
       ...state,
       shelves: [...state.shelves, shelf],
       total: state.total + 1,
@@ -62,7 +64,10 @@ const reducer = createReducer(
   ),
   on(
     LibraryActions.updateShelfSuccess,
-    (state: LibraryState, { shelf }: { shelf: ShelfResponse }): LibraryState => ({
+    (
+      state: LibraryState,
+      { shelf }: { shelf: ShelfResponse }
+    ): LibraryState => ({
       ...state,
       shelves: state.shelves.map((s: ShelfResponse) =>
         s.id === shelf.id ? shelf : s
@@ -73,12 +78,11 @@ const reducer = createReducer(
     LibraryActions.deleteShelfSuccess,
     (state: LibraryState, { shelfId }: { shelfId: string }): LibraryState => {
       const { [shelfId]: removedBooks, ...remainingBooks } = state.shelfBooks;
-      const { [shelfId]: removedLoading, ...remainingLoading } = state.loadingBooks;
+      const { [shelfId]: removedLoading, ...remainingLoading } =
+        state.loadingBooks;
       return {
         ...state,
-      shelves: state.shelves.filter(
-        (s: ShelfResponse) => s.id !== shelfId
-      ),
+        shelves: state.shelves.filter((s: ShelfResponse) => s.id !== shelfId),
         total: state.total > 0 ? state.total - 1 : 0,
         shelfBooks: remainingBooks,
         loadingBooks: remainingLoading,
@@ -106,7 +110,7 @@ const reducer = createReducer(
   on(
     LibraryActions.addBookSuccess,
     (
-        state: LibraryState,
+      state: LibraryState,
       { shelfId, book }: { shelfId: string; book: BookResponse }
     ): LibraryState => ({
       ...state,
@@ -134,18 +138,15 @@ const reducer = createReducer(
   on(
     LibraryActions.deleteBookSuccess,
     (state: LibraryState, { bookId }: { bookId: string }): LibraryState => {
-    const updatedShelfBooks = Object.keys(state.shelfBooks).reduce(
-      (
-        acc: { [key: string]: BookResponse[] },
-        key: string
-      ) => ({
-        ...acc,
-        [key]: state.shelfBooks[key].filter(
-          (b: BookResponse) => b.id !== bookId
-        ),
-      }),
-      {} as { [key: string]: BookResponse[] }
-    );
+      const updatedShelfBooks = Object.keys(state.shelfBooks).reduce(
+        (acc: { [key: string]: BookResponse[] }, key: string) => ({
+          ...acc,
+          [key]: state.shelfBooks[key].filter(
+            (b: BookResponse) => b.id !== bookId
+          ),
+        }),
+        {} as { [key: string]: BookResponse[] }
+      );
       return {
         ...state,
         shelfBooks: updatedShelfBooks,
@@ -167,7 +168,11 @@ const reducer = createReducer(
         results,
         total,
         pageIndex,
-      }: { results: OpenLibraryBookResponse[]; total: number; pageIndex: number }
+      }: {
+        results: OpenLibraryBookResponse[];
+        total: number;
+        pageIndex: number;
+      }
     ): LibraryState => ({
       ...state,
       searchResults:

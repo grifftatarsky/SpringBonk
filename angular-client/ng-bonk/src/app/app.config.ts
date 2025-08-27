@@ -5,7 +5,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 import { routes } from './app.routes';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { provideStore, provideState } from '@ngrx/store';
+import { provideState, provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { libraryFeature } from './library/store/library.reducer';

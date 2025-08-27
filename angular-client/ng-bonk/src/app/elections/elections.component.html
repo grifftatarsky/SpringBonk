@@ -12,10 +12,14 @@
 
 <div *ngIf="loading$ | async">
   <mat-progress-bar mode="indeterminate" />
-  </div>
+</div>
 
 <div class="elections-layout">
-  <div class="list-pane" #listContainer [class.mobile-hidden]="(hasSelection$ | async)" (scroll)="onListScroll($event)">
+  <div
+    class="list-pane"
+    #listContainer
+    [class.mobile-hidden]="hasSelection$ | async"
+    (scroll)="onListScroll($event)">
     <div class="elections-list">
       <ng-container *ngIf="elections$ | async as elections">
         <ng-container *ngIf="elections.length > 0; else noElections">
@@ -32,9 +36,17 @@
               [matRippleCentered]="true"
               (click)="navigateToDetail(e.id)">
               <div class="election-title">{{ e.title }}</div>
-              <div class="election-status" *ngIf="getStatus(e.endDateTime) as status">
-                <mat-chip [ngClass]="status.class" disableRipple
-                          [matTooltip]="status.text === 'Ongoing' ? ('Ends ' + (e.endDateTime | date: 'short')) : ''">
+              <div
+                class="election-status"
+                *ngIf="getStatus(e.endDateTime) as status">
+                <mat-chip
+                  [ngClass]="status.class"
+                  disableRipple
+                  [matTooltip]="
+                    status.text === 'Ongoing'
+                      ? 'Ends ' + (e.endDateTime | date: 'short')
+                      : ''
+                  ">
                   <mat-icon matChipAvatar inline>{{ status.icon }}</mat-icon>
                   {{ status.text }}
                 </mat-chip>
@@ -54,7 +66,7 @@
       </ng-template>
     </div>
   </div>
-  <div class="detail-pane" [class.mobile-shown]="(hasSelection$ | async)">
+  <div class="detail-pane" [class.mobile-shown]="hasSelection$ | async">
     <router-outlet></router-outlet>
   </div>
 </div>

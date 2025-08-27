@@ -9,4 +9,3 @@ describe('App Routes', () => {
     expect(detail).toBeTruthy();
   });
 });
-

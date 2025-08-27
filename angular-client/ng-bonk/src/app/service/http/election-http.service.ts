@@ -4,9 +4,9 @@ import { BaseHttpService } from './base-http.service';
 import { ElectionResponse } from '../../model/response/election-response.model';
 import { ElectionRequest } from '../../model/request/election-request.model';
 import { CandidateResponse } from '../../model/response/candidate-response.model';
-import { VoteResponse } from '../../model/response/vote-response.model';
 import { ElectionResult } from '../../model/election-result.model';
 import { PagedResponse } from '../../model/response/paged-response.model';
+import { VoteResponse } from '../../model/response/vote-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -52,7 +52,14 @@ export class ElectionHttpService extends BaseHttpService {
 
   getCandidatesByElection(id: string): Observable<CandidateResponse[]> {
     // Backend exposes candidates under "/{id}/candidates/all"
-    return this.get<CandidateResponse[]>(`${this.baseUrl}/${id}/candidates/all`);
+    return this.get<CandidateResponse[]>(
+      `${this.baseUrl}/${id}/candidates/all`
+    );
+  }
+
+  // ----- MY BALLOT -----
+  getMyVotes(electionId: string): Observable<VoteResponse[]> {
+    return this.get<VoteResponse[]>(`${this.baseUrl}/${electionId}/my-votes`);
   }
 
   // ----- ELECTION RUN -----
@@ -74,7 +81,9 @@ export class ElectionHttpService extends BaseHttpService {
   }
 
   deleteCandidate(electionId: string, candidateId: string): Observable<void> {
-    return this.delete<void>(`${this.baseUrl}/${electionId}/candidate/${candidateId}`);
+    return this.delete<void>(
+      `${this.baseUrl}/${electionId}/candidate/${candidateId}`
+    );
   }
 
   // ----- VOTING -----

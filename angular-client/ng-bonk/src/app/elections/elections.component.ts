@@ -1,18 +1,31 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ElectionHttpService } from '../service/http/election-http.service';
 import { ElectionsDataSource } from '../datasource/elections.datasource';
 import { ElectionDialog } from './election-dialog.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AsyncPipe, DatePipe, NgClass, NgIf, NgForOf } from '@angular/common';
+import { AsyncPipe, DatePipe, NgClass, NgForOf, NgIf } from '@angular/common';
 import { ElectionRequest } from '../model/request/election-request.model';
 import { Observable } from 'rxjs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatCardModule } from '@angular/material/card';
-import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  RouterOutlet,
+} from '@angular/router';
 import { filter, map, startWith } from 'rxjs/operators';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatRippleModule } from '@angular/material/core';
@@ -47,7 +60,8 @@ export class ElectionsComponent implements OnInit, AfterViewInit {
   total: number = 0;
   elections$!: Observable<ElectionResponse[]>;
 
-  @ViewChild('listContainer', { static: true }) listContainer!: ElementRef<HTMLElement>;
+  @ViewChild('listContainer', { static: true })
+  listContainer!: ElementRef<HTMLElement>;
 
   private readonly http = inject(ElectionHttpService);
   private readonly dialog = inject(MatDialog);

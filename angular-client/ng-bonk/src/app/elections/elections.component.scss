@@ -1,4 +1,6 @@
-.spacer { flex: 1; }
+.spacer {
+  flex: 1;
+}
 
 .toolbar-divider {
   width: 1px;
@@ -90,6 +92,10 @@
 }
 
 @media (max-width: 1023px) {
-  .mobile-hidden { display: none; }
-  .mobile-shown { display: block; }
+  .mobile-hidden {
+    display: none;
+  }
+  .mobile-shown {
+    display: block;
+  }
 }

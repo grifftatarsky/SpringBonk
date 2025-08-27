@@ -1,4 +1,4 @@
-import { libraryReducer, initialState } from './library.reducer';
+import { initialState, libraryReducer } from './library.reducer';
 import * as LibraryActions from './library.actions';
 import { ShelfResponse } from '../../model/response/shelf-response.model';
 import { BookResponse } from '../../model/response/book-response.model';

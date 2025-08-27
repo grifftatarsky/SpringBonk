@@ -1,6 +1,15 @@
-import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  OnInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -8,7 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTreeModule, MatTreeNestedDataSource } from '@angular/material/tree';
 import { NestedTreeControl } from '@angular/cdk/tree';
-import { BehaviorSubject, Observable, of, combineLatest } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { ElectionHttpService } from '../../service/http/election-http.service';
 import { ShelfHttpService } from '../../service/http/shelves-http.service';
@@ -26,8 +35,20 @@ export interface NominateToElectionDialogData {
 }
 
 type TreeNode = ShelfNode | BookNode;
-interface ShelfNode { type: 'shelf'; id: string; title: string; children?: BookNode[]; loading?: boolean }
-interface BookNode { type: 'book'; id: string; title: string; author: string; imageURL: string }
+interface ShelfNode {
+  type: 'shelf';
+  id: string;
+  title: string;
+  children?: BookNode[];
+  loading?: boolean;
+}
+interface BookNode {
+  type: 'book';
+  id: string;
+  title: string;
+  author: string;
+  imageURL: string;
+}
 
 @Component({
   selector: 'app-nominate-to-election-dialog',
@@ -58,7 +79,9 @@ export class NominateToElectionDialogComponent implements OnInit {
   selectedBook$ = new BehaviorSubject<BookResponse | null>(null);
 
   // Tree control
-  treeControl = new NestedTreeControl<TreeNode>(node => (node.type === 'shelf' ? (node.children || []) : []));
+  treeControl = new NestedTreeControl<TreeNode>(node =>
+    node.type === 'shelf' ? node.children || [] : []
+  );
   data$ = new BehaviorSubject<ShelfNode[]>([]);
   dataSource = new MatTreeNestedDataSource<TreeNode>();
   loadingShelves$ = new BehaviorSubject<boolean>(true);
@@ -84,10 +107,18 @@ export class NominateToElectionDialogComponent implements OnInit {
         const now = new Date();
         return list
           .filter(e => !e.endDateTime || new Date(e.endDateTime) > now)
-          .sort((a, b) => new Date(b.createDate).getTime() - new Date(a.createDate).getTime());
+          .sort(
+            (a, b) =>
+              new Date(b.createDate).getTime() -
+              new Date(a.createDate).getTime()
+          );
       }),
       tap(list => {
-        if (!this.data.electionId && list.length > 0 && !this.selectedElectionId$.value) {
+        if (
+          !this.data.electionId &&
+          list.length > 0 &&
+          !this.selectedElectionId$.value
+        ) {
           this.selectedElectionId$.next(list[0].id);
         }
       })
@@ -103,7 +134,9 @@ export class NominateToElectionDialogComponent implements OnInit {
 
     // Load candidates for selected election so we can detect existing nominations
     this.candidatesForElection$ = this.selectedElectionId$.pipe(
-      switchMap(id => (id ? this.electionsHttp.getCandidatesByElection(id) : of([])))
+      switchMap(id =>
+        id ? this.electionsHttp.getCandidatesByElection(id) : of([])
+      )
     );
 
     // Compute if the currently selected book is already nominated in the selected election
@@ -121,7 +154,11 @@ export class NominateToElectionDialogComponent implements OnInit {
     if (!this.data.book) {
       this.shelvesHttp.getUserShelves().subscribe({
         next: (shelves: ShelfResponse[]) => {
-          const nodes: ShelfNode[] = shelves.map(s => ({ type: 'shelf', id: s.id, title: s.title }));
+          const nodes: ShelfNode[] = shelves.map(s => ({
+            type: 'shelf',
+            id: s.id,
+            title: s.title,
+          }));
           this.data$.next(nodes);
           this.dataSource.data = nodes;
           this.loadingShelves$.next(false);
@@ -143,7 +180,13 @@ export class NominateToElectionDialogComponent implements OnInit {
       this.loadingBooksFor[node.id] = true;
       this.booksHttp.getBooksByShelfId(node.id).subscribe({
         next: books => {
-          node.children = books.map(b => ({ type: 'book', id: b.id, title: b.title, author: b.author, imageURL: b.imageURL }));
+          node.children = books.map(b => ({
+            type: 'book',
+            id: b.id,
+            title: b.title,
+            author: b.author,
+            imageURL: b.imageURL,
+          }));
           this.loadingBooksFor[node.id] = false;
           // Re-emit to update tree
           const updated = [...this.data$.value];
@@ -160,7 +203,12 @@ export class NominateToElectionDialogComponent implements OnInit {
 
   pickBookFromNode(node: BookNode): void {
     // Convert node to BookResponse shape for consistency
-    const book: BookResponse = { id: node.id, title: node.title, author: node.author, imageURL: node.imageURL } as any;
+    const book: BookResponse = {
+      id: node.id,
+      title: node.title,
+      author: node.author,
+      imageURL: node.imageURL,
+    } as any;
     this.selectedBook$.next(book);
   }
 

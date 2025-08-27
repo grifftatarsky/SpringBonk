@@ -4,7 +4,9 @@
   <div class="book-nominate-container">
     <div class="book-info">
       <div class="book-cover">
-        <app-book-cover [src]="data.book.imageURL" [alt]="data.book.title + ' cover'"></app-book-cover>
+        <app-book-cover
+          [src]="data.book.imageURL"
+          [alt]="data.book.title + ' cover'"></app-book-cover>
       </div>
       <div class="book-details">
         <h3>{{ data.book.title }}</h3>

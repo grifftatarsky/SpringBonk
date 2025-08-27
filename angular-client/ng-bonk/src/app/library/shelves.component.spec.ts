@@ -34,4 +34,3 @@ describe('ShelvesComponent', () => {
     expect(store.dispatch).toHaveBeenCalled();
   });
 });
-

@@ -32,9 +32,21 @@ export const selectSubmitting = createSelector(
   state => state.submitting
 );
 
+export const selectRunning = createSelector(
+  selectElectionsState,
+  state => state.running
+);
+
+export const selectRunResult = createSelector(
+  selectElectionsState,
+  state => state.runResult
+);
+
 export const selectBallotOrder = createSelector(
   selectElectionsState,
-  s => (electionId: string): string[] => s.ballotByElection[electionId] || []
+  s =>
+    (electionId: string): string[] =>
+      s.ballotByElection[electionId] || []
 );
 
 export const selectRankedCandidates = createSelector(
@@ -59,4 +71,3 @@ export const selectUnrankedCandidates = createSelector(
       return candidates.filter(c => !order.has(c.id));
     }
 );
-

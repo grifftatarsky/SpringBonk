@@ -150,7 +150,7 @@ export class BaseHttpService {
 
     // Return the error observable
     return throwError((): HttpErrorResponse => error);
-  }
+  };
 
   /**
    * Get a user-friendly error message based on HTTP error!
@@ -181,5 +181,5 @@ export class BaseHttpService {
       default:
         return `Error ${error.status}: ${error.statusText || 'Unknown error'}`;
     }
-  }
+  };
 }

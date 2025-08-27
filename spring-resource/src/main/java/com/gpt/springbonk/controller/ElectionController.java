@@ -168,4 +168,15 @@ public class ElectionController {
     electionService.deleteVoteForCandidate(candidateId, userId);
     return ResponseEntity.noContent().build();
   }
+
+  @GetMapping("/{id}/my-votes")
+  @Operation(summary = "Get the current user's votes for the given election, ordered by rank")
+  public ResponseEntity<List<VoteResponse>> getMyVotes(
+      @PathVariable UUID id,
+      @AuthenticationPrincipal Jwt jwt
+  ) {
+    UUID userId = UUID.fromString(jwt.getSubject());
+    List<VoteResponse> votes = electionService.getMyVotes(id, userId);
+    return ResponseEntity.ok(votes);
+  }
 }

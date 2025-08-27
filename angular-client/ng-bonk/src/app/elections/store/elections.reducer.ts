@@ -11,6 +11,8 @@ export interface ElectionsState {
   loadingElection: boolean;
   loadingCandidates: boolean;
   submitting: boolean;
+  running: boolean;
+  runResult: import('../../model/election-result.model').ElectionResult | null;
 }
 
 const initialState: ElectionsState = {
@@ -21,29 +23,43 @@ const initialState: ElectionsState = {
   loadingElection: false,
   loadingCandidates: false,
   submitting: false,
+  running: false,
+  runResult: null,
 };
 
 const reducer = createReducer(
   initialState,
-  on(ElectionsActions.loadElection, (state, { electionId }): ElectionsState => ({
-    ...state,
-    currentElectionId: electionId,
-    loadingElection: true,
-  })),
-  on(ElectionsActions.loadElectionSuccess, (state, { election }): ElectionsState => ({
-    ...state,
-    election,
-    loadingElection: false,
-  })),
-  on(ElectionsActions.loadElectionFailure, (state): ElectionsState => ({
-    ...state,
-    loadingElection: false,
-  })),
+  on(
+    ElectionsActions.loadElection,
+    (state, { electionId }): ElectionsState => ({
+      ...state,
+      currentElectionId: electionId,
+      loadingElection: true,
+    })
+  ),
+  on(
+    ElectionsActions.loadElectionSuccess,
+    (state, { election }): ElectionsState => ({
+      ...state,
+      election,
+      loadingElection: false,
+    })
+  ),
+  on(
+    ElectionsActions.loadElectionFailure,
+    (state): ElectionsState => ({
+      ...state,
+      loadingElection: false,
+    })
+  ),
 
-  on(ElectionsActions.loadCandidates, (state): ElectionsState => ({
-    ...state,
-    loadingCandidates: true,
-  })),
+  on(
+    ElectionsActions.loadCandidates,
+    (state): ElectionsState => ({
+      ...state,
+      loadingCandidates: true,
+    })
+  ),
   on(
     ElectionsActions.loadCandidatesSuccess,
     (state, { electionId, candidates }): ElectionsState => ({
@@ -56,35 +72,83 @@ const reducer = createReducer(
       },
     })
   ),
-  on(ElectionsActions.loadCandidatesFailure, (state): ElectionsState => ({
-    ...state,
-    loadingCandidates: false,
-  })),
+  on(
+    ElectionsActions.loadCandidatesFailure,
+    (state): ElectionsState => ({
+      ...state,
+      loadingCandidates: false,
+    })
+  ),
 
   on(
     ElectionsActions.setBallotOrder,
     (state, { electionId, orderedCandidateIds }): ElectionsState => ({
       ...state,
-      ballotByElection: { ...state.ballotByElection, [electionId]: orderedCandidateIds },
+      ballotByElection: {
+        ...state.ballotByElection,
+        [electionId]: orderedCandidateIds,
+      },
     })
   ),
-  on(ElectionsActions.clearBallot, (state, { electionId }): ElectionsState => ({
-    ...state,
-    ballotByElection: { ...state.ballotByElection, [electionId]: [] },
-  })),
+  on(
+    ElectionsActions.clearBallot,
+    (state, { electionId }): ElectionsState => ({
+      ...state,
+      ballotByElection: { ...state.ballotByElection, [electionId]: [] },
+    })
+  ),
 
-  on(ElectionsActions.submitBallot, (state): ElectionsState => ({
-    ...state,
-    submitting: true,
-  })),
-  on(ElectionsActions.submitBallotSuccess, (state): ElectionsState => ({
-    ...state,
-    submitting: false,
-  })),
-  on(ElectionsActions.submitBallotFailure, (state): ElectionsState => ({
-    ...state,
-    submitting: false,
-  }))
+  on(
+    ElectionsActions.submitBallot,
+    (state): ElectionsState => ({
+      ...state,
+      submitting: true,
+    })
+  ),
+  on(
+    ElectionsActions.submitBallotSuccess,
+    (state): ElectionsState => ({
+      ...state,
+      submitting: false,
+    })
+  ),
+  on(
+    ElectionsActions.submitBallotFailure,
+    (state): ElectionsState => ({
+      ...state,
+      submitting: false,
+    })
+  ),
+  on(
+    ElectionsActions.runElection,
+    (state): ElectionsState => ({
+      ...state,
+      running: true,
+      runResult: null,
+    })
+  ),
+  on(
+    ElectionsActions.runElectionSuccess,
+    (state, { result }): ElectionsState => ({
+      ...state,
+      running: false,
+      runResult: result,
+    })
+  ),
+  on(
+    ElectionsActions.runElectionFailure,
+    (state): ElectionsState => ({
+      ...state,
+      running: false,
+    })
+  ),
+  on(
+    ElectionsActions.loadMyBallotSuccess,
+    (state, { electionId, order }): ElectionsState => ({
+      ...state,
+      ballotByElection: { ...state.ballotByElection, [electionId]: order },
+    })
+  )
 );
 
 export const electionsFeature = createFeature({
@@ -97,4 +161,3 @@ export const {
   reducer: electionsReducer,
   selectElectionsState,
 } = electionsFeature;
-

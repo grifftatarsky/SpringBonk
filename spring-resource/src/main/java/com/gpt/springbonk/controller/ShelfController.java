@@ -49,10 +49,12 @@ public class ShelfController {
   @Operation(summary = "Get shelves (paged)")
   public ResponseEntity<PagedModel<ShelfResponse>> getPagedShelves(
       Pageable pageable,
-      PagedResourcesAssembler assembler
+      PagedResourcesAssembler assembler,
+      @AuthenticationPrincipal Jwt jwt
   ) {
-    Page<ShelfResponse> elections = shelfService.getPagedShelves(pageable);
-    return ResponseEntity.ok(assembler.toModel(elections));
+    UUID userId = UUID.fromString(jwt.getSubject());
+    Page<ShelfResponse> shelves = shelfService.getPagedShelves(pageable, userId);
+    return ResponseEntity.ok(assembler.toModel(shelves));
   }
 
   @GetMapping("/all")

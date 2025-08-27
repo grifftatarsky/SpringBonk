@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  OnChanges,
+  SimpleChanges,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -28,11 +34,40 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   `,
   styles: [
     `
-      :host { display: block; width: 100%; height: 100%; }
-      .cover-box { position: relative; width: 100%; height: 100%; border: 1px solid #00ff41; background: rgba(0,0,0,0.2); overflow: hidden; }
-      .cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-      .spinner, .placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-      .placeholder mat-icon { font-size: 36px; width: 36px; height: 36px; color: #00ff41; opacity: 0.9; }
+      :host {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .cover-box {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border: 1px solid #00ff41;
+        background: rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+      }
+      .cover-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .spinner,
+      .placeholder {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .placeholder mat-icon {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+        color: #00ff41;
+        opacity: 0.9;
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,4 +105,3 @@ export class BookCoverComponent implements OnChanges {
     this.showIcon = true;
   }
 }
-

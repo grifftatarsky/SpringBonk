@@ -242,7 +242,18 @@ public class ElectionService {
   }
 
   public Vote getVote(UUID candidateId, UUID userId) {
-    return voteRepository.findByIdAndVoter_Id(candidateId, userId).orElse(null);
+    return voteRepository.findByCandidate_IdAndVoter_Id(candidateId, userId).orElse(null);
+  }
+
+  public List<VoteResponse> getMyVotes(
+      @NotNull UUID electionId,
+      @NotNull UUID userId
+  ) {
+    return voteRepository
+        .findByVoter_IdAndCandidate_Election_IdOrderByRankAsc(userId, electionId)
+        .stream()
+        .map(VoteResponse::new)
+        .toList();
   }
 
   // Validation

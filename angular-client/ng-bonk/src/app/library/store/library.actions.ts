@@ -12,7 +12,9 @@ export const loadShelvesSuccess = createAction(
   '[Library] Load Shelves Success',
   props<{ shelves: ShelfResponse[]; total: number; pageIndex: number }>()
 );
-export const loadShelvesFailure = createAction('[Library] Load Shelves Failure');
+export const loadShelvesFailure = createAction(
+  '[Library] Load Shelves Failure'
+);
 
 export const createShelf = createAction(
   '[Library] Create Shelf',
@@ -79,11 +81,20 @@ export const deleteBookSuccess = createAction(
 
 export const searchOpenLibrary = createAction(
   '[Library] Search OpenLibrary',
-  props<{ query: string; sort?: string; pageIndex?: number; pageSize?: number }>()
+  props<{
+    query: string;
+    sort?: string;
+    pageIndex?: number;
+    pageSize?: number;
+  }>()
 );
 export const searchOpenLibrarySuccess = createAction(
   '[Library] Search OpenLibrary Success',
-  props<{ results: OpenLibraryBookResponse[]; total: number; pageIndex: number }>()
+  props<{
+    results: OpenLibraryBookResponse[];
+    total: number;
+    pageIndex: number;
+  }>()
 );
 export const searchOpenLibraryFailure = createAction(
   '[Library] Search OpenLibrary Failure'

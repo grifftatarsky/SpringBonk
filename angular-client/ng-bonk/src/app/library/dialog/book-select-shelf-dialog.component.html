@@ -3,7 +3,9 @@
 <mat-dialog-content>
   <div class="book-details">
     <div class="book-cover">
-      <app-book-cover [src]="getCoverImageUrl()" [alt]="data.book.title + ' cover'"></app-book-cover>
+      <app-book-cover
+        [src]="getCoverImageUrl()"
+        [alt]="data.book.title + ' cover'"></app-book-cover>
     </div>
     <div class="book-info">
       <h3>{{ data.book.title }}</h3>

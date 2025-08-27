@@ -48,4 +48,3 @@ export const selectShelfById = (shelfId: string) =>
   createSelector(selectShelves, shelves =>
     shelves.find(shelf => shelf.id === shelfId)
   );
-

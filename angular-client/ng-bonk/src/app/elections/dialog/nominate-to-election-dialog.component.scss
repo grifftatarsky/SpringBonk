@@ -4,9 +4,13 @@
   gap: 12px;
 }
 
-.election-picker { grid-column: 1 / -1; }
+.election-picker {
+  grid-column: 1 / -1;
+}
 
-.book-chooser { min-height: 220px; }
+.book-chooser {
+  min-height: 220px;
+}
 
 .book-card {
   display: grid;
@@ -14,23 +18,80 @@
   gap: 8px;
   align-items: center;
 }
-.book-card .cover { width: 64px; height: 92px; }
-.book-card .meta .title { font-weight: 600; }
-.book-card .meta .author { opacity: 0.85; font-size: 12px; }
 
-.tree-container { max-height: 50vh; overflow: auto; border: 1px solid #00ff41; padding: 8px; }
-.nominate-tree { width: 100%; }
-.shelf-node { display: flex; align-items: center; gap: 4px; }
-.shelf-title { font-weight: 600; }
-.book-node { display: flex; align-items: center; }
-.book-row { display: grid; grid-template-columns: 32px 1fr; gap: 8px; align-items: center; padding: 6px; cursor: pointer; }
-.book-row:hover { background: rgba(0, 255, 65, 0.08); }
-.book-row .thumb { width: 32px; height: 46px; }
-.book-row .title { font-weight: 600; }
-.book-row .author { opacity: 0.8; font-size: 11px; }
+.book-card .cover {
+  width: 64px;
+  height: 92px;
+}
+
+.book-card .meta .title {
+  font-weight: 600;
+}
+
+.book-card .meta .author {
+  opacity: 0.85;
+  font-size: 12px;
+}
+
+.tree-container {
+  max-height: 50vh;
+  overflow: auto;
+  border: 1px solid #00ff41;
+  padding: 8px;
+}
+
+.nominate-tree {
+  width: 100%;
+}
+
+.shelf-node {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.shelf-title {
+  font-weight: 600;
+}
+
+.book-node {
+  display: flex;
+  align-items: center;
+}
+
+.book-row {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 6px;
+  cursor: pointer;
+}
+
+.book-row:hover {
+  background: rgba(0, 255, 65, 0.08);
+}
+
+.book-row .thumb {
+  width: 32px;
+  height: 46px;
+}
+
+.book-row .title {
+  font-weight: 600;
+}
+
+.book-row .author {
+  opacity: 0.8;
+  font-size: 11px;
+}
 
 @media (min-width: 720px) {
-  .dialog-grid { grid-template-columns: 1fr 2fr; }
-  .election-picker { grid-column: auto; }
+  .dialog-grid {
+    grid-template-columns: 1fr 2fr;
+  }
+  .election-picker {
+    grid-column: auto;
+  }
 }
 

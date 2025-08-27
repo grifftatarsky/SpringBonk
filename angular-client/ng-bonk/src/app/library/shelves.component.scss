@@ -193,11 +193,16 @@
   z-index: 10;
   pointer-events: none;
 }
-.transition-line.instant { transition: none !important; }
+
+.transition-line.instant {
+  transition: none !important;
+}
 
 /* Hide transition line on mobile sizes */
 @media (max-width: 1023px) {
-  .transition-line { display: none !important; }
+  .transition-line {
+    display: none !important;
+  }
 }
 
 /* Detail fade-in */

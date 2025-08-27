@@ -57,3 +57,37 @@ export const submitBallotFailure = createAction(
   props<{ error?: unknown }>()
 );
 
+// Run election
+export const runElection = createAction(
+  '[Elections] Run Election',
+  props<{ electionId: string }>()
+);
+
+export const runElectionSuccess = createAction(
+  '[Elections] Run Election Success',
+  props<{
+    electionId: string;
+    result: import('../../model/election-result.model').ElectionResult;
+  }>()
+);
+
+export const runElectionFailure = createAction(
+  '[Elections] Run Election Failure',
+  props<{ error?: unknown }>()
+);
+
+// Load my ballot (votes) for election
+export const loadMyBallot = createAction(
+  '[Elections] Load My Ballot',
+  props<{ electionId: string }>()
+);
+
+export const loadMyBallotSuccess = createAction(
+  '[Elections] Load My Ballot Success',
+  props<{ electionId: string; order: string[] }>()
+);
+
+export const loadMyBallotFailure = createAction(
+  '[Elections] Load My Ballot Failure',
+  props<{ error?: unknown }>()
+);

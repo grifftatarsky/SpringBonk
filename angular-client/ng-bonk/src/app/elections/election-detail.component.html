@@ -1,13 +1,16 @@
 <div class="election-detail" *ngIf="election$ | async as election">
   <mat-toolbar id="toolbar-election-detail" class="gap-2">
-    <button mat-icon-button routerLink="/elections" aria-label="Back to elections">
+    <button
+      mat-icon-button
+      routerLink="/elections"
+      aria-label="Back to elections">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <span class="title">{{ election.title }}</span>
     <span class="spacer"></span>
     <mat-chip class="status-chip" *ngIf="election.endDateTime as end">
       <mat-icon matChipAvatar inline>event</mat-icon>
-      Ends: {{ end | date:'short' }}
+      Ends: {{ end | date: 'short' }}
     </mat-chip>
   </mat-toolbar>
 
@@ -15,7 +18,11 @@
   <mat-toolbar id="toolbar-election-actions" class="gap-2">
     <span>Ballot</span>
     <span class="spacer"></span>
-    <button mat-stroked-button color="primary" (click)="submitBallot()" [disabled]="(submitting$ | async) === true">
+    <button
+      mat-stroked-button
+      color="primary"
+      (click)="submitBallot()"
+      [disabled]="(submitting$ | async) === true">
       <mat-icon>how_to_vote</mat-icon>
       Save Ballot
     </button>
@@ -25,20 +32,37 @@
     </button>
     <div class="toolbar-divider" aria-hidden="true">&nbsp;</div>
     <ng-container *ngIf="myNominationId$ | async as myNominationId">
-      <button *ngIf="!myNominationId; else removeNomTpl" mat-stroked-button (click)="openNominateDialog()">
+      <button
+        *ngIf="!myNominationId; else removeNomTpl"
+        mat-stroked-button
+        (click)="openNominateDialog()">
         <mat-icon>star</mat-icon>
         Nominate from shelf
       </button>
       <ng-template #removeNomTpl>
-        <button mat-button color="warn" (click)="removeMyNomination(myNominationId)">
+        <button
+          mat-button
+          color="warn"
+          (click)="removeMyNomination(myNominationId)">
           <mat-icon>remove_circle</mat-icon>
           Remove nomination
         </button>
       </ng-template>
     </ng-container>
+    <div class="toolbar-divider" aria-hidden="true">&nbsp;</div>
+    <button
+      mat-flat-button
+      color="accent"
+      (click)="runElection()"
+      [disabled]="(running$ | async) === true">
+      <mat-icon>play_arrow</mat-icon>
+      {{ (running$ | async) ? 'Running…' : 'Run election' }}
+    </button>
   </mat-toolbar>
 
-  <div *ngIf="(loadingElection$ | async) || (loadingCandidates$ | async)" class="loading-bar">
+  <div
+    *ngIf="(loadingElection$ | async) || (loadingCandidates$ | async)"
+    class="loading-bar">
     <mat-progress-bar mode="indeterminate"></mat-progress-bar>
   </div>
 
@@ -49,16 +73,27 @@
         <!-- Candidates (unranked) -->
         <section class="candidate-pane">
           <h3>Nominees</h3>
-          <div class="placeholder" *ngIf="unranked.length === 0">No nominations</div>
+          <div class="placeholder" *ngIf="unranked.length === 0">
+            No nominations
+          </div>
           <div class="candidates" *ngIf="unranked.length > 0">
-            <mat-card class="candidate-card" *ngFor="let c of unranked" (click)="addToRanked(c.id, ranked)">
+            <mat-card
+              class="candidate-card"
+              *ngFor="let c of unranked; trackBy: trackByCandidate"
+              (click)="addToRanked(c.id, ranked)">
               <div class="card-body">
-                <app-book-cover class="cover" [src]="c.base.imageURL" [alt]="c.base.title + ' cover'"></app-book-cover>
+                <app-book-cover
+                  class="cover"
+                  [src]="c.base.imageURL"
+                  [alt]="c.base.title + ' cover'"></app-book-cover>
                 <div class="meta">
                   <div class="book-title">{{ c.base.title }}</div>
                   <div class="book-author">{{ c.base.author }}</div>
                 </div>
-                <button mat-icon-button class="add-btn" aria-label="Add to ballot">
+                <button
+                  mat-icon-button
+                  class="add-btn"
+                  aria-label="Add to ballot">
                   <mat-icon>add</mat-icon>
                 </button>
               </div>
@@ -74,27 +109,46 @@
           <div
             cdkDropList
             class="ballot-list"
-            (cdkDropListDropped)="dropRanked($event, ranked)"
-          >
+            (cdkDropListDropped)="dropRanked($event, ranked)">
             <div class="empty" *ngIf="ranked.length === 0">
               Tap nominees to add them here.
             </div>
 
             <div
               class="ballot-item"
-              *ngFor="let c of ranked; let i = index"
-              cdkDrag
-            >
+              *ngFor="let c of ranked; let i = index; trackBy: trackByCandidate"
+              cdkDrag>
               <div class="rank">{{ i + 1 }}</div>
               <div class="handle" cdkDragHandle>
                 <mat-icon>drag_indicator</mat-icon>
               </div>
-              <app-book-cover class="cover" [src]="c.base.imageURL" [alt]="c.base.title + ' cover'"></app-book-cover>
+              <app-book-cover
+                class="cover"
+                [src]="c.base.imageURL"
+                [alt]="c.base.title + ' cover'"></app-book-cover>
               <div class="meta">
                 <div class="book-title">{{ c.base.title }}</div>
                 <div class="book-author">{{ c.base.author }}</div>
               </div>
-              <button mat-icon-button color="warn" (click)="removeFromRanked(c.id, ranked)" aria-label="Remove">
+              <div class="mobile-reorder">
+                <button
+                  mat-icon-button
+                  aria-label="Move up"
+                  (click)="moveUp(i, ranked)">
+                  <mat-icon>arrow_upward</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  aria-label="Move down"
+                  (click)="moveDown(i, ranked)">
+                  <mat-icon>arrow_downward</mat-icon>
+                </button>
+              </div>
+              <button
+                mat-icon-button
+                color="warn"
+                (click)="removeFromRanked(c.id, ranked)"
+                aria-label="Remove">
                 <mat-icon>close</mat-icon>
               </button>
             </div>
@@ -103,4 +157,25 @@
       </div>
     </ng-container>
   </ng-container>
+
+  <!-- Run results -->
+  <mat-card
+    class="run-panel"
+    *ngIf="(running$ | async) || (runResult$ | async)">
+    <mat-card-header>
+      <mat-card-title>Results</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="running$ | async" class="running">
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <div class="hint">Running election…</div>
+      </div>
+      <pre
+        class="terminal"
+        *ngIf="
+          terminalLines$ | async as lines
+        "><ng-container *ngFor="let line of lines">{{ line }}
+</ng-container></pre>
+    </mat-card-content>
+  </mat-card>
 </div>

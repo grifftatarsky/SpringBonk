@@ -47,8 +47,8 @@ public class ShelfService {
     return shelfRepository.findByUserId(userId).stream().map(ShelfResponse::new).toList();
   }
 
-  public Page<ShelfResponse> getPagedShelves(Pageable pageable) {
-    return shelfRepository.findAll(pageable).map(ShelfResponse::new);
+  public Page<ShelfResponse> getPagedShelves(Pageable pageable, @NotNull UUID userId) {
+    return shelfRepository.findByUserId(userId, pageable).map(ShelfResponse::new);
   }
 
   public ShelfResponse getOneShelf(

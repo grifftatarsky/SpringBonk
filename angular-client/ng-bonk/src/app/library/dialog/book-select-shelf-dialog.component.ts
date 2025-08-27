@@ -103,7 +103,8 @@ export class BookSelectShelfDialog implements OnInit {
           );
         }
 
-        const defaultShelf = shelves.find(s => s.defaultShelf) ?? this.unshelvedShelf;
+        const defaultShelf =
+          shelves.find(s => s.defaultShelf) ?? this.unshelvedShelf;
         if (defaultShelf) {
           this.shelfControl.setValue(defaultShelf.id);
         }

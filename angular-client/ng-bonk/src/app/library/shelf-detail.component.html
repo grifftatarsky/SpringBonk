@@ -21,7 +21,9 @@
           *ngFor="let book of books"
           (click)="openBookSheet(book)">
           <div class="cover">
-            <app-book-cover [src]="book.imageURL" [alt]="book.title + ' cover'"></app-book-cover>
+            <app-book-cover
+              [src]="book.imageURL"
+              [alt]="book.title + ' cover'"></app-book-cover>
           </div>
           <div class="meta">
             <div class="title">{{ book.title }}</div>

@@ -1,12 +1,10 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  ChangeDetectionStrategy,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import {
   ActivatedRoute,
   NavigationEnd,
   Router,
+  RouterLink,
   RouterOutlet,
 } from '@angular/router';
 import { AuthenticationComponent } from './auth/authentication.component';
@@ -33,6 +31,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
     MatIconModule,
     MatDividerModule,
     MenuNavigationComponent,
+    RouterLink,
   ],
   templateUrl: './app.component.html',
   styles: [
@@ -59,9 +58,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
         style({ opacity: 0 }),
         animate('300ms ease-out', style({ opacity: 1 })),
       ]),
-      transition(':leave', [
-        animate('300ms ease-in', style({ opacity: 0 })),
-      ]),
+      transition(':leave', [animate('300ms ease-in', style({ opacity: 0 }))]),
     ]),
   ],
 })

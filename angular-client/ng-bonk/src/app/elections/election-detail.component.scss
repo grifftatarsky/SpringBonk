@@ -12,6 +12,7 @@
   flex-wrap: wrap;
   margin-top: 4px;
 }
+
 .toolbar-divider {
   width: 1px;
   height: 24px;
@@ -19,9 +20,13 @@
   margin: 0 8px;
 }
 
-.spacer { flex: 1; }
+.spacer {
+  flex: 1;
+}
 
-.loading-bar { margin: 4px 0; }
+.loading-bar {
+  margin: 4px 0;
+}
 
 .ballot-layout {
   display: flex;
@@ -29,7 +34,10 @@
   gap: 16px;
 }
 
-.candidate-pane, .ballot-pane { border: 1px solid #00ff41; padding: 12px; }
+.candidate-pane, .ballot-pane {
+  border: 1px solid #00ff41;
+  padding: 12px;
+}
 
 .candidates {
   display: grid;
@@ -38,17 +46,28 @@
 }
 
 @media (min-width: 640px) {
-  .candidates { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .candidates {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
+
 @media (min-width: 1024px) {
-  .ballot-layout { flex-direction: row; }
-  .candidate-pane { flex: 1; }
-  .ballot-pane { flex: 1; }
-  .candidates { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ballot-layout {
+    flex-direction: row;
+  }
+  .candidate-pane {
+    flex: 1;
+  }
+  .ballot-pane {
+    flex: 1;
+  }
+  .candidates {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .candidate-card {
-  background: rgba(0,0,0,0.25);
+  background: rgba(0, 0, 0, 0.25);
   border: 1px solid #00ff41;
 }
 
@@ -70,29 +89,97 @@
 .ballot-item .meta .book-title {
   font-weight: 600;
 }
+
 .candidate-card .meta .book-author,
 .ballot-item .meta .book-author {
   opacity: 0.85;
 }
 
-.candidate-card .add-btn { margin-left: auto; }
+.candidate-card .add-btn {
+  margin-left: auto;
+}
 
 /* ballot-controls moved to toolbar */
 
-.ballot-list { display: flex; flex-direction: column; gap: 6px; min-height: 48px; }
+.ballot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 48px;
+}
 
 .ballot-item {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px;
-  background: rgba(0,0,0,0.25);
+  background: rgba(0, 0, 0, 0.25);
   border: 1px solid #00ff41;
 }
 
-.ballot-item .rank { width: 24px; text-align: right; }
-.ballot-item .handle { cursor: grab; display: flex; align-items: center; }
+.ballot-item .rank {
+  width: 24px;
+  text-align: right;
+}
 
-.empty { opacity: 0.7; font-style: italic; padding: 6px; }
+.ballot-item .handle {
+  cursor: grab;
+  display: flex;
+  align-items: center;
+}
 
-.placeholder { opacity: 0.7; font-style: italic; padding: 12px; text-align: center; }
+.mobile-reorder {
+  display: none;
+  gap: 4px;
+  margin-left: auto;
+}
+
+@media (max-width: 600px) {
+  .handle {
+    display: none;
+  }
+  .mobile-reorder {
+    display: flex;
+  }
+}
+
+.empty {
+  opacity: 0.7;
+  font-style: italic;
+  padding: 6px;
+}
+
+.run-panel {
+  margin-top: 12px;
+}
+
+.terminal {
+  background: #000;
+  color: #00ff41;
+  border: 1px solid #00ff41;
+  padding: 8px;
+  max-height: 320px;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.running {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.running .hint {
+  opacity: 0.8;
+  font-size: 12px;
+}
+
+.placeholder {
+  opacity: 0.7;
+  font-style: italic;
+  padding: 12px;
+  text-align: center;
+}
