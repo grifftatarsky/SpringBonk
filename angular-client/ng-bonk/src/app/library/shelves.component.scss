@@ -73,22 +73,22 @@
 /* Mobile-first list styling */
 /* New shelves layout */
 .shelves-layout {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
-  height: calc(100vh - 120px);
   position: relative;
 }
 
 .list-pane {
-  padding: 16px;
   max-width: 720px;
   overflow: auto;
 }
 
 .shelves-list {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
+  padding: 16px;
 }
 
 .shelf-card {
@@ -134,26 +134,10 @@
   opacity: 0.9;
 }
 
-/* Retro pulse on click */
-.shelf-card-body.pulse {
-  animation: pulseGlow 250ms ease-out;
-}
-
-@keyframes pulseGlow {
-  0% {
-    box-shadow: 0 0 0 rgba(0, 255, 65, 0);
-  }
-  50% {
-    box-shadow: 0 0 12px rgba(0, 255, 65, 0.7);
-  }
-  100% {
-    box-shadow: 0 0 0 rgba(0, 255, 65, 0);
-  }
-}
+/* Material ripple provides the press feedback; remove custom pulse */
 
 .detail-pane {
   display: none;
-  height: 100%;
   overflow: auto;
 }
 
@@ -173,11 +157,18 @@
 
 @media (min-width: 1024px) {
   .shelves-layout {
+    flex-direction: row;
     padding: 16px;
-    grid-template-columns: minmax(320px, 420px) 1fr;
+  }
+  .shelves-list {
+    padding: 0;
+  }
+  .list-pane {
+    flex: 0 0 380px;
   }
   .detail-pane {
     display: block;
+    flex: 1 1 auto;
     border: 1px solid #00ff41;
   }
 }
@@ -201,6 +192,12 @@
   transition: width 320ms ease-out;
   z-index: 10;
   pointer-events: none;
+}
+.transition-line.instant { transition: none !important; }
+
+/* Hide transition line on mobile sizes */
+@media (max-width: 1023px) {
+  .transition-line { display: none !important; }
 }
 
 /* Detail fade-in */

@@ -24,7 +24,9 @@
   <!-- Transition line overlay -->
   <div
     *ngIf="showLine"
+    #transLine
     class="transition-line"
+    [class.instant]="lineInstant"
     [ngStyle]="{ top: lineStyle.top, left: lineStyle.left, width: lineStyle.width }"></div>
 
   <div class="list-pane" #listPane [class.mobile-hidden]="(hasSelection$ | async)">
@@ -36,7 +38,12 @@
           [class.active]="(selectedId$ | async) === shelf.id"
           tabindex="0"
           role="button">
-          <div class="shelf-card-body" (click)="onShelfClick(shelf, $event)">
+          <div
+            class="shelf-card-body"
+            matRipple
+            [matRippleColor]="'rgba(0,255,65,0.3)'"
+            [matRippleCentered]="true"
+            (click)="onShelfClick(shelf, $event)">
             <div class="shelf-title">{{ shelf.title }}</div>
             <div class="shelf-tags">
               <span *ngIf="shelf.defaultShelf" class="tag">Default</span>

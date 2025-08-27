@@ -64,7 +64,7 @@ export interface BookDetailSheetData {
   styles: [
     `
       :host { display: block; padding: 12px; }
-      .sheet-header { display: grid; grid-template-columns: 80px 1fr; gap: 12px; align-items: center; }
+      .sheet-header { display: flex; align-items: center; gap: 12px; }
       .cover { width: 80px; height: 112px; border: 1px solid #00ff41; overflow: hidden; }
       .cover img { width: 100%; height: 100%; object-fit: cover; }
       .meta .title { font-weight: 600; margin-bottom: 6px; }

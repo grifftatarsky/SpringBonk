@@ -1,17 +1,19 @@
 <div class="sheet-search-bar" role="search">
   <div class="main-search">
     <mat-form-field class="w-full" appearance="outline">
-      <mat-label>Title or Author</mat-label>
+      <mat-label>Title and/or Author</mat-label>
       <input
         matInput
         [formControl]="searchControl"
         placeholder="Combined search"
         autocomplete="off" />
       <mat-icon matSuffix>search</mat-icon>
-      <mat-hint>Combined title and author search</mat-hint>
     </mat-form-field>
 
-    <button mat-icon-button (click)="toggleFilters()" aria-label="Advanced filters">
+    <button
+      mat-icon-button
+      (click)="toggleFilters()"
+      aria-label="Advanced filters">
       <mat-icon>{{ showFilters ? 'close' : 'tune' }}</mat-icon>
     </button>
   </div>
@@ -22,7 +24,12 @@
 </div>
 
 <mat-drawer-container class="sheet-container" autosize>
-  <mat-drawer #filtersDrawer mode="over" position="end" [opened]="showFilters" class="filters-drawer">
+  <mat-drawer
+    #filtersDrawer
+    mode="over"
+    position="end"
+    [opened]="showFilters"
+    class="filters-drawer">
     <div class="filters">
       <h3>Advanced Filters</h3>
       <mat-form-field appearance="outline">
@@ -46,7 +53,9 @@
         </mat-select>
       </mat-form-field>
       <div class="filters-actions">
-        <button mat-stroked-button color="primary" (click)="toggleFilters()">Close</button>
+        <button mat-stroked-button color="primary" (click)="toggleFilters()">
+          Close
+        </button>
       </div>
     </div>
   </mat-drawer>
@@ -57,27 +66,41 @@
     </div>
 
     <div class="results-scroll">
-      <div class="results-grid" *ngIf="(results$ | async) as results">
-        <mat-card class="result-card" *ngFor="let book of results">
-          <div class="result-row">
-            <div class="cover"><img [src]="getCover(book)" alt="{{ book.title }} cover" /></div>
-            <div class="meta">
-              <div class="title">{{ book.title }}</div>
-              <div class="author">{{ book.author_name?.[0] ?? '—' }}</div>
-              <div class="year">{{ book.first_publish_year ?? '—' }}</div>
+      <ng-container *ngIf="results$ | async as results">
+        <ng-container *ngIf="hasSearched; else preSearch">
+          <ng-container *ngIf="results.length > 0; else noResults">
+            <div class="results-list">
+              <mat-card class="result-row-card" *ngFor="let book of results">
+                <div class="cover">
+                  <img [src]="getCover(book)" alt="{{ book.title }} cover" />
+                </div>
+                <div class="meta">
+                  <div class="title">{{ book.title }}</div>
+                  <div class="author">{{ book.author_name?.[0] ?? '—' }}</div>
+                  <div class="year">{{ book.first_publish_year ?? '—' }}</div>
+                </div>
+                <div class="actions">
+                  <button
+                    mat-icon-button
+                    color="primary"
+                    aria-label="Add book"
+                    (click)="select(book)">
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </div>
+              </mat-card>
             </div>
-            <div class="actions">
-              <button mat-stroked-button color="primary" (click)="select(book)">
-                <mat-icon>add</mat-icon>
-                Add
-              </button>
+          </ng-container>
+          <ng-template #noResults>
+            <div class="placeholder">
+              No results found. Try refining your search.
             </div>
-          </div>
-        </mat-card>
-        <div class="no-data" *ngIf="!results.length">
-          {{ hasSearched ? 'No results found' : 'Enter a search term to find books' }}
-        </div>
-      </div>
+          </ng-template>
+        </ng-container>
+        <ng-template #preSearch>
+          <div class="placeholder">Enter a search term to find books</div>
+        </ng-template>
+      </ng-container>
     </div>
 
     <mat-paginator

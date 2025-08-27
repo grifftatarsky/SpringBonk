@@ -1,5 +1,5 @@
 <mat-toolbar color="primary">
-  <button mat-icon-button routerLink="/shelves">
+  <button mat-icon-button class="mobile-back-button" routerLink="/shelves">
     <mat-icon>arrow_back</mat-icon>
   </button>
   <span>{{ (shelf$ | async)?.title }}</span>
@@ -13,10 +13,13 @@
   <div *ngIf="loading$ | async">
     <mat-progress-bar mode="indeterminate"></mat-progress-bar>
   </div>
-  <ng-container *ngIf="(displayedBooks$ | async) as books">
+  <ng-container *ngIf="displayedBooks$ | async as books">
     <ng-container *ngIf="books.length > 0; else emptyBooks">
       <div class="book-cards">
-        <mat-card class="book-card" *ngFor="let book of books" (click)="openBookSheet(book)">
+        <mat-card
+          class="book-card"
+          *ngFor="let book of books"
+          (click)="openBookSheet(book)">
           <div class="cover">
             <img [src]="book.imageURL" alt="{{ book.title }} cover" />
           </div>
@@ -24,11 +27,16 @@
             <div class="title">{{ book.title }}</div>
             <mat-chip-set>
               <mat-chip appearance="outlined">{{ book.author }}</mat-chip>
-              <mat-chip appearance="outlined">{{ book.publishedYear ?? '—' }}</mat-chip>
+              <mat-chip appearance="outlined">{{
+                book.publishedYear ?? '—'
+              }}</mat-chip>
             </mat-chip-set>
           </div>
           <div class="actions" (click)="$event.stopPropagation()">
-            <button mat-icon-button aria-label="Book details" (click)="openBookSheet(book)">
+            <button
+              mat-icon-button
+              aria-label="Book details"
+              (click)="openBookSheet(book)">
               <mat-icon>info</mat-icon>
             </button>
           </div>

@@ -1,8 +1,8 @@
 import {
-  Component,
   ChangeDetectionStrategy,
-  OnInit,
+  Component,
   ElementRef,
+  OnInit,
   ViewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
@@ -22,7 +22,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatCardModule } from '@angular/material/card';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
-import { ActivatedRoute, Router, RouterOutlet, NavigationEnd } from '@angular/router';
+import { MatRippleModule } from '@angular/material/core';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  RouterOutlet,
+} from '@angular/router';
 import { BookSearchSheet } from './book-search-sheet.component';
 import { BookResponse } from '../model/response/book-response.model';
 import { BookDetailDialog } from './dialog/book-detail-dialog.component';
@@ -30,11 +36,11 @@ import { BookNominateDialog } from './dialog/book-nominate.component';
 import { Store } from '@ngrx/store';
 import * as LibraryActions from './store/library.actions';
 import {
+  selectLoadingBooks,
+  selectShelfBooks,
   selectShelves,
   selectShelvesLoading,
   selectShelvesTotal,
-  selectShelfBooks,
-  selectLoadingBooks,
 } from './store/library.selectors';
 import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
 import { ShelfDialog } from './dialog/shelf-dialog.component';
@@ -55,6 +61,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     MatTooltipModule,
     MatSortModule,
     RouterOutlet,
+    MatRippleModule,
     AsyncPipe,
     NgIf,
     NgForOf,
@@ -90,15 +97,23 @@ export class ShelvesComponent implements OnInit {
 
   // Animation state
   showLine = false;
+  lineInstant = false;
   lineStyle: { top: string; left: string; width: string } = {
     top: '0px',
     left: '0px',
-    width: '0px',
+    width: '16px',
   };
-  @ViewChild('shelvesLayout', { static: true }) layoutRef!: ElementRef<HTMLElement>;
-  @ViewChild('listPane', { static: true }) listPaneRef!: ElementRef<HTMLElement>;
-  @ViewChild('detailPane', { static: true }) detailPaneRef!: ElementRef<HTMLElement>;
-  @ViewChild('detailContent', { static: false }) detailContentRef?: ElementRef<HTMLElement>;
+
+  @ViewChild('shelvesLayout', { static: true })
+  layoutRef!: ElementRef<HTMLElement>;
+  @ViewChild('listPane', { static: true })
+  listPaneRef!: ElementRef<HTMLElement>;
+  @ViewChild('detailPane', { static: true })
+  detailPaneRef!: ElementRef<HTMLElement>;
+  @ViewChild('detailContent', { static: false })
+  detailContentRef?: ElementRef<HTMLElement>;
+  @ViewChild('transLine', { static: false })
+  lineRef?: ElementRef<HTMLElement>;
 
   constructor(
     private store: Store,
@@ -112,7 +127,9 @@ export class ShelvesComponent implements OnInit {
     this.total$ = this.store.select(selectShelvesTotal);
     this.shelfBooks$ = this.store.select(selectShelfBooks);
     this.loadingBooks$ = this.store.select(selectLoadingBooks);
-    this.shelfBooks$.pipe(takeUntilDestroyed()).subscribe(sb => (this.shelfBooks = sb));
+    this.shelfBooks$
+      .pipe(takeUntilDestroyed())
+      .subscribe(sb => (this.shelfBooks = sb));
     this.loadingBooks$
       .pipe(takeUntilDestroyed())
       .subscribe(lb => (this.loadingBooks = lb));
@@ -170,7 +187,10 @@ export class ShelvesComponent implements OnInit {
     ) {
       this.pageIndex++;
       this.store.dispatch(
-        LibraryActions.loadShelves({ pageIndex: this.pageIndex, pageSize: this.pageSize })
+        LibraryActions.loadShelves({
+          pageIndex: this.pageIndex,
+          pageSize: this.pageSize,
+        })
       );
     }
   }
@@ -179,40 +199,49 @@ export class ShelvesComponent implements OnInit {
     try {
       const listEl = this.listPaneRef?.nativeElement;
       const layoutEl = this.layoutRef?.nativeElement;
-      const targetEl = (event.currentTarget as HTMLElement) ?? (event.target as HTMLElement);
+      const targetEl =
+        (event.currentTarget as HTMLElement) ?? (event.target as HTMLElement);
       if (!listEl || !layoutEl || !targetEl) {
         this.router.navigate([shelf.id], { relativeTo: this.route });
         return;
       }
-
-      // Pulse
-      targetEl.classList.remove('pulse');
-      void targetEl.offsetWidth;
-      targetEl.classList.add('pulse');
 
       const listRect = listEl.getBoundingClientRect();
       const layoutRect = layoutEl.getBoundingClientRect();
       const targetRect = targetEl.getBoundingClientRect();
       const startX = targetRect.right - layoutRect.left;
       const startY = targetRect.top - layoutRect.top + targetRect.height / 2;
+      // Aim toward the detail pane's left edge, slightly inside, so it is visible on desktop
+      const detailRect =
+        this.detailPaneRef?.nativeElement.getBoundingClientRect();
+      // End exactly at the divider (list's right edge)
       const destX = listRect.right - layoutRect.left;
       const distance = Math.max(0, destX - startX);
 
-      const content = (this as any).detailContentRef?.nativeElement as HTMLElement | undefined;
+      const content = (this as any).detailContentRef?.nativeElement as
+        | HTMLElement
+        | undefined;
       if (content) {
         content.classList.remove('fade-in');
         content.classList.add('fade-out');
       }
 
-      this.lineStyle = { top: `${startY}px`, left: `${startX}px`, width: `0px` };
+      this.lineInstant = true;
+      this.lineStyle = {
+        top: `${startY}px`,
+        left: `${startX}px`,
+        width: `0px`,
+      };
       this.showLine = true;
 
       const fadeOutMs = 150;
       const lineMs = 350;
 
       setTimeout(() => {
-        // start line and navigate
-        this.lineStyle = { ...this.lineStyle, width: `${distance}px` };
+        // enable transition and start line
+        void this.lineRef?.nativeElement.offsetWidth;
+        this.lineInstant = false;
+        this.lineStyle = { ...this.lineStyle, width: `16px` };
         this.router.navigate([shelf.id], { relativeTo: this.route });
 
         setTimeout(() => {
