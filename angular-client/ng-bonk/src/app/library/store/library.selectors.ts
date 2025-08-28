@@ -49,3 +49,5 @@ export const selectShelfById = (shelfId: string) =>
     shelves.find(shelf => shelf.id === shelfId)
   );
 
+export const selectShelfTotal = (shelfId: string) =>
+  createSelector(selectLibraryState, state => state.shelfTotals[shelfId] || 0);

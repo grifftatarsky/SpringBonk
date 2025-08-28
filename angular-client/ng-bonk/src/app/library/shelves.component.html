@@ -1,212 +1,82 @@
 <mat-toolbar id="toolbar-shelves" class="gap-2">
-  <button mat-icon-button (click)="refresh()">
+  <button mat-icon-button (click)="refresh()" aria-label="Refresh shelves">
     <mat-icon>refresh</mat-icon>
   </button>
-  <div class="toolbar-divider">&nbsp;</div>
-  <button mat-button (click)="openCreateDialog()">
-    <mat-icon>shelves</mat-icon>
-    Add Shelf
+  <div class="toolbar-divider" aria-hidden="true">&nbsp;</div>
+  <button mat-button (click)="openCreateDialog()" aria-label="Create shelf">
+    <mat-icon>library_add</mat-icon>
+    New Shelf
   </button>
-  <div class="toolbar-divider">&nbsp;</div>
-  <button mat-button (click)="openBookSearchDialog()">
-    <mat-icon>book_ribbon</mat-icon>
+  <div class="toolbar-divider" aria-hidden="true">&nbsp;</div>
+  <button mat-button (click)="openBookSearchDialog()" aria-label="Add book">
+    <mat-icon>menu_book</mat-icon>
     Add Book
   </button>
   <!--Divider, then TODO: chits for categories.-->
   <div class="spacer"></div>
 </mat-toolbar>
 
-<div *ngIf="loading$ | async">
-  <mat-progress-bar mode="indeterminate" />
-</div>
-
-<!-- Main shelves table -->
-<div class="shelves-container">
-  <!-- No Data -->
-  <div class="table-no-data-bar" *ngIf="(shelves$ | async)?.length === 0">
-    You do not currently have any shelves. This should not be possible.
+@if (loading$ | async) {
+  <div>
+    <mat-progress-bar mode="indeterminate" />
   </div>
+}
 
-  <!-- Shelves with expansion panels -->
-  <ng-container *ngIf="shelfBooks$ | async as shelfBooks">
-    <ng-container *ngIf="loadingBooks$ | async as loadingBooks">
-      <mat-accordion class="shelves-accordion" multi>
-        <mat-expansion-panel
-          *ngFor="let shelf of shelves$ | async"
-          [expanded]="expandedShelf === shelf.id"
-          (opened)="toggleExpand(shelf.id)">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <a
-                [routerLink]="['/shelves', shelf.id]"
-                (click)="$event.stopPropagation()">
-                {{ shelf.title }}
-              </a>
-            </mat-panel-title>
-            <mat-panel-description>
-              <span *ngIf="shelf.defaultShelf" class="default-badge"
-                >Default</span
-              >
-              <div class="shelf-actions" *ngIf="!shelf.defaultShelf">
-                <button
-                  mat-icon-button
-                  matTooltip="Delete shelf"
-                  (click)="deleteShelf(shelf.id, $event)">
-                  <mat-icon color="warn">delete</mat-icon>
-                </button>
-                <button
-                  mat-icon-button
-                  matTooltip="Edit shelf"
-                  (click)="openEditDialog(shelf.id, $event)">
-                  <mat-icon color="primary">edit</mat-icon>
-                </button>
-              </div>
-            </mat-panel-description>
-          </mat-expansion-panel-header>
+<div class="shelves-layout" #shelvesLayout>
+  <!-- Transition line overlay -->
+  @if (showLine) {
+    <div
+      #transLine
+      class="transition-line"
+      [class.instant]="lineInstant"
+      [ngStyle]="{
+        top: lineStyle.top,
+        left: lineStyle.left,
+        width: lineStyle.width,
+      }"></div>
+  }
 
-          <!-- Books table inside the expansion panel -->
-          <div class="books-container">
-            <div *ngIf="loadingBooks[shelf.id]" class="loading-books">
-              <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-            </div>
-
+  <div
+    class="list-pane"
+    #listPane
+    [class.mobile-hidden]="hasSelection$ | async"
+    (scroll)="onListScroll($event)">
+    <div class="shelves-list">
+      @if (shelves$ | async; as shelves) {
+        @for (shelf of shelves; track trackByShelfId($index, shelf)) {
+          <mat-card
+            class="shelf-card"
+            [class.active]="(selectedId$ | async) === shelf.id"
+            tabindex="0"
+            role="button">
             <div
-              *ngIf="
-                !loadingBooks[shelf.id] &&
-                (!shelfBooks[shelf.id] || shelfBooks[shelf.id].length === 0)
-              "
-              class="no-books-message">
-              This shelf has no books yet.
+              class="shelf-card-body"
+              matRipple
+              [matRippleColor]="'rgba(0,255,65,0.3)'"
+              [matRippleCentered]="true"
+              (click)="onShelfClick(shelf, $event)">
+              <div class="shelf-title">{{ shelf.title }}</div>
+              <div class="shelf-tags">
+                @if (shelf.defaultShelf) {
+                  <span class="tag">Default</span>
+                }
+              </div>
             </div>
-
-            <table
-              mat-table
-              [dataSource]="
-                (shelfBooks[shelf.id] || []) |
-                slice:
-                  (bookPageIndex[shelf.id] || 0) * bookPageSize:
-                  (bookPageIndex[shelf.id] || 0) * bookPageSize +
-                    bookPageSize
-              "
-              *ngIf="
-                !loadingBooks[shelf.id] &&
-                shelfBooks[shelf.id] &&
-                shelfBooks[shelf.id].length > 0
-              "
-              matSort
-              (matSortChange)="sortShelfBooks($event, shelf.id)"
-              matSortDisableClear
-              class="books-table mat-elevation-z0">
-              <!-- Cover Column -->
-              <ng-container matColumnDef="cover">
-                <th mat-header-cell *matHeaderCellDef>Cover</th>
-                <td mat-cell *matCellDef="let book">
-                  <div
-                    class="book-cover-avatar"
-                    (click)="openBookDetails(book)">
-                    <img [src]="book.imageURL" alt="{{ book.title }} cover" />
-                  </div>
-                </td>
-              </ng-container>
-
-              <!-- Title Column -->
-              <ng-container matColumnDef="title">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header="title">
-                  Title
-                </th>
-                <td
-                  mat-cell
-                  *matCellDef="let book"
-                  (click)="openBookDetails(book)">
-                  {{ book.title }}
-                </td>
-              </ng-container>
-
-              <!-- Author Column -->
-              <ng-container matColumnDef="author">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header="author">
-                  Author
-                </th>
-                <td
-                  mat-cell
-                  *matCellDef="let book"
-                  (click)="openBookDetails(book)">
-                  {{ book.author }}
-                </td>
-              </ng-container>
-
-              <!-- Published Column -->
-              <ng-container matColumnDef="published">
-                <th
-                  mat-header-cell
-                  *matHeaderCellDef
-                  mat-sort-header="published">
-                  Published
-                </th>
-                <td
-                  mat-cell
-                  *matCellDef="let book"
-                  (click)="openBookDetails(book)">
-                  {{ book.publishedYear ?? '—' }}
-                </td>
-              </ng-container>
-
-              <!-- Actions Column -->
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef>Actions</th>
-                <td mat-cell *matCellDef="let book">
-                  <button
-                    mat-icon-button
-                    [matMenuTriggerFor]="bookMenu"
-                    aria-label="Book options">
-                    <mat-icon>more_vert</mat-icon>
-                  </button>
-
-                  <mat-menu #bookMenu="matMenu">
-                    <button mat-menu-item (click)="openBookDetails(book)">
-                      <mat-icon>info</mat-icon>
-                      <span>Details</span>
-                    </button>
-                    <button mat-menu-item (click)="nominateBook(book, $event)">
-                      <mat-icon>star</mat-icon>
-                      <span>Nominate</span>
-                    </button>
-                    <button
-                      mat-menu-item
-                      (click)="removeBookFromShelf(book.id, shelf.id, $event)">
-                      <mat-icon>remove_circle</mat-icon>
-                      <span>Remove from shelf</span>
-                    </button>
-                    <button mat-menu-item (click)="deleteBook(book.id, $event)">
-                      <mat-icon color="warn">delete</mat-icon>
-                      <span>Delete book</span>
-                    </button>
-                  </mat-menu>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="bookColumns"></tr>
-              <tr
-                mat-row
-                *matRowDef="let row; columns: bookColumns"
-                class="book-row"></tr>
-            </table>
-            <mat-paginator
-              class="books-paginator"
-              *ngIf="
-                shelfBooks[shelf.id] &&
-                shelfBooks[shelf.id].length > bookPageSize
-              "
-              [length]="shelfBooks[shelf.id]?.length ?? 0"
-              [pageSize]="bookPageSize"
-              [pageIndex]="bookPageIndex[shelf.id] || 0"
-              [pageSizeOptions]="[5, 10, 25]"
-              aria-label="Shelf books pagination"
-              (page)="onBookPage($event, shelf.id)">
-            </mat-paginator>
-          </div>
-        </mat-expansion-panel>
-      </mat-accordion>
-    </ng-container>
-  </ng-container>
+          </mat-card>
+        }
+      } @else {
+        <div class="table-no-data-bar">
+          No shelves yet. Create your first to get started.
+        </div>
+      }
+    </div>
+  </div>
+  <div
+    class="detail-pane"
+    #detailPane
+    [class.mobile-shown]="hasSelection$ | async">
+    <div class="detail-content" #detailContent>
+      <router-outlet></router-outlet>
+    </div>
+  </div>
 </div>

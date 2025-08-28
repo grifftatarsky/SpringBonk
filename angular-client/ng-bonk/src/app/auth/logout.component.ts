@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { UserService } from '../service/user.service';
 import { lastValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -11,6 +11,7 @@ import { MatButton } from '@angular/material/button';
   imports: [MatButton],
   templateUrl: './logout.component.html',
   styles: ``,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LogoutComponent {
   constructor(
@@ -18,7 +19,7 @@ export class LogoutComponent {
     private user: UserService
   ) {}
 
-  logout() {
+  logout(): void {
     lastValueFrom(
       this.http.post(`${reverseProxyUri}/logout`, null, {
         headers: {

@@ -1,0 +1,196 @@
+@if (election$ | async; as election) {
+  <div class="election-detail">
+    <mat-toolbar id="toolbar-election-detail" class="gap-2">
+      <button
+        mat-icon-button
+        routerLink="/elections"
+        aria-label="Back to elections">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <span class="title">{{ election.title }}</span>
+      <span class="spacer"></span>
+      @if (election.endDateTime; as end) {
+        <mat-chip class="status-chip">
+          <mat-icon matChipAvatar inline>event</mat-icon>
+          Ends: {{ end | date: 'short' }}
+        </mat-chip>
+      }
+    </mat-toolbar>
+    <!-- Secondary actions toolbar -->
+    <mat-toolbar id="toolbar-election-actions" class="gap-2">
+      <span>Controls</span>
+      <span class="spacer"></span>
+
+      @if (!(isHandset$ | async)) {
+        @let myNominationId = myNominationId$ | async;
+        @if (!myNominationId) {
+          <button mat-stroked-button (click)="openNominateDialog()">
+            <mat-icon>star</mat-icon>
+            Nominate from shelf
+          </button>
+        } @else {
+          <button
+            mat-button
+            color="warn"
+            (click)="removeMyNomination(myNominationId)">
+            <mat-icon>remove_circle</mat-icon>
+            Remove nomination
+          </button>
+        }
+        <button
+          mat-flat-button
+          color="accent"
+          (click)="runElection()"
+          [disabled]="(running$ | async) === true">
+          <mat-icon>play_arrow</mat-icon>
+          {{ (running$ | async) ? 'Running…' : 'Run election' }}
+        </button>
+      } @else {
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="actionsMenu"
+          aria-label="Actions">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #actionsMenu="matMenu">
+          @let myNominationId = myNominationId$ | async;
+          @if (!myNominationId) {
+            <button mat-menu-item (click)="openNominateDialog()">
+              <mat-icon>star</mat-icon>
+              <span>Nominate from shelf</span>
+            </button>
+          } @else {
+            <button mat-menu-item (click)="removeMyNomination(myNominationId)">
+              <mat-icon>remove_circle</mat-icon>
+              <span>Remove nomination</span>
+            </button>
+          }
+          <button
+            mat-menu-item
+            (click)="runElection()"
+            [disabled]="(running$ | async) === true">
+            <mat-icon>play_arrow</mat-icon>
+            <span>{{ (running$ | async) ? 'Running…' : 'Run election' }}</span>
+          </button>
+        </mat-menu>
+      }
+    </mat-toolbar>
+    @if ((loadingElection$ | async) || (loadingCandidates$ | async)) {
+      <div class="loading-bar">
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      </div>
+    }
+    <!-- Ballot layout -->
+    @if (ranked$ | async; as ranked) {
+      @if (unranked$ | async; as unranked) {
+        <div class="ballot-layout">
+          <!-- Candidates (unranked) -->
+          <section class="candidate-pane">
+            <h3>Nominees</h3>
+            @if (unranked.length === 0) {
+              <div class="placeholder">No nominations</div>
+            }
+            @if (unranked.length > 0) {
+              <div class="candidates">
+                @for (c of unranked; track trackByCandidate($index, c)) {
+                  <mat-card
+                    class="candidate-card"
+                    (click)="addToRanked(c.id, ranked)">
+                    <div class="card-body">
+                      <app-book-cover
+                        class="cover"
+                        [src]="c.base.imageURL"
+                        [alt]="c.base.title + ' cover'"></app-book-cover>
+                      <div class="meta">
+                        <div class="book-title">{{ c.base.title }}</div>
+                        <div class="book-author">{{ c.base.author }}</div>
+                      </div>
+                      <button
+                        mat-icon-button
+                        class="add-btn"
+                        aria-label="Add to ballot">
+                        <mat-icon>add</mat-icon>
+                      </button>
+                    </div>
+                  </mat-card>
+                }
+              </div>
+            }
+          </section>
+          <!-- Ballot (ranked) -->
+          <section class="ballot-pane">
+            <h3>Your Ballot</h3>
+            <div
+              class="ballot-controls gap-2"
+              style="
+                display: flex;
+                align-items: center;
+                margin: 8px 0;
+                gap: 8px;
+                flex-wrap: wrap;
+              ">
+              <button
+                mat-stroked-button
+                color="primary"
+                (click)="submitBallot()"
+                [disabled]="(submitting$ | async) === true">
+                <mat-icon>how_to_vote</mat-icon>
+                Save
+              </button>
+              <button mat-button color="warn" (click)="resetBallot()">
+                <mat-icon>restart_alt</mat-icon>
+                Reset
+              </button>
+            </div>
+            <div
+              cdkDropList
+              class="ballot-list"
+              (cdkDropListDropped)="dropRanked($event, ranked)">
+              @if (ranked.length === 0) {
+                <div class="empty">Tap nominees to add them here.</div>
+              }
+              @for (c of ranked; track trackByCandidate(i, c); let i = $index) {
+                <div class="ballot-item" cdkDrag>
+                  <div class="rank">{{ i + 1 }}</div>
+                  <div class="handle" cdkDragHandle>
+                    <mat-icon>drag_indicator</mat-icon>
+                  </div>
+                  <app-book-cover
+                    class="cover"
+                    [src]="c.base.imageURL"
+                    [alt]="c.base.title + ' cover'"></app-book-cover>
+                  <div class="meta">
+                    <div class="book-title">{{ c.base.title }}</div>
+                    <div class="book-author">{{ c.base.author }}</div>
+                  </div>
+                  <div class="mobile-reorder">
+                    <button
+                      mat-icon-button
+                      aria-label="Move up"
+                      (click)="moveUp(i, ranked)">
+                      <mat-icon>arrow_upward</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      aria-label="Move down"
+                      (click)="moveDown(i, ranked)">
+                      <mat-icon>arrow_downward</mat-icon>
+                    </button>
+                  </div>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="removeFromRanked(c.id, ranked)"
+                    aria-label="Remove">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          </section>
+        </div>
+      }
+    }
+    <!-- Run results moved to bottom sheet -->
+  </div>
+}

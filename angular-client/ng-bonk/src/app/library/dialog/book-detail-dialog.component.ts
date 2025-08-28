@@ -1,5 +1,10 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+  OnInit,
+} from '@angular/core';
+
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -12,20 +17,22 @@ import { MatInputModule } from '@angular/material/input';
 import { BookResponse } from '../../model/response/book-response.model';
 import { BookHttpService } from '../../service/http/books-http.service';
 import { BookRequest } from '../../model/request/book-request.model';
+import { BookCoverComponent } from '../../common/book-cover.component';
 
 @Component({
   selector: 'app-book-detail-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    BookCoverComponent,
   ],
   templateUrl: './book-detail-dialog.component.html',
   styleUrls: ['./book-detail-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookDetailDialog implements OnInit {
   blurbControl = new FormControl('', [Validators.required]);

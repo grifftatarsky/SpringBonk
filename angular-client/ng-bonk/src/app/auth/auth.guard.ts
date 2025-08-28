@@ -1,13 +1,15 @@
 import { inject } from '@angular/core';
 import {
+  ActivatedRouteSnapshot,
   CanActivateFn,
+  CanMatchFn,
+  Route,
   Router,
   RouterStateSnapshot,
-  ActivatedRouteSnapshot,
+  UrlSegment,
 } from '@angular/router';
 import { UserService } from '../service/user.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { map, skip, take } from 'rxjs/operators';
+import { catchError, map, of, skip, take, timeout } from 'rxjs';
 
 export const authGuard: CanActivateFn = (
   route: ActivatedRouteSnapshot,
@@ -15,25 +17,30 @@ export const authGuard: CanActivateFn = (
 ) => {
   const user = inject(UserService);
   const router = inject(Router);
-  const snack = inject(MatSnackBar);
+  // Seamless UX: no snackbars in guards; redirect to home when unauthenticated
 
-  if (user.current.isAuthenticated) {
-    console.log('AuthGuard: access granted for', state.url);
-    return true;
-  }
-
+  if (user.current.isAuthenticated) return true;
   return user.valueChanges.pipe(
     skip(1),
     take(1),
-    map(u => {
-      if (u.isAuthenticated) {
-        console.log('AuthGuard: access granted after refresh', state.url);
-        return true;
-      }
-      console.warn('AuthGuard: blocked access to', state.url);
-      snack.open('Please log in to access this page', 'OK', { duration: 4000 });
-      router.navigateByUrl('/');
-      return false;
-    })
+    timeout(3000),
+    catchError(() => of(user.current)),
+    map(u => (u.isAuthenticated ? true : router.createUrlTree(['/'])))
+  );
+};
+
+export const authMatch: CanMatchFn = (route: Route, segments: UrlSegment[]) => {
+  const user = inject(UserService);
+  const router = inject(Router);
+  // Seamless UX: no snackbars in guards; redirect to home when unauthenticated
+
+  const url = '/' + segments.map(s => s.path).join('/');
+  if (user.current.isAuthenticated) return true;
+  return user.valueChanges.pipe(
+    skip(1),
+    take(1),
+    timeout(3000),
+    catchError(() => of(user.current)),
+    map(u => (u.isAuthenticated ? true : router.createUrlTree(['/'])))
   );
 };

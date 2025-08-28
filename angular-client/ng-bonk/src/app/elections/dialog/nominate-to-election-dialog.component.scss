@@ -1,0 +1,69 @@
+.dialog-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.election-picker {
+  grid-column: 1 / -1;
+}
+
+.book-chooser {
+  min-height: 220px;
+}
+
+.book-card {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.book-card .cover {
+  width: 64px;
+  height: 92px;
+}
+
+.book-card .meta .title {
+  font-weight: 600;
+}
+
+.book-card .meta .author {
+  opacity: 0.85;
+  font-size: 12px;
+}
+
+.dropdowns {
+  display: grid;
+  gap: 12px;
+}
+
+.shelf-select, .book-select {
+  width: 100%;
+}
+
+.slide-in {
+  transform: translateX(8px);
+  opacity: 0;
+  animation: slideIn 160ms ease-out forwards;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (min-width: 720px) {
+  .dialog-grid {
+    grid-template-columns: 1fr 2fr;
+  }
+  .election-picker {
+    grid-column: auto;
+  }
+}

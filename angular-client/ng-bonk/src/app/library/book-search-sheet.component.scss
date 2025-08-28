@@ -1,7 +1,7 @@
 :host {
   display: flex;
   flex-direction: column;
-  height: 80vh;
+  min-height: 80vh;
 }
 
 .sheet-search-bar {
@@ -9,29 +9,99 @@
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  padding: 16px;
 }
 
-.advanced-search {
-  margin: 0.5rem 0;
-
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
+.sheet-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* allow inner viewport to size */
+  background-color: transparent;
 }
 
 .results-container {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0; /* critical for nested flex scroll */
 }
 
-.results-container .mat-table {
+.results-viewport {
   flex: 1;
+  min-height: 0;
+  width: 100%;
   overflow: auto;
 }
 
-.search-paginator {
-  margin-top: 0.5rem;
+.results-list {
+  display: grid;
+  gap: 10px;
+}
+
+.result-row-card {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #00ff41;
+  background: rgba(0, 0, 0, 0.25);
+  margin: 0;
+}
+
+.result-row-card .cover {
+  width: 64px;
+  height: 92px;
+}
+
+.result-row-card .meta .title {
+  font-weight: 600;
+}
+
+.result-row-card .meta .author, .result-row-card .meta .year {
+  opacity: 0.8;
+  font-size: 12px;
+}
+
+.placeholder {
+  text-align: center;
+  opacity: 0.7;
+  padding: 24px;
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* sentinel removed; using CDK viewport */
+
+@media (max-width: 600px) {
+  .result-row-card {
+    grid-template-columns: 64px 1fr;
+    grid-template-rows: auto auto auto;
+  }
+  .result-row-card .actions {
+    grid-column: 1 / -1;
+  }
+  .result-row-card .actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* pagination removed; infinite scroll active */
+
+::ng-deep .mat-bottom-sheet-container {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+  max-height: 80vh;
+  overflow: hidden; /* ensure inner panel scrolls, not the container */
+}
+
+// TODO: I don't want to have to do this. Why is this subscript container even present?
+.mat-mdc-form-field-subscript-wrapper {
+  display: none;
 }

@@ -62,14 +62,15 @@ public class KeycloakUserService {
       UUID userSubject = UUID.fromString(
           (String) attributes.getOrDefault(StandardClaimNames.SUB, "")
       );
+      final var preferredUsername =
+          (String) attributes.getOrDefault(StandardClaimNames.PREFERRED_USERNAME, auth.getName());
 
       // MARK // NOTE: Here, we sync the authenticated user to our PG database.
       try {
         updateLastAction(userSubject);
       } catch (ResourceNotFoundException e) {
         // MARK // NOTE: This e means we haven't synced them before.
-        final var username =
-            (String) attributes.getOrDefault(StandardClaimNames.PREFERRED_USERNAME, "");
+        final var username = preferredUsername;
         final var lastName = (String) attributes.getOrDefault(StandardClaimNames.FAMILY_NAME, "");
         final var firstName = (String) attributes.getOrDefault(StandardClaimNames.GIVEN_NAME, "");
         LocalDateTime now = LocalDateTime.now();
@@ -86,7 +87,7 @@ public class KeycloakUserService {
         ));
       }
 
-      return new UserInfoResponse(auth.getName(), email, roles, exp);
+      return new UserInfoResponse(userSubject, preferredUsername, email, roles, exp);
     }
     // MARK // NOTE: This returns an "anon" non-authenticated empty user.
     return UserInfoResponse.ANONYMOUS;

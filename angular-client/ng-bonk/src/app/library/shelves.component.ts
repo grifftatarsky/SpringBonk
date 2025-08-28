@@ -1,38 +1,46 @@
 import {
-  Component,
   ChangeDetectionStrategy,
-  HostListener,
+  Component,
+  ElementRef,
   OnInit,
+  ViewChild,
 } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AsyncPipe, NgForOf, NgIf, SlicePipe } from '@angular/common';
+import { AsyncPipe, NgStyle } from '@angular/common';
 import { ShelfRequest } from '../model/request/shelf-request.model';
 import { ShelfResponse } from '../model/response/shelf-response.model';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Observable } from 'rxjs';
+import { filter, map, startWith } from 'rxjs/operators';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatSortModule, Sort } from '@angular/material/sort';
+import { MatCardModule } from '@angular/material/card';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
-import { RouterModule } from '@angular/router';
+import { MatRippleModule } from '@angular/material/core';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  RouterOutlet,
+} from '@angular/router';
 import { BookSearchSheet } from './book-search-sheet.component';
 import { BookResponse } from '../model/response/book-response.model';
 import { BookDetailDialog } from './dialog/book-detail-dialog.component';
-import { BookNominateDialog } from './dialog/book-nominate.component';
+import { NominateToElectionDialogComponent } from '../elections/dialog/nominate-to-election-dialog.component';
 import { Store } from '@ngrx/store';
 import * as LibraryActions from './store/library.actions';
 import {
+  selectLoadingBooks,
+  selectShelfBooks,
   selectShelves,
   selectShelvesLoading,
   selectShelvesTotal,
-  selectShelfBooks,
-  selectLoadingBooks,
 } from './store/library.selectors';
 import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
 import { ShelfDialog } from './dialog/shelf-dialog.component';
@@ -43,6 +51,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   standalone: true,
   imports: [
     MatToolbarModule,
+    MatCardModule,
     MatTableModule,
     MatPaginatorModule,
     MatButtonModule,
@@ -50,13 +59,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     MatIconModule,
     MatExpansionModule,
     MatTooltipModule,
-    MatMenuModule,
     MatSortModule,
-    RouterModule,
+    RouterOutlet,
+    MatRippleModule,
     AsyncPipe,
-    NgIf,
-    NgForOf,
-    SlicePipe,
+    NgStyle,
   ],
   templateUrl: './shelves.component.html',
   styleUrls: ['./shelves.component.scss'],
@@ -75,24 +82,52 @@ export class ShelvesComponent implements OnInit {
   loadingBooks: { [shelfId: string]: boolean } = {};
   bookPageIndex: { [shelfId: string]: number } = {};
   bookPageSize = 5;
+  sortBy: { [shelfId: string]: 'title' | 'author' | 'published' } = {};
+  sortDir: { [shelfId: string]: 'asc' | 'desc' } = {};
 
   private pageIndex = 0;
   private pageSize = 10;
   private shelvesCount = 0;
   private totalCount = 0;
   private loadingShelves = false;
+  hasSelection$!: Observable<boolean>;
+  selectedId$!: Observable<string | null>;
+
+  // Animation state
+  showLine = false;
+  lineInstant = false;
+  lineStyle: { top: string; left: string; width: string } = {
+    top: '0px',
+    left: '0px',
+    width: '16px',
+  };
+
+  @ViewChild('shelvesLayout', { static: true })
+  layoutRef!: ElementRef<HTMLElement>;
+  @ViewChild('listPane', { static: true })
+  listPaneRef!: ElementRef<HTMLElement>;
+  @ViewChild('detailPane', { static: true })
+  detailPaneRef!: ElementRef<HTMLElement>;
+  @ViewChild('detailContent', { static: false })
+  detailContentRef?: ElementRef<HTMLElement>;
+  @ViewChild('transLine', { static: false })
+  lineRef?: ElementRef<HTMLElement>;
 
   constructor(
     private store: Store,
     private dialog: MatDialog,
-    private sheet: MatBottomSheet
+    private sheet: MatBottomSheet,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.shelves$ = this.store.select(selectShelves);
     this.loading$ = this.store.select(selectShelvesLoading);
     this.total$ = this.store.select(selectShelvesTotal);
     this.shelfBooks$ = this.store.select(selectShelfBooks);
     this.loadingBooks$ = this.store.select(selectLoadingBooks);
-    this.shelfBooks$.pipe(takeUntilDestroyed()).subscribe(sb => (this.shelfBooks = sb));
+    this.shelfBooks$
+      .pipe(takeUntilDestroyed())
+      .subscribe(sb => (this.shelfBooks = sb));
     this.loadingBooks$
       .pipe(takeUntilDestroyed())
       .subscribe(lb => (this.loadingBooks = lb));
@@ -105,6 +140,16 @@ export class ShelvesComponent implements OnInit {
     this.total$
       .pipe(takeUntilDestroyed())
       .subscribe(t => (this.totalCount = t));
+    this.hasSelection$ = this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      startWith(null),
+      map(() => !!this.route.firstChild?.snapshot.paramMap.get('id'))
+    );
+    this.selectedId$ = this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      startWith(null),
+      map(() => this.route.firstChild?.snapshot.paramMap.get('id') ?? null)
+    );
   }
 
   ngOnInit(): void {
@@ -130,11 +175,11 @@ export class ShelvesComponent implements OnInit {
     }
   }
 
-  @HostListener('window:scroll', [])
-  onWindowScroll(): void {
+  onListScroll(event: Event): void {
+    const el = event.target as HTMLElement;
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 200;
     if (
-      window.innerHeight + window.scrollY >=
-        document.body.offsetHeight - 200 &&
+      nearBottom &&
       !this.loadingShelves &&
       this.shelvesCount < this.totalCount
     ) {
@@ -146,6 +191,73 @@ export class ShelvesComponent implements OnInit {
         })
       );
     }
+  }
+
+  onShelfClick(shelf: ShelfResponse, event: MouseEvent): void {
+    try {
+      const listEl = this.listPaneRef?.nativeElement;
+      const layoutEl = this.layoutRef?.nativeElement;
+      const targetEl =
+        (event.currentTarget as HTMLElement) ?? (event.target as HTMLElement);
+      if (!listEl || !layoutEl || !targetEl) {
+        this.router.navigate([shelf.id], { relativeTo: this.route });
+        return;
+      }
+
+      const listRect = listEl.getBoundingClientRect();
+      const layoutRect = layoutEl.getBoundingClientRect();
+      const targetRect = targetEl.getBoundingClientRect();
+      const startX = targetRect.right - layoutRect.left;
+      const startY = targetRect.top - layoutRect.top + targetRect.height / 2;
+      // Aim toward the detail pane's left edge, slightly inside, so it is visible on desktop
+      const detailRect =
+        this.detailPaneRef?.nativeElement.getBoundingClientRect();
+      // End exactly at the divider (list's right edge)
+      const destX = listRect.right - layoutRect.left;
+      const distance = Math.max(0, destX - startX);
+
+      const content = (this as any).detailContentRef?.nativeElement as
+        | HTMLElement
+        | undefined;
+      if (content) {
+        content.classList.remove('fade-in');
+        content.classList.add('fade-out');
+      }
+
+      this.lineInstant = true;
+      this.lineStyle = {
+        top: `${startY}px`,
+        left: `${startX}px`,
+        width: `0px`,
+      };
+      this.showLine = true;
+
+      const fadeOutMs = 150;
+      const lineMs = 350;
+
+      setTimeout(() => {
+        // enable transition and start line
+        void this.lineRef?.nativeElement.offsetWidth;
+        this.lineInstant = false;
+        this.lineStyle = { ...this.lineStyle, width: `16px` };
+        this.router.navigate([shelf.id], { relativeTo: this.route });
+
+        setTimeout(() => {
+          this.showLine = false;
+          if (content) {
+            content.classList.remove('fade-out');
+            void content.offsetWidth;
+            content.classList.add('fade-in');
+          }
+        }, lineMs);
+      }, fadeOutMs);
+    } catch {
+      this.router.navigate([shelf.id], { relativeTo: this.route });
+    }
+  }
+
+  trackByShelfId(_index: number, shelf: ShelfResponse): string {
+    return shelf.id;
   }
 
   onBookPage(event: PageEvent, shelfId: string): void {
@@ -250,9 +362,9 @@ export class ShelvesComponent implements OnInit {
   nominateBook(book: BookResponse, event: Event): void {
     event.stopPropagation(); // Prevent opening book details
 
-    const dialogRef = this.dialog.open(BookNominateDialog, {
+    const dialogRef = this.dialog.open(NominateToElectionDialogComponent, {
       data: { book },
-      width: '500px',
+      width: '640px',
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -282,6 +394,13 @@ export class ShelvesComponent implements OnInit {
           return 0;
       }
     });
+  }
+
+  // Mobile controls map to Sort type to reuse sorting logic
+  onMobileSortChange(shelfId: string): void {
+    const active = this.sortBy[shelfId] || 'title';
+    const direction = this.sortDir[shelfId] || 'asc';
+    this.sortShelfBooks({ active, direction } as Sort, shelfId);
   }
 }
 

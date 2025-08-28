@@ -5,29 +5,35 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   providedIn: 'root',
 })
 export class NotificationService {
+  private lastKey = '';
+  private lastAt = 0;
   constructor(private snackBar: MatSnackBar) {}
 
   success(message: string): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 3000,
-      panelClass: ['success-snackbar'],
-      horizontalPosition: 'end',
-      verticalPosition: 'bottom',
-    });
+    this.openDedupe(`success:${message}`, message, ['success-snackbar'], 3000);
   }
 
   error(message: string): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 5000,
-      panelClass: ['error-snackbar'],
-      horizontalPosition: 'end',
-      verticalPosition: 'bottom',
-    });
+    this.openDedupe(`error:${message}`, message, ['error-snackbar'], 5000);
   }
 
   info(message: string): void {
+    this.openDedupe(`info:${message}`, message, [], 3000);
+  }
+
+  private openDedupe(
+    key: string,
+    message: string,
+    panelClass: string[],
+    duration: number
+  ) {
+    const now = Date.now();
+    if (key === this.lastKey && now - this.lastAt < 600) return;
+    this.lastKey = key;
+    this.lastAt = now;
     this.snackBar.open(message, 'Close', {
-      duration: 3000,
+      duration,
+      panelClass,
       horizontalPosition: 'end',
       verticalPosition: 'bottom',
     });

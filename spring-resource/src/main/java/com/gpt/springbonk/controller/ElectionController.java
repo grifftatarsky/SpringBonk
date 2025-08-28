@@ -134,6 +134,18 @@ public class ElectionController {
     return ResponseEntity.ok(nominatedCandidate);
   }
 
+  @DeleteMapping("/{id}/candidate/{candidateId}")
+  @Operation(summary = "Remove an existing candidate nomination from an election")
+  public ResponseEntity<Void> deleteCandidate(
+      @PathVariable UUID id,
+      @PathVariable UUID candidateId,
+      @AuthenticationPrincipal Jwt jwt
+  ) {
+    UUID userId = UUID.fromString(jwt.getSubject());
+    electionService.deleteCandidate(id, candidateId, userId);
+    return ResponseEntity.noContent().build();
+  }
+
   @PostMapping("/vote/{candidateId}/{rank}")
   @Operation(summary = "Vote for an existing candidate")
   public ResponseEntity<VoteResponse> voteForCandidate(
@@ -155,5 +167,16 @@ public class ElectionController {
     UUID userId = UUID.fromString(jwt.getSubject());
     electionService.deleteVoteForCandidate(candidateId, userId);
     return ResponseEntity.noContent().build();
+  }
+
+  @GetMapping("/{id}/my-votes")
+  @Operation(summary = "Get the current user's votes for the given election, ordered by rank")
+  public ResponseEntity<List<VoteResponse>> getMyVotes(
+      @PathVariable UUID id,
+      @AuthenticationPrincipal Jwt jwt
+  ) {
+    UUID userId = UUID.fromString(jwt.getSubject());
+    List<VoteResponse> votes = electionService.getMyVotes(id, userId);
+    return ResponseEntity.ok(votes);
   }
 }

@@ -1,5 +1,5 @@
 {
-  "iss":  "http://localhost:7080/auth/realms/gpt-keycloak",
+  "iss": "http://localhost:7080/auth/realms/gpt-keycloak",
   "sub": "123-456-789",
   "preferred_username": "userMan",
   "email": "userman@userman.com",

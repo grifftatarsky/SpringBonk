@@ -1,0 +1,189 @@
+.election-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+#toolbar-election-detail {
+  flex-wrap: wrap;
+  background-color: transparent;
+}
+
+#toolbar-election-actions {
+  flex-wrap: wrap;
+  background-color: transparent;
+  margin-top: 4px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: currentColor;
+  margin: 0 8px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.loading-bar {
+  margin: 4px 0;
+}
+
+.ballot-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+.candidate-pane {
+  border-bottom: 0;
+}
+
+.candidate-pane, .ballot-pane {
+  border: 1px solid #00ff41;
+  padding: 12px;
+}
+
+.candidates {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .candidates {
+    // This was grid...might not be needed now
+  }
+}
+
+@media (min-width: 1024px) {
+  .ballot-layout {
+    // I converted this to column so not sure this is needed now.
+  }
+  .candidate-pane {
+    flex: 1;
+  }
+  .ballot-pane {
+    flex: 1;
+  }
+  .candidates {
+    // probably unnecessary now.
+  }
+}
+
+.candidate-card {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid #00ff41;
+}
+
+.candidate-card .card-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+}
+
+.candidate-card .cover,
+.ballot-item .cover {
+  width: 36px;
+  height: 54px;
+  object-fit: cover;
+}
+
+.candidate-card .meta .book-title,
+.ballot-item .meta .book-title {
+  font-weight: 600;
+}
+
+.candidate-card .meta .book-author,
+.ballot-item .meta .book-author {
+  opacity: 0.85;
+}
+
+.candidate-card .add-btn {
+  margin-left: auto;
+}
+
+/* ballot-controls moved to toolbar */
+
+.ballot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 48px;
+}
+
+.ballot-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid #00ff41;
+}
+
+.ballot-item .rank {
+  width: 24px;
+  text-align: right;
+}
+
+.ballot-item .handle {
+  cursor: grab;
+  display: flex;
+  align-items: center;
+}
+
+.mobile-reorder {
+  display: none;
+  gap: 4px;
+  margin-left: auto;
+}
+
+@media (max-width: 600px) {
+  .handle {
+    display: none;
+  }
+  .mobile-reorder {
+    display: flex;
+  }
+}
+
+.empty {
+  opacity: 0.7;
+  font-style: italic;
+  padding: 6px;
+}
+
+.run-panel {
+  margin-top: 12px;
+}
+
+.terminal {
+  background: #000;
+  color: #00ff41;
+  border: 1px solid #00ff41;
+  padding: 8px;
+  max-height: 320px;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.running {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.running .hint {
+  opacity: 0.8;
+  font-size: 12px;
+}
+
+.placeholder {
+  opacity: 0.7;
+  font-style: italic;
+  padding: 12px;
+  text-align: center;
+}

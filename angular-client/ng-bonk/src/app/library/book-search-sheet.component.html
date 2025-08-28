@@ -1,22 +1,14 @@
-<div class="sheet-search-bar">
+<div class="sheet-search-bar" role="search">
   <div class="main-search">
     <mat-form-field class="w-full" appearance="outline">
-      <mat-label>Title or Author</mat-label>
+      <mat-label>Title and/or Author</mat-label>
       <input
         matInput
         [formControl]="searchControl"
-        placeholder="Combined search"
+        placeholder="Search books"
         autocomplete="off" />
       <mat-icon matSuffix>search</mat-icon>
-      <mat-hint>Combined title and author search</mat-hint>
     </mat-form-field>
-
-    <button
-      mat-icon-button
-      (click)="showFilters = !showFilters"
-      aria-label="Advanced filters">
-      <mat-icon>{{ showFilters ? 'expand_less' : 'tune' }}</mat-icon>
-    </button>
   </div>
 
   <div class="spacer"></div>
@@ -24,98 +16,53 @@
   <button mat-button (click)="cancel()">Cancel</button>
 </div>
 
-<mat-expansion-panel
-  class="advanced-search"
-  [expanded]="showFilters"
-  (opened)="showFilters = true"
-  (closed)="showFilters = false">
-  <mat-expansion-panel-header>
-    <mat-panel-title>Advanced Filters</mat-panel-title>
-  </mat-expansion-panel-header>
-  <div class="filters">
-    <mat-form-field appearance="outline">
-      <mat-label>Title</mat-label>
-      <input matInput [formControl]="titleControl" />
-    </mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Author</mat-label>
-      <input matInput [formControl]="authorControl" />
-    </mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Subject</mat-label>
-      <input matInput [formControl]="subjectControl" />
-    </mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Sort</mat-label>
-      <mat-select [formControl]="sortControl">
-        <mat-option value="relevance">Relevance</mat-option>
-        <mat-option value="new">Newest</mat-option>
-        <mat-option value="old">Oldest</mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-</mat-expansion-panel>
-
-<div *ngIf="(loading$ | async) && hasSearched">
-  <mat-progress-bar mode="indeterminate" />
-</div>
-
-<div class="results-container">
-  <table
-    mat-table
-    [dataSource]="(results$ | async) ?? []"
-    class="mat-elevation-z8">
-    <!-- No Data -->
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" [attr.colspan]="displayedColumns.length">
-        {{ hasSearched ? 'No results found' : 'Enter a search term to find books' }}
-      </td>
-    </tr>
-
-  <ng-container matColumnDef="cover">
-    <th mat-header-cell *matHeaderCellDef></th>
-    <td mat-cell *matCellDef="let book">
-      <div class="book-cover-avatar">
-        <img [src]="getCover(book)" alt="{{ book.title }} cover" />
+<div class="sheet-container">
+  <div class="results-container">
+    @if ((loading$ | async) && hasSearched) {
+      <div>
+        <mat-progress-bar mode="indeterminate" />
       </div>
-    </td>
-  </ng-container>
+    }
 
-  <ng-container matColumnDef="title">
-    <th mat-header-cell *matHeaderCellDef>Title</th>
-    <td mat-cell *matCellDef="let book">{{ book.title }}</td>
-  </ng-container>
-
-  <ng-container matColumnDef="author">
-    <th mat-header-cell *matHeaderCellDef>Author</th>
-    <td mat-cell *matCellDef="let book">{{ book.author_name?.[0] ?? '—' }}</td>
-  </ng-container>
-
-  <ng-container matColumnDef="year">
-    <th mat-header-cell *matHeaderCellDef>First Published</th>
-    <td mat-cell *matCellDef="let book">
-      {{ book.first_publish_year ?? '—' }}
-    </td>
-  </ng-container>
-
-  <ng-container matColumnDef="select">
-    <th mat-header-cell *matHeaderCellDef></th>
-    <td mat-cell *matCellDef="let book">
-      <button mat-icon-button (click)="select(book)">
-        <mat-icon>add</mat-icon>
-      </button>
-    </td>
-  </ng-container>
-
-  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-</table>
-
-  <mat-paginator
-    class="search-paginator"
-    [length]="(total$ | async) ?? 0"
-    [pageSize]="10"
-    [pageSizeOptions]="[5, 10, 25]"
-    aria-label="Book search results pagination">
-  </mat-paginator>
+    @if (results$ | async; as results) {
+      @if (hasSearched) {
+        @if (results.length > 0) {
+          <cdk-virtual-scroll-viewport
+            class="results-viewport"
+            [itemSize]="itemSize"
+            (scrolledIndexChange)="onScrolledIndexChange($event)">
+            <mat-card
+              class="result-row-card"
+              *cdkVirtualFor="let book of results">
+              <div class="cover">
+                <app-book-cover
+                  [src]="getCover(book)"
+                  [alt]="book.title + ' cover'"></app-book-cover>
+              </div>
+              <div class="meta">
+                <div class="title">{{ book.title }}</div>
+                <div class="author">{{ book.author_name?.[0] ?? '—' }}</div>
+                <div class="year">{{ book.first_publish_year ?? '—' }}</div>
+              </div>
+              <div class="actions">
+                <button
+                  mat-icon-button
+                  color="primary"
+                  aria-label="Add book"
+                  (click)="select(book)">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            </mat-card>
+          </cdk-virtual-scroll-viewport>
+        } @else {
+          <div class="placeholder">
+            No results found. Try a different search.
+          </div>
+        }
+      } @else {
+        <div class="placeholder">Enter a search term to find books</div>
+      }
+    }
+  </div>
 </div>

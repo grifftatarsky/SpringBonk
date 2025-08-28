@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../service/user.service';
 import { LoginComponent } from './login.component';
 import { LogoutComponent } from './logout.component';
+import { map, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-authentication',
@@ -11,11 +12,14 @@ import { LogoutComponent } from './logout.component';
   imports: [CommonModule, ReactiveFormsModule, LoginComponent, LogoutComponent],
   templateUrl: './authentication.component.html',
   styles: ``,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthenticationComponent {
-  constructor(private user: UserService) {}
+  isAuthenticated$!: Observable<boolean>;
 
-  get isAuthenticated(): boolean {
-    return this.user.current.isAuthenticated;
+  constructor(private user: UserService) {
+    this.isAuthenticated$ = this.user.valueChanges.pipe(
+      map(u => u.isAuthenticated)
+    );
   }
 }

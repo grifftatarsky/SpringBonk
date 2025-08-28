@@ -1,29 +1,29 @@
 <mat-toolbar id="toolbar-primary" class="gap-2">
-  <img id="logo-image" src="/small_pill%20only-min.svg" />
+  <img id="logo-image" src="/small_pill%20only-min.svg" alt="LOGO" />
   <span>Akira</span>
   <div class="spacer"></div>
-  <app-authentication />
-</mat-toolbar>
-<mat-divider></mat-divider>
 
-<ng-container *ngIf="isAuthenticated$ | async">
-  <mat-toolbar id="toolbar-secondary">
-    <button mat-button [matMenuTriggerFor]="menu" class="flex-row-reverse gap-1">
-      {{ title$ | async }}
-      <mat-icon>expand_more</mat-icon>
+  <!-- Primary nav is only shown when authenticated -->
+  @if (isAuthenticated$ | async) {
+    <button
+      mat-button
+      [matMenuTriggerFor]="primaryMenu"
+      aria-label="Navigate"
+      class="gap-1">
+      <mat-icon>menu</mat-icon>
+      Menu
     </button>
-
-    <mat-menu #menu="matMenu">
+    <mat-menu #primaryMenu="matMenu">
       <app-menu-navigation [destination]="['']" label="Home" />
       <app-menu-navigation [destination]="['about']" label="About" />
       <app-menu-navigation [destination]="['elections']" label="My elections" />
       <app-menu-navigation [destination]="['shelves']" label="My shelves" />
     </mat-menu>
-    <div class="spacer"></div>
-  </mat-toolbar>
+  }
 
-  <mat-divider></mat-divider>
-</ng-container>
+  <app-authentication />
+</mat-toolbar>
+<mat-divider></mat-divider>
 
 <div [@routeFadeAnimation] class="route-container">
   <router-outlet></router-outlet>

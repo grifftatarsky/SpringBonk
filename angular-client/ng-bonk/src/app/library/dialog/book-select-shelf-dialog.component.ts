@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -15,13 +15,13 @@ import { finalize, map } from 'rxjs/operators';
 import { ShelfResponse } from '../../model/response/shelf-response.model';
 import { OpenLibraryBookResponse } from '../../model/response/open-library-book-response.model';
 import { ShelfHttpService } from '../../service/http/shelves-http.service';
+import { BookCoverComponent } from '../../common/book-cover.component';
 import { BookHttpService } from '../../service/http/books-http.service';
 
 @Component({
   selector: 'app-book-select-shelf-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
@@ -29,6 +29,7 @@ import { BookHttpService } from '../../service/http/books-http.service';
     MatSelectModule,
     MatDividerModule,
     MatProgressSpinnerModule,
+    BookCoverComponent,
   ],
   templateUrl: './book-select-shelf-dialog.component.html',
   styleUrls: ['./book-select-shelf-dialog.component.scss'],
@@ -63,7 +64,7 @@ export class BookSelectShelfDialog implements OnInit {
   getCoverImageUrl(): string {
     return this.data.book.cover_i
       ? this.bookHttp.getOpenLibraryCoverImageUrl(this.data.book.cover_i, 'L')
-      : 'assets/placeholder-book-cover.jpg'; // TODO: Add a fallback image!
+      : '';
   }
 
   getAuthor(): string {
@@ -101,7 +102,8 @@ export class BookSelectShelfDialog implements OnInit {
           );
         }
 
-        const defaultShelf = shelves.find(s => s.defaultShelf) ?? this.unshelvedShelf;
+        const defaultShelf =
+          shelves.find(s => s.defaultShelf) ?? this.unshelvedShelf;
         if (defaultShelf) {
           this.shelfControl.setValue(defaultShelf.id);
         }

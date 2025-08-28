@@ -1,14 +1,6 @@
-import { CommonModule } from '@angular/common';
-import {
-  Component,
-  ChangeDetectionStrategy,
-} from '@angular/core';
-import {
-  ActivatedRoute,
-  NavigationEnd,
-  Router,
-  RouterOutlet,
-} from '@angular/router';
+import { AsyncPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet, } from '@angular/router';
 import { AuthenticationComponent } from './auth/authentication.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatMenuModule } from '@angular/material/menu';
@@ -24,7 +16,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule,
+    AsyncPipe,
     RouterOutlet,
     AuthenticationComponent,
     MatToolbarModule,
@@ -35,7 +27,24 @@ import { animate, style, transition, trigger } from '@angular/animations';
     MenuNavigationComponent,
   ],
   templateUrl: './app.component.html',
-  styles: [],
+  styles: [
+    `
+      :host {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        max-height: 100vh;
+        overflow: hidden;
+      }
+      .route-container {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+        display: flex;
+        flex-flow: column;
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('routeFadeAnimation', [
@@ -43,9 +52,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
         style({ opacity: 0 }),
         animate('300ms ease-out', style({ opacity: 1 })),
       ]),
-      transition(':leave', [
-        animate('300ms ease-in', style({ opacity: 0 })),
-      ]),
+      transition(':leave', [animate('300ms ease-in', style({ opacity: 0 }))]),
     ]),
   ],
 })

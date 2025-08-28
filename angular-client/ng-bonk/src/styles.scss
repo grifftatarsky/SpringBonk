@@ -1,10 +1,12 @@
 html,
 body {
   height: 100%;
+  max-height: 100vh;
   margin: 0;
   background-color: #001b00;
   color: #00ff41;
   font-family: 'Roboto Mono', monospace;
+  overflow: hidden; /* contain scroll within app components */
 }
 
 * {
@@ -95,4 +97,33 @@ mat-paginator {
 
 .spacer {
   flex: 1;
+}
+
+/* Route content should scroll within its own components, not the whole page */
+.route-container {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-flow: column;
+}
+
+/* Bottom sheet: wide, tall panel with pip-boy border */
+.sheet-max .mat-bottom-sheet-container {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  height: 80vh;
+  max-height: 80vh;
+  overflow: hidden; /* scrolling happens inside */
+  width: min(900px, 96vw);
+  background: #001000; /* solid green-on-black panel */
+  color: inherit;
+  border: 1px solid #00ff41;
+}
+
+// I use a PRE to render ascii on the homepage. On mobile, it'll need to be smaller.
+@media (max-width: 1023px) {
+  pre {
+    font-size: 8px;
+  }
 }

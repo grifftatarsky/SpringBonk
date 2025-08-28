@@ -9,6 +9,8 @@ import com.gpt.springbonk.repository.BookRepository;
 import com.gpt.springbonk.repository.ShelfRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -167,6 +169,16 @@ public class BookService {
     Shelf shelf = getShelfById(shelfId);
     validateShelfOwnership(shelf, userId);
     return shelf.getBooks().stream().map(BookResponse::new).toList();
+  }
+
+  public Page<BookResponse> getPagedBooksByShelfId(
+      @NotNull UUID shelfId,
+      @NotNull UUID userId,
+      @NotNull Pageable pageable
+  ) {
+    Shelf shelf = getShelfById(shelfId);
+    validateShelfOwnership(shelf, userId);
+    return bookRepository.findByShelves_Id(shelfId, pageable).map(BookResponse::new);
   }
 
   public BookResponse addBookToShelf(
