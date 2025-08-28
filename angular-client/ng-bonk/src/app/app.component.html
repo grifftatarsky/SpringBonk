@@ -1,9 +1,26 @@
 <mat-toolbar id="toolbar-primary" class="gap-2">
-  <img id="logo-image" src="/small_pill%20only-min.svg" alt="LOGO" />
-  <span>Akira</span>
+  <a
+    mat-button
+    class="brand-link gap-1"
+    routerLink="/"
+    aria-label="Go to Home">
+    <picture>
+      <source srcset="/pill.webp" type="image/webp" />
+      <img
+        id="logo-image"
+        ngSrc="/pill.png"
+        width="32"
+        height="32"
+        alt="Akira logo"
+        decoding="async"
+        loading="eager"
+      />
+    </picture>
+    <span>Akira</span>
+  </a>
+
   <div class="spacer"></div>
 
-  <!-- Primary nav is only shown when authenticated -->
   @if (isAuthenticated$ | async) {
     <button
       mat-button
@@ -23,6 +40,7 @@
 
   <app-authentication />
 </mat-toolbar>
+
 <mat-divider></mat-divider>
 
 <div [@routeFadeAnimation] class="route-container">

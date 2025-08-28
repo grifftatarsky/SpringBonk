@@ -20,6 +20,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
           class="cover-img"
           [src]="src!"
           [attr.alt]="alt || ''"
+          loading="lazy"
+          decoding="async"
           (load)="onLoad()"
           (error)="onError()" />
       }
@@ -50,7 +52,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         height: 100%;
         border: 1px solid #00ff41;
         background: rgba(0, 0, 0, 0.2);
-        overflow: hidden;
+
       }
       .cover-img {
         width: 100%;

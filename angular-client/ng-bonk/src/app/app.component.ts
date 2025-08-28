@@ -1,6 +1,6 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Router, RouterOutlet, } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet, } from '@angular/router';
 import { AuthenticationComponent } from './auth/authentication.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatMenuModule } from '@angular/material/menu';
@@ -10,14 +10,17 @@ import { filter, map, Observable, startWith } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { UserService } from './service/user.service';
-import { animate, style, transition, trigger } from '@angular/animations';
+import { animate, style, transition, trigger, type AnimationTriggerMetadata } from '@angular/animations';
+import { User } from './auth/user.model';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
     AsyncPipe,
+    NgOptimizedImage,
     RouterOutlet,
+    RouterLink,
     AuthenticationComponent,
     MatToolbarModule,
     MatMenuModule,
@@ -27,56 +30,44 @@ import { animate, style, transition, trigger } from '@angular/animations';
     MenuNavigationComponent,
   ],
   templateUrl: './app.component.html',
-  styles: [
-    `
-      :host {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        max-height: 100vh;
-        overflow: hidden;
-      }
-      .route-container {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: hidden;
-        display: flex;
-        flex-flow: column;
-      }
-    `,
-  ],
+  styleUrls: ['./app.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('routeFadeAnimation', [
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate('300ms ease-out', style({ opacity: 1 })),
-      ]),
-      transition(':leave', [animate('300ms ease-in', style({ opacity: 0 }))]),
-    ]),
-  ],
+  animations: [routeFadeAnimation()],
 })
 export class AppComponent {
-  title$: Observable<string>;
-  isAuthenticated$: Observable<boolean>;
+  readonly title$: Observable<string>;
+  readonly isAuthenticated$: Observable<boolean>;
 
   constructor(
-    private router: Router,
-    private route: ActivatedRoute,
-    private user: UserService
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+    private readonly user: UserService
   ) {
     this.title$ = this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd),
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       startWith(null),
       map(() => {
         let child: ActivatedRoute | null = this.route.firstChild;
         while (child?.firstChild) child = child.firstChild;
-        return child?.snapshot.data['title'] || 'Unknown';
+        const title: unknown = child?.snapshot.data['title'];
+        return typeof title === 'string' && title.trim().length > 0 ? title : 'Unknown';
       })
     );
 
     this.isAuthenticated$ = this.user.valueChanges.pipe(
-      map(user => user.isAuthenticated)
+      map((user: User): boolean => user.isAuthenticated)
     );
   }
+}
+
+function routeFadeAnimation(): AnimationTriggerMetadata {
+  return trigger('routeFadeAnimation', [
+    transition(':enter', [
+      style({ opacity: 0 }),
+      animate('300ms ease-out', style({ opacity: 1 })),
+    ]),
+    transition(':leave', [
+      animate('300ms ease-in', style({ opacity: 0 })),
+    ]),
+  ]);
 }

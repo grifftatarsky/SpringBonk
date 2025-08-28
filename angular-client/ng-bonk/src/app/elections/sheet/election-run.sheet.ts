@@ -95,7 +95,6 @@ export interface ElectionRunSheetData {
         padding: 12px;
         border-radius: 4px;
         min-height: 220px;
-        overflow: hidden;
       }
       .terminal {
         margin: 0;

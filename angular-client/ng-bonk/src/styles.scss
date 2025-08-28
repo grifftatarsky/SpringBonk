@@ -6,7 +6,7 @@ body {
   background-color: #001b00;
   color: #00ff41;
   font-family: 'Roboto Mono', monospace;
-  overflow: hidden; /* contain scroll within app components */
+  /* contain scroll within app components */
 }
 
 * {
@@ -68,7 +68,7 @@ mat-paginator {
   height: 40px;
   border-radius: 50%;
   border: 1px solid #00ff41;
-  overflow: hidden;
+
 
   img {
     width: 100%;
@@ -102,7 +102,7 @@ mat-paginator {
 /* Route content should scroll within its own components, not the whole page */
 .route-container {
   height: 100%;
-  overflow: hidden;
+
   display: flex;
   flex-flow: column;
 }
@@ -114,7 +114,7 @@ mat-paginator {
   padding: 0;
   height: 80vh;
   max-height: 80vh;
-  overflow: hidden; /* scrolling happens inside */
+  /* scrolling happens inside */
   width: min(900px, 96vw);
   background: #001000; /* solid green-on-black panel */
   color: inherit;

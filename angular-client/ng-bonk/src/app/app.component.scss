@@ -1,0 +1,32 @@
+// TODO: Not a fan of host!
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-height: 100vh;
+
+}
+
+.route-container {
+  flex: 1 1 auto;
+  min-height: 0;
+
+  display: flex;
+  flex-flow: column;
+}
+
+/* Brand link Pip-Boy styling */
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: inherit;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.brand-link:hover,
+.brand-link:focus-visible {
+  cursor: pointer;
+}

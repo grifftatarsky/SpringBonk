@@ -2,7 +2,7 @@
   display: flex;
   flex-flow: column;
   height: 100%;
-  overflow: hidden;
+
 }
 
 .shelves-container {
@@ -149,7 +149,7 @@
 
 .detail-pane {
   display: none;
-  overflow: hidden; /* scrolling handled inside shelf detail */
+  /* scrolling handled inside shelf detail */
   height: 100%;
   min-height: 0;
 }
@@ -162,7 +162,7 @@
   flex: 1 1 auto;
   height: 100%;
   min-height: 0;
-  overflow: hidden; /* Routed child fills; inner child handles scroll */
+  /* Routed child fills; inner child handles scroll */
 }
 
 .detail-content.fade-out {
@@ -196,7 +196,7 @@
     border: 1px solid #00ff41;
     height: 100%;
     min-height: 0;
-    overflow: hidden; /* inner component scrolls */
+    /* inner component scrolls */
   }
 }
 
@@ -282,7 +282,7 @@
     flex-direction: column;
     height: 100%;
     min-height: 0; /* allow inner scroll containers to size */
-    overflow: hidden;
+
   }
 }
 

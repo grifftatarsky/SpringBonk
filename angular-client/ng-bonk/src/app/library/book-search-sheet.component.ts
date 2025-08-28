@@ -130,8 +130,9 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
   }
 
   getCover(book: OpenLibraryBookResponse): string {
+    // Use medium size for better clarity in the results list
     return book.cover_i
-      ? this.bookHttp.getOpenLibraryCoverImageUrl(book.cover_i, 'S')
+      ? this.bookHttp.getOpenLibraryCoverImageUrl(book.cover_i, 'M')
       : '';
   }
 
