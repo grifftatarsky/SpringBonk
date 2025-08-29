@@ -88,18 +88,11 @@
   min-height: 0; /* enable children to scroll */
 }
 
-.list-pane {
-  max-width: 720px;
-  overflow: auto;
-  height: 100%;
-  min-height: 0;
-}
-
 .shelves-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
+  gap: .5rem;
+  padding: 1rem;
 }
 
 .shelf-card {
@@ -149,7 +142,6 @@
 
 .detail-pane {
   display: none;
-  /* scrolling handled inside shelf detail */
   height: 100%;
   min-height: 0;
 }
@@ -162,7 +154,6 @@
   flex: 1 1 auto;
   height: 100%;
   min-height: 0;
-  /* Routed child fills; inner child handles scroll */
 }
 
 .detail-content.fade-out {
@@ -177,18 +168,21 @@
 @media (min-width: 1024px) {
   .shelves-layout {
     flex-direction: row;
-    padding: 16px;
+    padding: 1rem;
     height: 100%;
     min-height: 0;
   }
+
   .shelves-list {
     padding: 0;
   }
+
   .list-pane {
     flex: 0 0 380px;
     height: 100%;
     min-height: 0;
   }
+
   .detail-pane {
     display: flex;
     flex-direction: column;
@@ -196,7 +190,6 @@
     border: 1px solid #00ff41;
     height: 100%;
     min-height: 0;
-    /* inner component scrolls */
   }
 }
 

@@ -36,8 +36,9 @@
       }"></div>
   }
 
+  <!-- Shelves Scrollable Container -->
   <div
-    class="list-pane"
+    class="list-pane scrollable-container"
     #listPane
     [class.mobile-hidden]="hasSelection$ | async"
     (scroll)="onListScroll($event)">
@@ -71,8 +72,10 @@
       }
     </div>
   </div>
+
+  <!-- Books Scrollable Container -->
   <div
-    class="detail-pane"
+    class="detail-pane scrollable-container"
     #detailPane
     [class.mobile-shown]="hasSelection$ | async">
     <div class="detail-content" #detailContent>

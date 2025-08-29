@@ -5,8 +5,93 @@ import { Component } from '@angular/core';
   standalone: true,
   imports: [],
   template: ` <p>
+    Scroll Test: <br />
     This application is a show-case for an Angular app consuming a REST API
-    through an OAuth2 BFF.
+    through an OAuth2 BFF.This application is a show-case for an Angular app
+    consuming a REST API through an OAuth2 BFF.This application is a show-case
+    for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.This application is a show-case for an Angular app consuming a
+    REST API through an OAuth2 BFF.This application is a show-case for an
+    Angular app consuming a REST API through an OAuth2 BFF.This application is a
+    show-case for an Angular app consuming a REST API through an OAuth2 BFF.This
+    application is a show-case for an Angular app consuming a REST API through
+    an OAuth2 BFF.
   </p>`,
   styles: ``,
 })

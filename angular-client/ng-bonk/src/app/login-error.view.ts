@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Params } from '@angular/router';
 
 @Component({
   selector: 'app-login-error',
@@ -12,10 +12,10 @@ import { ActivatedRoute } from '@angular/router';
   styles: ``,
 })
 export class LoginErrorView {
-  msg = '';
+  msg: string = '';
 
   constructor(activatedRoute: ActivatedRoute) {
-    activatedRoute.queryParams.subscribe(params => {
+    activatedRoute.queryParams.subscribe((params: Params): void => {
       this.msg = params['error'];
     });
   }

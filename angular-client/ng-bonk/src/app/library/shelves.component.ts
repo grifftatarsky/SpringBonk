@@ -6,24 +6,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { AsyncPipe, NgStyle } from '@angular/common';
 import { ShelfRequest } from '../model/request/shelf-request.model';
 import { ShelfResponse } from '../model/response/shelf-response.model';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { Observable } from 'rxjs';
 import { filter, map, startWith } from 'rxjs/operators';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSortModule, Sort } from '@angular/material/sort';
+import { MatSortModule } from '@angular/material/sort';
 import { MatCardModule } from '@angular/material/card';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { MatRippleModule } from '@angular/material/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet, } from '@angular/router';
 import { BookSearchSheet } from './book-search-sheet.component';
 import { BookResponse } from '../model/response/book-response.model';
-import { BookDetailDialog } from './dialog/book-detail-dialog.component';
-import {
-  NominateToElectionDialogComponent
-} from '../elections/dialog/nominate-to-election-dialog.component';
 import { Store } from '@ngrx/store';
 import * as LibraryActions from './store/library.actions';
 import {
@@ -61,7 +57,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShelvesComponent implements OnInit {
-  bookColumns: string[] = ['cover', 'title', 'author', 'published', 'actions'];
   shelves$: Observable<ShelfResponse[]>;
   loading$: Observable<boolean>;
   total$: Observable<number>;
@@ -71,10 +66,6 @@ export class ShelvesComponent implements OnInit {
   expandedShelf: string | null = null;
   shelfBooks: { [shelfId: string]: BookResponse[] } = {};
   loadingBooks: { [shelfId: string]: boolean } = {};
-  bookPageIndex: { [shelfId: string]: number } = {};
-  bookPageSize: number = 5;
-  sortBy: { [shelfId: string]: 'title' | 'author' | 'published' } = {};
-  sortDir: { [shelfId: string]: 'asc' | 'desc' } = {};
 
   private pageIndex: number = 0;
   private pageSize: number = 10;
@@ -172,7 +163,8 @@ export class ShelvesComponent implements OnInit {
 
   onListScroll(event: Event): void {
     const el = event.target as HTMLElement;
-    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 200;
+    const nearBottom: boolean =
+      el.scrollTop + el.clientHeight >= el.scrollHeight - 200;
     if (
       nearBottom &&
       !this.loadingShelves &&
@@ -188,32 +180,32 @@ export class ShelvesComponent implements OnInit {
     }
   }
 
+  // TODO __ Seems kinda complex...
   onShelfClick(shelf: ShelfResponse, event: MouseEvent): void {
     try {
-      const listEl = this.listPaneRef?.nativeElement;
-      const layoutEl = this.layoutRef?.nativeElement;
-      const targetEl =
+      const listEl: HTMLElement = this.listPaneRef?.nativeElement;
+      const layoutEl: HTMLElement = this.layoutRef?.nativeElement;
+      const targetEl: HTMLElement =
         (event.currentTarget as HTMLElement) ?? (event.target as HTMLElement);
+
       if (!listEl || !layoutEl || !targetEl) {
         this.router.navigate([shelf.id], { relativeTo: this.route });
         return;
       }
 
-      const listRect = listEl.getBoundingClientRect();
-      const layoutRect = layoutEl.getBoundingClientRect();
-      const targetRect = targetEl.getBoundingClientRect();
-      const startX = targetRect.right - layoutRect.left;
-      const startY = targetRect.top - layoutRect.top + targetRect.height / 2;
-      // Aim toward the detail pane's left edge, slightly inside, so it is visible on desktop
-      const detailRect =
-        this.detailPaneRef?.nativeElement.getBoundingClientRect();
-      // End exactly at the divider (list's right edge)
-      const destX = listRect.right - layoutRect.left;
-      const distance = Math.max(0, destX - startX);
+      listEl.getBoundingClientRect();
+      const layoutRect: DOMRect = layoutEl.getBoundingClientRect();
+      const targetRect: DOMRect = targetEl.getBoundingClientRect();
 
+      const startX: number = targetRect.right - layoutRect.left;
+      const startY: number =
+        targetRect.top - layoutRect.top + targetRect.height / 2;
+
+      this.detailPaneRef?.nativeElement.getBoundingClientRect();
       const content = (this as any).detailContentRef?.nativeElement as
         | HTMLElement
         | undefined;
+
       if (content) {
         content.classList.remove('fade-in');
         content.classList.add('fade-out');
@@ -230,14 +222,14 @@ export class ShelvesComponent implements OnInit {
       const fadeOutMs = 150;
       const lineMs = 350;
 
-      setTimeout(() => {
+      setTimeout((): void => {
         // enable transition and start line
         void this.lineRef?.nativeElement.offsetWidth;
         this.lineInstant = false;
         this.lineStyle = { ...this.lineStyle, width: `16px` };
         this.router.navigate([shelf.id], { relativeTo: this.route });
 
-        setTimeout(() => {
+        setTimeout((): void => {
           this.showLine = false;
           if (content) {
             content.classList.remove('fade-out');
@@ -253,19 +245,6 @@ export class ShelvesComponent implements OnInit {
 
   trackByShelfId(_index: number, shelf: ShelfResponse): string {
     return shelf.id;
-  }
-
-  onBookPage(event: PageEvent, shelfId: string): void {
-    this.bookPageIndex[shelfId] = event.pageIndex;
-  }
-
-  toggleExpand(shelfId: string): void {
-    if (this.expandedShelf === shelfId) {
-      this.expandedShelf = null;
-    } else {
-      this.expandedShelf = shelfId;
-      this.loadBooksForShelf(shelfId);
-    }
   }
 
   loadBooksForShelf(shelfId: string): void {
@@ -311,7 +290,8 @@ export class ShelvesComponent implements OnInit {
   }
 
   openEditDialog(shelfId: string, event: Event): void {
-    event.stopPropagation(); // Prevent expansion panel toggle
+    event.stopPropagation();
+
     const dialogRef: MatDialogRef<ShelfDialog> = this.dialog.open(ShelfDialog, {
       width: '400px',
     });
@@ -325,84 +305,10 @@ export class ShelvesComponent implements OnInit {
     });
   }
 
-  // Book operations
-  openBookDetails(book: BookResponse): void {
-    const dialogRef = this.dialog.open(BookDetailDialog, {
-      width: '500px',
-      data: { book },
-    });
-
-    dialogRef.afterClosed().subscribe(updatedBook => {
-      if (updatedBook) {
-        // Refresh book lists after update
-        if (this.expandedShelf) {
-          this.loadBooksForShelf(this.expandedShelf);
-        }
-      }
-    });
-  }
-
   removeBookFromShelf(bookId: string, shelfId: string, event: Event): void {
     event.stopPropagation(); // Prevent opening book details
     this.store.dispatch(
       LibraryActions.removeBookFromShelf({ bookId, shelfId })
     );
   }
-
-  deleteBook(bookId: string, event: Event): void {
-    event.stopPropagation(); // Prevent opening book details
-    this.store.dispatch(LibraryActions.deleteBook({ bookId }));
-  }
-
-  nominateBook(book: BookResponse, event: Event): void {
-    event.stopPropagation(); // Prevent opening book details
-
-    const dialogRef = this.dialog.open(NominateToElectionDialogComponent, {
-      data: { book },
-      width: '640px',
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result === true) {
-        // Nomination was successful, no need to refresh the UI
-        // the dialog already showed the notification
-      }
-    });
-  }
-
-  sortShelfBooks(sort: Sort, shelfId: string): void {
-    const books = [...(this.shelfBooks[shelfId] || [])];
-    if (!sort.active || sort.direction === '') {
-      this.shelfBooks[shelfId] = books;
-      return;
-    }
-    const isAsc = sort.direction === 'asc';
-    this.shelfBooks[shelfId] = books.sort((a, b) => {
-      switch (sort.active) {
-        case 'title':
-          return compare(a.title, b.title, isAsc);
-        case 'author':
-          return compare(a.author, b.author, isAsc);
-        case 'published':
-          return compare(a.publishedYear ?? 0, b.publishedYear ?? 0, isAsc);
-        default:
-          return 0;
-      }
-    });
-  }
-
-  // Mobile controls map to Sort type to reuse sorting logic
-  onMobileSortChange(shelfId: string): void {
-    const active = this.sortBy[shelfId] || 'title';
-    const direction = this.sortDir[shelfId] || 'asc';
-    this.sortShelfBooks({ active, direction } as Sort, shelfId);
-  }
-}
-
-function compare(
-  a: string | number,
-  b: string | number,
-  isAsc: boolean
-): number {
-  return (a < b ? -1 : a > b ? 1 : 0) * (isAsc ? 1 : -1);
 }

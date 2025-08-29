@@ -31,6 +31,7 @@ export const appConfig: ApplicationConfig = {
     provideState(libraryFeature),
     provideState(electionsFeature),
     provideStoreDevtools({ maxAge: 25, logOnly: environment.production }),
+    // TODO __ Fix deprecated animations
     provideAnimations(),
     {
       provide: API_BASE_URL,
@@ -40,4 +41,4 @@ export const appConfig: ApplicationConfig = {
 };
 
 export const reverseProxyUri = `${environment.apiBaseUrl}${environment.bffPath}`;
-export const baseUri = environment.apiBaseUrl || window.location.origin;
+export const baseUri: string = environment.apiBaseUrl || window.location.origin;

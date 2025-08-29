@@ -1,6 +1,12 @@
 import { AsyncPipe, NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet, } from '@angular/router';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterOutlet,
+} from '@angular/router';
 import { AuthenticationComponent } from './auth/authentication.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatMenuModule } from '@angular/material/menu';
@@ -10,7 +16,13 @@ import { filter, map, Observable, startWith } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { UserService } from './service/user.service';
-import { animate, style, transition, trigger, type AnimationTriggerMetadata } from '@angular/animations';
+import {
+  animate,
+  type AnimationTriggerMetadata,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
 import { User } from './auth/user.model';
 
 @Component({
@@ -32,6 +44,7 @@ import { User } from './auth/user.model';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // TODO __ Fix deprecated animation
   animations: [routeFadeAnimation()],
 })
 export class AppComponent {
@@ -46,11 +59,13 @@ export class AppComponent {
     this.title$ = this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       startWith(null),
-      map(() => {
+      map((): string => {
         let child: ActivatedRoute | null = this.route.firstChild;
         while (child?.firstChild) child = child.firstChild;
         const title: unknown = child?.snapshot.data['title'];
-        return typeof title === 'string' && title.trim().length > 0 ? title : 'Unknown';
+        return typeof title === 'string' && title.trim().length > 0
+          ? title
+          : 'Unknown';
       })
     );
 
@@ -60,14 +75,13 @@ export class AppComponent {
   }
 }
 
+// TODO __ Fix deprecated animation
 function routeFadeAnimation(): AnimationTriggerMetadata {
   return trigger('routeFadeAnimation', [
     transition(':enter', [
       style({ opacity: 0 }),
       animate('300ms ease-out', style({ opacity: 1 })),
     ]),
-    transition(':leave', [
-      animate('300ms ease-in', style({ opacity: 0 })),
-    ]),
+    transition(':leave', [animate('300ms ease-in', style({ opacity: 0 }))]),
   ]);
 }

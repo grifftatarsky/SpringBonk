@@ -1,14 +1,61 @@
+// Hierarchy #######################################################################################
 html,
 body {
   height: 100%;
-  max-height: 100vh;
+  width: 100%;
   margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
   background-color: #001b00;
   color: #00ff41;
   font-family: 'Roboto Mono', monospace;
-  /* contain scroll within app components */
 }
 
+.app-container {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.route-container {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-flow: column;
+  overflow: hidden;
+}
+
+.scrollable-container {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-flow: column;
+  overflow: scroll;
+}
+
+// No scroll so far...
+
+// Material elements ###############################################################################
+mat-toolbar {
+  background: #001000;
+  color: inherit;
+  border-bottom: 2px solid #00ff41;
+  padding: 1rem;
+}
+
+// Rules ###########################################################################################
 * {
   border-radius: 0 !important;
 }
@@ -17,19 +64,9 @@ a {
   color: #00ff41;
 }
 
-mat-toolbar {
-  background: #001000;
-  color: inherit;
-  border-bottom: 2px solid #00ff41;
-}
 
 mat-divider {
   border-color: #00ff41;
-}
-
-#logo-image {
-  height: 32px;
-  margin-right: 0.5rem;
 }
 
 mat-expansion-panel,
@@ -69,7 +106,6 @@ mat-paginator {
   border-radius: 50%;
   border: 1px solid #00ff41;
 
-
   img {
     width: 100%;
     height: 100%;
@@ -97,14 +133,6 @@ mat-paginator {
 
 .spacer {
   flex: 1;
-}
-
-/* Route content should scroll within its own components, not the whole page */
-.route-container {
-  height: 100%;
-
-  display: flex;
-  flex-flow: column;
 }
 
 /* Bottom sheet: wide, tall panel with pip-boy border */
