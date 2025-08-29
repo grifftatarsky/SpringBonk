@@ -1,21 +1,15 @@
 <mat-toolbar id="toolbar-primary" class="gap-2">
-  <a
-    mat-button
-    class="brand-link gap-1"
-    routerLink="/"
-    aria-label="Go to Home">
-    <picture>
-      <source srcset="/pill.webp" type="image/webp" />
-      <img
-        id="logo-image"
-        ngSrc="/pill.png"
-        width="32"
-        height="32"
-        alt="Akira logo"
-        decoding="async"
-        loading="eager"
-      />
-    </picture>
+  <a class="brand-link gap-1" routerLink="/" aria-label="Go to Home">
+    <!-- Alt text removed for span (Akira) to cover the point of it -->
+    <!-- TODO __ CONVERT TO SVG -->
+    <img
+      id="logo-image"
+      ngSrc="/pill.png"
+      width="32"
+      height="32"
+      alt=""
+      decoding="async"
+      loading="eager" />
     <span>Akira</span>
   </a>
 
