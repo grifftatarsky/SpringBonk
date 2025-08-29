@@ -13,10 +13,10 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { provideState, provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
-import { libraryFeature } from './library/store/library.reducer';
-import { LibraryEffects } from './library/store/library.effects';
-import { electionsFeature } from './elections/store/elections.reducer';
-import { ElectionsEffects } from './elections/store/elections.effects';
+import { libraryFeature } from './store/reducer/library.reducer';
+import { LibraryEffects } from './store/effect/library.effects';
+import { electionsFeature } from './store/reducer/elections.reducer';
+import { ElectionsEffects } from './store/effect/elections.effects';
 import { environment } from '../environments/environment';
 import { API_BASE_URL } from './config/app-tokens';
 

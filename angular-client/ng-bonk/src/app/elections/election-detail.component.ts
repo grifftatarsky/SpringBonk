@@ -31,7 +31,7 @@ import {
   moveItemInArray,
 } from '@angular/cdk/drag-drop';
 import { BookCoverComponent } from '../common/book-cover.component';
-import * as ElectionsActions from './store/elections.actions';
+import * as ElectionsActions from '../store/action/elections.actions';
 import {
   selectBallotOrder,
   selectCandidates,
@@ -43,7 +43,7 @@ import {
   selectRunResult,
   selectSubmitting,
   selectUnrankedCandidates,
-} from './store/elections.selectors';
+} from '../store/selector/elections.selectors';
 import {
   combineLatest,
   distinctUntilChanged,

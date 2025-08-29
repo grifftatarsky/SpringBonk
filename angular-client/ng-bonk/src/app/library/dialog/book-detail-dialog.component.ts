@@ -18,6 +18,7 @@ import { BookResponse } from '../../model/response/book-response.model';
 import { BookHttpService } from '../../service/http/books-http.service';
 import { BookRequest } from '../../model/request/book-request.model';
 import { BookCoverComponent } from '../../common/book-cover.component';
+import { SimpleShelfResponse } from '../../model/response/simple-shelf-response.model';
 
 @Component({
   selector: 'app-book-detail-dialog',
@@ -35,7 +36,9 @@ import { BookCoverComponent } from '../../common/book-cover.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookDetailDialog implements OnInit {
-  blurbControl = new FormControl('', [Validators.required]);
+  blurbControl: FormControl<string | null> = new FormControl('', [
+    Validators.required,
+  ]);
 
   constructor(
     public dialogRef: MatDialogRef<BookDetailDialog, BookResponse>,
@@ -44,7 +47,6 @@ export class BookDetailDialog implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Initialize form control after component is initialized
     this.blurbControl.setValue(this.data.book.blurb || '');
   }
 
@@ -60,12 +62,14 @@ export class BookDetailDialog implements OnInit {
         imageURL: this.data.book.imageURL,
         blurb: this.blurbControl.value || '',
         openLibraryId: this.data.book.openLibraryId,
-        shelfIds: this.data.book.shelves.map(shelf => shelf.id),
+        shelfIds: this.data.book.shelves.map(
+          (shelf: SimpleShelfResponse): string => shelf.id
+        ),
       };
 
       this.bookHttp
         .updateBook(this.data.book.id, updatedBook)
-        .subscribe(response => {
+        .subscribe((response: BookResponse): void => {
           this.dialogRef.close(response);
         });
     }

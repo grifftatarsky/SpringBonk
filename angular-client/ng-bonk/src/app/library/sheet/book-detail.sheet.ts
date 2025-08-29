@@ -11,7 +11,7 @@ import {
 import { BookResponse } from '../../model/response/book-response.model';
 import { BookHttpService } from '../../service/http/books-http.service';
 import { Store } from '@ngrx/store';
-import * as LibraryActions from '../store/library.actions';
+import * as LibraryActions from '../../store/action/library.actions';
 import { MatDialog } from '@angular/material/dialog';
 import { BookSelectShelfDialog } from '../dialog/book-select-shelf-dialog.component';
 import { NotificationService } from '../../service/notification.service';
@@ -24,6 +24,7 @@ import { switchMap } from 'rxjs/operators';
 import { BookCoverComponent } from '../../common/book-cover.component';
 import { BookDetailDialog } from '../dialog/book-detail-dialog.component';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { ElectionResponse } from '../../model/response/election-response.model';
 
 export interface BookDetailSheetData {
   book: BookResponse;
@@ -128,14 +129,14 @@ export class BookDetailSheetComponent {
       width: '640px',
       data: { book: this.data.book },
     });
-    dlg.afterClosed().subscribe((updatedBook?: BookResponse) => {
+    dlg.afterClosed().subscribe((updatedBook?: BookResponse): void => {
       if (!updatedBook) return;
       this.data.book = { ...this.data.book, ...updatedBook };
     });
   }
 
   removeFromShelf(): void {
-    const proceed = () => {
+    const proceed: () => void = (): void => {
       this.store.dispatch(
         LibraryActions.removeBookFromShelf({
           bookId: this.data.book.id,
@@ -163,8 +164,8 @@ export class BookDetailSheetComponent {
         this.electionHttp
           .getAllElections()
           .pipe(
-            switchMap(elections => {
-              const tasks = elections.map(e =>
+            switchMap((elections: ElectionResponse[]) => {
+              const tasks = elections.map((e: ElectionResponse) =>
                 this.electionHttp.getCandidatesByElection(e.id).pipe(
                   switchMap(cands => {
                     const mine = cands.filter(
@@ -184,7 +185,10 @@ export class BookDetailSheetComponent {
               return tasks.length ? forkJoin(tasks) : of(null);
             })
           )
-          .subscribe({ next: () => proceed(), error: () => proceed() });
+          .subscribe({
+            next: (): void => proceed(),
+            error: (): void => proceed(),
+          });
       });
     } else {
       proceed();

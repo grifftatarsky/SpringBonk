@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,18 +23,23 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatCardModule } from '@angular/material/card';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { MatRippleModule } from '@angular/material/core';
-import { ActivatedRoute, NavigationEnd, Router, RouterOutlet, } from '@angular/router';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  RouterOutlet,
+} from '@angular/router';
 import { BookSearchSheet } from './book-search-sheet.component';
 import { BookResponse } from '../model/response/book-response.model';
 import { Store } from '@ngrx/store';
-import * as LibraryActions from './store/library.actions';
+import * as LibraryActions from '../store/action/library.actions';
 import {
   selectLoadingBooks,
   selectShelfBooks,
   selectShelves,
   selectShelvesLoading,
   selectShelvesTotal,
-} from './store/library.selectors';
+} from '../store/selector/library.selectors';
 import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
 import { ShelfDialog } from './dialog/shelf-dialog.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';

@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../common/confirm-dialog.component';
 import { Actions, ofType } from '@ngrx/effects';
-import * as ElectionsActions from './store/elections.actions';
+import * as ElectionsActions from '../store/action/elections.actions';
 import { filter, map, mergeMap, Observable, of, take, timeout } from 'rxjs';
 import { ElectionDetailComponent } from './election-detail.component';
 

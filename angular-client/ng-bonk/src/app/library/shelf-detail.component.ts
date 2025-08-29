@@ -13,13 +13,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Sort } from '@angular/material/sort';
 import { Store } from '@ngrx/store';
-import * as LibraryActions from './store/library.actions';
+import * as LibraryActions from '../store/action/library.actions';
 import {
   selectBooksForShelf,
   selectLoadingBooks,
   selectShelfById,
   selectShelfTotal,
-} from './store/library.selectors';
+} from '../store/selector/library.selectors';
 import {
   BehaviorSubject,
   combineLatest,

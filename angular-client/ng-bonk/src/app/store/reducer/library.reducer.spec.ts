@@ -1,8 +1,11 @@
 import { initialState, libraryReducer } from './library.reducer';
-import * as LibraryActions from './library.actions';
+import * as LibraryActions from '../action/library.actions';
 import { ShelfResponse } from '../../model/response/shelf-response.model';
 import { BookResponse } from '../../model/response/book-response.model';
-import { selectBooksForShelf, selectShelfById } from './library.selectors';
+import {
+  selectBooksForShelf,
+  selectShelfById,
+} from '../selector/library.selectors';
 
 describe('Library Reducer', () => {
   it('should return the initial state', () => {

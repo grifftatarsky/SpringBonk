@@ -1,5 +1,5 @@
 import { createFeature, createReducer, on } from '@ngrx/store';
-import * as ElectionsActions from './elections.actions';
+import * as ElectionsActions from '../action/elections.actions';
 import { ElectionResponse } from '../../model/response/election-response.model';
 import { CandidateResponse } from '../../model/response/candidate-response.model';
 

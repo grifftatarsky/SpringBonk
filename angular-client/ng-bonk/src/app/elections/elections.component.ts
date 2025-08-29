@@ -20,12 +20,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatCardModule } from '@angular/material/card';
-import {
-  ActivatedRoute,
-  NavigationEnd,
-  Router,
-  RouterOutlet,
-} from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet, } from '@angular/router';
 import { filter, map, startWith } from 'rxjs/operators';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatRippleModule } from '@angular/material/core';
@@ -61,36 +56,43 @@ export class ElectionsComponent implements OnInit, AfterViewInit {
   @ViewChild('listContainer', { static: true })
   listContainer!: ElementRef<HTMLElement>;
 
-  private readonly http = inject(ElectionHttpService);
-  private readonly dialog = inject(MatDialog);
-  private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
-  hasSelection$ = this.router.events.pipe(
+  private readonly electionHttpService: ElectionHttpService =
+    inject(ElectionHttpService);
+  private readonly dialog: MatDialog = inject(MatDialog);
+  private readonly router: Router = inject(Router);
+  private readonly route: ActivatedRoute = inject(ActivatedRoute);
+
+  hasSelection$: Observable<boolean> = this.router.events.pipe(
     filter(e => e instanceof NavigationEnd),
     startWith(null),
-    map(() => !!this.route.firstChild?.snapshot.paramMap.get('id'))
+    map((): boolean => !!this.route.firstChild?.snapshot.paramMap.get('id'))
   );
-  selectedId$ = this.router.events.pipe(
+  selectedId$: Observable<string | null> = this.router.events.pipe(
     filter(e => e instanceof NavigationEnd),
     startWith(null),
-    map(() => this.route.firstChild?.snapshot.paramMap.get('id') ?? null)
+    map(
+      (): string | null =>
+        this.route.firstChild?.snapshot.paramMap.get('id') ?? null
+    )
   );
 
   constructor() {
-    this.dataSource = new ElectionsDataSource(this.http);
+    this.dataSource = new ElectionsDataSource(this.electionHttpService);
     this.loading$ = this.dataSource.loading$;
     this.dataSource.total$.subscribe(
       (count: number): number => (this.total = count)
     );
   }
 
-  private pageIndex = 0;
-  private pageSize = 10;
-  private electionCount = 0;
+  private pageIndex: number = 0;
+  private pageSize: number = 10;
+  private electionCount: number = 0;
 
   ngOnInit(): void {
     this.elections$ = this.dataSource.connect();
-    this.elections$.subscribe(list => (this.electionCount = list.length));
+    this.elections$.subscribe(
+      (list: ElectionResponse[]): number => (this.electionCount = list.length)
+    );
     this.dataSource.loadElections(this.pageIndex, this.pageSize);
   }
 
@@ -111,7 +113,7 @@ export class ElectionsComponent implements OnInit, AfterViewInit {
 
     dialogRef.afterClosed().subscribe((result: ElectionRequest): void => {
       if (result) {
-        this.http.createElection(result).subscribe((): void => {
+        this.electionHttpService.createElection(result).subscribe((): void => {
           this.dataSource.loadElections(this.pageIndex, this.pageSize);
         });
       }
@@ -123,7 +125,7 @@ export class ElectionsComponent implements OnInit, AfterViewInit {
   }
 
   deleteElection(electionId: string): void {
-    this.http.deleteElection(electionId).subscribe((): void => {
+    this.electionHttpService.deleteElection(electionId).subscribe((): void => {
       this.pageIndex = 0;
       this.dataSource.loadElections(this.pageIndex, this.pageSize);
     });
@@ -131,7 +133,8 @@ export class ElectionsComponent implements OnInit, AfterViewInit {
 
   onListScroll(event: Event): void {
     const el = event.target as HTMLElement;
-    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 200;
+    const nearBottom: boolean =
+      el.scrollTop + el.clientHeight >= el.scrollHeight - 200;
     if (nearBottom && this.electionCount < this.total) {
       this.pageIndex++;
       this.dataSource.loadElections(this.pageIndex, this.pageSize);

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import * as ElectionsActions from './elections.actions';
+import * as ElectionsActions from '../action/elections.actions';
 import { ElectionHttpService } from '../../service/http/election-http.service';
 import { Store } from '@ngrx/store';
 import {
@@ -15,7 +15,7 @@ import {
   withLatestFrom,
 } from 'rxjs';
 import { NotificationService } from '../../service/notification.service';
-import { selectElectionsState } from './elections.reducer';
+import { selectElectionsState } from '../reducer/elections.reducer';
 
 @Injectable()
 export class ElectionsEffects {

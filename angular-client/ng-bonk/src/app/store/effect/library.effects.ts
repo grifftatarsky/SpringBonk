@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import * as LibraryActions from './library.actions';
+import * as LibraryActions from '../action/library.actions';
 import { ShelfHttpService } from '../../service/http/shelves-http.service';
 import { BookHttpService } from '../../service/http/books-http.service';
 import { catchError, map, of, switchMap, tap } from 'rxjs';

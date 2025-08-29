@@ -1,5 +1,5 @@
 import { createFeature, createReducer, on } from '@ngrx/store';
-import * as LibraryActions from './library.actions';
+import * as LibraryActions from '../action/library.actions';
 import { ShelfResponse } from '../../model/response/shelf-response.model';
 import { BookResponse } from '../../model/response/book-response.model';
 import { OpenLibraryBookResponse } from '../../model/response/open-library-book-response.model';
@@ -93,10 +93,7 @@ const reducer = createReducer(
   ),
   on(
     LibraryActions.loadShelfBooks,
-    (
-      state: LibraryState,
-      { shelfId }: { shelfId: string }
-    ): LibraryState => ({
+    (state: LibraryState, { shelfId }: { shelfId: string }): LibraryState => ({
       ...state,
       loadingBooks: { ...state.loadingBooks, [shelfId]: true },
     })
@@ -118,7 +115,8 @@ const reducer = createReducer(
       }
     ): LibraryState => {
       const current = state.shelfBooks[shelfId] || [];
-      const merged = pageIndex && pageIndex > 0 ? [...current, ...books] : books;
+      const merged =
+        pageIndex && pageIndex > 0 ? [...current, ...books] : books;
       return {
         ...state,
         shelfBooks: { ...state.shelfBooks, [shelfId]: merged },
@@ -156,7 +154,9 @@ const reducer = createReducer(
       { bookId, shelfId }: { bookId: string; shelfId: string }
     ): LibraryState => {
       const currentBooks = state.shelfBooks[shelfId] || [];
-      const filtered = currentBooks.filter((b: BookResponse) => b.id !== bookId);
+      const filtered = currentBooks.filter(
+        (b: BookResponse) => b.id !== bookId
+      );
       const currentTotal = state.shelfTotals[shelfId] ?? currentBooks.length;
       return {
         ...state,
@@ -188,7 +188,8 @@ const reducer = createReducer(
           const hadBook = state.shelfBooks[key].some(
             (b: BookResponse) => b.id === bookId
           );
-          const currentTotal = state.shelfTotals[key] ?? state.shelfBooks[key].length;
+          const currentTotal =
+            state.shelfTotals[key] ?? state.shelfBooks[key].length;
           return {
             ...acc,
             [key]: hadBook ? Math.max(0, currentTotal - 1) : currentTotal,

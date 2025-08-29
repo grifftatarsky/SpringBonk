@@ -21,12 +21,12 @@ import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { AsyncPipe } from '@angular/common';
 import { BookSelectShelfDialog } from './dialog/book-select-shelf-dialog.component';
 import { Store } from '@ngrx/store';
-import * as LibraryActions from './store/library.actions';
+import * as LibraryActions from '../store/action/library.actions';
 import {
   selectOpenLibraryResults,
   selectOpenLibraryTotal,
   selectSearchLoading,
-} from './store/library.selectors';
+} from '../store/selector/library.selectors';
 import { BookHttpService } from '../service/http/books-http.service';
 import { BookCoverComponent } from '../common/book-cover.component';
 import {

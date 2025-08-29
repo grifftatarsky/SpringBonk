@@ -1,5 +1,5 @@
 import { createSelector } from '@ngrx/store';
-import { selectElectionsState } from './elections.reducer';
+import { selectElectionsState } from '../reducer/elections.reducer';
 import { CandidateResponse } from '../../model/response/candidate-response.model';
 
 export const selectCurrentElectionId = createSelector(

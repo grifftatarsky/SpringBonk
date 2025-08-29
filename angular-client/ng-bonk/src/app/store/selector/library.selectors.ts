@@ -1,5 +1,5 @@
 import { createSelector } from '@ngrx/store';
-import { selectLibraryState } from './library.reducer';
+import { selectLibraryState } from '../reducer/library.reducer';
 
 export const selectShelves = createSelector(
   selectLibraryState,

@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 
+// TODO __ Do I even need this?
 @Injectable({ providedIn: 'root' })
 export class MarkdownService {
   toHtml(src: string | null | undefined): string {
     if (!src) return '';
-    let text = this.escapeHtml(src);
+    let text: string = this.escapeHtml(src);
 
     // Headings (support up to ###)
     text = text.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
@@ -19,16 +20,21 @@ export class MarkdownService {
     text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
 
     // Links [text](url)
-    text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url) => {
-      const safeUrl = this.isSafeUrl(url) ? url : '#';
-      return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${label}</a>`;
-    });
+    text = text.replace(
+      /\[([^\]]+)\]\(([^)]+)\)/g,
+      (_m: string, label, url): string => {
+        const safeUrl = this.isSafeUrl(url) ? url : '#';
+        return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+      }
+    );
 
     // Paragraphs: split on blank lines
-    const paragraphs = text
+    const paragraphs: string[] = text
       .split(/\n\s*\n/g)
-      .map(p => p.replace(/\n/g, '<br>'))
-      .map(p => (p.trim().startsWith('<h') ? p : `<p>${p}</p>`));
+      .map((p: string): string => p.replace(/\n/g, '<br>'))
+      .map((p: string): string =>
+        p.trim().startsWith('<h') ? p : `<p>${p}</p>`
+      );
     return paragraphs.join('\n');
   }
 
@@ -50,4 +56,3 @@ export class MarkdownService {
     }
   }
 }
-

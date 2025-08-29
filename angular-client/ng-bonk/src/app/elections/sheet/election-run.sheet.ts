@@ -17,12 +17,12 @@ import {
 } from '@angular/material/bottom-sheet';
 import { Store } from '@ngrx/store';
 import { BehaviorSubject, combineLatest, Subject, takeUntil } from 'rxjs';
-import * as ElectionsActions from '../store/elections.actions';
+import * as ElectionsActions from '../../store/action/elections.actions';
 import {
   selectCandidates,
   selectRunning,
   selectRunResult,
-} from '../store/elections.selectors';
+} from '../../store/selector/elections.selectors';
 import { EliminationMessage } from '../../model/type/elimination-message.enum';
 
 export interface ElectionRunSheetData {

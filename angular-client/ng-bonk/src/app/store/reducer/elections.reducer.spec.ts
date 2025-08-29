@@ -1,5 +1,5 @@
 import { electionsReducer, initialState } from './elections.reducer';
-import * as ElectionsActions from './elections.actions';
+import * as ElectionsActions from '../action/elections.actions';
 import { ElectionResponse } from '../../model/response/election-response.model';
 import { ElectionResult } from '../../model/election-result.model';
 

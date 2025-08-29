@@ -3,7 +3,7 @@ import {
   selectRankedCandidates,
   selectUnrankedCandidates,
 } from './elections.selectors';
-import { ElectionsState } from './elections.reducer';
+import { ElectionsState } from '../reducer/elections.reducer';
 import { CandidateResponse } from '../../model/response/candidate-response.model';
 
 describe('Elections Selectors', () => {

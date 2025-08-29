@@ -5,7 +5,7 @@ import { EliminationMessage } from './type/elimination-message.enum';
  */
 export interface RoundResult {
   roundNumber: number;
-  votes: Record<string, number>; // UUID -> vote count
-  eliminatedCandidateIds: string[]; // UUIDs
+  votes: Record<string, number>;
+  eliminatedCandidateIds: string[];
   eliminationMessage: EliminationMessage;
 }

@@ -4,7 +4,7 @@ import { RoundResult } from './round-result.model';
  * Represents the result of a completed election.
  */
 export interface ElectionResult {
-  winnerId: string; // UUID
+  winnerId: string;
   totalVotes: number;
   rounds: RoundResult[];
 }
