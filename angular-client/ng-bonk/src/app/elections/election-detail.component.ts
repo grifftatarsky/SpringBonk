@@ -60,7 +60,11 @@ import { ElectionResult } from '../model/election-result.model';
 import { CandidateResponse } from '../model/response/candidate-response.model';
 import { ElectionResponse } from '../model/response/election-response.model';
 import { ShelfResponse } from '../model/response/shelf-response.model';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import {
+  BreakpointObserver,
+  Breakpoints,
+  BreakpointState,
+} from '@angular/cdk/layout';
 import { Actions, ofType } from '@ngrx/effects';
 import { BookBlurbDialogComponent } from './dialog/book-blurb-dialog.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -114,7 +118,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   order$!: Observable<string[]>;
   myNominationId$!: Observable<string | null>;
   isHandset$!: Observable<boolean>;
-  private pending = false;
+  private pending: boolean = false;
 
   electionId!: string;
   private readonly destroy$: Subject<void> = new Subject<void>();
@@ -129,7 +133,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
     );
 
     // React to id changes: dispatch loads and update local id
-    id$.pipe(takeUntil(this.destroy$)).subscribe(id => {
+    id$.pipe(takeUntil(this.destroy$)).subscribe((id: string): void => {
       this.electionId = id;
       if (id) {
         this.store.dispatch(ElectionsActions.loadElection({ electionId: id }));
@@ -175,13 +179,10 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
     this.isHandset$ = this.bp
       .observe([Breakpoints.XSmall, Breakpoints.Small])
       .pipe(
-        map(state => state.matches),
+        map((state: BreakpointState): boolean => state.matches),
         startWith(false)
       );
 
-    // Terminal output moved to bottom sheet.
-
-    // Determine if the current user has a nomination in this election
     this.myNominationId$ = combineLatest([
       this.store.select(selectCandidates),
       this.userService.valueChanges,
@@ -235,7 +236,10 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
 
   // Move from unranked to ranked (append at end)
   addToRanked(candidateId: string, ranked: CandidateResponse[]): void {
-    const newOrder = [...ranked.map(c => c.id), candidateId];
+    const newOrder: string[] = [
+      ...ranked.map((c: CandidateResponse): string => c.id),
+      candidateId,
+    ];
     this.store.dispatch(
       ElectionsActions.setBallotOrder({
         electionId: this.electionId,
@@ -247,7 +251,9 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
 
   // Remove from ranked
   removeFromRanked(candidateId: string, ranked: CandidateResponse[]): void {
-    const newOrder = ranked.map(c => c.id).filter(id => id !== candidateId);
+    const newOrder: string[] = ranked
+      .map((c: CandidateResponse): string => c.id)
+      .filter((id: string): boolean => id !== candidateId);
     this.store.dispatch(
       ElectionsActions.setBallotOrder({
         electionId: this.electionId,
@@ -310,12 +316,14 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
     this.store
       .select(selectCandidates)
       .pipe(take(1))
-      .subscribe((cands: CandidateResponse[]) => {
-        const cand = cands.find((c: CandidateResponse) => c.id === candidateId);
-        const bookId = cand?.base?.id;
+      .subscribe((candidates: CandidateResponse[]): void => {
+        const candidate: CandidateResponse | undefined = candidates.find(
+          (c: CandidateResponse) => c.id === candidateId
+        );
+        const bookId: string | undefined = candidate?.base?.id;
         this.electionHttpService
           .deleteCandidate(this.electionId, candidateId)
-          .subscribe(() => {
+          .subscribe((): void => {
             this.store.dispatch(
               ElectionsActions.loadCandidates({ electionId: this.electionId })
             );
@@ -323,15 +331,20 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
               this.shelfHttpService
                 .getUserShelves()
                 .pipe(take(1))
-                .subscribe((shelves: ShelfResponse[]) => {
-                  const nominationsShelf = shelves.find(
-                    (s: ShelfResponse) => s.title === 'My Nominations'
-                  );
+                .subscribe((shelves: ShelfResponse[]): void => {
+                  const nominationsShelf: ShelfResponse | undefined =
+                    shelves.find(
+                      (s: ShelfResponse): boolean =>
+                        s.title === 'My Nominations'
+                    );
                   if (nominationsShelf) {
                     this.bookHttpService
                       .removeBookFromShelf(bookId, nominationsShelf.id)
                       .pipe(take(1))
-                      .subscribe({ next: () => {}, error: () => {} });
+                      .subscribe({
+                        next: (): void => {},
+                        error: (): void => {},
+                      });
                   }
                 });
             }
@@ -351,8 +364,10 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
 
   moveUp(index: number, ranked: CandidateResponse[]): void {
     if (index <= 0) return;
-    const order = [...ranked.map(c => c.id)];
-    const tmp = order[index - 1];
+    const order: string[] = [
+      ...ranked.map((c: CandidateResponse): string => c.id),
+    ];
+    const tmp: string = order[index - 1];
     order[index - 1] = order[index];
     order[index] = tmp;
     this.store.dispatch(
@@ -366,8 +381,10 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
 
   moveDown(index: number, ranked: CandidateResponse[]): void {
     if (index >= ranked.length - 1) return;
-    const order = [...ranked.map(c => c.id)];
-    const tmp = order[index + 1];
+    const order: string[] = [
+      ...ranked.map((c: CandidateResponse): string => c.id),
+    ];
+    const tmp: string = order[index + 1];
     order[index + 1] = order[index];
     order[index] = tmp;
     this.store.dispatch(

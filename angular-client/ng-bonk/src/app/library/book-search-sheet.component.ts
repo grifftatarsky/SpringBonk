@@ -57,21 +57,21 @@ import {
 })
 export class BookSearchSheet implements AfterViewInit, OnDestroy {
   searchControl = new FormControl('');
-  hasSearched = false;
+  hasSearched: boolean = false;
 
   results$: Observable<OpenLibraryBookResponse[]>;
   loading$: Observable<boolean>;
   total$: Observable<number>;
 
-  private destroy$ = new Subject<void>();
+  private destroy$: Subject<void> = new Subject<void>();
   private searchSubscription?: Subscription;
-  private pageIndex = 0;
-  private pageSize = 10;
-  private currentCount = 0;
-  private totalCount = 0;
-  private isLoading = false;
-  readonly itemSize = 110;
-  private preloadThreshold = 3; // items beyond viewport to trigger prefetch
+  private pageIndex: number = 0;
+  private pageSize: number = 10;
+  private currentCount: number = 0;
+  private totalCount: number = 0;
+  private isLoading: boolean = false;
+  readonly itemSize: number = 110;
+  private preloadThreshold: number = 3; // items beyond viewport to trigger prefetch
 
   @ViewChild(CdkVirtualScrollViewport) viewport?: CdkVirtualScrollViewport;
 
@@ -95,10 +95,10 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
     });
     this.total$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(t => (this.totalCount = t ?? 0));
+      .subscribe((t: number): number => (this.totalCount = t ?? 0));
     this.loading$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(l => (this.isLoading = !!l));
+      .subscribe((l: boolean): boolean => (this.isLoading = l));
 
     // Set up search with debounce on main control
     this.searchSubscription = this.searchControl.valueChanges
@@ -107,8 +107,6 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
         this.pageIndex = 0;
         this.loadData();
       });
-
-    // Initial empty state - no auto-load
   }
 
   ngOnDestroy(): void {
@@ -183,7 +181,7 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
     const visible: number = this.viewport
       ? Math.ceil(this.viewport.getViewportSize() / this.itemSize)
       : 10;
-    const nearEnd =
+    const nearEnd: boolean =
       index + visible + this.preloadThreshold >= this.currentCount;
     if (
       this.hasSearched &&
