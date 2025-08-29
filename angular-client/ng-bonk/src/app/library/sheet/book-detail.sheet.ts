@@ -4,7 +4,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
-import { BookCoverComponent } from '../../common/book-cover.component';
 import {
   MAT_BOTTOM_SHEET_DATA,
   MatBottomSheetRef,
@@ -22,6 +21,9 @@ import { ElectionHttpService } from '../../service/http/election-http.service';
 import { UserService } from '../../service/user.service';
 import { forkJoin, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { BookCoverComponent } from '../../common/book-cover.component';
+import { BookDetailDialog } from '../dialog/book-detail-dialog.component';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 export interface BookDetailSheetData {
   book: BookResponse;
@@ -34,49 +36,13 @@ export interface BookDetailSheetData {
   standalone: true,
   imports: [
     MatButtonModule,
+    MatExpansionModule,
     MatIconModule,
     MatChipsModule,
     MatDividerModule,
     BookCoverComponent,
   ],
-  template: `
-    <div class="sheet-header">
-      <div class="cover">
-        <app-book-cover
-          [src]="data.book.imageURL"
-          [alt]="data.book.title + ' cover'"></app-book-cover>
-      </div>
-      <div class="meta">
-        <div class="title">{{ data.book.title }}</div>
-        <mat-chip-set>
-          <mat-chip appearance="outlined">{{ data.book.author }}</mat-chip>
-          <mat-chip appearance="outlined">{{
-            data.book.publishedYear ?? '—'
-          }}</mat-chip>
-        </mat-chip-set>
-      </div>
-    </div>
-    <mat-divider></mat-divider>
-    <div class="sheet-actions">
-      <button mat-stroked-button color="primary" (click)="reshelve()">
-        <mat-icon>swap_horiz</mat-icon>
-        Reshelve
-      </button>
-      <button mat-stroked-button (click)="nominate()">
-        <mat-icon>star</mat-icon>
-        Nominate
-      </button>
-      <span class="spacer"></span>
-      <button mat-button color="warn" (click)="removeFromShelf()">
-        <mat-icon>remove_circle</mat-icon>
-        Remove from shelf
-      </button>
-      <button mat-flat-button color="warn" (click)="delete()">
-        <mat-icon>delete</mat-icon>
-        Delete
-      </button>
-    </div>
-  `,
+  templateUrl: './book-detail.sheet.html',
   styles: [
     `
       :host {
@@ -96,6 +62,7 @@ export interface BookDetailSheetData {
         font-weight: 600;
         margin-bottom: 6px;
       }
+
       .sheet-actions {
         display: flex;
         align-items: center;
@@ -106,6 +73,27 @@ export interface BookDetailSheetData {
       .spacer {
         flex: 1;
       }
+
+      .blurb {
+        margin-top: 12px;
+      }
+      .blurb .blurb-title {
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .blurb .blurb-text {
+        line-height: 1.35;
+        white-space: pre-wrap;
+      }
+      .blurb .blurb-text.collapsed {
+        max-height: 6.5em; /* ~5 lines */
+        overflow: hidden;
+      }
+      .blurb.empty .blurb-text {
+        font-style: italic;
+        opacity: 0.8;
+      }
+
       @media (max-width: 600px) {
         .sheet-actions {
           flex-direction: column;
@@ -134,6 +122,17 @@ export class BookDetailSheetComponent {
     private electionHttp: ElectionHttpService,
     private user: UserService
   ) {}
+
+  editDetails(): void {
+    const dlg = this.dialog.open(BookDetailDialog, {
+      width: '640px',
+      data: { book: this.data.book },
+    });
+    dlg.afterClosed().subscribe((updatedBook?: BookResponse) => {
+      if (!updatedBook) return;
+      this.data.book = { ...this.data.book, ...updatedBook };
+    });
+  }
 
   removeFromShelf(): void {
     const proceed = () => {
@@ -210,7 +209,6 @@ export class BookDetailSheetComponent {
         const toShelf = result.shelfId as string;
         this.bookHttp.addBookToShelf(this.data.book.id, toShelf).subscribe({
           next: (): void => {
-            // Remove from current shelf to complete move
             this.store.dispatch(
               LibraryActions.removeBookFromShelf({
                 bookId: this.data.book.id,
@@ -220,7 +218,7 @@ export class BookDetailSheetComponent {
             this.notify.success('Moved book to new shelf');
             this.ref.dismiss(true);
           },
-          error: () => this.notify.error('Failed to move book'),
+          error: (): void => this.notify.error('Failed to move book'),
         });
       }
     });

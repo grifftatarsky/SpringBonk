@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,16 +17,13 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatCardModule } from '@angular/material/card';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { MatRippleModule } from '@angular/material/core';
-import {
-  ActivatedRoute,
-  NavigationEnd,
-  Router,
-  RouterOutlet,
-} from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet, } from '@angular/router';
 import { BookSearchSheet } from './book-search-sheet.component';
 import { BookResponse } from '../model/response/book-response.model';
 import { BookDetailDialog } from './dialog/book-detail-dialog.component';
-import { NominateToElectionDialogComponent } from '../elections/dialog/nominate-to-election-dialog.component';
+import {
+  NominateToElectionDialogComponent
+} from '../elections/dialog/nominate-to-election-dialog.component';
 import { Store } from '@ngrx/store';
 import * as LibraryActions from './store/library.actions';
 import {
@@ -81,21 +72,21 @@ export class ShelvesComponent implements OnInit {
   shelfBooks: { [shelfId: string]: BookResponse[] } = {};
   loadingBooks: { [shelfId: string]: boolean } = {};
   bookPageIndex: { [shelfId: string]: number } = {};
-  bookPageSize = 5;
+  bookPageSize: number = 5;
   sortBy: { [shelfId: string]: 'title' | 'author' | 'published' } = {};
   sortDir: { [shelfId: string]: 'asc' | 'desc' } = {};
 
-  private pageIndex = 0;
-  private pageSize = 10;
-  private shelvesCount = 0;
-  private totalCount = 0;
-  private loadingShelves = false;
+  private pageIndex: number = 0;
+  private pageSize: number = 10;
+  private shelvesCount: number = 0;
+  private totalCount: number = 0;
+  private loadingShelves: boolean = false;
   hasSelection$!: Observable<boolean>;
   selectedId$!: Observable<string | null>;
 
   // Animation state
-  showLine = false;
-  lineInstant = false;
+  showLine: boolean = false;
+  lineInstant: boolean = false;
   lineStyle: { top: string; left: string; width: string } = {
     top: '0px',
     left: '0px',
@@ -104,12 +95,16 @@ export class ShelvesComponent implements OnInit {
 
   @ViewChild('shelvesLayout', { static: true })
   layoutRef!: ElementRef<HTMLElement>;
+
   @ViewChild('listPane', { static: true })
   listPaneRef!: ElementRef<HTMLElement>;
+
   @ViewChild('detailPane', { static: true })
   detailPaneRef!: ElementRef<HTMLElement>;
+
   @ViewChild('detailContent', { static: false })
   detailContentRef?: ElementRef<HTMLElement>;
+
   @ViewChild('transLine', { static: false })
   lineRef?: ElementRef<HTMLElement>;
 

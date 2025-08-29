@@ -1,0 +1,59 @@
+<div class="sheet-header">
+  <div class="cover">
+    <app-book-cover
+      [src]="data.book.imageURL"
+      [alt]="data.book.title + ' cover'"></app-book-cover>
+  </div>
+  <div class="meta">
+    <div class="title">{{ data.book.title }}</div>
+
+    <mat-chip-set>
+      <mat-chip>{{ data.book.author }}</mat-chip>
+      <mat-chip>{{ data.book.publishedYear ?? '—' }}</mat-chip>
+    </mat-chip-set>
+  </div>
+</div>
+
+<br />
+
+<mat-expansion-panel>
+  <mat-expansion-panel-header>
+    <mat-panel-title>YOUR PITCH</mat-panel-title>
+  </mat-expansion-panel-header>
+
+  <div class="blurb-text">{{ data.book.blurb || 'No pitch yet.' }}</div>
+
+  <div class="sheet-actions" style="padding-top: 8px">
+    <span class="spacer"></span>
+    <button mat-stroked-button color="primary" (click)="editDetails()">
+      <mat-icon>edit</mat-icon>
+      {{ data.book.blurb ? 'Edit pitch' : 'Add pitch' }}
+    </button>
+  </div>
+</mat-expansion-panel>
+
+<mat-divider></mat-divider>
+
+<div class="sheet-actions">
+  <button mat-stroked-button color="primary" (click)="reshelve()">
+    <mat-icon>swap_horiz</mat-icon>
+    Reshelve
+  </button>
+
+  <button mat-stroked-button (click)="nominate()">
+    <mat-icon>star</mat-icon>
+    Nominate
+  </button>
+
+  <span class="spacer"></span>
+
+  <button mat-button color="warn" (click)="removeFromShelf()">
+    <mat-icon>remove_circle</mat-icon>
+    Remove from shelf
+  </button>
+
+  <button mat-flat-button color="warn" (click)="delete()">
+    <mat-icon>delete</mat-icon>
+    Delete
+  </button>
+</div>
