@@ -1,5 +1,6 @@
 @if (election$ | async; as election) {
   <div class="election-detail">
+    <!-- Display toolbar-->
     <mat-toolbar id="toolbar-election-detail" class="gap-2">
       <button
         mat-icon-button
@@ -16,7 +17,8 @@
         </mat-chip>
       }
     </mat-toolbar>
-    <!-- Secondary actions toolbar -->
+
+    <!-- Actions toolbar -->
     <mat-toolbar id="toolbar-election-actions" class="gap-2">
       <span>Controls</span>
       <span class="spacer"></span>
@@ -75,11 +77,14 @@
         </mat-menu>
       }
     </mat-toolbar>
+
+    <!-- Progress bar -->
     @if ((loadingElection$ | async) || (loadingCandidates$ | async)) {
       <div class="loading-bar">
         <mat-progress-bar mode="indeterminate"></mat-progress-bar>
       </div>
     }
+
     <!-- Ballot layout -->
     @if (ranked$ | async; as ranked) {
       @if (unranked$ | async; as unranked) {
@@ -87,15 +92,16 @@
           <!-- Candidates (unranked) -->
           <section class="candidate-pane">
             <h3>Nominees</h3>
+
+            <!-- No nominations -->
             @if (unranked.length === 0) {
               <div class="placeholder">No nominations</div>
             }
+
             @if (unranked.length > 0) {
               <div class="candidates">
                 @for (c of unranked; track trackByCandidate($index, c)) {
-                  <mat-card
-                    class="candidate-card"
-                    (click)="addToRanked(c.id, ranked)">
+                  <mat-card class="candidate-card">
                     <div class="card-body">
                       <app-book-cover
                         class="cover"
@@ -105,10 +111,22 @@
                         <div class="book-title">{{ c.base.title }}</div>
                         <div class="book-author">{{ c.base.author }}</div>
                       </div>
+                      <div class="spacer"></div>
+                      <button
+                        mat-icon-button
+                        aria-label="View blurb"
+                        (click)="openBlurb(c); $event.stopPropagation()"
+                        matTooltip="View blurb">
+                        <mat-icon>info</mat-icon>
+                      </button>
                       <button
                         mat-icon-button
                         class="add-btn"
-                        aria-label="Add to ballot">
+                        aria-label="Add to ballot"
+                        (click)="
+                          addToRanked(c.id, ranked); $event.stopPropagation()
+                        "
+                        matTooltip="Add to ballot">
                         <mat-icon>add</mat-icon>
                       </button>
                     </div>
@@ -117,6 +135,7 @@
               </div>
             }
           </section>
+
           <!-- Ballot (ranked) -->
           <section class="ballot-pane">
             <h3>Your Ballot</h3>
@@ -155,14 +174,19 @@
                   <div class="handle" cdkDragHandle>
                     <mat-icon>drag_indicator</mat-icon>
                   </div>
-                  <app-book-cover
-                    class="cover"
-                    [src]="c.base.imageURL"
-                    [alt]="c.base.title + ' cover'"></app-book-cover>
+                  <button
+                    mat-icon-button
+                    aria-label="View blurb"
+                    (click)="openBlurb(c); $event.stopPropagation()"
+                    matTooltip="View blurb">
+                    <mat-icon>info</mat-icon>
+                  </button>
+
                   <div class="meta">
                     <div class="book-title">{{ c.base.title }}</div>
                     <div class="book-author">{{ c.base.author }}</div>
                   </div>
+
                   <div class="mobile-reorder">
                     <button
                       mat-icon-button
@@ -170,6 +194,7 @@
                       (click)="moveUp(i, ranked)">
                       <mat-icon>arrow_upward</mat-icon>
                     </button>
+
                     <button
                       mat-icon-button
                       aria-label="Move down"
@@ -191,6 +216,5 @@
         </div>
       }
     }
-    <!-- Run results moved to bottom sheet -->
   </div>
 }

@@ -6,7 +6,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, ParamMap, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -62,13 +62,19 @@ import { ElectionResponse } from '../model/response/election-response.model';
 import { ShelfResponse } from '../model/response/shelf-response.model';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Actions, ofType } from '@ngrx/effects';
+import { BookBlurbDialogComponent } from './dialog/book-blurb-dialog.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-election-detail',
   standalone: true,
   imports: [
     CommonModule,
-    MatToolbarModule,
+    DragDropModule,
+    BookCoverComponent,
+    DatePipe,
+    AsyncPipe,
+    RouterLink,
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
@@ -76,24 +82,25 @@ import { Actions, ofType } from '@ngrx/effects';
     MatCardModule,
     MatProgressBarModule,
     MatBottomSheetModule,
-    DragDropModule,
-    BookCoverComponent,
-    DatePipe,
-    AsyncPipe,
+    MatToolbarModule,
+    MatTooltipModule,
   ],
   templateUrl: './election-detail.component.html',
   styleUrls: ['./election-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ElectionDetailComponent implements OnInit, OnDestroy {
-  private readonly route = inject(ActivatedRoute);
-  private readonly store = inject(Store);
-  private readonly dialog = inject(MatDialog);
-  private readonly bottomSheet = inject(MatBottomSheet);
-  private readonly user = inject(UserService);
-  private readonly electionHttp = inject(ElectionHttpService);
-  private readonly bookHttp = inject(BookHttpService);
-  private readonly shelfHttp = inject(ShelfHttpService);
+  private readonly route: ActivatedRoute = inject(ActivatedRoute);
+  // TODO __ Remove use of any.
+  private readonly store: Store<any> = inject(Store);
+  private readonly dialog: MatDialog = inject(MatDialog);
+  private readonly bottomSheet: MatBottomSheet = inject(MatBottomSheet);
+  private readonly userService: UserService = inject(UserService);
+  private readonly electionHttpService: ElectionHttpService =
+    inject(ElectionHttpService);
+  private readonly bookHttpService: BookHttpService = inject(BookHttpService);
+  private readonly shelfHttpService: ShelfHttpService =
+    inject(ShelfHttpService);
 
   election$!: Observable<ElectionResponse | null>;
   loadingElection$!: Observable<boolean>;
@@ -110,13 +117,14 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   private pending = false;
 
   electionId!: string;
-  private readonly destroy$ = new Subject<void>();
-  private readonly bp = inject(BreakpointObserver);
-  private readonly actions$ = inject(Actions);
+  private readonly destroy$: Subject<void> = new Subject<void>();
+  private readonly bp: BreakpointObserver = inject(BreakpointObserver);
+  // TODO __ Remove use of any.
+  private readonly actions$: Actions<any> = inject(Actions);
 
   ngOnInit(): void {
-    const id$ = this.route.paramMap.pipe(
-      map(params => params.get('id') || ''),
+    const id$: Observable<string> = this.route.paramMap.pipe(
+      map((params: ParamMap): string => params.get('id') || ''),
       takeUntil(this.destroy$)
     );
 
@@ -142,13 +150,22 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
     const orderFactory$ = this.store.select(selectBallotOrder);
 
     this.ranked$ = id$.pipe(
-      switchMap(id => rankedFactory$.pipe(map(f => f(id))))
+      switchMap(
+        (id: string): Observable<CandidateResponse[]> =>
+          rankedFactory$.pipe(map(f => f(id)))
+      )
     );
     this.unranked$ = id$.pipe(
-      switchMap(id => unrankedFactory$.pipe(map(f => f(id))))
+      switchMap(
+        (id: string): Observable<CandidateResponse[]> =>
+          unrankedFactory$.pipe(map(f => f(id)))
+      )
     );
     this.order$ = id$.pipe(
-      switchMap(id => orderFactory$.pipe(map(f => f(id))))
+      switchMap(
+        (id: string): Observable<string[]> =>
+          orderFactory$.pipe(map(f => f(id)))
+      )
     );
 
     this.running$ = this.store.select(selectRunning);
@@ -167,13 +184,19 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
     // Determine if the current user has a nomination in this election
     this.myNominationId$ = combineLatest([
       this.store.select(selectCandidates),
-      this.user.valueChanges,
+      this.userService.valueChanges,
     ]).pipe(
-      map(([cands, u]: [CandidateResponse[], { id: string }]) => {
-        const myId: string = u?.id ?? '';
-        const mine = cands.find(c => c.nominatorId === myId);
-        return mine?.id ?? null;
-      }),
+      map(
+        ([candidates, u]: [CandidateResponse[], { id: string }]):
+          | string
+          | null => {
+          const myId: string = u?.id ?? '';
+          const mine: CandidateResponse | undefined = candidates.find(
+            (c: CandidateResponse): boolean => c.nominatorId === myId
+          );
+          return mine?.id ?? null;
+        }
+      ),
       distinctUntilChanged()
     );
 
@@ -187,7 +210,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
         rxFilter(a => a.electionId === this.electionId),
         takeUntil(this.destroy$)
       )
-      .subscribe(() => (this.pending = false));
+      .subscribe((): boolean => (this.pending = false));
   }
 
   ngOnDestroy(): void {
@@ -197,7 +220,9 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
 
   // Drag within ranked list
   dropRanked(event: CdkDragDrop<unknown>, ranked: CandidateResponse[]): void {
-    const newOrder = [...ranked.map(c => c.id)];
+    const newOrder: string[] = [
+      ...ranked.map((c: CandidateResponse): string => c.id),
+    ];
     moveItemInArray(newOrder, event.previousIndex, event.currentIndex);
     this.store.dispatch(
       ElectionsActions.setBallotOrder({
@@ -236,6 +261,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
     return c.id;
   }
 
+  // TODO __ why is this unused...
   clearBallot(): void {
     this.store.dispatch(
       ElectionsActions.clearBallot({ electionId: this.electionId })
@@ -287,14 +313,14 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       .subscribe((cands: CandidateResponse[]) => {
         const cand = cands.find((c: CandidateResponse) => c.id === candidateId);
         const bookId = cand?.base?.id;
-        this.electionHttp
+        this.electionHttpService
           .deleteCandidate(this.electionId, candidateId)
           .subscribe(() => {
             this.store.dispatch(
               ElectionsActions.loadCandidates({ electionId: this.electionId })
             );
             if (bookId) {
-              this.shelfHttp
+              this.shelfHttpService
                 .getUserShelves()
                 .pipe(take(1))
                 .subscribe((shelves: ShelfResponse[]) => {
@@ -302,7 +328,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
                     (s: ShelfResponse) => s.title === 'My Nominations'
                   );
                   if (nominationsShelf) {
-                    this.bookHttp
+                    this.bookHttpService
                       .removeBookFromShelf(bookId, nominationsShelf.id)
                       .pipe(take(1))
                       .subscribe({ next: () => {}, error: () => {} });
@@ -351,5 +377,12 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       })
     );
     this.pending = true;
+  }
+
+  openBlurb(c: CandidateResponse): void {
+    this.dialog.open(BookBlurbDialogComponent, {
+      width: '640px',
+      data: { title: c.base.title, blurb: c.base.blurb },
+    });
   }
 }
