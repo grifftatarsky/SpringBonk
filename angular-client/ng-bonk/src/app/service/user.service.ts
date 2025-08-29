@@ -41,11 +41,7 @@ export class UserService {
               : User.ANONYMOUS
           );
         }
-        if (
-          typeof user.exp === 'number' &&
-          user.exp > 0 &&
-          user.exp < Number.MAX_SAFE_INTEGER / 1000
-        ) {
+        if (user.exp > 0 && user.exp < Number.MAX_SAFE_INTEGER / 1000) {
           const now: number = Date.now();
           const expMs: number = user.exp * 1000; // Convert expiration time to milliseconds safely
 

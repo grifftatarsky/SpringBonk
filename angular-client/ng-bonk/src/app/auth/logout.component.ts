@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { UserService } from '../service/user.service';
 import { lastValueFrom } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { baseUri, reverseProxyUri } from '../app.config';
 import { MatButton } from '@angular/material/button';
 
@@ -28,13 +28,13 @@ export class LogoutComponent {
         observe: 'response',
       })
     )
-      .then(resp => {
-        const logoutUri = resp.headers.get('Location');
+      .then((resp: HttpResponse<Object>): void => {
+        const logoutUri: string | null = resp.headers.get('Location');
         if (!!logoutUri) {
           window.location.href = logoutUri;
         }
       })
-      .finally(() => {
+      .finally((): void => {
         this.user.refresh();
       });
   }

@@ -1,46 +1,23 @@
 import { inject } from '@angular/core';
-import {
-  ActivatedRouteSnapshot,
-  CanActivateFn,
-  CanMatchFn,
-  Route,
-  Router,
-  RouterStateSnapshot,
-  UrlSegment,
-} from '@angular/router';
+import { CanMatchFn, Router, UrlTree } from '@angular/router';
 import { UserService } from '../service/user.service';
-import { catchError, map, of, skip, take, timeout } from 'rxjs';
+import { catchError, map, Observable, of, skip, take, timeout } from 'rxjs';
+import { User } from './user.model';
 
-export const authGuard: CanActivateFn = (
-  route: ActivatedRouteSnapshot,
-  state: RouterStateSnapshot
-) => {
-  const user = inject(UserService);
-  const router = inject(Router);
-  // Seamless UX: no snackbars in guards; redirect to home when unauthenticated
+export const authMatch: CanMatchFn = (): true | Observable<true | UrlTree> => {
+  const userService: UserService = inject(UserService);
+  const router: Router = inject(Router);
 
-  if (user.current.isAuthenticated) return true;
-  return user.valueChanges.pipe(
+  if (userService.current.isAuthenticated) return true;
+
+  // TODO __ this timeout. Why do I have it, seems bad?
+  return userService.valueChanges.pipe(
     skip(1),
     take(1),
     timeout(3000),
-    catchError(() => of(user.current)),
-    map(u => (u.isAuthenticated ? true : router.createUrlTree(['/'])))
-  );
-};
-
-export const authMatch: CanMatchFn = (route: Route, segments: UrlSegment[]) => {
-  const user = inject(UserService);
-  const router = inject(Router);
-  // Seamless UX: no snackbars in guards; redirect to home when unauthenticated
-
-  const url = '/' + segments.map(s => s.path).join('/');
-  if (user.current.isAuthenticated) return true;
-  return user.valueChanges.pipe(
-    skip(1),
-    take(1),
-    timeout(3000),
-    catchError(() => of(user.current)),
-    map(u => (u.isAuthenticated ? true : router.createUrlTree(['/'])))
+    catchError((): Observable<User> => of(userService.current)),
+    map((u: User): true | UrlTree =>
+      u.isAuthenticated ? true : router.createUrlTree(['/'])
+    )
   );
 };

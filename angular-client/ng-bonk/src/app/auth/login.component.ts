@@ -50,10 +50,12 @@ export class LoginComponent {
     }
 
     const url = new URL(this.loginUri);
+
     url.searchParams.append(
       'post_login_success_uri',
       `${baseUri}${this.router.url}`
     );
+
     url.searchParams.append('post_login_failure_uri', `${baseUri}login-error`);
     window.location.href = url.toString();
   }

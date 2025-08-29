@@ -5,6 +5,7 @@ import { UserService } from '../service/user.service';
 import { LoginComponent } from './login.component';
 import { LogoutComponent } from './logout.component';
 import { map, Observable } from 'rxjs';
+import { User } from './user.model';
 
 @Component({
   selector: 'app-authentication',
@@ -19,7 +20,7 @@ export class AuthenticationComponent {
 
   constructor(private user: UserService) {
     this.isAuthenticated$ = this.user.valueChanges.pipe(
-      map(u => u.isAuthenticated)
+      map((u: User): boolean => u.isAuthenticated)
     );
   }
 }
