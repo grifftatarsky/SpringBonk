@@ -8,9 +8,10 @@ import { BookRequest } from '../../model/request/book-request.model';
 
 @Injectable()
 export class LibraryEffects {
-  private actions$ = inject(Actions);
-  private shelfHttp = inject(ShelfHttpService);
-  private bookHttp = inject(BookHttpService);
+  // TODO __ Might be able to remove the any here
+  private actions$: Actions<any> = inject(Actions);
+  private shelfHttpService: ShelfHttpService = inject(ShelfHttpService);
+  private bookHttpService: BookHttpService = inject(BookHttpService);
 
   loadShelves$ = createEffect(() =>
     this.actions$.pipe(
@@ -19,7 +20,7 @@ export class LibraryEffects {
         console.log('[LibraryEffects] loadShelves', { pageIndex, pageSize })
       ),
       switchMap(({ pageIndex = 0, pageSize = 10 }) =>
-        this.shelfHttp.getPagedShelves(pageIndex, pageSize).pipe(
+        this.shelfHttpService.getPagedShelves(pageIndex, pageSize).pipe(
           tap(res =>
             console.log('[LibraryEffects] loadShelves success', {
               total: res.page.totalElements,
@@ -46,7 +47,7 @@ export class LibraryEffects {
     this.actions$.pipe(
       ofType(LibraryActions.createShelf),
       switchMap(({ request }) =>
-        this.shelfHttp
+        this.shelfHttpService
           .createShelf(request)
           .pipe(map(shelf => LibraryActions.createShelfSuccess({ shelf })))
       )
@@ -57,7 +58,7 @@ export class LibraryEffects {
     this.actions$.pipe(
       ofType(LibraryActions.updateShelf),
       switchMap(({ shelfId, request }) =>
-        this.shelfHttp
+        this.shelfHttpService
           .updateShelf(shelfId, request)
           .pipe(map(shelf => LibraryActions.updateShelfSuccess({ shelf })))
       )
@@ -68,7 +69,7 @@ export class LibraryEffects {
     this.actions$.pipe(
       ofType(LibraryActions.deleteShelf),
       switchMap(({ shelfId }) =>
-        this.shelfHttp
+        this.shelfHttpService
           .deleteShelf(shelfId)
           .pipe(map(() => LibraryActions.deleteShelfSuccess({ shelfId })))
       )
@@ -86,36 +87,38 @@ export class LibraryEffects {
         })
       ),
       switchMap(({ shelfId, pageIndex = 0, pageSize = 20 }) =>
-        this.bookHttp.getPagedBooksByShelfId(shelfId, pageIndex, pageSize).pipe(
-          tap(res =>
-            console.log('[LibraryEffects] loadShelfBooks success', {
-              shelfId,
-              returned: Object.values(res._embedded)[0]?.length ?? 0,
-              total: res.page.totalElements,
-              page: res.page.number,
-            })
-          ),
-          map(res => {
-            const embeddedKey = Object.keys(res._embedded)[0];
-            return LibraryActions.loadShelfBooksSuccess({
-              shelfId,
-              books: res._embedded[embeddedKey],
-              total: res.page.totalElements,
-              pageIndex,
-            });
-          }),
-          catchError(error => {
-            console.error('[LibraryEffects] loadShelfBooks failure', error);
-            return of(
-              LibraryActions.loadShelfBooksSuccess({
+        this.bookHttpService
+          .getPagedBooksByShelfId(shelfId, pageIndex, pageSize)
+          .pipe(
+            tap(res =>
+              console.log('[LibraryEffects] loadShelfBooks success', {
                 shelfId,
-                books: [],
-                total: 0,
-                pageIndex,
+                returned: Object.values(res._embedded)[0]?.length ?? 0,
+                total: res.page.totalElements,
+                page: res.page.number,
               })
-            );
-          })
-        )
+            ),
+            map(res => {
+              const embeddedKey = Object.keys(res._embedded)[0];
+              return LibraryActions.loadShelfBooksSuccess({
+                shelfId,
+                books: res._embedded[embeddedKey],
+                total: res.page.totalElements,
+                pageIndex,
+              });
+            }),
+            catchError(error => {
+              console.error('[LibraryEffects] loadShelfBooks failure', error);
+              return of(
+                LibraryActions.loadShelfBooksSuccess({
+                  shelfId,
+                  books: [],
+                  total: 0,
+                  pageIndex,
+                })
+              );
+            })
+          )
       )
     )
   );
@@ -134,13 +137,16 @@ export class LibraryEffects {
           title: book.title,
           author: book.author_name?.[0] || 'Unknown',
           imageURL: book.cover_i
-            ? this.bookHttp.getOpenLibraryCoverImageUrl(book.cover_i, 'L')
+            ? this.bookHttpService.getOpenLibraryCoverImageUrl(
+                book.cover_i,
+                'L'
+              )
             : '',
           blurb: 'No blurb added. TODO!',
           openLibraryId: book.key,
           shelfIds: [shelfId],
         };
-        return this.bookHttp.createBook(payload).pipe(
+        return this.bookHttpService.createBook(payload).pipe(
           tap(created =>
             console.log('[LibraryEffects] addBookFromOpenLibrary success', {
               shelfId,
@@ -159,7 +165,7 @@ export class LibraryEffects {
     this.actions$.pipe(
       ofType(LibraryActions.removeBookFromShelf),
       switchMap(({ bookId, shelfId }) =>
-        this.bookHttp
+        this.bookHttpService
           .removeBookFromShelf(bookId, shelfId)
           .pipe(
             map(() =>
@@ -174,7 +180,7 @@ export class LibraryEffects {
     this.actions$.pipe(
       ofType(LibraryActions.deleteBook),
       switchMap(({ bookId }) =>
-        this.bookHttp
+        this.bookHttpService
           .deleteBook(bookId)
           .pipe(map(() => LibraryActions.deleteBookSuccess({ bookId })))
       )
@@ -188,7 +194,7 @@ export class LibraryEffects {
         console.log('[LibraryEffects] searchOpenLibrary', { query, sort })
       ),
       switchMap(({ query, sort = 'relevance', pageIndex = 0, pageSize = 10 }) =>
-        this.bookHttp
+        this.bookHttpService
           .getOpenLibraryBooks(pageIndex, pageSize, query, sort)
           .pipe(
             tap(res =>

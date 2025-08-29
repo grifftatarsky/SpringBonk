@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,12 +17,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatCardModule } from '@angular/material/card';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { MatRippleModule } from '@angular/material/core';
-import {
-  ActivatedRoute,
-  NavigationEnd,
-  Router,
-  RouterOutlet,
-} from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet, } from '@angular/router';
 import { BookSearchSheet } from './book-search-sheet.component';
 import { BookResponse } from '../model/response/book-response.model';
 import { Store } from '@ngrx/store';
@@ -83,6 +72,7 @@ export class ShelvesComponent implements OnInit {
   private shelvesCount: number = 0;
   private totalCount: number = 0;
   private loadingShelves: boolean = false;
+
   hasSelection$!: Observable<boolean>;
   selectedId$!: Observable<string | null>;
 
@@ -117,35 +107,49 @@ export class ShelvesComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute
   ) {
+    // Store selections
     this.shelves$ = this.store.select(selectShelves);
     this.loading$ = this.store.select(selectShelvesLoading);
     this.total$ = this.store.select(selectShelvesTotal);
     this.shelfBooks$ = this.store.select(selectShelfBooks);
     this.loadingBooks$ = this.store.select(selectLoadingBooks);
+
+    // Subscriptions
     this.shelfBooks$
       .pipe(takeUntilDestroyed())
       .subscribe(sb => (this.shelfBooks = sb));
+
     this.loadingBooks$
       .pipe(takeUntilDestroyed())
       .subscribe(lb => (this.loadingBooks = lb));
+
     this.loading$
       .pipe(takeUntilDestroyed())
       .subscribe(l => (this.loadingShelves = l));
+
     this.shelves$
       .pipe(takeUntilDestroyed())
-      .subscribe(s => (this.shelvesCount = s.length));
+      .subscribe(
+        (s: ShelfResponse[]): number => (this.shelvesCount = s.length)
+      );
+
     this.total$
       .pipe(takeUntilDestroyed())
-      .subscribe(t => (this.totalCount = t));
+      .subscribe((t: number): number => (this.totalCount = t));
+
     this.hasSelection$ = this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
       startWith(null),
-      map(() => !!this.route.firstChild?.snapshot.paramMap.get('id'))
+      map((): boolean => !!this.route.firstChild?.snapshot.paramMap.get('id'))
     );
+
     this.selectedId$ = this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
       startWith(null),
-      map(() => this.route.firstChild?.snapshot.paramMap.get('id') ?? null)
+      map(
+        (): string | null =>
+          this.route.firstChild?.snapshot.paramMap.get('id') ?? null
+      )
     );
   }
 
