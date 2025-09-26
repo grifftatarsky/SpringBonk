@@ -24,7 +24,7 @@
     <java.version>23</java.version>
     <spring.cloud.version>2024.0.0</spring.cloud.version>
     <maven.compiler.version>3.13.0</maven.compiler.version>
-    <lombok.version>1.18.36</lombok.version>
+    <lombok.version>1.18.38</lombok.version>
     <spring-addons.version>8.1.9</spring-addons.version>
     <keycloak.version>26.0.2</keycloak.version>
     <springdoc.version>2.6.0</springdoc.version>
