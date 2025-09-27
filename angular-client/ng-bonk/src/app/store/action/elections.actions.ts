@@ -1,6 +1,8 @@
 import { createAction, props } from '@ngrx/store';
 import { ElectionResponse } from '../../model/response/election-response.model';
 import { CandidateResponse } from '../../model/response/candidate-response.model';
+import { ElectionResult } from '../../model/election-result.model';
+import { ElectionRequest } from '../../model/request/election-request.model';
 
 export const loadElection = createAction(
   '[Elections] Load Election',
@@ -105,5 +107,50 @@ export const loadMyBallotSuccess = createAction(
 
 export const loadMyBallotFailure = createAction(
   '[Elections] Load My Ballot Failure',
+  props<{ error?: unknown }>()
+);
+
+export const loadElectionResults = createAction(
+  '[Elections] Load Election Results',
+  props<{ electionId: string }>()
+);
+
+export const loadElectionResultsSuccess = createAction(
+  '[Elections] Load Election Results Success',
+  props<{ electionId: string; results: ElectionResult[] }>()
+);
+
+export const loadElectionResultsFailure = createAction(
+  '[Elections] Load Election Results Failure',
+  props<{ error?: unknown }>()
+);
+
+export const saveElectionDetails = createAction(
+  '[Elections] Save Election Details',
+  props<{ electionId: string; request: ElectionRequest }>()
+);
+
+export const saveElectionDetailsSuccess = createAction(
+  '[Elections] Save Election Details Success',
+  props<{ election: ElectionResponse }>()
+);
+
+export const saveElectionDetailsFailure = createAction(
+  '[Elections] Save Election Details Failure',
+  props<{ error?: unknown }>()
+);
+
+export const reopenElection = createAction(
+  '[Elections] Reopen Election',
+  props<{ electionId: string; endDateTime: string }>()
+);
+
+export const reopenElectionSuccess = createAction(
+  '[Elections] Reopen Election Success',
+  props<{ election: ElectionResponse }>()
+);
+
+export const reopenElectionFailure = createAction(
+  '[Elections] Reopen Election Failure',
   props<{ error?: unknown }>()
 );

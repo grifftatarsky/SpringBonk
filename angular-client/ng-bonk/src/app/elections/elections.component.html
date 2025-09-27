@@ -38,16 +38,13 @@
                 [matRippleCentered]="true"
                 (click)="navigateToDetail(e.id)">
                 <div class="election-title">{{ e.title }}</div>
-                @if (getStatus(e.endDateTime); as status) {
+                @if (getStatus(e); as status) {
                   <div class="election-status">
                     <mat-chip
                       [ngClass]="status.class"
                       disableRipple
-                      [matTooltip]="
-                        status.text === 'Ongoing'
-                          ? 'Ends ' + (e.endDateTime | date: 'short')
-                          : ''
-                      ">
+                      [matTooltip]="status.tooltip ?? ''"
+                    >
                       <mat-icon matChipAvatar inline>{{
                         status.icon
                       }}</mat-icon>

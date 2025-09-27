@@ -1,24 +1,16 @@
 .election-detail {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  color: #9fffb7;
 }
 
-#toolbar-election-detail {
-  flex-wrap: wrap;
-  background-color: transparent;
-}
-
+#toolbar-election-detail,
 #toolbar-election-actions {
-  flex-wrap: wrap;
-  background-color: transparent;
-  margin-top: 4px;
-}
-
-.toolbar-divider {
-  width: 1px;
-  height: 24px;
-  background-color: currentColor;
-  margin: 0 8px;
+  background: transparent;
+  border: 1px solid rgba(58, 255, 131, 0.25);
+  border-radius: 6px;
+  padding: 0 12px;
 }
 
 .spacer {
@@ -29,64 +21,189 @@
   margin: 4px 0;
 }
 
+.status-chip {
+  border: 1px solid currentColor;
+  background: rgba(0, 40, 14, 0.8);
+  color: inherit;
+  font-weight: 600;
+  &.soft {
+    opacity: 0.85;
+  }
+  &.chip-open {
+    color: #3aff83;
+  }
+  &.chip-closed {
+    color: #ff6b6b;
+  }
+  &.chip-indefinite {
+    color: #67d0ff;
+  }
+  &.chip-closing {
+    color: #ffc857;
+  }
+}
+
+.results-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.result-card,
+.history-body {
+  background: rgba(5, 25, 10, 0.92);
+  border: 1px solid rgba(58, 255, 131, 0.35);
+  color: #b5ffd0;
+}
+
+.result-card .result-meta,
+.history-body .result-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.result-meta .label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+.result-meta .value {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.rounds-accordion,
+.history-rounds {
+  border-top: 1px solid rgba(58, 255, 131, 0.25);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+.round-votes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.vote-row {
+  display: flex;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(58, 255, 131, 0.2);
+  padding: 6px 8px;
+  border-radius: 4px;
+}
+
+.vote-row .tally {
+  font-weight: 600;
+}
+
+.eliminated,
+.round-title {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.history-round {
+  border: 1px solid rgba(58, 255, 131, 0.2);
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 10px;
+  background: rgba(0, 30, 12, 0.6);
+}
+
+.result-banner {
+  padding: 10px 14px;
+  border: 1px dashed rgba(255, 200, 87, 0.6);
+  border-radius: 6px;
+  background: rgba(40, 32, 0, 0.6);
+  color: #ffc857;
+  font-weight: 600;
+  text-align: center;
+}
+
+.result-placeholder {
+  padding: 16px;
+  text-align: center;
+  border: 1px dashed rgba(58, 255, 131, 0.4);
+  border-radius: 6px;
+  background: rgba(0, 30, 12, 0.4);
+  font-style: italic;
+}
+
+.timestamp-chip {
+  border: 1px solid rgba(58, 255, 131, 0.35);
+  background: rgba(0, 40, 14, 0.8);
+}
+
 .ballot-layout {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  transition: opacity 160ms ease;
+
+  &.locked {
+    opacity: 0.6;
+    pointer-events: none;
+  }
 }
 
-.candidate-pane {
-  border-bottom: 0;
+@media (min-width: 900px) {
+  .ballot-layout {
+    flex-direction: row;
+  }
 }
 
-.candidate-pane, .ballot-pane {
-  border: 1px solid #00ff41;
-  padding: 12px;
+.candidate-pane,
+.ballot-pane {
+  flex: 1;
+  border: 1px solid rgba(58, 255, 131, 0.35);
+  border-radius: 8px;
+  padding: 16px;
+  background: rgba(4, 18, 8, 0.92);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.candidate-pane h3,
+.ballot-pane h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #3aff83;
 }
 
 .candidates {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-@media (min-width: 640px) {
-  .candidates {
-    // This was grid...might not be needed now
-  }
-}
-
-@media (min-width: 1024px) {
-  .ballot-layout {
-    // I converted this to column so not sure this is needed now.
-  }
-  .candidate-pane {
-    flex: 1;
-  }
-  .ballot-pane {
-    flex: 1;
-  }
-  .candidates {
-    // probably unnecessary now.
-  }
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
 }
 
 .candidate-card {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid #00ff41;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(58, 255, 131, 0.35);
+  border-radius: 6px;
 }
 
 .candidate-card .card-body {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
+  gap: 12px;
+  padding: 10px;
 }
 
-.candidate-card .cover,
-.ballot-item .cover {
-  width: 36px;
-  height: 54px;
+.candidate-card .cover {
+  width: 48px;
+  height: 70px;
   object-fit: cover;
+  border: 1px solid rgba(58, 255, 131, 0.4);
 }
 
 .candidate-card .meta .book-title,
@@ -96,49 +213,53 @@
 
 .candidate-card .meta .book-author,
 .ballot-item .meta .book-author {
-  opacity: 0.85;
+  font-size: 0.8rem;
+  opacity: 0.75;
 }
 
-.candidate-card .add-btn {
-  margin-left: auto;
+.ballot-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
 }
-
-/* ballot-controls moved to toolbar */
 
 .ballot-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-height: 48px;
+  gap: 8px;
 }
 
 .ballot-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(58, 255, 131, 0.35);
+  border-radius: 6px;
   background: rgba(0, 0, 0, 0.25);
-  border: 1px solid #00ff41;
 }
 
 .ballot-item .rank {
-  width: 24px;
+  width: 20px;
   text-align: right;
+  font-weight: 600;
 }
 
 .ballot-item .handle {
   cursor: grab;
   display: flex;
   align-items: center;
+  color: rgba(58, 255, 131, 0.8);
 }
 
 .mobile-reorder {
   display: none;
-  gap: 4px;
   margin-left: auto;
+  gap: 4px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 720px) {
   .handle {
     display: none;
   }
@@ -147,47 +268,15 @@
   }
 }
 
+.placeholder,
 .empty {
-  opacity: 0.7;
-  font-style: italic;
-  padding: 6px;
-}
-
-.run-panel {
-  margin-top: 12px;
-}
-
-.terminal {
-  background: #000;
-  color: #00ff41;
-  border: 1px solid #00ff41;
-  padding: 8px;
-  max-height: 320px;
-  overflow: auto;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 12px;
-  line-height: 1.2;
-}
-
-.running {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.running .hint {
-  opacity: 0.8;
-  font-size: 12px;
-}
-
-.placeholder {
-  opacity: 0.7;
-  font-style: italic;
   padding: 12px;
   text-align: center;
+  font-style: italic;
+  opacity: 0.7;
 }
 
-.book-author {
-  font-size: 10px;
+.button-row button[mat-flat-button] {
+  background: #3aff83;
+  color: #021d05;
 }

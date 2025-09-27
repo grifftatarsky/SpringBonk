@@ -1,8 +1,10 @@
 package com.gpt.springbonk.controller;
 
+import com.gpt.springbonk.model.dto.request.ElectionReopenRequest;
 import com.gpt.springbonk.model.dto.request.ElectionRequest;
 import com.gpt.springbonk.model.dto.response.CandidateResponse;
 import com.gpt.springbonk.model.dto.response.ElectionResponse;
+import com.gpt.springbonk.model.dto.response.ElectionResultResponse;
 import com.gpt.springbonk.model.dto.response.VoteResponse;
 import com.gpt.springbonk.model.record.ElectionResultRecord;
 import com.gpt.springbonk.service.electoral.CandidateService;
@@ -21,6 +23,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,7 +48,7 @@ public class ElectionController {
   @PostMapping
   @Operation(summary = "Create a new election")
   public ResponseEntity<ElectionResponse> createElection(
-      @RequestBody ElectionRequest electionRequest,
+      @Valid @RequestBody ElectionRequest electionRequest,
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
@@ -57,13 +60,26 @@ public class ElectionController {
   @Operation(summary = "Update an existing election by ID")
   public ResponseEntity<ElectionResponse> updateElection(
       @PathVariable UUID id,
-      @RequestBody ElectionRequest electionUpdateRequest,
+      @Valid @RequestBody ElectionRequest electionUpdateRequest,
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
     ElectionResponse updatedElection =
         electionService.updateElection(id, electionUpdateRequest, userId);
     return ResponseEntity.ok(updatedElection);
+  }
+
+  @PostMapping("/{id}/reopen")
+  @Operation(summary = "Reopen a closed election with a new schedule")
+  public ResponseEntity<ElectionResponse> reopenElection(
+      @PathVariable UUID id,
+      @Valid @RequestBody ElectionReopenRequest request,
+      @AuthenticationPrincipal Jwt jwt
+  ) {
+    UUID userId = UUID.fromString(jwt.getSubject());
+    ElectionResponse reopened =
+        electionService.reopenElection(id, request.getEndDateTime(), userId);
+    return ResponseEntity.ok(reopened);
   }
 
   @DeleteMapping("/{id}")
@@ -103,6 +119,24 @@ public class ElectionController {
   ) {
     ElectionResponse election = electionService.getOneElection(id);
     return ResponseEntity.ok(election);
+  }
+
+  @GetMapping("/{id}/results")
+  @Operation(summary = "Get election results history")
+  public ResponseEntity<List<ElectionResultResponse>> getElectionResults(
+      @PathVariable UUID id
+  ) {
+    List<ElectionResultResponse> results = electionService.getElectionResults(id);
+    return ResponseEntity.ok(results);
+  }
+
+  @GetMapping("/{id}/results/latest")
+  @Operation(summary = "Get the most recent election result")
+  public ResponseEntity<ElectionResultResponse> getLatestResult(
+      @PathVariable UUID id
+  ) {
+    ElectionResultResponse latest = electionService.getLatestElectionResult(id);
+    return ResponseEntity.ok(latest);
   }
 
   @GetMapping("/{id}/candidates/all")

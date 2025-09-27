@@ -59,7 +59,7 @@ public class ElectionResult {
   private List<RoundResultRecord> rounds;
 
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
-  @JoinColumn(name = "election_id", nullable = false, unique = true)
+  @JoinColumn(name = "election_id", nullable = false)
   private Election election;
 
   //DB unique constraint on results.election_id

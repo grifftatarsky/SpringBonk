@@ -55,6 +55,11 @@ public class Election {
   @EqualsAndHashCode.Exclude
   private List<Candidate> candidates = new ArrayList<>();
 
+  @OneToMany(mappedBy = "election", cascade = CascadeType.ALL, orphanRemoval = true)
+  @ToString.Exclude
+  @EqualsAndHashCode.Exclude
+  private List<ElectionResult> results = new ArrayList<>();
+
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
   private Status status = Status.INDEFINITE;

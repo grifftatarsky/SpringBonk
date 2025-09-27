@@ -27,6 +27,13 @@ export class ElectionHttpService extends BaseHttpService {
     return this.put<ElectionResponse>(`${this.baseUrl}/${id}`, request);
   }
 
+  reopenElection(
+    id: string,
+    payload: { endDateTime: string }
+  ): Observable<ElectionResponse> {
+    return this.post<ElectionResponse>(`${this.baseUrl}/${id}/reopen`, payload);
+  }
+
   deleteElection(id: string): Observable<void> {
     return this.delete<void>(`${this.baseUrl}/${id}`);
   }
@@ -48,6 +55,14 @@ export class ElectionHttpService extends BaseHttpService {
 
   getElectionById(id: string): Observable<ElectionResponse> {
     return this.get<ElectionResponse>(`${this.baseUrl}/${id}`);
+  }
+
+  getElectionResults(id: string): Observable<ElectionResult[]> {
+    return this.get<ElectionResult[]>(`${this.baseUrl}/${id}/results`);
+  }
+
+  getLatestElectionResult(id: string): Observable<ElectionResult> {
+    return this.get<ElectionResult>(`${this.baseUrl}/${id}/results/latest`);
   }
 
   getCandidatesByElection(id: string): Observable<CandidateResponse[]> {

@@ -1,28 +1,24 @@
-.dialog-form {
+.reopen-form {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.dialog-content {
+.reopen-content {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: rgba(5, 20, 8, 0.9);
   border: 1px solid rgba(58, 255, 131, 0.35);
   border-radius: 8px;
   padding: 16px;
+  background: rgba(4, 18, 8, 0.92);
   color: #9fffb7;
 
   .intro {
     margin: 0;
     font-size: 0.9rem;
-    color: rgba(159, 255, 183, 0.85);
+    color: rgba(159, 255, 183, 0.82);
   }
-}
-
-.title-field {
-  width: 100%;
 }
 
 mat-dialog-actions {

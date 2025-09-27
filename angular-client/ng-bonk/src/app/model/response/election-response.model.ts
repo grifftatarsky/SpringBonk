@@ -1,10 +1,13 @@
+import { ElectionStatus } from '../type/election-status.model';
+
 /**
  * ElectionResponse represents the data received from the server
  * after querying an Election entity.
  */
 export interface ElectionResponse {
-  id: string; // UUID
+  id: string;
   title: string;
-  endDateTime: string; // ISO string for LocalDateTime
-  createDate: string; // ISO string for LocalDateTime
+  endDateTime: string | null;
+  createDate: string;
+  status: ElectionStatus;
 }

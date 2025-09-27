@@ -226,10 +226,10 @@ export class ElectionRunSheetComponent implements OnInit, OnDestroy {
       .subscribe(([res, candidates]) => {
         if (!res) return;
         // Build pretty script once
-        const nameOf = (id: string) =>
-          candidates.find(c => c.id === id)?.base.title || id;
+        const nameOf = (id: string | null | undefined) =>
+          id ? candidates.find(c => c.id === id)?.base.title || id : '—';
         const lines: string[] = [];
-        for (const round of res.rounds) {
+        for (const round of res.rounds ?? []) {
           const title = `==== Round ${round.roundNumber} ====`;
           lines.push(title);
           const entries = Object.entries(round.votes || {}).sort(

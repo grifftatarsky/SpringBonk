@@ -1,6 +1,7 @@
 import { createSelector } from '@ngrx/store';
 import { selectElectionsState } from '../reducer/elections.reducer';
 import { CandidateResponse } from '../../model/response/candidate-response.model';
+import { ElectionResult } from '../../model/election-result.model';
 
 export const selectCurrentElectionId = createSelector(
   selectElectionsState,
@@ -40,6 +41,35 @@ export const selectRunning = createSelector(
 export const selectRunResult = createSelector(
   selectElectionsState,
   state => state.runResult
+);
+
+export const selectSavingElection = createSelector(
+  selectElectionsState,
+  state => state.savingElection
+);
+
+export const selectReopeningElection = createSelector(
+  selectElectionsState,
+  state => state.reopeningElection
+);
+
+export const selectLoadingResults = createSelector(
+  selectElectionsState,
+  state => state.loadingResults
+);
+
+export const selectElectionResults = createSelector(
+  selectElectionsState,
+  state => (electionId: string): ElectionResult[] =>
+    state.resultsByElection[electionId] || []
+);
+
+export const selectLatestElectionResult = createSelector(
+  selectElectionResults,
+  resultsFactory => (electionId: string): ElectionResult | null => {
+    const results = resultsFactory(electionId);
+    return results.length > 0 ? results[0] : null;
+  }
 );
 
 export const selectBallotOrder = createSelector(

@@ -2,17 +2,22 @@ import { createFeature, createReducer, on } from '@ngrx/store';
 import * as ElectionsActions from '../action/elections.actions';
 import { ElectionResponse } from '../../model/response/election-response.model';
 import { CandidateResponse } from '../../model/response/candidate-response.model';
+import { ElectionResult } from '../../model/election-result.model';
 
 export interface ElectionsState {
   currentElectionId: string | null;
   election: ElectionResponse | null;
   candidates: CandidateResponse[];
   ballotByElection: Record<string, string[]>; // electionId -> ordered candidateIds
+  resultsByElection: Record<string, ElectionResult[]>;
   loadingElection: boolean;
   loadingCandidates: boolean;
+  loadingResults: boolean;
   submitting: boolean;
   running: boolean;
   runResult: import('../../model/election-result.model').ElectionResult | null;
+  savingElection: boolean;
+  reopeningElection: boolean;
 }
 
 export const initialState: ElectionsState = {
@@ -20,11 +25,15 @@ export const initialState: ElectionsState = {
   election: null,
   candidates: [],
   ballotByElection: {},
+  resultsByElection: {},
   loadingElection: false,
   loadingCandidates: false,
+  loadingResults: false,
   submitting: false,
   running: false,
   runResult: null,
+  savingElection: false,
+  reopeningElection: false,
 };
 
 const reducer = createReducer(
@@ -52,6 +61,51 @@ const reducer = createReducer(
       loadingElection: false,
     })
   ),
+  on(
+    ElectionsActions.saveElectionDetails,
+    (state): ElectionsState => ({
+      ...state,
+      savingElection: true,
+    })
+  ),
+  on(
+    ElectionsActions.saveElectionDetailsSuccess,
+    (state, { election }): ElectionsState => ({
+      ...state,
+      election,
+      savingElection: false,
+    })
+  ),
+  on(
+    ElectionsActions.saveElectionDetailsFailure,
+    (state): ElectionsState => ({
+      ...state,
+      savingElection: false,
+    })
+  ),
+
+  on(
+    ElectionsActions.reopenElection,
+    (state): ElectionsState => ({
+      ...state,
+      reopeningElection: true,
+    })
+  ),
+  on(
+    ElectionsActions.reopenElectionSuccess,
+    (state, { election }): ElectionsState => ({
+      ...state,
+      election,
+      reopeningElection: false,
+    })
+  ),
+  on(
+    ElectionsActions.reopenElectionFailure,
+    (state): ElectionsState => ({
+      ...state,
+      reopeningElection: false,
+    })
+  ),
 
   on(
     ElectionsActions.loadCandidates,
@@ -77,6 +131,29 @@ const reducer = createReducer(
     (state): ElectionsState => ({
       ...state,
       loadingCandidates: false,
+    })
+  ),
+
+  on(
+    ElectionsActions.loadElectionResults,
+    (state): ElectionsState => ({
+      ...state,
+      loadingResults: true,
+    })
+  ),
+  on(
+    ElectionsActions.loadElectionResultsSuccess,
+    (state, { electionId, results }): ElectionsState => ({
+      ...state,
+      resultsByElection: { ...state.resultsByElection, [electionId]: results },
+      loadingResults: false,
+    })
+  ),
+  on(
+    ElectionsActions.loadElectionResultsFailure,
+    (state): ElectionsState => ({
+      ...state,
+      loadingResults: false,
     })
   ),
 

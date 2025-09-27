@@ -1,29 +1,40 @@
-<h2 mat-dialog-title>Create an election</h2>
+<h2 mat-dialog-title>{{ headline }}</h2>
 
-<mat-dialog-content>
-  <p>So you wanna participate in democracy, do ya?</p>
+<form [formGroup]="form" (ngSubmit)="submit()" class="dialog-form">
+  <mat-dialog-content class="dialog-content">
+    @if (!data) {
+      <p class="intro">So you wanna participate in democracy, do ya?</p>
+    }
 
-  <mat-form-field>
-    <mat-label>Election title</mat-label>
-    <input matInput [(ngModel)]="titleValue" />
-  </mat-form-field>
+    <mat-form-field appearance="outline" class="title-field">
+      <mat-label>Election title</mat-label>
+      <input matInput formControlName="title" autocomplete="off" />
+      @if (form.controls.title.hasError('required')) {
+        <mat-error>Title is required.</mat-error>
+      }
+      @if (form.controls.title.hasError('maxlength')) {
+        <mat-error>Keep it under 160 characters.</mat-error>
+      }
+    </mat-form-field>
 
-  <mat-form-field>
-    <mat-label>Choose an end date</mat-label>
-    <input matInput [matDatepicker]="picker" [(ngModel)]="endDateValue" />
-    <mat-hint>MM/DD/YYYY</mat-hint>
-    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-    <mat-datepicker #picker></mat-datepicker>
-  </mat-form-field>
-</mat-dialog-content>
+    <app-date-time-picker
+      formControlName="endDateTime"
+      label="Closure date"
+      [hint]="'Leave blank for an endless election.'"
+    ></app-date-time-picker>
+  </mat-dialog-content>
 
-<mat-dialog-actions>
-  <button mat-button (click)="onNoClick()">No Thanks</button>
-  <button
-    mat-button
-    [disabled]="!titleValue.trim()"
-    (click)="submit()"
-    cdkFocusInitial>
-    Ok
-  </button>
-</mat-dialog-actions>
+  <mat-dialog-actions align="end">
+    <button mat-stroked-button type="button" (click)="onNoClick()">
+      Cancel
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      [disabled]="form.invalid"
+    >
+      {{ submitLabel }}
+    </button>
+  </mat-dialog-actions>
+</form>

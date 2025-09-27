@@ -19,11 +19,15 @@ describe('Elections Selectors', () => {
       election: null,
       candidates,
       ballotByElection: { e1: ['c2', 'c1'] },
+      resultsByElection: { e1: [] },
       loadingElection: false,
       loadingCandidates: false,
+      loadingResults: false,
       submitting: false,
       running: false,
       runResult: null,
+      savingElection: false,
+      reopeningElection: false,
     },
   };
 

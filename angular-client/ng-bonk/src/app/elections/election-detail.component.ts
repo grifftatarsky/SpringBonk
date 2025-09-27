@@ -5,7 +5,7 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
+import { AsyncPipe, CommonModule, DatePipe, KeyValue } from '@angular/common';
 import { ActivatedRoute, ParamMap, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -20,6 +20,7 @@ import {
   MatBottomSheet,
   MatBottomSheetModule,
 } from '@angular/material/bottom-sheet';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { NominateToElectionDialogComponent } from './dialog/nominate-to-election-dialog.component';
 import { UserService } from '../service/user.service';
 import { ElectionHttpService } from '../service/http/election-http.service';
@@ -55,8 +56,10 @@ import {
   switchMap,
   take,
   takeUntil,
+  tap,
 } from 'rxjs';
 import { ElectionResult } from '../model/election-result.model';
+import { RoundResult } from '../model/round-result.model';
 import { CandidateResponse } from '../model/response/candidate-response.model';
 import { ElectionResponse } from '../model/response/election-response.model';
 import { ShelfResponse } from '../model/response/shelf-response.model';
@@ -68,6 +71,19 @@ import {
 import { Actions, ofType } from '@ngrx/effects';
 import { BookBlurbDialogComponent } from './dialog/book-blurb-dialog.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { ReopenElectionDialogComponent } from './dialog/reopen-election-dialog.component';
+import { ConfirmDialogComponent } from '../common/confirm-dialog.component';
+import { ElectionRequest } from '../model/request/election-request.model';
+import { NotificationService } from '../service/notification.service';
+import {
+  selectElectionResults,
+  selectLatestElectionResult,
+  selectLoadingResults,
+  selectReopeningElection,
+  selectSavingElection,
+} from '../store/selector/elections.selectors';
+import { ElectionDialog } from './election-dialog.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-election-detail',
@@ -88,6 +104,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatBottomSheetModule,
     MatToolbarModule,
     MatTooltipModule,
+    MatExpansionModule,
   ],
   templateUrl: './election-detail.component.html',
   styleUrls: ['./election-detail.component.scss'],
@@ -105,6 +122,8 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   private readonly bookHttpService: BookHttpService = inject(BookHttpService);
   private readonly shelfHttpService: ShelfHttpService =
     inject(ShelfHttpService);
+  private readonly notify: NotificationService = inject(NotificationService);
+  private readonly router: Router = inject(Router);
 
   election$!: Observable<ElectionResponse | null>;
   loadingElection$!: Observable<boolean>;
@@ -112,6 +131,11 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   submitting$!: Observable<boolean>;
   running$!: Observable<boolean>;
   runResult$!: Observable<ElectionResult | null>;
+  results$!: Observable<ElectionResult[]>;
+  latestResult$!: Observable<ElectionResult | null>;
+  loadingResults$!: Observable<boolean>;
+  savingElection$!: Observable<boolean>;
+  reopeningElection$!: Observable<boolean>;
 
   ranked$!: Observable<CandidateResponse[]>;
   unranked$!: Observable<CandidateResponse[]>;
@@ -119,12 +143,16 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   myNominationId$!: Observable<string | null>;
   isHandset$!: Observable<boolean>;
   private pending: boolean = false;
+  ballotLocked: boolean = false;
 
   electionId!: string;
   private readonly destroy$: Subject<void> = new Subject<void>();
   private readonly bp: BreakpointObserver = inject(BreakpointObserver);
   // TODO __ Remove use of any.
   private readonly actions$: Actions<any> = inject(Actions);
+  private closureTimeoutHandle: number | null = null;
+  private closureToastShown = false;
+  private candidateMap: Map<string, CandidateResponse> = new Map();
 
   ngOnInit(): void {
     const id$: Observable<string> = this.route.paramMap.pipe(
@@ -148,10 +176,15 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
     this.loadingElection$ = this.store.select(selectLoadingElection);
     this.loadingCandidates$ = this.store.select(selectLoadingCandidates);
     this.submitting$ = this.store.select(selectSubmitting);
+    this.loadingResults$ = this.store.select(selectLoadingResults);
+    this.savingElection$ = this.store.select(selectSavingElection);
+    this.reopeningElection$ = this.store.select(selectReopeningElection);
 
     const rankedFactory$ = this.store.select(selectRankedCandidates);
     const unrankedFactory$ = this.store.select(selectUnrankedCandidates);
     const orderFactory$ = this.store.select(selectBallotOrder);
+    const resultsFactory$ = this.store.select(selectElectionResults);
+    const latestResultFactory$ = this.store.select(selectLatestElectionResult);
 
     this.ranked$ = id$.pipe(
       switchMap(
@@ -169,6 +202,16 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       switchMap(
         (id: string): Observable<string[]> =>
           orderFactory$.pipe(map(f => f(id)))
+      )
+    );
+    this.results$ = id$.pipe(
+      switchMap((id: string): Observable<ElectionResult[]> =>
+        resultsFactory$.pipe(map(f => f(id)))
+      )
+    );
+    this.latestResult$ = id$.pipe(
+      switchMap((id: string): Observable<ElectionResult | null> =>
+        latestResultFactory$.pipe(map(f => f(id)))
       )
     );
 
@@ -201,6 +244,21 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       distinctUntilChanged()
     );
 
+    this.store
+      .select(selectCandidates)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((candidates: CandidateResponse[]): void => {
+        this.candidateMap = new Map(
+          candidates.map((candidate: CandidateResponse) => [candidate.id, candidate])
+        );
+      });
+
+    this.election$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((election: ElectionResponse | null): void => {
+        this.setupClosureTimer(election);
+      });
+
     // When save or reset succeed for this election, clear pending flag
     this.actions$
       .pipe(
@@ -217,10 +275,12 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.clearClosureTimer();
   }
 
   // Drag within ranked list
   dropRanked(event: CdkDragDrop<unknown>, ranked: CandidateResponse[]): void {
+    if (this.ballotLocked) return;
     const newOrder: string[] = [
       ...ranked.map((c: CandidateResponse): string => c.id),
     ];
@@ -236,6 +296,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
 
   // Move from unranked to ranked (append at end)
   addToRanked(candidateId: string, ranked: CandidateResponse[]): void {
+    if (this.ballotLocked) return;
     const newOrder: string[] = [
       ...ranked.map((c: CandidateResponse): string => c.id),
       candidateId,
@@ -251,6 +312,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
 
   // Remove from ranked
   removeFromRanked(candidateId: string, ranked: CandidateResponse[]): void {
+    if (this.ballotLocked) return;
     const newOrder: string[] = ranked
       .map((c: CandidateResponse): string => c.id)
       .filter((id: string): boolean => id !== candidateId);
@@ -269,18 +331,21 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
 
   // TODO __ why is this unused...
   clearBallot(): void {
+    if (this.ballotLocked) return;
     this.store.dispatch(
       ElectionsActions.clearBallot({ electionId: this.electionId })
     );
   }
 
   resetBallot(): void {
+    if (this.ballotLocked) return;
     this.store.dispatch(
       ElectionsActions.resetBallot({ electionId: this.electionId })
     );
   }
 
   submitBallot(): void {
+    if (this.ballotLocked) return;
     this.store.dispatch(
       ElectionsActions.submitBallot({ electionId: this.electionId })
     );
@@ -363,6 +428,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   }
 
   moveUp(index: number, ranked: CandidateResponse[]): void {
+    if (this.ballotLocked) return;
     if (index <= 0) return;
     const order: string[] = [
       ...ranked.map((c: CandidateResponse): string => c.id),
@@ -380,6 +446,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   }
 
   moveDown(index: number, ranked: CandidateResponse[]): void {
+    if (this.ballotLocked) return;
     if (index >= ranked.length - 1) return;
     const order: string[] = [
       ...ranked.map((c: CandidateResponse): string => c.id),
@@ -401,5 +468,200 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       width: '640px',
       data: { title: c.base.title, blurb: c.base.blurb },
     });
+  }
+
+  openEditDialog(election: ElectionResponse | null): void {
+    if (!election || election.status === 'CLOSED') return;
+    const ref = this.dialog.open(ElectionDialog, {
+      width: '440px',
+      data: {
+        title: election.title,
+        endDateTime: election.endDateTime,
+      } satisfies ElectionRequest,
+    });
+
+    ref
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((request: ElectionRequest | undefined): void => {
+        if (!request) return;
+        this.store.dispatch(
+          ElectionsActions.saveElectionDetails({
+            electionId: election.id,
+            request,
+          })
+        );
+      });
+  }
+
+  openReopenDialog(election: ElectionResponse | null): void {
+    if (!election || election.status !== 'CLOSED') return;
+    const ref = this.dialog.open(ReopenElectionDialogComponent, {
+      width: '420px',
+      data: { title: election.title },
+    });
+
+    ref
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe(
+        (result?: { endDateTime: string }): void => {
+          if (!result) return;
+          this.store.dispatch(
+            ElectionsActions.reopenElection({
+              electionId: election.id,
+              endDateTime: result.endDateTime,
+            })
+          );
+        }
+      );
+  }
+
+  confirmDelete(election: ElectionResponse | null): void {
+    if (!election) return;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Delete election',
+        message: `Delete "${election.title}"? This cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+      },
+    });
+
+    dialogRef
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((confirm: boolean): void => {
+        if (!confirm) return;
+        this.electionHttpService.deleteElection(election.id).subscribe({
+          next: (): void => {
+            this.notify.success('Election deleted.');
+            void this.router.navigate(['/elections']);
+          },
+          error: (err: unknown): void => {
+            const message: string =
+              (err as any)?.error?.message || 'Failed to delete election.';
+            this.notify.error(message);
+          },
+        });
+      });
+  }
+
+  isElectionClosed(election: ElectionResponse | null): boolean {
+    if (!election) return false;
+    return election.status === 'CLOSED' || this.ballotLocked;
+  }
+
+  statusChip(election: ElectionResponse | null): {
+    label: string;
+    icon: string;
+    class: string;
+  } {
+    if (!election) {
+      return { label: 'Loading…', icon: 'hourglass_empty', class: 'chip-loading' };
+    }
+
+    if (this.ballotLocked && election.status !== 'CLOSED') {
+      return { label: 'Closing…', icon: 'lock_clock', class: 'chip-closing' };
+    }
+
+    switch (election.status) {
+      case 'OPEN':
+        return { label: 'Open', icon: 'how_to_vote', class: 'chip-open' };
+      case 'CLOSED':
+        return { label: 'Closed', icon: 'lock', class: 'chip-closed' };
+      case 'INDEFINITE':
+      default:
+        return { label: 'Indefinite', icon: 'all_inclusive', class: 'chip-indefinite' };
+    }
+  }
+
+  resolveCandidateName(candidateId: string | null): string {
+    if (!candidateId) return 'Unknown';
+    return this.candidateMap.get(candidateId)?.base.title ?? 'Unknown';
+  }
+
+  formatEliminationMessage(message?: string): string {
+    if (!message) return '';
+    return message
+      .toLowerCase()
+      .split('_')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ')
+      .replace('Tie ', 'Tie: ');
+  }
+
+  compareVoteEntries(
+    a: KeyValue<string, number>,
+    b: KeyValue<string, number>
+  ): number {
+    return (b.value ?? 0) - (a.value ?? 0);
+  }
+
+  trackByResult(_index: number, result: ElectionResult): string {
+    return result.id ?? `${result.closureTime}-${result.winnerId ?? 'none'}`;
+  }
+
+  formatEliminatedList(round?: RoundResult): string {
+    if (!round?.eliminatedCandidateIds?.length) {
+      return '—';
+    }
+    return round.eliminatedCandidateIds
+        .map(id => this.resolveCandidateName(id))
+        .join(', ');
+  }
+
+  private setupClosureTimer(election: ElectionResponse | null): void {
+    this.clearClosureTimer();
+
+    if (!election) return;
+
+    this.ballotLocked = election.status === 'CLOSED';
+
+    if (election.status !== 'OPEN' || !election.endDateTime) {
+      if (election.status !== 'CLOSED') {
+        this.closureToastShown = false;
+      }
+      return;
+    }
+
+    const target = new Date(election.endDateTime).getTime();
+    const now = Date.now();
+    const diff = target - now;
+
+    if (diff <= 0) {
+      this.handleClosureReached();
+      return;
+    }
+
+    this.closureToastShown = false;
+    this.ballotLocked = false;
+    this.closureTimeoutHandle = window.setTimeout(
+      () => this.handleClosureReached(),
+      diff
+    );
+  }
+
+  private clearClosureTimer(): void {
+    if (this.closureTimeoutHandle !== null) {
+      clearTimeout(this.closureTimeoutHandle);
+      this.closureTimeoutHandle = null;
+    }
+  }
+
+  private handleClosureReached(): void {
+    this.clearClosureTimer();
+    this.ballotLocked = true;
+    this.pending = false;
+    if (!this.closureToastShown) {
+      this.notify.error("TOO LATE! YOU'RE ALL OUT OF TIME!");
+      this.closureToastShown = true;
+    }
+    if (this.electionId) {
+      this.store.dispatch(
+        ElectionsActions.loadElection({ electionId: this.electionId })
+      );
+    }
   }
 }

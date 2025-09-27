@@ -14,7 +14,7 @@ public interface ElectionRepository extends JpaRepository<Election, UUID> {
   @Query("""
         select e from Election e
         where e.endDateTime > :now
-          and not exists (select 1 from ElectionResult r where r.election.id = e.id)
+          and e.status <> com.gpt.springbonk.constant.enumeration.election.Status.CLOSED
       """)
   Set<Election> findAllOpenEndingAfter(ZonedDateTime now);
 }

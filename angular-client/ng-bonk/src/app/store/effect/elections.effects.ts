@@ -7,6 +7,7 @@ import {
   catchError,
   concat,
   forkJoin,
+  filter,
   last,
   map,
   of,
@@ -38,6 +39,16 @@ export class ElectionsEffects {
     )
   );
 
+  loadElectionResultsOnSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ElectionsActions.loadElectionSuccess),
+      filter(({ election }) => election.status === 'CLOSED'),
+      map(({ election }) =>
+        ElectionsActions.loadElectionResults({ electionId: election.id })
+      )
+    )
+  );
+
   loadCandidates$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ElectionsActions.loadCandidates),
@@ -49,6 +60,34 @@ export class ElectionsEffects {
           catchError(error =>
             of(ElectionsActions.loadCandidatesFailure({ error }))
           )
+        )
+      )
+    )
+  );
+
+  loadElectionResults$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ElectionsActions.loadElectionResults),
+      tap(({ electionId }) =>
+        console.log('[ElectionsEffects] loadElectionResults', { electionId })
+      ),
+      switchMap(({ electionId }) =>
+        this.http.getElectionResults(electionId).pipe(
+          tap(results =>
+            console.log('[ElectionsEffects] loadElectionResults success', {
+              electionId,
+              count: results.length,
+            })
+          ),
+          map(results =>
+            ElectionsActions.loadElectionResultsSuccess({ electionId, results })
+          ),
+          catchError(error => {
+            this.notify.error(
+              error?.error?.message || 'Failed to load results history.'
+            );
+            return of(ElectionsActions.loadElectionResultsFailure({ error }));
+          })
         )
       )
     )
@@ -165,6 +204,85 @@ export class ElectionsEffects {
             of(ElectionsActions.loadMyBallotFailure({ error }))
           )
         )
+      )
+    )
+  );
+
+  saveElectionDetails$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ElectionsActions.saveElectionDetails),
+      tap(({ electionId, request }) =>
+        console.log('[ElectionsEffects] saveElectionDetails', {
+          electionId,
+          hasEndDate: !!request.endDateTime,
+        })
+      ),
+      switchMap(({ electionId, request }) =>
+        this.http.updateElection(electionId, request).pipe(
+          tap(() => this.notify.success('Election updated.')),
+          tap(election =>
+            console.log('[ElectionsEffects] saveElectionDetails success', {
+              electionId: election.id,
+              status: election.status,
+            })
+          ),
+          map(election =>
+            ElectionsActions.saveElectionDetailsSuccess({ election })
+          ),
+          catchError(error => {
+            this.notify.error(
+              error?.error?.message || 'Failed to update election.'
+            );
+            return of(ElectionsActions.saveElectionDetailsFailure({ error }));
+          })
+        )
+      )
+    )
+  );
+
+  reopenElection$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ElectionsActions.reopenElection),
+      tap(({ electionId, endDateTime }) =>
+        console.log('[ElectionsEffects] reopenElection', { electionId, endDateTime })
+      ),
+      switchMap(({ electionId, endDateTime }) =>
+        this.http.reopenElection(electionId, { endDateTime }).pipe(
+          tap(() => this.notify.success('Election reopened.')),
+          tap(election =>
+            console.log('[ElectionsEffects] reopenElection success', {
+              electionId: election.id,
+              endDateTime: election.endDateTime,
+            })
+          ),
+          map(election =>
+            ElectionsActions.reopenElectionSuccess({ election })
+          ),
+          catchError(error => {
+            this.notify.error(
+              error?.error?.message || 'Failed to reopen election.'
+            );
+            return of(ElectionsActions.reopenElectionFailure({ error }));
+          })
+        )
+      )
+    )
+  );
+
+  reopenElectionSuccessReload$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ElectionsActions.reopenElectionSuccess),
+      map(({ election }) =>
+        ElectionsActions.loadElectionResults({ electionId: election.id })
+      )
+    )
+  );
+
+  reopenElectionSuccessBallot$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ElectionsActions.reopenElectionSuccess),
+      map(({ election }) =>
+        ElectionsActions.loadMyBallot({ electionId: election.id })
       )
     )
   );

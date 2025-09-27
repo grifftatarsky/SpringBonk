@@ -77,6 +77,25 @@
   align-items: center;
 }
 
+.election-status mat-chip {
+  border: 1px solid currentColor;
+  background: rgba(0, 40, 14, 0.8);
+  color: inherit;
+  font-weight: 600;
+}
+
+.status-chip-open {
+  color: #3aff83;
+}
+
+.status-chip-closed {
+  color: #ff6b6b;
+}
+
+.status-chip-indefinite {
+  color: #67d0ff;
+}
+
 @media (min-width: 1024px) {
   .elections-layout {
     flex-direction: row;

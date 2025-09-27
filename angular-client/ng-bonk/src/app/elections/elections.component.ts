@@ -13,7 +13,7 @@ import { ElectionsDataSource } from '../datasource/elections.datasource';
 import { ElectionDialog } from './election-dialog.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AsyncPipe, DatePipe, NgClass } from '@angular/common';
+import { AsyncPipe, NgClass } from '@angular/common';
 import { ElectionRequest } from '../model/request/election-request.model';
 import { Observable } from 'rxjs';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -44,7 +44,6 @@ import { ElectionResponse } from '../model/response/election-response.model';
     MatTooltipModule,
     MatRippleModule,
     RouterOutlet,
-    DatePipe,
     AsyncPipe,
     NgClass,
   ],
@@ -146,35 +145,39 @@ export class ElectionsComponent implements OnInit, AfterViewInit {
     }
   }
 
-  getStatus(endDateTime?: string): {
+  getStatus(election: ElectionResponse): {
     text: string;
     icon: string;
     class: string;
+    tooltip?: string;
   } {
-    const now = new Date();
-
-    if (!endDateTime || isNaN(new Date(endDateTime).getTime())) {
-      return {
-        text: 'Endless',
-        icon: 'all_inclusive',
-        class: 'status-chip-endless',
-      };
+    switch (election.status) {
+      case 'OPEN':
+        return {
+          text: 'Open',
+          icon: election.endDateTime ? 'timer' : 'how_to_vote',
+          class: 'status-chip-open',
+          tooltip: election.endDateTime
+            ? `Closes ${new Date(election.endDateTime).toLocaleString()}`
+            : 'No scheduled closure',
+        };
+      case 'CLOSED':
+        return {
+          text: 'Closed',
+          icon: 'lock',
+          class: 'status-chip-closed',
+          tooltip: election.endDateTime
+            ? `Closed ${new Date(election.endDateTime).toLocaleString()}`
+            : 'Closed',
+        };
+      case 'INDEFINITE':
+      default:
+        return {
+          text: 'Indefinite',
+          icon: 'all_inclusive',
+          class: 'status-chip-indefinite',
+          tooltip: 'No scheduled closure',
+        };
     }
-
-    const end = new Date(endDateTime);
-
-    if (end > now) {
-      return {
-        text: 'Ongoing',
-        icon: 'timer',
-        class: 'status-chip-ongoing',
-      };
-    }
-
-    return {
-      text: 'Ended',
-      icon: 'stop',
-      class: 'status-chip-ended',
-    };
   }
 }
