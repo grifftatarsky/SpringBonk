@@ -173,7 +173,7 @@ public class ElectionService {
       flag = Flag.SCHEDULING_ERROR;
       result = new ElectionResult(flag, ZonedDateTime.now(), election);
       log.error(
-          "The election could not be closed due to an exception encountered during tabulation."
+          "A flagged result has been created due to an exception encountered during tabulation."
       );
     }
 

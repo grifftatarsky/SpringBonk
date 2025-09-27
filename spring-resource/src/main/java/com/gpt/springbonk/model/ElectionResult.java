@@ -55,7 +55,7 @@ public class ElectionResult {
    * If metrics, or queries, ever come into play...this will become a relationship to an entity.
    */
   @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "rounds", columnDefinition = "jsonb", nullable = false)
+  @Column(name = "rounds", columnDefinition = "jsonb")
   private List<RoundResultRecord> rounds;
 
   @ManyToOne(optional = false, fetch = FetchType.LAZY)

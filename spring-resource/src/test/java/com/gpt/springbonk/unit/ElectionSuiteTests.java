@@ -640,6 +640,10 @@ class ElectionSuiteTests {
     }
   }
 
+  @Nested
+  class SchedulingServiceTests {
+  }
+
   private void voteSlateValid_1() {
     /*
      * Vote tallies by candidate and rank:
