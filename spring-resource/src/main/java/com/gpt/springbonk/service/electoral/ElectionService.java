@@ -1,5 +1,6 @@
 package com.gpt.springbonk.service.electoral;
 
+import com.gpt.springbonk.constant.enumeration.election.Flag;
 import com.gpt.springbonk.constant.enumeration.election.Status;
 import com.gpt.springbonk.exception.ElectionScheduleException;
 import com.gpt.springbonk.exception.ResourceNotFoundException;
@@ -160,17 +161,26 @@ public class ElectionService {
       throw new ElectionScheduleException("Attempted to close an indefinite Election.");
     }
 
+    // TODO: This may not be my best code...
     ElectionResultRecord electionResultRecord;
+    ElectionResult result;
+    Flag flag;
 
     try {
       electionResultRecord = runRankedChoiceElection(electionId);
+      result = new ElectionResult(electionResultRecord, ZonedDateTime.now(), election);
     } catch (Exception e) {
-      throw new ElectionScheduleException(
-          "The election could not be closed due to an exception encountered during tabulation.");
+      flag = Flag.SCHEDULING_ERROR;
+      result = new ElectionResult(flag, ZonedDateTime.now(), election);
+      log.error(
+          "The election could not be closed due to an exception encountered during tabulation."
+      );
     }
 
-    ElectionResult result = new ElectionResult(electionResultRecord, ZonedDateTime.now(), election);
     electionResultRepository.saveAndFlush(result);
+
+    election.setStatus(Status.CLOSED);
+    electionRepository.saveAndFlush(election);
   }
 
   public Election createElectionAndHandleStatus(@Valid ElectionRequest request) {

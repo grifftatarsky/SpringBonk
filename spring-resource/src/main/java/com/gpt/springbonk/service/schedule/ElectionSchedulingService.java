@@ -1,5 +1,6 @@
 package com.gpt.springbonk.service.schedule;
 
+import com.gpt.springbonk.constant.enumeration.election.Status;
 import com.gpt.springbonk.model.Election;
 import com.gpt.springbonk.repository.ElectionRepository;
 import com.gpt.springbonk.service.electoral.ElectionService;
@@ -68,7 +69,7 @@ public class ElectionSchedulingService {
 
     if (election.getEndDateTime() == null) return;
 
-    if (alreadyClosed(election.getId())) return;
+    if (election.getStatus() == Status.CLOSED) return;
 
     Instant when = election.getEndDateTime().toInstant();
 
@@ -97,10 +98,6 @@ public class ElectionSchedulingService {
         log.error("Failed to close election {}: {}", electionId, ex.getMessage(), ex);
       }
     });
-  }
-
-  private boolean alreadyClosed(UUID electionId) {
-    return electionService.isClosed(electionId);   // cheap check; implement in your service/repo
   }
 
   @EventListener

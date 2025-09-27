@@ -1,9 +1,14 @@
 package com.gpt.springbonk.model;
 
+import com.gpt.springbonk.constant.enumeration.election.Flag;
 import com.gpt.springbonk.model.record.ElectionResultRecord;
 import com.gpt.springbonk.model.record.RoundResultRecord;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -11,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.Getter;
@@ -64,6 +70,12 @@ public class ElectionResult {
   @Column
   private ZonedDateTime closureTime;
 
+  @ElementCollection
+  @CollectionTable(name = "flags", joinColumns = @JoinColumn(name = "id"))
+  @Enumerated(EnumType.STRING)
+  @Column(name = "flags", nullable = false)
+  private List<Flag> flags = new ArrayList<>();
+
   /// Create an ElectionResult entity from an ElectionResultRecord and ZonedDateTime.
   public ElectionResult(
       ElectionResultRecord record,
@@ -73,6 +85,17 @@ public class ElectionResult {
     this.rounds = record.rounds();
     this.totalVotes = record.totalVotes();
     this.closureTime = closureTime;
+    this.election = election;
+  }
+
+  ///  Create an ElectionResult given a flag, such as a failed scheduled closure.
+  public ElectionResult(
+      Flag flag,
+      ZonedDateTime closureTime,
+      Election election
+  ) {
+    this.closureTime = closureTime;
+    this.flags.add(flag);
     this.election = election;
   }
 }

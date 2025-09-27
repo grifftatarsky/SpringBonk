@@ -1,12 +1,9 @@
 package com.gpt.springbonk.model;
 
-import com.gpt.springbonk.constant.enumeration.election.Flag;
 import com.gpt.springbonk.constant.enumeration.election.Status;
 import com.gpt.springbonk.keycloak.KeycloakUser;
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -57,12 +54,6 @@ public class Election {
   @ToString.Exclude
   @EqualsAndHashCode.Exclude
   private List<Candidate> candidates = new ArrayList<>();
-
-  @ElementCollection
-  @CollectionTable(name = "flags", joinColumns = @JoinColumn(name = "id"))
-  @Enumerated(EnumType.STRING)            // NEVER ORDINAL
-  @Column(name = "flags", nullable = false)
-  private List<Flag> tags = new ArrayList<>();
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
