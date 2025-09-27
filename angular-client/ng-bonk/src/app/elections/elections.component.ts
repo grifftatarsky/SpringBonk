@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   inject,
+  OnDestroy,
   OnInit,
   ViewChild,
 } from '@angular/core';
@@ -16,6 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { AsyncPipe, NgClass } from '@angular/common';
 import { ElectionRequest } from '../model/request/election-request.model';
 import { Observable } from 'rxjs';
+import { Subject } from 'rxjs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
@@ -26,10 +28,12 @@ import {
   Router,
   RouterOutlet,
 } from '@angular/router';
-import { filter, map, startWith } from 'rxjs/operators';
+import { filter, map, startWith, takeUntil } from 'rxjs/operators';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatRippleModule } from '@angular/material/core';
 import { ElectionResponse } from '../model/response/election-response.model';
+import { Actions, ofType } from '@ngrx/effects';
+import * as ElectionsActions from '../store/action/elections.actions';
 
 @Component({
   selector: 'app-elections',
@@ -51,7 +55,7 @@ import { ElectionResponse } from '../model/response/election-response.model';
   styleUrls: ['./elections.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ElectionsComponent implements OnInit, AfterViewInit {
+export class ElectionsComponent implements OnInit, AfterViewInit, OnDestroy {
   dataSource: ElectionsDataSource;
   loading$: Observable<boolean>;
   total: number = 0;
@@ -65,6 +69,8 @@ export class ElectionsComponent implements OnInit, AfterViewInit {
   private readonly dialog: MatDialog = inject(MatDialog);
   private readonly router: Router = inject(Router);
   private readonly route: ActivatedRoute = inject(ActivatedRoute);
+  private readonly actions$ = inject(Actions);
+  private readonly destroy$ = new Subject<void>();
 
   hasSelection$: Observable<boolean> = this.router.events.pipe(
     filter(e => e instanceof NavigationEnd),
@@ -98,14 +104,38 @@ export class ElectionsComponent implements OnInit, AfterViewInit {
       (list: ElectionResponse[]): number => (this.electionCount = list.length)
     );
     this.dataSource.loadElections(this.pageIndex, this.pageSize);
+
+    this.actions$
+      .pipe(
+        ofType(
+          ElectionsActions.saveElectionDetailsSuccess,
+          ElectionsActions.reopenElectionSuccess,
+          ElectionsActions.loadElectionSuccess
+        ),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(({ election }) => {
+        const currentId =
+          this.route.firstChild?.snapshot.paramMap.get('id') ?? null;
+        if (currentId && election.id === currentId) {
+          this.refresh(false);
+        }
+      });
   }
 
   ngAfterViewInit(): void {
     // nothing extra for now
   }
 
-  refresh(): void {
-    this.pageIndex = 0;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  refresh(reset: boolean = true): void {
+    if (reset) {
+      this.pageIndex = 0;
+    }
     this.dataSource.loadElections(this.pageIndex, this.pageSize);
   }
 

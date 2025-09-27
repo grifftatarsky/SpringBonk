@@ -57,6 +57,7 @@ import {
   take,
   takeUntil,
   tap,
+  timer,
 } from 'rxjs';
 import { ElectionResult } from '../model/election-result.model';
 import { RoundResult } from '../model/round-result.model';
@@ -84,6 +85,7 @@ import {
 } from '../store/selector/elections.selectors';
 import { ElectionDialog } from './election-dialog.component';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-election-detail',
@@ -152,7 +154,9 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   private readonly actions$: Actions<any> = inject(Actions);
   private closureTimeoutHandle: number | null = null;
   private closureToastShown = false;
+  private awaitingClosure = false;
   private candidateMap: Map<string, CandidateResponse> = new Map();
+  private closurePollSub: Subscription | null = null;
 
   ngOnInit(): void {
     const id$: Observable<string> = this.route.paramMap.pipe(
@@ -257,6 +261,15 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((election: ElectionResponse | null): void => {
         this.setupClosureTimer(election);
+        if (election?.status === 'CLOSED') {
+          if (this.awaitingClosure) {
+            this.awaitingClosure = false;
+            this.stopClosurePolling();
+            this.store.dispatch(
+              ElectionsActions.loadElectionResults({ electionId: election.id })
+            );
+          }
+        }
       });
 
     // When save or reset succeed for this election, clear pending flag
@@ -276,6 +289,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.clearClosureTimer();
+    this.stopClosurePolling();
   }
 
   // Drag within ranked list
@@ -612,12 +626,19 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
         .join(', ');
   }
 
+  hasEliminated(round?: RoundResult): boolean {
+    return !!round?.eliminatedCandidateIds?.length;
+  }
+
   private setupClosureTimer(election: ElectionResponse | null): void {
     this.clearClosureTimer();
 
     if (!election) return;
 
     this.ballotLocked = election.status === 'CLOSED';
+    if (this.ballotLocked) {
+      this.awaitingClosure = false;
+    }
 
     if (election.status !== 'OPEN' || !election.endDateTime) {
       if (election.status !== 'CLOSED') {
@@ -637,6 +658,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
 
     this.closureToastShown = false;
     this.ballotLocked = false;
+    this.awaitingClosure = false;
     this.closureTimeoutHandle = window.setTimeout(
       () => this.handleClosureReached(),
       diff
@@ -652,6 +674,10 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
 
   private handleClosureReached(): void {
     this.clearClosureTimer();
+    if (this.awaitingClosure) {
+      return;
+    }
+    this.awaitingClosure = true;
     this.ballotLocked = true;
     this.pending = false;
     if (!this.closureToastShown) {
@@ -659,9 +685,29 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       this.closureToastShown = true;
     }
     if (this.electionId) {
-      this.store.dispatch(
-        ElectionsActions.loadElection({ electionId: this.electionId })
-      );
+      this.startClosurePolling();
+    }
+  }
+
+  private startClosurePolling(): void {
+    if (this.closurePollSub || !this.electionId) return;
+    this.closurePollSub = timer(0, 1000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (!this.electionId) return;
+        this.store.dispatch(
+          ElectionsActions.loadElection({ electionId: this.electionId })
+        );
+        this.store.dispatch(
+          ElectionsActions.loadElectionResults({ electionId: this.electionId })
+        );
+      });
+  }
+
+  private stopClosurePolling(): void {
+    if (this.closurePollSub) {
+      this.closurePollSub.unsubscribe();
+      this.closurePollSub = null;
     }
   }
 }

@@ -29,7 +29,14 @@ import org.hibernate.type.SqlTypes;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "results")
+@Table(
+    name = "results",
+    uniqueConstraints =
+        @jakarta.persistence.UniqueConstraint(
+            name = "uk_results_election_closure",
+            columnNames = {"election_id", "closure_time"}
+        )
+)
 public class ElectionResult {
   /*
    * Right now, this doesn't support three future enhancements.
@@ -61,8 +68,6 @@ public class ElectionResult {
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
   @JoinColumn(name = "election_id", nullable = false)
   private Election election;
-
-  //DB unique constraint on results.election_id
 
   @Column
   private int totalVotes;
