@@ -17,8 +17,7 @@
       <button
         mat-icon-button
         routerLink="/elections"
-        aria-label="Back to elections"
-      >
+        aria-label="Back to elections">
         <mat-icon>arrow_back</mat-icon>
       </button>
       <span class="title">{{ election.title }}</span>
@@ -51,8 +50,7 @@
             <button
               mat-stroked-button
               (click)="openNominateDialog()"
-              [disabled]="ballotLocked"
-            >
+              [disabled]="ballotLocked">
               <mat-icon>star</mat-icon>
               Nominate from shelf
             </button>
@@ -60,8 +58,7 @@
             <button
               mat-button
               color="warn"
-              (click)="removeMyNomination(myNomination)"
-            >
+              (click)="removeMyNomination(myNomination)">
               <mat-icon>remove_circle</mat-icon>
               Remove nomination
             </button>
@@ -70,24 +67,21 @@
             mat-flat-button
             color="accent"
             (click)="runElection()"
-            [disabled]="runningNow"
-          >
+            [disabled]="runningNow">
             <mat-icon>play_arrow</mat-icon>
             {{ runningNow ? 'Running…' : 'Run election' }}
           </button>
           <button
             mat-stroked-button
             (click)="openEditDialog(election)"
-            [disabled]="saving"
-          >
+            [disabled]="saving">
             <mat-icon>edit</mat-icon>
             {{ saving ? 'Saving…' : 'Edit' }}
           </button>
           <button
             mat-stroked-button
             color="warn"
-            (click)="confirmDelete(election)"
-          >
+            (click)="confirmDelete(election)">
             <mat-icon>delete</mat-icon>
             Delete
           </button>
@@ -96,16 +90,14 @@
             mat-flat-button
             color="accent"
             (click)="openReopenDialog(election)"
-            [disabled]="reopening"
-          >
+            [disabled]="reopening">
             <mat-icon>restart_alt</mat-icon>
             {{ reopening ? 'Reopening…' : 'Reopen' }}
           </button>
           <button
             mat-stroked-button
             color="warn"
-            (click)="confirmDelete(election)"
-          >
+            (click)="confirmDelete(election)">
             <mat-icon>delete</mat-icon>
             Delete
           </button>
@@ -114,8 +106,7 @@
         <button
           mat-icon-button
           [matMenuTriggerFor]="actionsMenu"
-          aria-label="Actions"
-        >
+          aria-label="Actions">
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #actionsMenu="matMenu">
@@ -124,16 +115,12 @@
               <button
                 mat-menu-item
                 (click)="openNominateDialog()"
-                [disabled]="ballotLocked"
-              >
+                [disabled]="ballotLocked">
                 <mat-icon>star</mat-icon>
                 <span>Nominate from shelf</span>
               </button>
             } @else {
-              <button
-                mat-menu-item
-                (click)="removeMyNomination(myNomination)"
-              >
+              <button mat-menu-item (click)="removeMyNomination(myNomination)">
                 <mat-icon>remove_circle</mat-icon>
                 <span>Remove nomination</span>
               </button>
@@ -141,23 +128,18 @@
             <button
               mat-menu-item
               (click)="runElection()"
-              [disabled]="runningNow"
-            >
+              [disabled]="runningNow">
               <mat-icon>play_arrow</mat-icon>
               <span>{{ runningNow ? 'Running…' : 'Run election' }}</span>
             </button>
             <button
               mat-menu-item
               (click)="openEditDialog(election)"
-              [disabled]="saving"
-            >
+              [disabled]="saving">
               <mat-icon>edit</mat-icon>
               <span>{{ saving ? 'Saving…' : 'Edit election' }}</span>
             </button>
-            <button
-              mat-menu-item
-              (click)="confirmDelete(election)"
-            >
+            <button mat-menu-item (click)="confirmDelete(election)">
               <mat-icon>delete</mat-icon>
               <span>Delete</span>
             </button>
@@ -165,8 +147,7 @@
             <button
               mat-menu-item
               (click)="openReopenDialog(election)"
-              [disabled]="reopening"
-            >
+              [disabled]="reopening">
               <mat-icon>restart_alt</mat-icon>
               <span>{{ reopening ? 'Reopening…' : 'Reopen' }}</span>
             </button>
@@ -179,11 +160,7 @@
       }
     </mat-toolbar>
 
-    @if (
-      loadingElection ||
-      loadingCandidates ||
-      (closed && loadingResults)
-    ) {
+    @if (loadingElection || loadingCandidates || (closed && loadingResults)) {
       <div class="loading-bar">
         <mat-progress-bar mode="indeterminate"></mat-progress-bar>
       </div>
@@ -227,7 +204,9 @@
                   <div>
                     <span class="label">Flags</span>
                     <mat-chip-set>
-                      <mat-chip *ngFor="let flag of currentLatest.flags">{{ flag }}</mat-chip>
+                      <mat-chip *ngFor="let flag of currentLatest.flags">{{
+                        flag
+                      }}</mat-chip>
                     </mat-chip-set>
                   </div>
                 }
@@ -235,12 +214,19 @@
 
               @if (currentLatest.rounds?.length) {
                 <mat-accordion class="rounds-accordion">
-                  @for (round of currentLatest.rounds; track round.roundNumber) {
+                  @for (
+                    round of currentLatest.rounds;
+                    track round.roundNumber
+                  ) {
                     <mat-expansion-panel>
                       <mat-expansion-panel-header>
-                        <mat-panel-title>Round {{ round.roundNumber }}</mat-panel-title>
+                        <mat-panel-title
+                          >Round {{ round.roundNumber }}</mat-panel-title
+                        >
                         <mat-panel-description>
-                          {{ formatEliminationMessage(round.eliminationMessage) }}
+                          {{
+                            formatEliminationMessage(round.eliminationMessage)
+                          }}
                         </mat-panel-description>
                       </mat-expansion-panel-header>
                       <div class="round-votes">
@@ -249,7 +235,9 @@
                           track vote.key
                         ) {
                           <div class="vote-row">
-                            <span class="candidate">{{ resolveCandidateName(vote.key) }}</span>
+                            <span class="candidate">{{
+                              resolveCandidateName(vote.key)
+                            }}</span>
                             <span class="tally">{{ vote.value }}</span>
                           </div>
                         }
@@ -298,7 +286,9 @@
                       <div>
                         <span class="label">Flags</span>
                         <mat-chip-set>
-                          <mat-chip *ngFor="let flag of result.flags">{{ flag }}</mat-chip>
+                          <mat-chip *ngFor="let flag of result.flags">{{
+                            flag
+                          }}</mat-chip>
                         </mat-chip-set>
                       </div>
                     }
@@ -309,11 +299,14 @@
                         <div class="history-round">
                           <div class="round-title">
                             Round {{ round.roundNumber }} ·
-                            {{ formatEliminationMessage(round.eliminationMessage) }}
+                            {{
+                              formatEliminationMessage(round.eliminationMessage)
+                            }}
                           </div>
                           <div class="round-votes">
                             @for (
-                              vote of round.votes | keyvalue: compareVoteEntries;
+                              vote of round.votes
+                                | keyvalue: compareVoteEntries;
                               track vote.key
                             ) {
                               <div class="vote-row">
@@ -356,8 +349,7 @@
                         <app-book-cover
                           class="cover"
                           [src]="c.base.imageURL"
-                          [alt]="c.base.title + ' cover'"
-                        ></app-book-cover>
+                          [alt]="c.base.title + ' cover'"></app-book-cover>
                         <div class="meta">
                           <div class="book-title">{{ c.base.title }}</div>
                           <div class="book-author">{{ c.base.author }}</div>
@@ -367,8 +359,7 @@
                           mat-icon-button
                           aria-label="View blurb"
                           (click)="openBlurb(c); $event.stopPropagation()"
-                          matTooltip="View blurb"
-                        >
+                          matTooltip="View blurb">
                           <mat-icon>info</mat-icon>
                         </button>
                         <button
@@ -378,8 +369,7 @@
                           (click)="
                             addToRanked(c.id, ranked); $event.stopPropagation()
                           "
-                          matTooltip="Add to ballot"
-                        >
+                          matTooltip="Add to ballot">
                           <mat-icon>add</mat-icon>
                         </button>
                       </div>
@@ -396,8 +386,7 @@
                   mat-stroked-button
                   color="primary"
                   (click)="submitBallot()"
-                  [disabled]="submittingNow || ranked.length === 0"
-                >
+                  [disabled]="submittingNow || ranked.length === 0">
                   <mat-icon>how_to_vote</mat-icon>
                   {{ submittingNow ? 'Saving…' : 'Save' }}
                 </button>
@@ -405,8 +394,7 @@
                   mat-button
                   color="warn"
                   (click)="resetBallot()"
-                  [disabled]="ranked.length === 0"
-                >
+                  [disabled]="ranked.length === 0">
                   <mat-icon>restart_alt</mat-icon>
                   Reset
                 </button>
@@ -414,12 +402,15 @@
               <div
                 cdkDropList
                 class="ballot-list"
-                (cdkDropListDropped)="dropRanked($event, ranked)"
-              >
+                (cdkDropListDropped)="dropRanked($event, ranked)">
                 @if (ranked.length === 0) {
                   <div class="empty">Tap nominees to add them here.</div>
                 }
-                @for (c of ranked; track trackByCandidate(i, c); let i = $index) {
+                @for (
+                  c of ranked;
+                  track trackByCandidate(i, c);
+                  let i = $index
+                ) {
                   <div class="ballot-item" cdkDrag>
                     <div class="rank">{{ i + 1 }}</div>
                     <div class="handle" cdkDragHandle>
@@ -429,8 +420,7 @@
                       mat-icon-button
                       aria-label="View blurb"
                       (click)="openBlurb(c); $event.stopPropagation()"
-                      matTooltip="View blurb"
-                    >
+                      matTooltip="View blurb">
                       <mat-icon>info</mat-icon>
                     </button>
                     <div class="meta">
@@ -441,15 +431,13 @@
                       <button
                         mat-icon-button
                         aria-label="Move up"
-                        (click)="moveUp(i, ranked)"
-                      >
+                        (click)="moveUp(i, ranked)">
                         <mat-icon>arrow_upward</mat-icon>
                       </button>
                       <button
                         mat-icon-button
                         aria-label="Move down"
-                        (click)="moveDown(i, ranked)"
-                      >
+                        (click)="moveDown(i, ranked)">
                         <mat-icon>arrow_downward</mat-icon>
                       </button>
                     </div>
@@ -457,8 +445,7 @@
                       mat-icon-button
                       color="warn"
                       (click)="removeFromRanked(c.id, ranked)"
-                      aria-label="Remove"
-                    >
+                      aria-label="Remove">
                       <mat-icon>close</mat-icon>
                     </button>
                   </div>
