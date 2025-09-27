@@ -1,22 +1,31 @@
 package com.gpt.springbonk.service.electoral;
 
+import com.gpt.springbonk.constant.enumeration.election.Status;
+import com.gpt.springbonk.exception.ElectionScheduleException;
 import com.gpt.springbonk.exception.ResourceNotFoundException;
 import com.gpt.springbonk.keycloak.KeycloakUserService;
 import com.gpt.springbonk.model.Election;
+import com.gpt.springbonk.model.ElectionResult;
 import com.gpt.springbonk.model.dto.request.ElectionRequest;
 import com.gpt.springbonk.model.dto.response.ElectionResponse;
 import com.gpt.springbonk.model.dto.response.VoteResponse;
 import com.gpt.springbonk.model.record.ElectionResultRecord;
 import com.gpt.springbonk.repository.ElectionRepository;
+import com.gpt.springbonk.repository.ElectionResultRepository;
 import com.gpt.springbonk.repository.VoteRepository;
 import com.gpt.springbonk.service.distribution.SingleWinnerMethodDistributionService;
+import com.gpt.springbonk.service.schedule.event.ElectionChangedEvent;
+import com.gpt.springbonk.service.schedule.event.ElectionDeletedEvent;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -35,6 +44,9 @@ public class ElectionService {
 
   private final VoteRepository voteRepository;
   private final ElectionRepository electionRepository;
+  private final ElectionResultRepository electionResultRepository;
+
+  private final ApplicationEventPublisher publisher;
 
   // endregion
 
@@ -45,13 +57,15 @@ public class ElectionService {
       @NotNull UUID userId
   ) {
     // Should we enforce unique titles? Idk. Not now.
-    Election election = new Election(
-        electionRequest.getTitle(),
-        electionRequest.getEndDateTime()
-    );
+    Election election = createElectionAndHandleStatus(electionRequest);
 
     election.setCreator(keycloakUserService.getUserById(userId));
-    return new ElectionResponse(electionRepository.saveAndFlush(election));
+
+    Election saved = electionRepository.saveAndFlush(election);
+
+    publisher.publishEvent(new ElectionChangedEvent(saved.getId()));
+
+    return new ElectionResponse(saved);
   }
 
   public ElectionResponse updateElection(
@@ -64,7 +78,7 @@ public class ElectionService {
     validateElectionCreator(election, userId);
 
     String newTitle = electionRequest.getTitle();
-    LocalDateTime newEndDateTime = electionRequest.getEndDateTime();
+    ZonedDateTime newEndDateTime = electionRequest.getEndDateTime();
 
     if (newTitle != null && !newTitle.equals(election.getTitle())) {
       election.setTitle(newTitle);
@@ -73,19 +87,25 @@ public class ElectionService {
     if (newEndDateTime != null && newEndDateTime != election.getEndDateTime()) {
       election.setEndDateTime(newEndDateTime);
     }
-    // I'd like to add a line here to avoid saving an identical election update (no changes)
-    return new ElectionResponse(electionRepository.saveAndFlush(election));
+
+    Election saved = electionRepository.saveAndFlush(election);
+
+    publisher.publishEvent(new ElectionChangedEvent(saved.getId()));
+
+    return new ElectionResponse(saved);
   }
 
   public void deleteElection(
       @NotNull UUID electionId,
       @NotNull UUID userId
   ) {
+    // TODO TEST: Make sure this cascades and all that.
+
     Election election = getElection(electionId);
 
     validateElectionCreator(election, userId);
     electionRepository.delete(election);
-    // TEST: Make sure this cascades to candidates and votes, and fixes shelves.
+    publisher.publishEvent(new ElectionDeletedEvent(election.getId()));
   }
 
   // endregion
@@ -120,7 +140,7 @@ public class ElectionService {
     );
   }
 
-  public List<VoteResponse> getMyVotes(
+  public List<VoteResponse> getVotesByUser(
       @NotNull UUID electionId,
       @NotNull UUID userId
   ) {
@@ -130,6 +150,45 @@ public class ElectionService {
         .map(VoteResponse::new)
         .toList();
   }
+
+  public void closeElection(UUID electionId) {
+    Election election = getElection(electionId);
+
+    if (election.getStatus() == Status.CLOSED) return;
+
+    if (election.getStatus() == Status.INDEFINITE) {
+      throw new ElectionScheduleException("Attempted to close an indefinite Election.");
+    }
+
+    ElectionResultRecord electionResultRecord;
+
+    try {
+      electionResultRecord = runRankedChoiceElection(electionId);
+    } catch (Exception e) {
+      throw new ElectionScheduleException(
+          "The election could not be closed due to an exception encountered during tabulation.");
+    }
+
+    ElectionResult result = new ElectionResult(electionResultRecord, ZonedDateTime.now(), election);
+    electionResultRepository.saveAndFlush(result);
+  }
+
+  public Election createElectionAndHandleStatus(@Valid ElectionRequest request) {
+    final ZonedDateTime endDateTime = request.getEndDateTime();
+    final Instant now = Instant.now();
+
+    if (endDateTime != null && !endDateTime.toInstant().isAfter(now)) {
+      throw new ElectionScheduleException(
+          "New elections cannot be created with closures in the past."
+      );
+    }
+
+    final Election election = new Election(request.getTitle(), endDateTime);
+    final Status status = (endDateTime == null) ? Status.INDEFINITE : Status.OPEN;
+    election.setStatus(status);
+    return election;
+  }
+
   // endregion
 
   // region Validation

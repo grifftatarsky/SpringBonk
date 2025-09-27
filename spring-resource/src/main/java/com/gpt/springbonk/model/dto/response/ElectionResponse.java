@@ -2,6 +2,7 @@ package com.gpt.springbonk.model.dto.response;
 
 import com.gpt.springbonk.model.Election;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 import lombok.Data;
 
@@ -9,7 +10,7 @@ import lombok.Data;
 public class ElectionResponse {
   private UUID id;
   private String title;
-  private LocalDateTime endDateTime;
+  private ZonedDateTime endDateTime;
   private LocalDateTime createDate;
 
   public ElectionResponse(Election election) {

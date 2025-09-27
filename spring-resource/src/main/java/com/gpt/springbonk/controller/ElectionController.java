@@ -180,7 +180,7 @@ public class ElectionController {
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
-    List<VoteResponse> votes = electionService.getMyVotes(id, userId);
+    List<VoteResponse> votes = electionService.getVotesByUser(id, userId);
     return ResponseEntity.ok(votes);
   }
 }

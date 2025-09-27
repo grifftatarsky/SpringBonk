@@ -1,9 +1,15 @@
 package com.gpt.springbonk.model;
 
+import com.gpt.springbonk.constant.enumeration.election.Flag;
+import com.gpt.springbonk.constant.enumeration.election.Status;
 import com.gpt.springbonk.keycloak.KeycloakUser;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -12,6 +18,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -36,7 +43,7 @@ public class Election {
   private String title;
 
   @Column(name = "end_date")
-  private LocalDateTime endDateTime;
+  private ZonedDateTime endDateTime;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)
@@ -51,7 +58,17 @@ public class Election {
   @EqualsAndHashCode.Exclude
   private List<Candidate> candidates = new ArrayList<>();
 
-  public Election(String title, LocalDateTime endDateTime) {
+  @ElementCollection
+  @CollectionTable(name = "flags", joinColumns = @JoinColumn(name = "id"))
+  @Enumerated(EnumType.STRING)            // NEVER ORDINAL
+  @Column(name = "flags", nullable = false)
+  private List<Flag> tags = new ArrayList<>();
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false)
+  private Status status = Status.INDEFINITE;
+
+  public Election(String title, ZonedDateTime endDateTime) {
     this.title = title;
     this.endDateTime = endDateTime;
   }
