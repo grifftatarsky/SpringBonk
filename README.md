@@ -18,3 +18,8 @@ This a service system with the following parts.
 ### Log format
 
 For logs, please use format: `[CLASS] Content of log`.
+
+### Tasks
+
+1. Upgrade to latest Java
+2. Add liquibase (Priority)
