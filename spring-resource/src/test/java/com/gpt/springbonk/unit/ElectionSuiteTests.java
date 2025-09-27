@@ -6,10 +6,10 @@ import com.gpt.springbonk.model.BallotBox;
 import com.gpt.springbonk.model.Book;
 import com.gpt.springbonk.model.Candidate;
 import com.gpt.springbonk.model.Election;
-import com.gpt.springbonk.model.ElectionResult;
-import com.gpt.springbonk.model.RoundResult;
 import com.gpt.springbonk.model.Vote;
 import com.gpt.springbonk.model.VoteCount;
+import com.gpt.springbonk.model.record.ElectionResultRecord;
+import com.gpt.springbonk.model.record.RoundResultRecord;
 import com.gpt.springbonk.service.electoral.single.InstantRunoffService;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,8 +30,8 @@ import static com.gpt.springbonk.exception.ElectionCannotBeCompletedException.FU
 import static com.gpt.springbonk.exception.ElectionCannotBeCompletedException.NO_CANDIDATES_MESSAGE;
 import static com.gpt.springbonk.exception.ElectionCannotBeCompletedException.NO_ELECTION_MESSAGE;
 import static com.gpt.springbonk.exception.ElectionCannotBeCompletedException.NO_VOTES_MESSAGE;
-import static com.gpt.springbonk.service.BallotUtility.conductRound;
-import static com.gpt.springbonk.service.BallotUtility.processCandidates;
+import static com.gpt.springbonk.service.electoral.utility.BallotUtility.conductRound;
+import static com.gpt.springbonk.service.electoral.utility.BallotUtility.processCandidates;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -446,41 +446,41 @@ class ElectionSuiteTests {
 
       voteSlateValid_1();
 
-      ElectionResult result = instantRunoffService.conductElection(election);
+      ElectionResultRecord result = instantRunoffService.conductElection(election);
 
       assertNotNull(result, "The ElectionResult should not be null.");
-      assertEquals(blue.getId(), result.getWinnerId(), "The victor should be blue.");
+      assertEquals(blue.getId(), result.winnerId(), "The victor should be blue.");
 
-      List<RoundResult> roundResults = result.getRounds();
+      List<RoundResultRecord> roundResultRecords = result.rounds();
 
-      assertEquals(3, roundResults.size(), "The election should have 3 rounds.");
+      assertEquals(3, roundResultRecords.size(), "The election should have 3 rounds.");
 
       // Round 1
       // The yellow book should be eliminated.
-      RoundResult roundOne = roundResults.getFirst();
+      RoundResultRecord roundOne = roundResultRecords.getFirst();
       log.info(roundOne.toString());
       assertTrue(
-          roundOne.getEliminatedCandidateIds().contains(yellow.getId()),
+          roundOne.eliminatedCandidateIds().contains(yellow.getId()),
           "Yellow should be eliminated in Round 1."
       );
-      assertEquals(NO_TIE_ELIMINATION_MESSAGE, roundOne.getEliminationMessage());
+      assertEquals(NO_TIE_ELIMINATION_MESSAGE, roundOne.eliminationMessage());
 
       // Round 2
-      RoundResult roundTwo = roundResults.get(1);
+      RoundResultRecord roundTwo = roundResultRecords.get(1);
       log.info(roundTwo.toString());
       assertTrue(
-          roundTwo.getEliminatedCandidateIds().contains(red.getId())
-              && roundTwo.getEliminatedCandidateIds()
+          roundTwo.eliminatedCandidateIds().contains(red.getId())
+              && roundTwo.eliminatedCandidateIds()
               .contains(green.getId()),
           "Green and Red should be eliminated in Round 2."
       );
-      assertEquals(TIE_ELIMINATION_MESSAGE, roundTwo.getEliminationMessage());
+      assertEquals(TIE_ELIMINATION_MESSAGE, roundTwo.eliminationMessage());
 
       // Round 3
-      RoundResult roundThree = roundResults.get(2);
+      RoundResultRecord roundThree = roundResultRecords.get(2);
       log.info(roundThree.toString());
-      assertEquals(WINNER_ATTRITION, roundThree.getEliminationMessage());
-      assertNull(roundThree.getEliminatedCandidateIds(),
+      assertEquals(WINNER_ATTRITION, roundThree.eliminationMessage());
+      assertNull(roundThree.eliminatedCandidateIds(),
           "Victory round should not have eliminations.");
     }
 
@@ -515,46 +515,46 @@ class ElectionSuiteTests {
 
       voteSlateValid_2();
 
-      ElectionResult result = instantRunoffService.conductElection(election);
+      ElectionResultRecord result = instantRunoffService.conductElection(election);
 
       assertNotNull(result, "The ElectionResult should not be null.");
-      assertEquals(blue.getId(), result.getWinnerId(), "The victor should be blue.");
+      assertEquals(blue.getId(), result.winnerId(), "The victor should be blue.");
 
-      List<RoundResult> roundResults = result.getRounds();
+      List<RoundResultRecord> roundResultRecords = result.rounds();
 
-      assertEquals(4, roundResults.size(), "The election should have 4 rounds.");
+      assertEquals(4, roundResultRecords.size(), "The election should have 4 rounds.");
 
       // Round 1
       // Flub
-      RoundResult roundOne = roundResults.getFirst();
+      RoundResultRecord roundOne = roundResultRecords.getFirst();
       assertEquals(
-          roundOne.getEliminatedCandidateIds(), Collections.emptyList(),
+          roundOne.eliminatedCandidateIds(), Collections.emptyList(),
           "Flub round should not have eliminations"
       );
-      assertEquals(TIE_ALL_WAY_TIE_ELIMINATION_MESSAGE, roundOne.getEliminationMessage());
+      assertEquals(TIE_ALL_WAY_TIE_ELIMINATION_MESSAGE, roundOne.eliminationMessage());
 
       // Round 2
-      RoundResult roundTwo = roundResults.get(1);
+      RoundResultRecord roundTwo = roundResultRecords.get(1);
       assertTrue(
-          roundTwo.getEliminatedCandidateIds().contains(yellow.getId()),
+          roundTwo.eliminatedCandidateIds().contains(yellow.getId()),
           "Yellow should be eliminated in Round 2."
       );
-      assertEquals(NO_TIE_ELIMINATION_MESSAGE, roundTwo.getEliminationMessage());
+      assertEquals(NO_TIE_ELIMINATION_MESSAGE, roundTwo.eliminationMessage());
 
       // Round 3
-      RoundResult roundThree = roundResults.get(2);
+      RoundResultRecord roundThree = roundResultRecords.get(2);
       assertTrue(
-          roundThree.getEliminatedCandidateIds().contains(red.getId())
-              && roundThree.getEliminatedCandidateIds()
+          roundThree.eliminatedCandidateIds().contains(red.getId())
+              && roundThree.eliminatedCandidateIds()
               .contains(green.getId()),
           "Green and Red should be eliminated in Round 3."
       );
-      assertEquals(TIE_ELIMINATION_MESSAGE, roundThree.getEliminationMessage());
+      assertEquals(TIE_ELIMINATION_MESSAGE, roundThree.eliminationMessage());
 
       // Round 4
-      RoundResult roundFour = roundResults.get(3);
-      assertEquals(WINNER_ATTRITION, roundFour.getEliminationMessage());
-      assertNull(roundFour.getEliminatedCandidateIds(),
+      RoundResultRecord roundFour = roundResultRecords.get(3);
+      assertEquals(WINNER_ATTRITION, roundFour.eliminationMessage());
+      assertNull(roundFour.eliminatedCandidateIds(),
           "Victory round should not have eliminations.");
     }
 
@@ -566,20 +566,20 @@ class ElectionSuiteTests {
 
       voteSlateValid_3();
 
-      ElectionResult result = instantRunoffService.conductElection(election);
+      ElectionResultRecord result = instantRunoffService.conductElection(election);
 
       assertNotNull(result, "The ElectionResult should not be null.");
-      assertEquals(blue.getId(), result.getWinnerId(), "The victor should be blue.");
+      assertEquals(blue.getId(), result.winnerId(), "The victor should be blue.");
 
-      List<RoundResult> roundResults = result.getRounds();
+      List<RoundResultRecord> roundResultRecords = result.rounds();
 
-      assertEquals(1, roundResults.size(), "The election should have 1 round.");
+      assertEquals(1, roundResultRecords.size(), "The election should have 1 round.");
 
       // Round 1
       // The blue book should have won.
-      RoundResult roundOne = roundResults.getFirst();
-      assertEquals(WINNER_MAJORITY, roundOne.getEliminationMessage());
-      assertNull(roundOne.getEliminatedCandidateIds(),
+      RoundResultRecord roundOne = roundResultRecords.getFirst();
+      assertEquals(WINNER_MAJORITY, roundOne.eliminationMessage());
+      assertNull(roundOne.eliminatedCandidateIds(),
           "Victory round should not have eliminations.");
     }
 

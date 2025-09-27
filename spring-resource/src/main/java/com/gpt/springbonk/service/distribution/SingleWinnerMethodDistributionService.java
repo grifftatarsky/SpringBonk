@@ -3,7 +3,7 @@ package com.gpt.springbonk.service.distribution;
 import com.gpt.springbonk.constant.enumeration.system.single.SingleWinnerVotingSystemMethod;
 import com.gpt.springbonk.exception.ElectionCannotBeCompletedException;
 import com.gpt.springbonk.model.Election;
-import com.gpt.springbonk.model.ElectionResult;
+import com.gpt.springbonk.model.record.ElectionResultRecord;
 import com.gpt.springbonk.service.electoral.single.InstantRunoffService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 public class SingleWinnerMethodDistributionService {
   private final InstantRunoffService instantRunoffService;
 
-  public ElectionResult distributeByMethodology(
+  public ElectionResultRecord distributeByMethodology(
       Election election,
       SingleWinnerVotingSystemMethod methodology
   ) {

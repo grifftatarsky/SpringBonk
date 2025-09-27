@@ -1,4 +1,4 @@
-package com.gpt.springbonk.service;
+package com.gpt.springbonk.service.electoral.utility;
 
 import com.gpt.springbonk.exception.ElectionCannotBeCompletedException;
 import com.gpt.springbonk.keycloak.KeycloakUser;

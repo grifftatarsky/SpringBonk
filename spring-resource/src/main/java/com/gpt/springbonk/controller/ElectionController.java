@@ -1,11 +1,13 @@
 package com.gpt.springbonk.controller;
 
-import com.gpt.springbonk.model.ElectionResult;
 import com.gpt.springbonk.model.dto.request.ElectionRequest;
 import com.gpt.springbonk.model.dto.response.CandidateResponse;
 import com.gpt.springbonk.model.dto.response.ElectionResponse;
 import com.gpt.springbonk.model.dto.response.VoteResponse;
-import com.gpt.springbonk.service.ElectionService;
+import com.gpt.springbonk.model.record.ElectionResultRecord;
+import com.gpt.springbonk.service.electoral.CandidateService;
+import com.gpt.springbonk.service.electoral.ElectionService;
+import com.gpt.springbonk.service.electoral.VotingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
@@ -35,6 +37,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("election")
 public class ElectionController {
   private final ElectionService electionService;
+  private final CandidateService candidateService;
+  private final VotingService votingService;
 
   // BASICS
 
@@ -106,7 +110,7 @@ public class ElectionController {
   public ResponseEntity<List<CandidateResponse>> getAllCandidatesByElection(
       @PathVariable UUID id
   ) {
-    List<CandidateResponse> candidates = electionService.getCandidatesByElection(id);
+    List<CandidateResponse> candidates = candidateService.getCandidatesByElection(id);
     return ResponseEntity.ok(candidates);
   }
 
@@ -114,7 +118,7 @@ public class ElectionController {
 
   @GetMapping("/{id}/run")
   @Operation(summary = "Run an instant runoff (temp) election by ID")
-  public ResponseEntity<ElectionResult> runElection(
+  public ResponseEntity<ElectionResultRecord> runElection(
       @PathVariable UUID id
   ) {
     return ResponseEntity.ok(electionService.runRankedChoiceElection(id));
@@ -130,7 +134,7 @@ public class ElectionController {
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
-    CandidateResponse nominatedCandidate = electionService.nominateCandidate(bookId, userId, id);
+    CandidateResponse nominatedCandidate = candidateService.nominateCandidate(bookId, userId, id);
     return ResponseEntity.ok(nominatedCandidate);
   }
 
@@ -142,7 +146,7 @@ public class ElectionController {
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
-    electionService.deleteCandidate(id, candidateId, userId);
+    candidateService.deleteCandidate(id, candidateId, userId);
     return ResponseEntity.noContent().build();
   }
 
@@ -154,7 +158,7 @@ public class ElectionController {
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
-    VoteResponse vote = electionService.voteForCandidate(candidateId, userId, rank);
+    VoteResponse vote = votingService.voteForCandidate(candidateId, userId, rank);
     return ResponseEntity.ok(vote);
   }
 
@@ -165,7 +169,7 @@ public class ElectionController {
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
-    electionService.deleteVoteForCandidate(candidateId, userId);
+    votingService.deleteVoteForCandidate(candidateId, userId);
     return ResponseEntity.noContent().build();
   }
 

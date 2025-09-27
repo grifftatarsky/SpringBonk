@@ -5,9 +5,9 @@ import com.gpt.springbonk.exception.ElectionCannotBeCompletedException;
 import com.gpt.springbonk.model.BallotBox;
 import com.gpt.springbonk.model.Candidate;
 import com.gpt.springbonk.model.Election;
-import com.gpt.springbonk.model.ElectionResult;
-import com.gpt.springbonk.model.RoundResult;
 import com.gpt.springbonk.model.VoteCount;
+import com.gpt.springbonk.model.record.ElectionResultRecord;
+import com.gpt.springbonk.model.record.RoundResultRecord;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,8 +22,8 @@ import static com.gpt.springbonk.constant.enumeration.process.EliminationMessage
 import static com.gpt.springbonk.constant.enumeration.process.EliminationMessage.WINNER_ATTRITION;
 import static com.gpt.springbonk.constant.enumeration.process.EliminationMessage.WINNER_MAJORITY;
 import static com.gpt.springbonk.exception.ElectionCannotBeCompletedException.NO_ELECTION_MESSAGE;
-import static com.gpt.springbonk.service.BallotUtility.conductRound;
-import static com.gpt.springbonk.service.BallotUtility.processCandidates;
+import static com.gpt.springbonk.service.electoral.utility.BallotUtility.conductRound;
+import static com.gpt.springbonk.service.electoral.utility.BallotUtility.processCandidates;
 
 @Slf4j
 @Service
@@ -37,7 +37,7 @@ public class InstantRunoffService extends AbstractSingleWinnerElectionService {
 
   // Tested effectively ✔
   @Override
-  public ElectionResult conductElection(
+  public ElectionResultRecord conductElection(
       Election election
   ) {
     if (election == null) {
@@ -46,7 +46,7 @@ public class InstantRunoffService extends AbstractSingleWinnerElectionService {
 
     BallotBox ballotBox = processBallots(election.getCandidates());
 
-    List<RoundResult> rounds = new ArrayList<>();
+    List<RoundResultRecord> rounds = new ArrayList<>();
     List<UUID> eliminatedCandidates = new ArrayList<>();
     int allWayTieCorrectionCount = 0;
 
@@ -54,7 +54,7 @@ public class InstantRunoffService extends AbstractSingleWinnerElectionService {
       int roundNumber = rounds.size() + 1;
 
       if (roundNumber != 1 && rounds.getLast()
-          .getEliminationMessage()
+          .eliminationMessage()
           .equals(TIE_ALL_WAY_TIE_ELIMINATION_MESSAGE)) {
         allWayTieCorrectionCount++;
       } else {
@@ -67,7 +67,7 @@ public class InstantRunoffService extends AbstractSingleWinnerElectionService {
       Map<UUID, Integer> currentVotes = voteCount.getCurrentVotes();
       int currentVotesSize = voteCount.getCurrentVotesSize();
 
-      Optional<ElectionResult> majorityWinner = findMajorityWinner(
+      Optional<ElectionResultRecord> majorityWinner = findMajorityWinner(
           currentVotes, currentVotesSize, rounds, roundNumber
       );
 
@@ -79,15 +79,16 @@ public class InstantRunoffService extends AbstractSingleWinnerElectionService {
           ballotBox, eliminatedCandidates, currentVotes
       );
 
-      RoundResult roundResult = getRoundResult(candidatesWithMinVotes, roundNumber, currentVotes);
+      RoundResultRecord
+          roundResultRecord = getRoundResult(candidatesWithMinVotes, roundNumber, currentVotes);
 
-      rounds.add(roundResult);
+      rounds.add(roundResultRecord);
 
-      eliminatedCandidates.addAll(roundResult.getEliminatedCandidateIds());
+      eliminatedCandidates.addAll(roundResultRecord.eliminatedCandidateIds());
     }
   }
 
-  private RoundResult getRoundResult(
+  private RoundResultRecord getRoundResult(
       List<UUID> candidatesWithMinVotes,
       int roundNumber,
       Map<UUID, Integer> currentVotes
@@ -104,7 +105,7 @@ public class InstantRunoffService extends AbstractSingleWinnerElectionService {
       eliminationReason = NO_TIE_ELIMINATION_MESSAGE;
     }
 
-    return new RoundResult(
+    return new RoundResultRecord(
         roundNumber,
         currentVotes,
         candidatesWithMinVotes,
@@ -112,10 +113,10 @@ public class InstantRunoffService extends AbstractSingleWinnerElectionService {
     );
   }
 
-  private static Optional<ElectionResult> findMajorityWinner(
+  private static Optional<ElectionResultRecord> findMajorityWinner(
       Map<UUID, Integer> currentVotes,
       int currentVotesSize,
-      List<RoundResult> rounds,
+      List<RoundResultRecord> rounds,
       int roundNumber
   ) {
     Optional<Map.Entry<UUID, Integer>> majorityWinner
@@ -125,14 +126,14 @@ public class InstantRunoffService extends AbstractSingleWinnerElectionService {
         .findFirst();
 
     if (majorityWinner.isPresent()) {
-      rounds.add(new RoundResult(
+      rounds.add(new RoundResultRecord(
           roundNumber,
           currentVotes,
           null,
           currentVotes.size() == 1 ? WINNER_ATTRITION : WINNER_MAJORITY
       ));
 
-      return Optional.of(new ElectionResult(
+      return Optional.of(new ElectionResultRecord(
           majorityWinner.get().getKey(),
           rounds,
           currentVotesSize

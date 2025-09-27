@@ -2,7 +2,7 @@ package com.gpt.springbonk.service.distribution;
 
 import com.gpt.springbonk.constant.enumeration.system.VotingSystemMethod;
 import com.gpt.springbonk.model.Election;
-import com.gpt.springbonk.model.ElectionResult;
+import com.gpt.springbonk.model.record.ElectionResultRecord;
 import org.springframework.stereotype.Service;
 
 /**
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MultipleWinnerMethodDistributionService extends AbstractMethodDistributionService {
   @Override
-  public ElectionResult distributeByMethodology(
+  public ElectionResultRecord distributeByMethodology(
       Election election,
       VotingSystemMethod methodology
   ) {
