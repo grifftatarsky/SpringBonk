@@ -6,6 +6,7 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { RouterOutlet } from '@angular/router';
 
 type NavLink = Readonly<{
   label: string;
@@ -19,6 +20,7 @@ type NavLink = Readonly<{
   selector: 'app-root',
   imports: [
     NgOptimizedImage,
+    RouterOutlet,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
