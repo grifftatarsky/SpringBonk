@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MessageService } from 'primeng/api';
 
 @Injectable({
   providedIn: 'root',
@@ -7,35 +7,46 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class NotificationService {
   private lastKey = '';
   private lastAt = 0;
-  constructor(private snackBar: MatSnackBar) {}
+  constructor(private readonly messages: MessageService) {}
 
   success(message: string): void {
-    this.openDedupe(`success:${message}`, message, ['success-snackbar'], 3000);
+    this.openDedupe('success', message, 3000);
   }
 
   error(message: string): void {
-    this.openDedupe(`error:${message}`, message, ['error-snackbar'], 5000);
+    this.openDedupe('error', message, 5000);
   }
 
   info(message: string): void {
-    this.openDedupe(`info:${message}`, message, [], 3000);
+    this.openDedupe('info', message, 3000);
   }
 
   private openDedupe(
-    key: string,
+    severity: 'success' | 'error' | 'info',
     message: string,
-    panelClass: string[],
     duration: number
-  ) {
+  ): void {
+    const key = `${severity}:${message}`;
     const now = Date.now();
     if (key === this.lastKey && now - this.lastAt < 600) return;
     this.lastKey = key;
     this.lastAt = now;
-    this.snackBar.open(message, 'Close', {
-      duration,
-      panelClass,
-      horizontalPosition: 'end',
-      verticalPosition: 'bottom',
+    this.messages.add({
+      severity,
+      summary: this.summaryFor(severity),
+      detail: message,
+      life: duration,
     });
+  }
+
+  private summaryFor(severity: 'success' | 'error' | 'info'): string {
+    switch (severity) {
+      case 'success':
+        return 'Success';
+      case 'error':
+        return 'Error';
+      default:
+        return 'Notice';
+    }
   }
 }

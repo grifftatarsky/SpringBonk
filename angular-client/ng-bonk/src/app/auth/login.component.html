@@ -1,3 +1,9 @@
-<button mat-stroked-button (click)="login()" [disabled]="!isLoginEnabled">
-  Login
-</button>
+<button
+  pButton
+  type="button"
+  label="Login"
+  icon="pi pi-sign-in"
+  (click)="login()"
+  [disabled]="!isLoginEnabled"
+  class="p-button-rounded"
+></button>

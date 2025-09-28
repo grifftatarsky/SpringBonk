@@ -1,62 +1,62 @@
-<h2 mat-dialog-title>Nominate Book</h2>
-
-<mat-dialog-content>
-  <div class="book-nominate-container">
-    <div class="book-info">
-      <div class="book-cover">
-        <app-book-cover
-          [src]="data.book.imageURL"
-          [alt]="data.book.title + ' cover'"></app-book-cover>
-      </div>
-      <div class="book-details">
-        <h3>{{ data.book.title }}</h3>
-        <p class="author">{{ data.book.author }}</p>
-      </div>
+<div class="dialog-shell" *ngIf="book as current">
+  <div class="book-summary">
+    <div class="cover">
+      <app-book-cover [src]="current.imageURL" [alt]="current.title"></app-book-cover>
     </div>
-
-    <div *ngIf="loading" class="loading-container">
-      <mat-spinner diameter="40"></mat-spinner>
-      <span>Loading elections...</span>
+    <div class="details">
+      <h3>{{ current.title }}</h3>
+      <p class="author">{{ current.author }}</p>
     </div>
+  </div>
 
-    <div *ngIf="!loading && elections.length === 0" class="no-elections">
+  <div class="loading" *ngIf="loading">
+    <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+    <span>Loading elections…</span>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <div class="empty" *ngIf="elections.length === 0">
       No ongoing elections available for nomination.
     </div>
 
-    <ng-container *ngIf="!loading && elections.length > 0">
-      <mat-form-field appearance="outline" class="election-select">
-        <mat-label>Select an election</mat-label>
-        <mat-select [formControl]="electionControl">
-          <mat-option *ngFor="let election of elections" [value]="election.id">
-            {{ election.title }}
-            <span class="election-status">
-              <mat-chip
-                [ngClass]="getStatus(election.endDateTime).class"
-                disableRipple>
-                <mat-icon>{{ getStatus(election.endDateTime).icon }}</mat-icon>
-                {{ getStatus(election.endDateTime).text }}
-              </mat-chip>
-            </span>
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+    <div class="election-form" *ngIf="elections.length > 0">
+      <label for="electionSelect">Select an election</label>
+      <p-dropdown
+        id="electionSelect"
+        [options]="elections"
+        optionLabel="display"
+        optionValue="id"
+        [formControl]="electionControl"
+        placeholder="Choose an election"
+        filter
+        class="w-full"
+      ></p-dropdown>
 
-      <div *ngIf="selectedElection" class="election-details">
-        <p class="election-date">
-          Ends: {{ selectedElection.endDateTime | date: 'medium' }}
-        </p>
+      <div *ngIf="selectedElection" class="election-meta">
+        <p-tag
+          [value]="statusLabel(selectedElection)"
+          [severity]="statusSeverity(selectedElection)"
+        ></p-tag>
+        <span *ngIf="selectedElection.endDateTime">
+          Ends {{ selectedElection.endDateTime | date: 'medium' }}
+        </span>
       </div>
-    </ng-container>
-  </div>
-</mat-dialog-content>
+    </div>
+  </ng-container>
 
-<mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Cancel</button>
-  <button
-    mat-raised-button
-    color="primary"
-    [disabled]="!electionControl.valid || loading || nominating"
-    (click)="onNominate()">
-    {{ nominating ? 'Nominating...' : 'Nominate' }}
-  </button>
-</mat-dialog-actions>
+  <div class="actions">
+    <p-button
+      type="button"
+      label="Cancel"
+      styleClass="p-button-text"
+      (onClick)="cancel()"
+    ></p-button>
+    <p-button
+      type="button"
+      label="Nominate"
+      icon="pi pi-check"
+      (onClick)="nominate()"
+      [disabled]="electionControl.invalid || loading || nominating"
+    ></p-button>
+  </div>
+</div>

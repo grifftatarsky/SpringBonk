@@ -1,0 +1,27 @@
+<div class="dialog-shell">
+  <h2 class="dialog-title">Running election…</h2>
+
+  <div class="running" *ngIf="running$ | async; else resultBlock">
+    <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+    <p>Tabulating ranked-choice rounds. This may take a moment.</p>
+  </div>
+
+  <ng-template #resultBlock>
+    <div class="result" *ngIf="result$ | async as result">
+      <p-tag value="Winner" severity="success"></p-tag>
+      <h3>{{ result.winnerName || 'Unknown' }}</h3>
+      <p class="timestamp" *ngIf="result.closureTime">
+        Completed {{ result.closureTime | date: 'medium' }}
+      </p>
+    </div>
+  </ng-template>
+
+  <div class="actions">
+    <p-button
+      type="button"
+      label="Close"
+      icon="pi pi-check"
+      (onClick)="close()"
+    ></p-button>
+  </div>
+</div>

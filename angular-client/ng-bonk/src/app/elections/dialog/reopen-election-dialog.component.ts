@@ -1,16 +1,12 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  Inject,
-  inject,
-} from '@angular/core';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
+import { ButtonModule } from 'primeng/button';
+import {
+  DynamicDialogConfig,
+  DynamicDialogRef,
+  DynamicDialogModule,
+} from 'primeng/dynamicdialog';
 import { DateTimePickerComponent } from '../../common/date-time-picker.component';
 
 export interface ReopenElectionDialogData {
@@ -25,9 +21,10 @@ export interface ReopenElectionDialogResult {
   selector: 'app-reopen-election-dialog',
   standalone: true,
   imports: [
-    MatDialogModule,
-    MatButtonModule,
+    CommonModule,
     ReactiveFormsModule,
+    ButtonModule,
+    DynamicDialogModule,
     DateTimePickerComponent,
   ],
   templateUrl: './reopen-election-dialog.component.html',
@@ -36,20 +33,16 @@ export interface ReopenElectionDialogResult {
 })
 export class ReopenElectionDialogComponent {
   private readonly fb = inject(FormBuilder);
+  readonly ref = inject<
+    DynamicDialogRef<ReopenElectionDialogResult | undefined>
+  >(DynamicDialogRef);
+  readonly data = inject(DynamicDialogConfig<ReopenElectionDialogData>).data;
 
   readonly form = this.fb.group({
     endDateTime: [null, Validators.required],
   });
 
-  constructor(
-    private readonly ref: MatDialogRef<
-      ReopenElectionDialogComponent,
-      ReopenElectionDialogResult
-    >,
-    @Inject(MAT_DIALOG_DATA) public readonly data: ReopenElectionDialogData
-  ) {}
-
-  close(): void {
+  cancel(): void {
     this.ref.close();
   }
 
@@ -57,20 +50,20 @@ export class ReopenElectionDialogComponent {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
 
-    const endDateTime = this.form.value.endDateTime;
+    const endDateTime = this.normalizeDate(this.form.value.endDateTime);
     if (!endDateTime) return;
 
-    let closure: string | null = null;
-    const rawValue = endDateTime as unknown;
-    if (rawValue instanceof Date) {
-      closure = Number.isNaN(rawValue.getTime()) ? null : rawValue.toISOString();
-    } else if (typeof rawValue === 'string' && rawValue.trim().length > 0) {
-      const parsed = new Date(rawValue);
-      closure = Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+    this.ref.close({ endDateTime });
+  }
+
+  private normalizeDate(value: unknown): string | null {
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? null : value.toISOString();
     }
-
-    if (!closure) return;
-
-    this.ref.close({ endDateTime: closure });
+    if (typeof value === 'string' && value.trim().length > 0) {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+    }
+    return null;
   }
 }

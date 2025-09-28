@@ -1,85 +1,87 @@
-<mat-toolbar id="toolbar-shelves" class="gap-2">
-  <button mat-icon-button (click)="refresh()" aria-label="Refresh shelves">
-    <mat-icon>refresh</mat-icon>
-  </button>
-  <div class="toolbar-divider" aria-hidden="true">&nbsp;</div>
-  <button mat-button (click)="openCreateDialog()" aria-label="Create shelf">
-    <mat-icon>library_add</mat-icon>
-    New Shelf
-  </button>
-  <div class="toolbar-divider" aria-hidden="true">&nbsp;</div>
-  <button mat-button (click)="openBookSearchDialog()" aria-label="Add book">
-    <mat-icon>menu_book</mat-icon>
-    Add Book
-  </button>
-  <!--Divider, then TODO: chits for categories.-->
-  <div class="spacer"></div>
-</mat-toolbar>
-
-@if (loading$ | async) {
-  <div>
-    <mat-progress-bar mode="indeterminate" />
+<p-toolbar class="shelves-toolbar">
+  <div class="p-toolbar-group-start">
+    <button
+      pButton
+      type="button"
+      icon="pi pi-refresh"
+      class="p-button-text p-button-rounded"
+      aria-label="Refresh shelves"
+      (click)="refresh()"
+    ></button>
+    <button
+      pButton
+      type="button"
+      icon="pi pi-plus"
+      label="New Shelf"
+      class="p-button-raised"
+      (click)="openCreateDialog()"
+    ></button>
+    <button
+      pButton
+      type="button"
+      icon="pi pi-book"
+      label="Add Book"
+      class="p-button-outlined"
+      (click)="openBookSearch()"
+    ></button>
   </div>
-}
-
-<div class="shelves-layout" #shelvesLayout>
-  <!-- Transition line overlay -->
-  @if (showLine) {
-    <div
-      #transLine
-      class="transition-line"
-      [class.instant]="lineInstant"
-      [ngStyle]="{
-        top: lineStyle.top,
-        left: lineStyle.left,
-        width: lineStyle.width,
-      }"></div>
-  }
-
-  <!-- Shelves Scrollable Container -->
-  <div
-    class="list-pane scrollable-container"
-    #listPane
-    [class.mobile-hidden]="hasSelection$ | async"
-    (scroll)="onListScroll($event)">
-    <div class="shelves-list">
-      @if (shelves$ | async; as shelves) {
-        @for (shelf of shelves; track trackByShelfId($index, shelf)) {
-          <mat-card
-            class="shelf-card"
-            [class.active]="(selectedId$ | async) === shelf.id"
-            tabindex="0"
-            role="button">
-            <div
-              class="shelf-card-body"
-              matRipple
-              [matRippleColor]="'rgba(0,255,65,0.3)'"
-              [matRippleCentered]="true"
-              (click)="onShelfClick(shelf, $event)">
-              <div class="shelf-title">{{ shelf.title }}</div>
-              <div class="shelf-tags">
-                @if (shelf.defaultShelf) {
-                  <span class="tag">Default</span>
-                }
-              </div>
-            </div>
-          </mat-card>
-        }
-      } @else {
-        <div class="table-no-data-bar">
-          No shelves yet. Create your first to get started.
-        </div>
-      }
-    </div>
+  <div class="p-toolbar-group-end shelves-count">
+    <span>{{ total$ | async }} shelves</span>
   </div>
+</p-toolbar>
 
-  <!-- Books Scrollable Container -->
-  <div
-    class="detail-pane scrollable-container"
-    #detailPane
-    [class.mobile-shown]="hasSelection$ | async">
-    <div class="detail-content" #detailContent>
-      <router-outlet></router-outlet>
-    </div>
-  </div>
+<div class="shelves-content">
+  <section class="shelf-list" (scroll)="onScroll($event)">
+    <ng-container *ngIf="shelves$ | async as shelves; else emptyState">
+      <ng-container *ngFor="let shelf of shelves; trackBy: trackByShelfId">
+        <p-card
+          class="shelf-card"
+          [ngClass]="{ active: (selectedId$ | async) === shelf.id }"
+          (click)="navigateToShelf(shelf.id)"
+        >
+          <div class="shelf-card-header">
+            <span class="shelf-title">{{ shelf.title }}</span>
+            <p-tag
+              *ngIf="shelf.defaultShelf"
+              value="Default"
+              severity="success"
+              styleClass="shelf-tag"
+            ></p-tag>
+          </div>
+          <div class="shelf-card-actions">
+            <button
+              pButton
+              type="button"
+              icon="pi pi-pencil"
+              class="p-button-text p-button-rounded"
+              (click)="openEditDialog(shelf); $event.stopPropagation()"
+              aria-label="Edit shelf"
+            ></button>
+            <button
+              pButton
+              type="button"
+              icon="pi pi-trash"
+              class="p-button-text p-button-rounded"
+              (click)="confirmDelete(shelf); $event.stopPropagation()"
+              aria-label="Delete shelf"
+            ></button>
+          </div>
+        </p-card>
+      </ng-container>
+
+      <div class="list-loader" *ngIf="loading$ | async">
+        <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+      </div>
+    </ng-container>
+  </section>
+
+  <section class="shelf-detail">
+    <router-outlet></router-outlet>
+  </section>
 </div>
+
+<ng-template #emptyState>
+  <div class="empty-state">
+    <p>No shelves yet. Create your first shelf to get started.</p>
+  </div>
+</ng-template>

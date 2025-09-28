@@ -1,75 +1,66 @@
-<mat-toolbar id="toolbar-shelves" class="gap-2">
-  <button mat-icon-button (click)="refresh()" aria-label="Refresh elections">
-    <mat-icon>refresh</mat-icon>
-  </button>
-  <div class="toolbar-divider" aria-hidden="true">&nbsp;</div>
-  <button mat-button (click)="openCreateDialog()" aria-label="Create election">
-    <mat-icon>how_to_vote</mat-icon>
-    Add Election
-  </button>
-  <div class="spacer"></div>
-</mat-toolbar>
-
-@if (loading$ | async) {
-  <div>
-    <mat-progress-bar mode="indeterminate" />
+<p-toolbar class="elections-toolbar">
+  <div class="p-toolbar-group-start">
+    <button
+      pButton
+      type="button"
+      icon="pi pi-refresh"
+      class="p-button-text p-button-rounded"
+      aria-label="Refresh elections"
+      (click)="refresh()"
+    ></button>
+    <button
+      pButton
+      type="button"
+      icon="pi pi-plus"
+      label="Add Election"
+      class="p-button-raised"
+      (click)="openCreateDialog()"
+    ></button>
   </div>
-}
+  <div class="p-toolbar-group-end">
+    <p-tag [value]="total + ' total'" severity="info"></p-tag>
+  </div>
+</p-toolbar>
 
 <div class="elections-layout">
-  <div
+  <section
     class="list-pane"
     #listContainer
     [class.mobile-hidden]="hasSelection$ | async"
-    (scroll)="onListScroll($event)">
-    <div class="elections-list">
-      @if (elections$ | async; as elections) {
-        @if (elections.length > 0) {
-          @for (e of elections; track e) {
-            <mat-card
-              class="election-card"
-              [class.active]="(selectedId$ | async) === e.id"
-              tabindex="0"
-              role="button">
-              <div
-                class="election-card-body"
-                matRipple
-                [matRippleColor]="'rgba(0,255,65,0.3)'"
-                [matRippleCentered]="true"
-                (click)="navigateToDetail(e.id)">
-                <div class="election-title">{{ e.title }}</div>
-                @if (getStatus(e); as status) {
-                  <div class="election-status">
-                    <mat-chip
-                      [ngClass]="status.class"
-                      disableRipple
-                      [matTooltip]="status.tooltip ?? ''"
-                    >
-                      <mat-icon matChipAvatar inline>{{
-                        status.icon
-                      }}</mat-icon>
-                      {{ status.text }}
-                    </mat-chip>
-                  </div>
-                }
-              </div>
-            </mat-card>
-          }
-        } @else {
-          @if (!(loading$ | async)) {
-            <mat-card class="election-card">
-              <div class="election-card-body">
-                <div class="election-title">No elections</div>
-              </div>
-            </mat-card>
-          }
-        }
-      }
+    (scroll)="onListScroll($event)"
+  >
+    <ng-container *ngIf="elections$ | async as elections">
+      <div class="card-list" *ngIf="elections.length; else emptyState">
+        <p-card
+          *ngFor="let election of elections"
+          class="election-card"
+          [ngClass]="{ active: (selectedId$ | async) === election.id }"
+          (click)="navigateToDetail(election.id)"
+        >
+          <div class="card-body">
+            <div class="title">{{ election.title }}</div>
+            <p-tag
+              [value]="statusFor(election).label"
+              [severity]="statusFor(election).severity"
+              pTooltip="{{ statusFor(election).tooltip || '' }}"
+              tooltipPosition="left"
+            ></p-tag>
+          </div>
+        </p-card>
+      </div>
+    </ng-container>
+    <div class="list-loading" *ngIf="loading$ | async">
+      <p-progressSpinner strokeWidth="3"></p-progressSpinner>
     </div>
-  </div>
-  <div class="detail-pane" [class.mobile-shown]="hasSelection$ | async">
+  </section>
+
+  <section class="detail-pane" [class.mobile-shown]="hasSelection$ | async">
     <router-outlet></router-outlet>
-  </div>
+  </section>
 </div>
 
-<!-- Removed old emptyState template; empty handled above -->
+<ng-template #emptyState>
+  <div class="empty-state">
+    No elections yet. Create one to get started.
+  </div>
+</ng-template>

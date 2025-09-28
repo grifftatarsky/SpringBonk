@@ -1,53 +1,96 @@
-<mat-toolbar color="primary">
-  <button mat-icon-button class="mobile-back-button" routerLink="/shelves">
-    <mat-icon>arrow_back</mat-icon>
-  </button>
-  <span>{{ (shelf$ | async)?.title }}</span>
-  <span class="spacer"></span>
-  @if ((shelf$ | async)?.defaultShelf) {
-    <span class="default-badge">Default</span>
-  }
-  <span class="count-badge" *ngIf="total$ | async as total">{{ total }}</span>
-</mat-toolbar>
+<p-toolbar class="shelf-toolbar">
+  <div class="p-toolbar-group-start">
+    <button
+      pButton
+      type="button"
+      icon="pi pi-arrow-left"
+      class="p-button-text p-button-rounded"
+      routerLink="/shelves"
+      aria-label="Back to shelves"
+    ></button>
+    <span class="shelf-title">{{ (shelf$ | async)?.title }}</span>
+    <p-tag
+      *ngIf="(shelf$ | async)?.defaultShelf"
+      value="Default"
+      severity="success"
+      styleClass="shelf-badge"
+    ></p-tag>
+  </div>
+  <div class="p-toolbar-group-end">
+    <p-tag
+      *ngIf="total$ | async as total"
+      [value]="total + ' books'"
+      severity="info"
+    ></p-tag>
+  </div>
+</p-toolbar>
 
-<div class="shelf-content">
-  @if (loading$ | async) {
-    <div>
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    </div>
-  }
-  @if (displayedBooks$ | async; as books) {
-    @if (books.length > 0) {
-      <div class="book-cards" (scroll)="onDetailScroll($event)">
-        @for (book of books; track trackByBookId($index, book)) {
-          <mat-card class="book-card" (click)="openBookSheet(book)">
+<div class="controls">
+  <p-dropdown
+    [options]="sortOptions"
+    optionLabel="label"
+    optionValue="value"
+    [ngModel]="(sortKeyStream$ | async) ?? 'title'"
+    (onChange)="onSortChange($event.value)"
+  ></p-dropdown>
+  <button
+    pButton
+    type="button"
+    class="p-button-text"
+    icon="pi pi-sort-alt"
+    [label]="directionLabel()"
+    (click)="toggleDirection()"
+  ></button>
+</div>
+
+<div class="book-panel" (scroll)="onScroll($event)">
+  <div class="loading" *ngIf="loading$ | async">
+    <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+  </div>
+
+  <ng-container *ngIf="sortedBooks$ | async as books">
+    <ng-container *ngIf="books.length; else emptyState">
+      <div class="book-grid">
+        <p-card
+          class="book-card"
+          *ngFor="let book of books; trackBy: trackByBook"
+          (click)="openBookDetail(book)"
+        >
+          <div class="card-body">
             <div class="cover">
-              <app-book-cover
-                [src]="book.imageURL"
-                [alt]="book.title + ' cover'"></app-book-cover>
+              <app-book-cover [src]="book.imageURL" [alt]="book.title"></app-book-cover>
             </div>
             <div class="meta">
-              <div class="title">{{ book.title }}</div>
-              <mat-chip-set>
-                <mat-chip appearance="outlined">{{ book.author }}</mat-chip>
-                <mat-chip appearance="outlined">{{
-                  book.publishedYear ?? '—'
-                }}</mat-chip>
-              </mat-chip-set>
+              <h3>{{ book.title }}</h3>
+              <div class="tags">
+                <p-tag value="{{ book.author }}" severity="secondary"></p-tag>
+                <p-tag
+                  *ngIf="book.publishedYear; else unknownYear"
+                  [value]="book.publishedYear"
+                  severity="contrast"
+                ></p-tag>
+                <ng-template #unknownYear>
+                  <p-tag value="—" severity="contrast"></p-tag>
+                </ng-template>
+              </div>
             </div>
-            <div class="actions" (click)="$event.stopPropagation()">
+            <div class="action">
               <button
-                mat-icon-button
-                aria-label="Book details"
-                (click)="openBookSheet(book)">
-                <mat-icon>info</mat-icon>
-              </button>
+                pButton
+                type="button"
+                icon="pi pi-external-link"
+                class="p-button-text"
+                (click)="openBookDetail(book); $event.stopPropagation()"
+                aria-label="View book details"
+              ></button>
             </div>
-          </mat-card>
-        }
+          </div>
+        </p-card>
       </div>
-    } @else {
-      <div class="no-data">This shelf has no books yet.</div>
-    }
-  }
+    </ng-container>
+  </ng-container>
 </div>
+
+<ng-template #emptyState>
+  <div class="empty-state">This shelf has no books yet.</div>
+</ng-template>

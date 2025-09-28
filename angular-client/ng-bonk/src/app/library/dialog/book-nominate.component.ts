@@ -1,28 +1,32 @@
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  Inject,
+  DestroyRef,
   OnInit,
+  inject,
 } from '@angular/core';
-import { BookCoverComponent } from '../../common/book-cover.component';
-import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
+import { ButtonModule } from 'primeng/button';
+import { DropdownModule } from 'primeng/dropdown';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
+  DynamicDialogConfig,
+  DynamicDialogRef,
+  DynamicDialogModule,
+} from 'primeng/dynamicdialog';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { BookResponse } from '../../model/response/book-response.model';
 import { ElectionResponse } from '../../model/response/election-response.model';
 import { NotificationService } from '../../service/notification.service';
 import { ElectionHttpService } from '../../service/http/election-http.service';
+import { BookCoverComponent } from '../../common/book-cover.component';
+import { TagModule } from 'primeng/tag';
+
+interface ElectionOption extends ElectionResponse {
+  display: string;
+}
 
 @Component({
   selector: 'app-book-nominate-dialog',
@@ -30,13 +34,11 @@ import { ElectionHttpService } from '../../service/http/election-http.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatProgressSpinnerModule,
-    MatChipsModule,
-    MatIconModule,
+    ButtonModule,
+    DropdownModule,
+    ProgressSpinnerModule,
+    DynamicDialogModule,
+    TagModule,
     BookCoverComponent,
   ],
   templateUrl: './book-nominate.component.html',
@@ -44,56 +46,58 @@ import { ElectionHttpService } from '../../service/http/election-http.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookNominateDialog implements OnInit {
-  electionControl = new FormControl<string | null>(null, [Validators.required]);
-  elections: ElectionResponse[] = [];
+  private readonly electionHttp = inject(ElectionHttpService);
+  private readonly notification = inject(NotificationService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly ref = inject<DynamicDialogRef<boolean | undefined>>(DynamicDialogRef);
+  readonly data = inject(DynamicDialogConfig<{ book: BookResponse }>).data;
+
+  readonly electionControl = new FormControl<string | null>(null, {
+    validators: [Validators.required],
+  });
+
+  elections: ElectionOption[] = [];
   loading = true;
   nominating = false;
-  selectedElection: ElectionResponse | null = null;
+  selectedElection: ElectionOption | null = null;
 
-  constructor(
-    public dialogRef: MatDialogRef<BookNominateDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: { book: BookResponse },
-    private electionHttp: ElectionHttpService,
-    private notification: NotificationService
-  ) {}
+  get book(): BookResponse {
+    return this.data?.book as BookResponse;
+  }
 
   ngOnInit(): void {
     this.loadElections();
-
-    // Update selectedElection when election changes
-    this.electionControl.valueChanges.subscribe(electionId => {
-      if (electionId) {
-        this.selectedElection =
-          this.elections.find(e => e.id === electionId) || null;
-      } else {
-        this.selectedElection = null;
-      }
-    });
+    this.electionControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(id => {
+        this.selectedElection = this.elections.find(e => e.id === id) ?? null;
+      });
   }
 
   loadElections(): void {
     this.loading = true;
+    const now = new Date();
     this.electionHttp
       .getAllElections()
       .pipe(
-        map(elections => {
-          // Filter to only include ongoing or endless elections
-          const now = new Date();
-          return elections.filter(election => {
-            if (!election.endDateTime) return true; // Endless election
-            const endDate = new Date(election.endDateTime);
-            return endDate > now; // Ongoing election
-          });
-        }),
-        map(elections => {
-          // Sort by most recent creation date
-          return elections.sort((a, b) => {
-            return (
-              new Date(b.createDate).getTime() -
-              new Date(a.createDate).getTime()
-            );
-          });
-        })
+        map(list =>
+          list
+            .filter(election => {
+              if (!election.endDateTime) return true;
+              const end = new Date(election.endDateTime);
+              return end > now;
+            })
+            .sort(
+              (a, b) =>
+                new Date(b.createDate).getTime() - new Date(a.createDate).getTime()
+            )
+            .map(election => ({
+              ...election,
+              display: election.title,
+            }))
+        ),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: elections => {
@@ -102,84 +106,51 @@ export class BookNominateDialog implements OnInit {
         },
         error: err => {
           this.loading = false;
-          this.notification.error(
-            'Failed to load elections. Please try again.'
-          );
-          console.error('Error loading elections:', err);
+          this.notification.error('Failed to load elections. Please try again.');
+          console.error('Error loading elections', err);
         },
       });
   }
 
-  getStatus(endDateTime?: string): {
-    text: string;
-    icon: string;
-    class: string;
-  } {
-    const now = new Date();
-
-    if (!endDateTime || isNaN(new Date(endDateTime).getTime())) {
-      return {
-        text: 'Endless',
-        icon: 'all_inclusive',
-        class: 'status-chip-endless',
-      };
-    }
-
-    const end = new Date(endDateTime);
-
-    if (end > now) {
-      return {
-        text: 'Ongoing',
-        icon: 'timer',
-        class: 'status-chip-ongoing',
-      };
-    }
-
-    return {
-      text: 'Ended',
-      icon: 'stop',
-      class: 'status-chip-ended',
-    };
+  statusLabel(election: ElectionResponse): string {
+    if (!election.endDateTime) return 'Endless';
+    const end = new Date(election.endDateTime);
+    return end > new Date() ? 'Ongoing' : 'Closed';
   }
 
-  onCancel(): void {
-    this.dialogRef.close();
+  statusSeverity(election: ElectionResponse): 'success' | 'info' | 'danger' {
+    if (!election.endDateTime) return 'info';
+    const end = new Date(election.endDateTime);
+    return end > new Date() ? 'success' : 'danger';
   }
 
-  onNominate(): void {
-    if (this.electionControl.valid && this.electionControl.value) {
-      this.nominating = true;
+  cancel(): void {
+    this.ref.close();
+  }
 
-      this.electionHttp
-        .nominateCandidate(this.electionControl.value, this.data.book.id)
-        .subscribe({
-          next: (): void => {
-            this.nominating = false;
-            this.notification.success(
-              `Successfully nominated "${this.data.book.title}" for the election!`
-            );
-            this.dialogRef.close(true);
-          },
-          error: err => {
-            this.nominating = false;
-
-            // Handle specific error for duplicate nomination
-            if (
-              err.status === 400 &&
-              err.error?.message?.includes('already nominated')
-            ) {
-              this.notification.error(
-                `This book has already been nominated for this election.`
-              );
-            } else {
-              this.notification.error(
-                'Failed to nominate book. Please try again.'
-              );
-            }
-
-            console.error('Error nominating book:', err);
-          },
-        });
-    }
+  nominate(): void {
+    if (!this.electionControl.value || this.nominating) return;
+    this.nominating = true;
+    this.electionHttp
+      .nominateCandidate(this.electionControl.value, this.book.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.nominating = false;
+          this.notification.success(
+            `"${this.book.title}" nominated successfully.`
+          );
+          this.ref.close(true);
+        },
+        error: err => {
+          this.nominating = false;
+          if (err.status === 400 && err.error?.message?.includes('already')) {
+            this.notification.error('This book is already nominated.');
+          } else {
+            this.notification.error('Unable to nominate the book.');
+          }
+          console.error('Error nominating book', err);
+        },
+      });
   }
 }

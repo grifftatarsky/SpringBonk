@@ -1,6 +1,6 @@
 import { CanDeactivateFn } from '@angular/router';
 import { inject } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { DialogService } from 'primeng/dynamicdialog';
 import { ConfirmDialogComponent } from '../common/confirm-dialog.component';
 import { Actions, ofType } from '@ngrx/effects';
 import * as ElectionsActions from '../store/action/elections.actions';
@@ -11,20 +11,21 @@ export const pendingBallotGuard: CanDeactivateFn<ElectionDetailComponent> = (
   comp: ElectionDetailComponent
 ): true | Observable<boolean> => {
   if (!comp || !comp.hasPendingChanges()) return true;
-  const dlg: MatDialog = inject(MatDialog);
+  const dialog = inject(DialogService);
   const actions$: Actions<any> = inject(Actions);
 
-  const ref = dlg.open(ConfirmDialogComponent, {
+  const ref = dialog.open(ConfirmDialogComponent, {
+    header: 'Unsaved changes',
+    width: '520px',
     data: {
       title: 'Unsaved changes',
       message: 'You have unsaved changes to your ballot.',
       confirmText: 'Save',
       cancelText: 'Leave without saving',
     },
-    width: '520px',
   });
 
-  return ref.afterClosed().pipe(
+  return ref.onClose.pipe(
     take(1),
     mergeMap(choice => {
       if (!choice) {

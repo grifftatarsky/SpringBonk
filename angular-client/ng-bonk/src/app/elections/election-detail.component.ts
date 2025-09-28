@@ -1,368 +1,248 @@
+import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  inject,
+  DestroyRef,
   OnDestroy,
   OnInit,
+  inject,
 } from '@angular/core';
-import { AsyncPipe, CommonModule, DatePipe, KeyValue } from '@angular/common';
-import { ActivatedRoute, ParamMap, RouterLink } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatCardModule } from '@angular/material/card';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatDialog } from '@angular/material/dialog';
+import { ToolbarModule } from 'primeng/toolbar';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { TagModule } from 'primeng/tag';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { DividerModule } from 'primeng/divider';
+import { DialogService } from 'primeng/dynamicdialog';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
-  MatBottomSheet,
-  MatBottomSheetModule,
-} from '@angular/material/bottom-sheet';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { NominateToElectionDialogComponent } from './dialog/nominate-to-election-dialog.component';
+  combineLatest,
+  distinctUntilChanged,
+  filter,
+  map,
+  Observable,
+  of,
+  shareReplay,
+  startWith,
+  switchMap,
+} from 'rxjs';
+import { Actions, ofType } from '@ngrx/effects';
 import { UserService } from '../service/user.service';
 import { ElectionHttpService } from '../service/http/election-http.service';
-import { BookHttpService } from '../service/http/books-http.service';
-import { ShelfHttpService } from '../service/http/shelves-http.service';
-import {
-  CdkDragDrop,
-  DragDropModule,
-  moveItemInArray,
-} from '@angular/cdk/drag-drop';
 import { BookCoverComponent } from '../common/book-cover.component';
+import { ElectionResponse } from '../model/response/election-response.model';
+import { CandidateResponse } from '../model/response/candidate-response.model';
+import { ElectionResult } from '../model/election-result.model';
 import * as ElectionsActions from '../store/action/elections.actions';
 import {
   selectBallotOrder,
   selectCandidates,
   selectCurrentElection,
+  selectElectionResults,
+  selectLatestElectionResult,
   selectLoadingCandidates,
   selectLoadingElection,
+  selectLoadingResults,
   selectRankedCandidates,
-  selectRunning,
+  selectReopeningElection,
   selectRunResult,
+  selectRunning,
+  selectSavingElection,
   selectSubmitting,
   selectUnrankedCandidates,
 } from '../store/selector/elections.selectors';
-import {
-  combineLatest,
-  distinctUntilChanged,
-  filter as rxFilter,
-  map,
-  Observable,
-  startWith,
-  Subject,
-  switchMap,
-  take,
-  takeUntil,
-  tap,
-  timer,
-} from 'rxjs';
-import { ElectionResult } from '../model/election-result.model';
-import { RoundResult } from '../model/round-result.model';
-import { CandidateResponse } from '../model/response/candidate-response.model';
-import { ElectionResponse } from '../model/response/election-response.model';
-import { ShelfResponse } from '../model/response/shelf-response.model';
-import {
-  BreakpointObserver,
-  Breakpoints,
-  BreakpointState,
-} from '@angular/cdk/layout';
-import { Actions, ofType } from '@ngrx/effects';
+import { NominateToElectionDialogComponent } from './dialog/nominate-to-election-dialog.component';
 import { BookBlurbDialogComponent } from './dialog/book-blurb-dialog.component';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { ReopenElectionDialogComponent } from './dialog/reopen-election-dialog.component';
-import { ConfirmDialogComponent } from '../common/confirm-dialog.component';
-import { ElectionRequest } from '../model/request/election-request.model';
-import { NotificationService } from '../service/notification.service';
-import {
-  selectElectionResults,
-  selectLatestElectionResult,
-  selectLoadingResults,
-  selectReopeningElection,
-  selectSavingElection,
-} from '../store/selector/elections.selectors';
 import { ElectionDialog } from './election-dialog.component';
-import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { ConfirmDialogComponent } from '../common/confirm-dialog.component';
+import { ElectionRunDialogComponent } from './dialog/election-run-dialog.component';
+import { BookDetailDialog } from '../library/dialog/book-detail-dialog.component';
+import { NotificationService } from '../service/notification.service';
+import { ElectionRequest } from '../model/request/election-request.model';
+import { RoundResult } from '../model/round-result.model';
 
 @Component({
   selector: 'app-election-detail',
   standalone: true,
   imports: [
     CommonModule,
-    DragDropModule,
-    BookCoverComponent,
-    DatePipe,
-    AsyncPipe,
     RouterLink,
-    MatButtonModule,
-    MatIconModule,
-    MatChipsModule,
-    MatMenuModule,
-    MatCardModule,
-    MatProgressBarModule,
-    MatBottomSheetModule,
-    MatToolbarModule,
-    MatTooltipModule,
-    MatExpansionModule,
+    AsyncPipe,
+    DatePipe,
+    ToolbarModule,
+    ButtonModule,
+    CardModule,
+    TagModule,
+    DividerModule,
+    ProgressSpinnerModule,
+    BookCoverComponent,
   ],
   templateUrl: './election-detail.component.html',
   styleUrls: ['./election-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ElectionDetailComponent implements OnInit, OnDestroy {
-  private readonly route: ActivatedRoute = inject(ActivatedRoute);
-  // TODO __ Remove use of any.
-  private readonly store: Store<any> = inject(Store);
-  private readonly dialog: MatDialog = inject(MatDialog);
-  private readonly bottomSheet: MatBottomSheet = inject(MatBottomSheet);
-  private readonly userService: UserService = inject(UserService);
-  private readonly electionHttpService: ElectionHttpService =
-    inject(ElectionHttpService);
-  private readonly bookHttpService: BookHttpService = inject(BookHttpService);
-  private readonly shelfHttpService: ShelfHttpService =
-    inject(ShelfHttpService);
-  private readonly notify: NotificationService = inject(NotificationService);
-  private readonly router: Router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
+  private readonly store = inject(Store);
+  private readonly dialog = inject(DialogService);
+  private readonly notify = inject(NotificationService);
+  private readonly userService = inject(UserService);
+  private readonly electionHttpService = inject(ElectionHttpService);
+  private readonly router = inject(Router);
+  private readonly actions$ = inject(Actions);
 
-  election$!: Observable<ElectionResponse | null>;
-  loadingElection$!: Observable<boolean>;
-  loadingCandidates$!: Observable<boolean>;
-  submitting$!: Observable<boolean>;
-  running$!: Observable<boolean>;
-  runResult$!: Observable<ElectionResult | null>;
-  results$!: Observable<ElectionResult[]>;
-  latestResult$!: Observable<ElectionResult | null>;
-  loadingResults$!: Observable<boolean>;
-  savingElection$!: Observable<boolean>;
-  reopeningElection$!: Observable<boolean>;
-
-  ranked$!: Observable<CandidateResponse[]>;
-  unranked$!: Observable<CandidateResponse[]>;
-  order$!: Observable<string[]>;
-  myNominationId$!: Observable<string | null>;
-  isHandset$!: Observable<boolean>;
-  private pending: boolean = false;
-  ballotLocked: boolean = false;
-
-  electionId!: string;
-  private readonly destroy$: Subject<void> = new Subject<void>();
-  private readonly bp: BreakpointObserver = inject(BreakpointObserver);
-  // TODO __ Remove use of any.
-  private readonly actions$: Actions<any> = inject(Actions);
-  private closureTimeoutHandle: number | null = null;
-  private closureToastShown = false;
-  private awaitingClosure = false;
+  private electionId = '';
   private candidateMap: Map<string, CandidateResponse> = new Map();
-  private closurePollSub: Subscription | null = null;
+  pending = false;
 
-  ngOnInit(): void {
-    const id$: Observable<string> = this.route.paramMap.pipe(
-      map((params: ParamMap): string => params.get('id') || ''),
-      takeUntil(this.destroy$)
-    );
+  private readonly electionId$ = this.route.paramMap.pipe(
+    map((params: ParamMap) => params.get('id') ?? ''),
+    filter(id => id.length > 0),
+    distinctUntilChanged(),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
 
-    // React to id changes: dispatch loads and update local id
-    id$.pipe(takeUntil(this.destroy$)).subscribe((id: string): void => {
-      this.electionId = id;
-      if (id) {
+  readonly election$ = this.store.select(selectCurrentElection);
+  readonly loadingElection$ = this.store.select(selectLoadingElection);
+  readonly loadingCandidates$ = this.store.select(selectLoadingCandidates);
+  readonly loadingResults$ = this.store.select(selectLoadingResults);
+  readonly submitting$ = this.store.select(selectSubmitting);
+  readonly running$ = this.store.select(selectRunning);
+  readonly savingElection$ = this.store.select(selectSavingElection);
+  readonly reopeningElection$ = this.store.select(selectReopeningElection);
+  readonly latestResult$ = this.store.select(selectLatestElectionResult);
+  readonly results$ = this.store.select(selectElectionResults).pipe(map(factory => factory(this.electionId)));
+  readonly runResult$ = this.store.select(selectRunResult);
+
+  private readonly rankedFactory$ = this.store.select(selectRankedCandidates);
+  private readonly unrankedFactory$ = this.store.select(selectUnrankedCandidates);
+  private readonly orderFactory$ = this.store.select(selectBallotOrder);
+
+  readonly ranked$ = this.electionId$.pipe(
+    switchMap(id => this.rankedFactory$.pipe(map(factory => factory(id))))
+  );
+
+  readonly unranked$ = this.electionId$.pipe(
+    switchMap(id => this.unrankedFactory$.pipe(map(factory => factory(id))))
+  );
+
+  readonly order$ = this.electionId$.pipe(
+    switchMap(id => this.orderFactory$.pipe(map(factory => factory(id))))
+  );
+
+  readonly myNominationId$ = combineLatest([
+    this.store.select(selectCandidates),
+    this.userService.valueChanges,
+  ]).pipe(
+    map(([candidates, user]) => {
+      const myId = user?.id ?? '';
+      const mine = candidates.find(candidate => candidate.nominatorId === myId);
+      return mine?.id ?? null;
+    })
+  );
+
+  readonly viewModel$ = combineLatest([
+    this.election$,
+    this.ranked$,
+    this.unranked$,
+    this.order$,
+    this.loadingElection$,
+    this.loadingCandidates$,
+    this.loadingResults$,
+    this.submitting$,
+    this.running$,
+    this.savingElection$,
+    this.reopeningElection$,
+    this.latestResult$,
+    this.store.select(selectElectionResults),
+    this.myNominationId$,
+  ]).pipe(
+    map(([
+      election,
+      ranked,
+      unranked,
+      order,
+      loadingElection,
+      loadingCandidates,
+      loadingResults,
+      submitting,
+      running,
+      saving,
+      reopening,
+      latest,
+      resultsFactory,
+      myNomination,
+    ]) => {
+      const results = resultsFactory(this.electionId);
+      const isClosed = election?.status === 'CLOSED';
+      return {
+        election,
+        ranked,
+        unranked,
+        order,
+        loadingElection,
+        loadingCandidates,
+        loadingResults,
+        submitting,
+        running,
+        saving,
+        reopening,
+        latest,
+        results,
+        myNomination,
+        isClosed,
+        ballotLocked: isClosed,
+        showLoading: loadingElection || loadingCandidates,
+      };
+    })
+  );
+
+  constructor() {
+    this.electionId$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(id => {
+        this.electionId = id;
+        this.pending = false;
         this.store.dispatch(ElectionsActions.loadElection({ electionId: id }));
-        this.store.dispatch(
-          ElectionsActions.loadCandidates({ electionId: id })
-        );
+        this.store.dispatch(ElectionsActions.loadCandidates({ electionId: id }));
         this.store.dispatch(ElectionsActions.loadMyBallot({ electionId: id }));
-      }
-    });
-
-    this.election$ = this.store.select(selectCurrentElection);
-    this.loadingElection$ = this.store.select(selectLoadingElection);
-    this.loadingCandidates$ = this.store.select(selectLoadingCandidates);
-    this.submitting$ = this.store.select(selectSubmitting);
-    this.loadingResults$ = this.store.select(selectLoadingResults);
-    this.savingElection$ = this.store.select(selectSavingElection);
-    this.reopeningElection$ = this.store.select(selectReopeningElection);
-
-    const rankedFactory$ = this.store.select(selectRankedCandidates);
-    const unrankedFactory$ = this.store.select(selectUnrankedCandidates);
-    const orderFactory$ = this.store.select(selectBallotOrder);
-    const resultsFactory$ = this.store.select(selectElectionResults);
-    const latestResultFactory$ = this.store.select(selectLatestElectionResult);
-
-    this.ranked$ = id$.pipe(
-      switchMap(
-        (id: string): Observable<CandidateResponse[]> =>
-          rankedFactory$.pipe(map(f => f(id)))
-      )
-    );
-    this.unranked$ = id$.pipe(
-      switchMap(
-        (id: string): Observable<CandidateResponse[]> =>
-          unrankedFactory$.pipe(map(f => f(id)))
-      )
-    );
-    this.order$ = id$.pipe(
-      switchMap(
-        (id: string): Observable<string[]> =>
-          orderFactory$.pipe(map(f => f(id)))
-      )
-    );
-    this.results$ = id$.pipe(
-      switchMap((id: string): Observable<ElectionResult[]> =>
-        resultsFactory$.pipe(map(f => f(id)))
-      )
-    );
-    this.latestResult$ = id$.pipe(
-      switchMap((id: string): Observable<ElectionResult | null> =>
-        latestResultFactory$.pipe(map(f => f(id)))
-      )
-    );
-
-    this.running$ = this.store.select(selectRunning);
-    this.runResult$ = this.store.select(selectRunResult);
-
-    // Responsive toolbar behavior
-    this.isHandset$ = this.bp
-      .observe([Breakpoints.XSmall, Breakpoints.Small])
-      .pipe(
-        map((state: BreakpointState): boolean => state.matches),
-        startWith(false)
-      );
-
-    this.myNominationId$ = combineLatest([
-      this.store.select(selectCandidates),
-      this.userService.valueChanges,
-    ]).pipe(
-      map(
-        ([candidates, u]: [CandidateResponse[], { id: string }]):
-          | string
-          | null => {
-          const myId: string = u?.id ?? '';
-          const mine: CandidateResponse | undefined = candidates.find(
-            (c: CandidateResponse): boolean => c.nominatorId === myId
-          );
-          return mine?.id ?? null;
-        }
-      ),
-      distinctUntilChanged()
-    );
+        this.store.dispatch(ElectionsActions.loadElectionResults({ electionId: id }));
+      });
 
     this.store
       .select(selectCandidates)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((candidates: CandidateResponse[]): void => {
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(candidates => {
         this.candidateMap = new Map(
-          candidates.map((candidate: CandidateResponse) => [candidate.id, candidate])
+          candidates.map(candidate => [candidate.id, candidate] as const)
         );
       });
 
-    this.election$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((election: ElectionResponse | null): void => {
-        this.setupClosureTimer(election);
-        if (election?.status === 'CLOSED') {
-          if (this.awaitingClosure) {
-            this.awaitingClosure = false;
-            this.stopClosurePolling();
-            this.store.dispatch(
-              ElectionsActions.loadElectionResults({ electionId: election.id })
-            );
-          }
-        }
-      });
-
-    // When save or reset succeed for this election, clear pending flag
     this.actions$
       .pipe(
         ofType(
           ElectionsActions.submitBallotSuccess,
           ElectionsActions.resetBallotSuccess
         ),
-        rxFilter(a => a.electionId === this.electionId),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe((): boolean => (this.pending = false));
+      .subscribe(({ electionId }) => {
+        if (electionId === this.electionId) {
+          this.pending = false;
+        }
+      });
+  }
+
+  ngOnInit(): void {
+    // noop
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.clearClosureTimer();
-    this.stopClosurePolling();
-  }
-
-  // Drag within ranked list
-  dropRanked(event: CdkDragDrop<unknown>, ranked: CandidateResponse[]): void {
-    if (this.ballotLocked) return;
-    const newOrder: string[] = [
-      ...ranked.map((c: CandidateResponse): string => c.id),
-    ];
-    moveItemInArray(newOrder, event.previousIndex, event.currentIndex);
-    this.store.dispatch(
-      ElectionsActions.setBallotOrder({
-        electionId: this.electionId,
-        orderedCandidateIds: newOrder,
-      })
-    );
-    this.pending = true;
-  }
-
-  // Move from unranked to ranked (append at end)
-  addToRanked(candidateId: string, ranked: CandidateResponse[]): void {
-    if (this.ballotLocked) return;
-    const newOrder: string[] = [
-      ...ranked.map((c: CandidateResponse): string => c.id),
-      candidateId,
-    ];
-    this.store.dispatch(
-      ElectionsActions.setBallotOrder({
-        electionId: this.electionId,
-        orderedCandidateIds: newOrder,
-      })
-    );
-    this.pending = true;
-  }
-
-  // Remove from ranked
-  removeFromRanked(candidateId: string, ranked: CandidateResponse[]): void {
-    if (this.ballotLocked) return;
-    const newOrder: string[] = ranked
-      .map((c: CandidateResponse): string => c.id)
-      .filter((id: string): boolean => id !== candidateId);
-    this.store.dispatch(
-      ElectionsActions.setBallotOrder({
-        electionId: this.electionId,
-        orderedCandidateIds: newOrder,
-      })
-    );
-    this.pending = true;
-  }
-
-  trackByCandidate(_index: number, c: CandidateResponse): string {
-    return c.id;
-  }
-
-  // TODO __ why is this unused...
-  clearBallot(): void {
-    if (this.ballotLocked) return;
-    this.store.dispatch(
-      ElectionsActions.clearBallot({ electionId: this.electionId })
-    );
-  }
-
-  resetBallot(): void {
-    if (this.ballotLocked) return;
-    this.store.dispatch(
-      ElectionsActions.resetBallot({ electionId: this.electionId })
-    );
-  }
-
-  submitBallot(): void {
-    if (this.ballotLocked) return;
-    this.store.dispatch(
-      ElectionsActions.submitBallot({ electionId: this.electionId })
-    );
+    // handled by destroyRef
   }
 
   hasPendingChanges(): boolean {
@@ -373,83 +253,34 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
     return this.electionId;
   }
 
-  openNominateDialog(): void {
-    this.dialog
-      .open(NominateToElectionDialogComponent, {
-        width: '720px',
-        data: { electionId: this.electionId },
+  addToRanked(candidate: CandidateResponse, ranked: CandidateResponse[]): void {
+    const newOrder = [...ranked.map(c => c.id), candidate.id];
+    this.store.dispatch(
+      ElectionsActions.setBallotOrder({
+        electionId: this.electionId,
+        orderedCandidateIds: newOrder,
       })
-      .afterClosed()
-      .subscribe(changed => {
-        if (changed) {
-          // Refresh candidates
-          this.store.dispatch(
-            ElectionsActions.loadCandidates({ electionId: this.electionId })
-          );
-        }
-      });
+    );
+    this.pending = true;
   }
 
-  removeMyNomination(candidateId: string): void {
-    // Find bookId for candidate so we can also remove it from "My Nominations" shelf
-    this.store
-      .select(selectCandidates)
-      .pipe(take(1))
-      .subscribe((candidates: CandidateResponse[]): void => {
-        const candidate: CandidateResponse | undefined = candidates.find(
-          (c: CandidateResponse) => c.id === candidateId
-        );
-        const bookId: string | undefined = candidate?.base?.id;
-        this.electionHttpService
-          .deleteCandidate(this.electionId, candidateId)
-          .subscribe((): void => {
-            this.store.dispatch(
-              ElectionsActions.loadCandidates({ electionId: this.electionId })
-            );
-            if (bookId) {
-              this.shelfHttpService
-                .getUserShelves()
-                .pipe(take(1))
-                .subscribe((shelves: ShelfResponse[]): void => {
-                  const nominationsShelf: ShelfResponse | undefined =
-                    shelves.find(
-                      (s: ShelfResponse): boolean =>
-                        s.title === 'My Nominations'
-                    );
-                  if (nominationsShelf) {
-                    this.bookHttpService
-                      .removeBookFromShelf(bookId, nominationsShelf.id)
-                      .pipe(take(1))
-                      .subscribe({
-                        next: (): void => {},
-                        error: (): void => {},
-                      });
-                  }
-                });
-            }
-          });
-      });
-  }
-
-  runElection(): void {
-    // Open fun results sheet instead of inline
-    import('./sheet/election-run.sheet').then(m => {
-      this.bottomSheet.open(m.ElectionRunSheetComponent, {
-        data: { electionId: this.electionId },
-        disableClose: false,
-      });
-    });
+  removeFromRanked(candidate: CandidateResponse, ranked: CandidateResponse[]): void {
+    const newOrder = ranked
+      .map(c => c.id)
+      .filter(id => id !== candidate.id);
+    this.store.dispatch(
+      ElectionsActions.setBallotOrder({
+        electionId: this.electionId,
+        orderedCandidateIds: newOrder,
+      })
+    );
+    this.pending = true;
   }
 
   moveUp(index: number, ranked: CandidateResponse[]): void {
-    if (this.ballotLocked) return;
     if (index <= 0) return;
-    const order: string[] = [
-      ...ranked.map((c: CandidateResponse): string => c.id),
-    ];
-    const tmp: string = order[index - 1];
-    order[index - 1] = order[index];
-    order[index] = tmp;
+    const order = [...ranked.map(c => c.id)];
+    [order[index - 1], order[index]] = [order[index], order[index - 1]];
     this.store.dispatch(
       ElectionsActions.setBallotOrder({
         electionId: this.electionId,
@@ -460,14 +291,9 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   }
 
   moveDown(index: number, ranked: CandidateResponse[]): void {
-    if (this.ballotLocked) return;
     if (index >= ranked.length - 1) return;
-    const order: string[] = [
-      ...ranked.map((c: CandidateResponse): string => c.id),
-    ];
-    const tmp: string = order[index + 1];
-    order[index + 1] = order[index];
-    order[index] = tmp;
+    const order = [...ranked.map(c => c.id)];
+    [order[index], order[index + 1]] = [order[index + 1], order[index]];
     this.store.dispatch(
       ElectionsActions.setBallotOrder({
         electionId: this.electionId,
@@ -477,27 +303,74 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
     this.pending = true;
   }
 
-  openBlurb(c: CandidateResponse): void {
+  submitBallot(): void {
+    if (!this.pending) return;
+    this.store.dispatch(ElectionsActions.submitBallot({ electionId: this.electionId }));
+  }
+
+  resetBallot(): void {
+    this.store.dispatch(ElectionsActions.resetBallot({ electionId: this.electionId }));
+  }
+
+  clearBallot(): void {
+    this.store.dispatch(ElectionsActions.clearBallot({ electionId: this.electionId }));
+    this.pending = true;
+  }
+
+  openNominateDialog(): void {
+    const ref = this.dialog.open(NominateToElectionDialogComponent, {
+      header: 'Nominate to election',
+      width: 'min(620px, 95vw)',
+      data: { electionId: this.electionId },
+    });
+
+    ref.onClose
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(changed => {
+        if (changed) {
+          this.store.dispatch(
+            ElectionsActions.loadCandidates({ electionId: this.electionId })
+          );
+        }
+      });
+  }
+
+  openBlurb(candidate: CandidateResponse): void {
+    if (!candidate.base.blurb) return;
     this.dialog.open(BookBlurbDialogComponent, {
-      width: '640px',
-      data: { title: c.base.title, blurb: c.base.blurb },
+      header: candidate.base.title,
+      width: 'min(580px, 95vw)',
+      data: { title: candidate.base.title, blurb: candidate.base.blurb },
+    });
+  }
+
+  openBookDetail(candidate: CandidateResponse): void {
+    this.dialog.open(BookDetailDialog, {
+      header: candidate.base.title,
+      width: 'min(640px, 95vw)',
+      data: { book: candidate.base },
+    });
+  }
+
+  runElection(): void {
+    this.dialog.open(ElectionRunDialogComponent, {
+      header: 'Run election',
+      width: 'min(420px, 90vw)',
+      data: { electionId: this.electionId },
     });
   }
 
   openEditDialog(election: ElectionResponse | null): void {
-    if (!election || election.status === 'CLOSED') return;
+    if (!election) return;
     const ref = this.dialog.open(ElectionDialog, {
-      width: '440px',
-      data: {
-        title: election.title,
-        endDateTime: election.endDateTime,
-      } satisfies ElectionRequest,
+      header: 'Edit election',
+      width: 'min(420px, 92vw)',
+      data: { title: election.title, endDateTime: election.endDateTime },
     });
 
-    ref
-      .afterClosed()
-      .pipe(take(1))
-      .subscribe((request: ElectionRequest | undefined): void => {
+    ref.onClose
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((request?: ElectionRequest) => {
         if (!request) return;
         this.store.dispatch(
           ElectionsActions.saveElectionDetails({
@@ -511,89 +384,120 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   openReopenDialog(election: ElectionResponse | null): void {
     if (!election || election.status !== 'CLOSED') return;
     const ref = this.dialog.open(ReopenElectionDialogComponent, {
-      width: '420px',
+      header: 'Reopen election',
+      width: 'min(420px, 90vw)',
       data: { title: election.title },
     });
 
-    ref
-      .afterClosed()
-      .pipe(take(1))
-      .subscribe(
-        (result?: { endDateTime: string }): void => {
-          if (!result) return;
-          this.store.dispatch(
-            ElectionsActions.reopenElection({
-              electionId: election.id,
-              endDateTime: result.endDateTime,
-            })
-          );
-        }
-      );
+    ref.onClose
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(result => {
+        if (!result) return;
+        this.store.dispatch(
+          ElectionsActions.reopenElection({
+            electionId: election.id,
+            endDateTime: result.endDateTime,
+          })
+        );
+      });
   }
 
-  confirmDelete(election: ElectionResponse | null): void {
-    if (!election) return;
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '420px',
+  confirmDelete(election: ElectionResponse): void {
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      header: 'Delete election',
+      width: 'min(420px, 90vw)',
       data: {
         title: 'Delete election',
-        message: `Delete "${election.title}"? This cannot be undone.`,
+        message: `Delete "${election.title}" permanently?`,
         confirmText: 'Delete',
         cancelText: 'Cancel',
       },
     });
 
-    dialogRef
-      .afterClosed()
-      .pipe(take(1))
-      .subscribe((confirm: boolean): void => {
+    ref.onClose
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(confirm => {
         if (!confirm) return;
-        this.electionHttpService.deleteElection(election.id).subscribe({
-          next: (): void => {
+        this.electionHttpService
+          .deleteElection(election.id)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => {
             this.notify.success('Election deleted.');
-            void this.router.navigate(['/elections']);
-          },
-          error: (err: unknown): void => {
-            const message: string =
-              (err as any)?.error?.message || 'Failed to delete election.';
-            this.notify.error(message);
-          },
-        });
+            this.router.navigate(['/elections']);
+          });
       });
   }
 
-  isElectionClosed(election: ElectionResponse | null): boolean {
-    if (!election) return false;
-    return election.status === 'CLOSED' || this.ballotLocked;
+  removeMyNomination(candidateId: string): void {
+    const electionId = this.electionId;
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      header: 'Remove nomination',
+      width: 'min(420px, 90vw)',
+      data: {
+        title: 'Remove nomination',
+        message: 'Remove your nomination from this election?',
+        confirmText: 'Remove',
+        cancelText: 'Keep',
+      },
+    });
+
+    ref.onClose
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(confirm => {
+        if (!confirm) return;
+        this.electionHttpService
+          .deleteCandidate(electionId, candidateId)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => {
+            this.notify.success('Nomination removed.');
+            this.store.dispatch(
+              ElectionsActions.loadCandidates({ electionId })
+            );
+          });
+      });
   }
 
-  statusChip(election: ElectionResponse | null): {
+  statusTag(election: ElectionResponse | null): {
     label: string;
-    icon: string;
-    class: string;
+    severity: 'success' | 'info' | 'danger';
+    description?: string;
   } {
     if (!election) {
-      return { label: 'Loading…', icon: 'hourglass_empty', class: 'chip-loading' };
+      return { label: 'Unknown', severity: 'info' };
     }
-
-    if (this.ballotLocked && election.status !== 'CLOSED') {
-      return { label: 'Closing…', icon: 'lock_clock', class: 'chip-closing' };
-    }
-
     switch (election.status) {
       case 'OPEN':
-        return { label: 'Open', icon: 'how_to_vote', class: 'chip-open' };
+        return {
+          label: 'Open',
+          severity: 'success',
+          description: election.endDateTime
+            ? `Closes ${new Date(election.endDateTime).toLocaleString()}`
+            : 'No scheduled closure',
+        };
       case 'CLOSED':
-        return { label: 'Closed', icon: 'lock', class: 'chip-closed' };
-      case 'INDEFINITE':
+        return {
+          label: 'Closed',
+          severity: 'danger',
+          description: election.endDateTime
+            ? `Closed ${new Date(election.endDateTime).toLocaleString()}`
+            : undefined,
+        };
       default:
-        return { label: 'Indefinite', icon: 'all_inclusive', class: 'chip-indefinite' };
+        return {
+          label: 'Indefinite',
+          severity: 'info',
+          description: 'Runs without an end date',
+        };
     }
   }
 
   resolveCandidateName(candidateId: string | null): string {
     if (!candidateId) return 'Unknown';
     return this.candidateMap.get(candidateId)?.base.title ?? 'Unknown';
+  }
+
+  trackByCandidate(_index: number, candidate: CandidateResponse): string {
+    return candidate.id;
   }
 
   formatEliminationMessage(message?: string): string {
@@ -606,108 +510,12 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       .replace('Tie ', 'Tie: ');
   }
 
-  compareVoteEntries(
-    a: KeyValue<string, number>,
-    b: KeyValue<string, number>
-  ): number {
-    return (b.value ?? 0) - (a.value ?? 0);
-  }
-
-  trackByResult(_index: number, result: ElectionResult): string {
-    return result.id ?? `${result.closureTime}-${result.winnerId ?? 'none'}`;
-  }
-
   formatEliminatedList(round?: RoundResult): string {
     if (!round?.eliminatedCandidateIds?.length) {
       return '—';
     }
     return round.eliminatedCandidateIds
-        .map(id => this.resolveCandidateName(id))
-        .join(', ');
-  }
-
-  hasEliminated(round?: RoundResult): boolean {
-    return !!round?.eliminatedCandidateIds?.length;
-  }
-
-  private setupClosureTimer(election: ElectionResponse | null): void {
-    this.clearClosureTimer();
-
-    if (!election) return;
-
-    this.ballotLocked = election.status === 'CLOSED';
-    if (this.ballotLocked) {
-      this.awaitingClosure = false;
-    }
-
-    if (election.status !== 'OPEN' || !election.endDateTime) {
-      if (election.status !== 'CLOSED') {
-        this.closureToastShown = false;
-      }
-      return;
-    }
-
-    const target = new Date(election.endDateTime).getTime();
-    const now = Date.now();
-    const diff = target - now;
-
-    if (diff <= 0) {
-      this.handleClosureReached();
-      return;
-    }
-
-    this.closureToastShown = false;
-    this.ballotLocked = false;
-    this.awaitingClosure = false;
-    this.closureTimeoutHandle = window.setTimeout(
-      () => this.handleClosureReached(),
-      diff
-    );
-  }
-
-  private clearClosureTimer(): void {
-    if (this.closureTimeoutHandle !== null) {
-      clearTimeout(this.closureTimeoutHandle);
-      this.closureTimeoutHandle = null;
-    }
-  }
-
-  private handleClosureReached(): void {
-    this.clearClosureTimer();
-    if (this.awaitingClosure) {
-      return;
-    }
-    this.awaitingClosure = true;
-    this.ballotLocked = true;
-    this.pending = false;
-    if (!this.closureToastShown) {
-      this.notify.error("TOO LATE! YOU'RE ALL OUT OF TIME!");
-      this.closureToastShown = true;
-    }
-    if (this.electionId) {
-      this.startClosurePolling();
-    }
-  }
-
-  private startClosurePolling(): void {
-    if (this.closurePollSub || !this.electionId) return;
-    this.closurePollSub = timer(0, 1000)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        if (!this.electionId) return;
-        this.store.dispatch(
-          ElectionsActions.loadElection({ electionId: this.electionId })
-        );
-        this.store.dispatch(
-          ElectionsActions.loadElectionResults({ electionId: this.electionId })
-        );
-      });
-  }
-
-  private stopClosurePolling(): void {
-    if (this.closurePollSub) {
-      this.closurePollSub.unsubscribe();
-      this.closurePollSub = null;
-    }
+      .map(id => this.resolveCandidateName(id))
+      .join(', ');
   }
 }

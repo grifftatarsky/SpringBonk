@@ -1,63 +1,73 @@
-.book-details {
+.dialog-shell {
   display: flex;
-  margin-bottom: 20px;
-  gap: 16px;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: min(420px, 90vw);
 }
 
-.book-cover {
-  flex: 0 0 auto;
-  width: 120px;
-
-  img {
-    width: 100%;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    border-radius: 4px;
-  }
+.book-summary {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
 }
 
-.book-info {
+.book-summary .cover {
+  flex: 0 0 96px;
+  height: 140px;
+}
+
+.book-summary .info {
   flex: 1;
-
-  h3 {
-    margin: 0 0 8px;
-    font-size: 20px;
-  }
-
-  .author {
-    font-size: 16px;
-    margin: 0 0 8px;
-    color: rgba(0, 0, 0, 0.7);
-  }
-
-  .year {
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.6);
-    margin: 0;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
-.shelf-selection {
-  margin-top: 16px;
-
-  mat-form-field {
-    width: 100%;
-  }
+.book-summary h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
 }
 
-.loading-container {
+.book-summary .author,
+.book-summary .year {
+  margin: 0;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.loading {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 100px;
-
-  span {
-    margin-top: 16px;
-    color: rgba(0, 0, 0, 0.6);
-  }
+  gap: 0.75rem;
+  padding: 1rem 0;
+  color: var(--text-color-secondary, #6b7280);
 }
 
-mat-dialog-content {
-  min-width: 400px;
-  max-width: 500px;
+@media (max-width: 480px) {
+  .dialog-shell {
+    min-width: 0;
+  }
+
+  .book-summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .book-summary .cover {
+    width: 100%;
+    height: auto;
+  }
 }

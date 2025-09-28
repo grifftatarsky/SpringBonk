@@ -1,36 +1,40 @@
-<h2 mat-dialog-title>Book Details</h2>
-
-<mat-dialog-content>
-  <div class="book-detail-container">
-    <div class="book-cover">
-      <app-book-cover
-        [src]="data.book.imageURL"
-        [alt]="data.book.title + ' cover'"></app-book-cover>
+<div class="dialog-shell" *ngIf="book as current">
+  <div class="summary">
+    <div class="cover">
+      <app-book-cover [src]="current.imageURL" [alt]="current.title"></app-book-cover>
     </div>
-
-    <div class="book-info">
-      <h3>{{ data.book.title }}</h3>
-      <p class="author">{{ data.book.author }}</p>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Book Description</mat-label>
-        <textarea
-          matInput
-          [formControl]="blurbControl"
-          rows="5"
-          placeholder="Add a description..."></textarea>
-      </mat-form-field>
+    <div class="info">
+      <h3>{{ current.title }}</h3>
+      <p class="author">{{ current.author }}</p>
     </div>
   </div>
-</mat-dialog-content>
 
-<mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Cancel</button>
-  <button
-    mat-raised-button
-    color="primary"
-    [disabled]="!blurbControl.valid"
-    (click)="onSave()">
-    Save
-  </button>
-</mat-dialog-actions>
+  <div class="field">
+    <label for="blurb">Book description</label>
+    <textarea
+      id="blurb"
+      pInputTextarea
+      [formControl]="blurbControl"
+      rows="6"
+      autoResize="true"
+      placeholder="Add a description..."
+    ></textarea>
+    <small class="hint">Minimum 10 characters.</small>
+  </div>
+
+  <div class="actions">
+    <p-button
+      type="button"
+      label="Cancel"
+      styleClass="p-button-text"
+      (onClick)="cancel()"
+    ></p-button>
+    <p-button
+      type="button"
+      label="Save"
+      icon="pi pi-check"
+      (onClick)="save()"
+      [disabled]="blurbControl.invalid"
+    ></p-button>
+  </div>
+</div>

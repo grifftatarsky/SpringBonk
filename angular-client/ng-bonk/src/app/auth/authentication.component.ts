@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../service/user.service';
 import { LoginComponent } from './login.component';
 import { LogoutComponent } from './logout.component';
@@ -10,7 +9,7 @@ import { User } from './user.model';
 @Component({
   selector: 'app-authentication',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LoginComponent, LogoutComponent],
+  imports: [CommonModule, LoginComponent, LogoutComponent],
   templateUrl: './authentication.component.html',
   styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush,

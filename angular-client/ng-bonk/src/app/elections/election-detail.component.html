@@ -1,460 +1,247 @@
-@if (election$ | async; as election) {
-  @let closed = isElectionClosed(election);
-  @let chip = statusChip(election);
-  @let latest = latestResult$ | async;
-  @let results = results$ | async;
-  @let myNomination = myNominationId$ | async;
-  @let isHandset = (isHandset$ | async) === true;
-  @let runningNow = (running$ | async) === true;
-  @let submittingNow = (submitting$ | async) === true;
-  @let loadingElection = (loadingElection$ | async) === true;
-  @let loadingCandidates = (loadingCandidates$ | async) === true;
-  @let loadingResults = (loadingResults$ | async) === true;
-  @let saving = (savingElection$ | async) === true;
-  @let reopening = (reopeningElection$ | async) === true;
-  <div class="election-detail">
-    <mat-toolbar id="toolbar-election-detail" class="gap-2">
-      <button
-        mat-icon-button
-        routerLink="/elections"
-        aria-label="Back to elections">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
-      <span class="title">{{ election.title }}</span>
-      <span class="spacer"></span>
-      <mat-chip class="status-chip" [ngClass]="chip.class">
-        <mat-icon matChipAvatar>{{ chip.icon }}</mat-icon>
-        {{ chip.label }}
-      </mat-chip>
-      @if (!closed && election.endDateTime) {
-        <mat-chip class="status-chip soft">
-          <mat-icon matChipAvatar>event</mat-icon>
-          Closes: {{ election.endDateTime | date: 'short' }}
-        </mat-chip>
-      }
-      @if (closed && latest?.closureTime) {
-        <mat-chip class="status-chip soft">
-          <mat-icon matChipAvatar>event_available</mat-icon>
-          Closed: {{ latest?.closureTime | date: 'short' }}
-        </mat-chip>
-      }
-    </mat-toolbar>
-
-    <mat-toolbar id="toolbar-election-actions" class="gap-2">
-      <span>Controls</span>
-      <span class="spacer"></span>
-
-      @if (!isHandset) {
-        @if (!closed) {
-          @if (!myNomination) {
-            <button
-              mat-stroked-button
-              (click)="openNominateDialog()"
-              [disabled]="ballotLocked">
-              <mat-icon>star</mat-icon>
-              Nominate from shelf
-            </button>
-          } @else {
-            <button
-              mat-button
-              color="warn"
-              (click)="removeMyNomination(myNomination)">
-              <mat-icon>remove_circle</mat-icon>
-              Remove nomination
-            </button>
-          }
-          <button
-            mat-flat-button
-            color="accent"
-            (click)="runElection()"
-            [disabled]="runningNow">
-            <mat-icon>play_arrow</mat-icon>
-            {{ runningNow ? 'Running…' : 'Run election' }}
-          </button>
-          <button
-            mat-stroked-button
-            (click)="openEditDialog(election)"
-            [disabled]="saving">
-            <mat-icon>edit</mat-icon>
-            {{ saving ? 'Saving…' : 'Edit' }}
-          </button>
-          <button
-            mat-stroked-button
-            color="warn"
-            (click)="confirmDelete(election)">
-            <mat-icon>delete</mat-icon>
-            Delete
-          </button>
-        } @else {
-          <button
-            mat-flat-button
-            color="accent"
-            (click)="openReopenDialog(election)"
-            [disabled]="reopening">
-            <mat-icon>restart_alt</mat-icon>
-            {{ reopening ? 'Reopening…' : 'Reopen' }}
-          </button>
-          <button
-            mat-stroked-button
-            color="warn"
-            (click)="confirmDelete(election)">
-            <mat-icon>delete</mat-icon>
-            Delete
-          </button>
-        }
-      } @else {
+<ng-container *ngIf="viewModel$ | async as vm; else loading">
+  <div class="detail-shell">
+    <p-toolbar class="top-toolbar">
+      <div class="p-toolbar-group-start">
         <button
-          mat-icon-button
-          [matMenuTriggerFor]="actionsMenu"
-          aria-label="Actions">
-          <mat-icon>more_vert</mat-icon>
-        </button>
-        <mat-menu #actionsMenu="matMenu">
-          @if (!closed) {
-            @if (!myNomination) {
-              <button
-                mat-menu-item
-                (click)="openNominateDialog()"
-                [disabled]="ballotLocked">
-                <mat-icon>star</mat-icon>
-                <span>Nominate from shelf</span>
-              </button>
-            } @else {
-              <button mat-menu-item (click)="removeMyNomination(myNomination)">
-                <mat-icon>remove_circle</mat-icon>
-                <span>Remove nomination</span>
-              </button>
-            }
-            <button
-              mat-menu-item
-              (click)="runElection()"
-              [disabled]="runningNow">
-              <mat-icon>play_arrow</mat-icon>
-              <span>{{ runningNow ? 'Running…' : 'Run election' }}</span>
-            </button>
-            <button
-              mat-menu-item
-              (click)="openEditDialog(election)"
-              [disabled]="saving">
-              <mat-icon>edit</mat-icon>
-              <span>{{ saving ? 'Saving…' : 'Edit election' }}</span>
-            </button>
-            <button mat-menu-item (click)="confirmDelete(election)">
-              <mat-icon>delete</mat-icon>
-              <span>Delete</span>
-            </button>
-          } @else {
-            <button
-              mat-menu-item
-              (click)="openReopenDialog(election)"
-              [disabled]="reopening">
-              <mat-icon>restart_alt</mat-icon>
-              <span>{{ reopening ? 'Reopening…' : 'Reopen' }}</span>
-            </button>
-            <button mat-menu-item (click)="confirmDelete(election)">
-              <mat-icon>delete</mat-icon>
-              <span>Delete</span>
-            </button>
-          }
-        </mat-menu>
-      }
-    </mat-toolbar>
-
-    @if (loadingElection || loadingCandidates || (closed && loadingResults)) {
-      <div class="loading-bar">
-        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          pButton
+          type="button"
+          icon="pi pi-arrow-left"
+          class="p-button-text p-button-rounded"
+          routerLink="/elections"
+          aria-label="Back to elections"
+        ></button>
+        <span class="title">{{ vm.election?.title }}</span>
       </div>
-    }
+      <div class="p-toolbar-group-end">
+        <p-tag
+          *ngIf="vm.election as election"
+          [value]="statusTag(election).label"
+          [severity]="statusTag(election).severity"
+          pTooltip="{{ statusTag(election).description || '' }}"
+        ></p-tag>
+      </div>
+    </p-toolbar>
 
-    @if (closed) {
-      <section class="results-layout">
-        @if (ballotLocked && election.status !== 'CLOSED') {
-          <div class="result-banner awaiting">Awaiting tabulation…</div>
-        }
+    <div class="summary-card">
+      <div class="meta">
+        <div class="meta-item" *ngIf="vm.election?.endDateTime as closes">
+          <span class="label">Closes</span>
+          <span class="value">{{ closes | date: 'medium' }}</span>
+        </div>
+        <div class="meta-item" *ngIf="vm.latest as latest">
+          <span class="label">Latest run</span>
+          <span class="value">{{ latest.closureTime | date: 'medium' }}</span>
+        </div>
+      </div>
+      <div class="summary-actions">
+        <p-button
+          type="button"
+          label="Nominate"
+          icon="pi pi-star"
+          class="p-button-outlined"
+          (onClick)="openNominateDialog()"
+          [disabled]="vm.ballotLocked"
+        ></p-button>
+        <p-button
+          type="button"
+          label="Run election"
+          icon="pi pi-play"
+          (onClick)="runElection()"
+          [disabled]="vm.running || vm.ballotLocked"
+        ></p-button>
+        <p-button
+          type="button"
+          label="Edit"
+          icon="pi pi-pencil"
+          class="p-button-text"
+          (onClick)="openEditDialog(vm.election || null)"
+          [disabled]="vm.saving"
+        ></p-button>
+        <p-button
+          *ngIf="vm.isClosed"
+          type="button"
+          label="Reopen"
+          icon="pi pi-refresh"
+          class="p-button-text"
+          (onClick)="openReopenDialog(vm.election || null)"
+          [disabled]="vm.reopening"
+        ></p-button>
+        <p-button
+          type="button"
+          label="Delete"
+          icon="pi pi-trash"
+          class="p-button-text p-button-danger"
+          (onClick)="confirmDelete(vm.election!)"
+        ></p-button>
+      </div>
+    </div>
 
-        @if (!latest && !loadingResults) {
-          <div class="result-placeholder">No results recorded yet.</div>
-        }
+    <div class="content-grid">
+      <p-card class="ballot-card" *ngIf="vm.election as election">
+        <ng-container *ngIf="vm.showLoading; else ballotBody">
+          <div class="loading">
+            <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+            <span>Loading ballot…</span>
+          </div>
+        </ng-container>
 
-        @if (latest) {
-          @let currentLatest = latest!;
-          <mat-card class="result-card">
-            <mat-card-header>
-              <mat-card-title>Latest result</mat-card-title>
-              @if (currentLatest.closureTime) {
-                <mat-chip class="timestamp-chip">
-                  <mat-icon matChipAvatar>schedule</mat-icon>
-                  {{ currentLatest.closureTime | date: 'short' }}
-                </mat-chip>
-              }
-            </mat-card-header>
-            <mat-card-content>
-              <div class="result-meta">
+        <ng-template #ballotBody>
+          <div class="ballot-header">
+            <div>
+              <h3>My ballot</h3>
+              <p class="hint" *ngIf="vm.ballotLocked">Ballot is locked until the election reopens.</p>
+            </div>
+            <div class="ballot-actions">
+              <p-button
+                type="button"
+                label="Submit"
+                icon="pi pi-send"
+                (onClick)="submitBallot()"
+                [disabled]="vm.submitting || vm.ballotLocked || !pending"
+                [loading]="vm.submitting"
+              ></p-button>
+              <p-button
+                type="button"
+                label="Reset"
+                icon="pi pi-undo"
+                class="p-button-text"
+                (onClick)="resetBallot()"
+                [disabled]="vm.ballotLocked"
+              ></p-button>
+              <p-button
+                type="button"
+                label="Clear"
+                icon="pi pi-times"
+                class="p-button-text"
+                (onClick)="clearBallot()"
+                [disabled]="vm.ballotLocked"
+              ></p-button>
+            </div>
+          </div>
+
+          <div class="ranked-list" *ngIf="vm.ranked.length; else emptyBallot">
+            <div class="ranked-item" *ngFor="let candidate of vm.ranked; let idx = index">
+              <div class="position">#{{ idx + 1 }}</div>
+              <div class="candidate">
+                <h4>{{ candidate.base.title }}</h4>
+                <p>{{ candidate.base.author }}</p>
+              </div>
+              <div class="candidate-actions">
+                <p-button
+                  type="button"
+                  icon="pi pi-chevron-up"
+                  class="p-button-text"
+                  (onClick)="moveUp(idx, vm.ranked)"
+                  [disabled]="idx === 0 || vm.ballotLocked"
+                ></p-button>
+                <p-button
+                  type="button"
+                  icon="pi pi-chevron-down"
+                  class="p-button-text"
+                  (onClick)="moveDown(idx, vm.ranked)"
+                  [disabled]="idx === vm.ranked.length - 1 || vm.ballotLocked"
+                ></p-button>
+                <p-button
+                  type="button"
+                  icon="pi pi-eye"
+                  class="p-button-text"
+                  (onClick)="openBookDetail(candidate)"
+                ></p-button>
+                <p-button
+                  type="button"
+                  icon="pi pi-times"
+                  class="p-button-text p-button-danger"
+                  (onClick)="removeFromRanked(candidate, vm.ranked)"
+                  [disabled]="vm.ballotLocked"
+                ></p-button>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #emptyBallot>
+            <div class="empty-state">No candidates ranked yet.</div>
+          </ng-template>
+        </ng-template>
+      </p-card>
+
+      <p-card class="available-card">
+        <h3>Available candidates</h3>
+        <div class="available-list" *ngIf="vm.unranked.length; else noOptions">
+          <div class="available-item" *ngFor="let candidate of vm.unranked">
+            <div class="info">
+              <h4>{{ candidate.base.title }}</h4>
+              <p>{{ candidate.base.author }}</p>
+            </div>
+            <div class="buttons">
+              <p-button
+                type="button"
+                icon="pi pi-plus"
+                class="p-button-text"
+                (onClick)="addToRanked(candidate, vm.ranked)"
+                [disabled]="vm.ballotLocked"
+              ></p-button>
+              <p-button
+                type="button"
+                icon="pi pi-eye"
+                class="p-button-text"
+                (onClick)="openBlurb(candidate)"
+                [disabled]="!candidate.base.blurb"
+              ></p-button>
+            </div>
+          </div>
+        </div>
+        <ng-template #noOptions>
+          <div class="empty-state">All candidates ranked.</div>
+        </ng-template>
+      </p-card>
+
+      <p-card class="results-card">
+        <h3>Results</h3>
+        <div class="loading" *ngIf="vm.loadingResults">
+          <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+          <span>Loading results…</span>
+        </div>
+        <ng-container *ngIf="!vm.loadingResults">
+          <div *ngIf="vm.latest as latest" class="latest-result">
+            <p-tag value="Latest" severity="success"></p-tag>
+            <h4>{{ resolveCandidateName(latest.winnerId ?? null) }}</h4>
+            <p class="timestamp" *ngIf="latest.closureTime">
+              {{ latest.closureTime | date: 'medium' }}
+            </p>
+          </div>
+
+          <div class="history" *ngIf="vm.results.length > 0">
+            <h5>Round history</h5>
+            <div class="round" *ngFor="let result of vm.results">
+              <div class="round-header">
+                <span>Round {{ result.round ?? 0 }}</span>
+                <span>{{ result.closureTime | date: 'short' }}</span>
+              </div>
+              <div class="round-body">
                 <div>
                   <span class="label">Winner</span>
-                  <span class="value">
-                    {{ resolveCandidateName(currentLatest.winnerId ?? null) }}
-                  </span>
+                  <span class="value">{{ resolveCandidateName(result.winnerId ?? null) }}</span>
                 </div>
                 <div>
-                  <span class="label">Total votes</span>
-                  <span class="value">{{ currentLatest.totalVotes }}</span>
+                  <span class="label">Eliminated</span>
+                  <span class="value">{{ formatEliminatedList(result.roundResult) }}</span>
                 </div>
-                @if (currentLatest.flags?.length) {
-                  <div>
-                    <span class="label">Flags</span>
-                    <mat-chip-set>
-                      <mat-chip *ngFor="let flag of currentLatest.flags">{{
-                        flag
-                      }}</mat-chip>
-                    </mat-chip-set>
-                  </div>
-                }
               </div>
-
-              @if (currentLatest.rounds?.length) {
-                <mat-accordion class="rounds-accordion">
-                  @for (
-                    round of currentLatest.rounds;
-                    track round.roundNumber
-                  ) {
-                    <mat-expansion-panel>
-                      <mat-expansion-panel-header>
-                        <mat-panel-title
-                          >Round {{ round.roundNumber }}</mat-panel-title
-                        >
-                        <mat-panel-description>
-                          {{
-                            formatEliminationMessage(round.eliminationMessage)
-                          }}
-                        </mat-panel-description>
-                      </mat-expansion-panel-header>
-                      <div class="round-votes">
-                        @for (
-                          vote of round.votes | keyvalue: compareVoteEntries;
-                          track vote.key
-                        ) {
-                          <div class="vote-row">
-                            <span class="candidate">{{
-                              resolveCandidateName(vote.key)
-                            }}</span>
-                            <span class="tally">{{ vote.value }}</span>
-                          </div>
-                        }
-                      </div>
-                      @if (hasEliminated(round)) {
-                        <div class="eliminated">
-                          Eliminated: {{ formatEliminatedList(round) }}
-                        </div>
-                      }
-                    </mat-expansion-panel>
-                  }
-                </mat-accordion>
-              }
-            </mat-card-content>
-          </mat-card>
-        }
-
-        @if (results?.length ?? 0 > 1) {
-          <mat-accordion class="history-accordion" multi>
-            @for (
-              result of (results ?? []).slice(1);
-              track trackByResult($index, result)
-            ) {
-              <mat-expansion-panel>
-                <mat-expansion-panel-header>
-                  <mat-panel-title>
-                    Closed {{ result.closureTime | date: 'short' }}
-                  </mat-panel-title>
-                  <mat-panel-description>
-                    Winner: {{ resolveCandidateName(result.winnerId ?? null) }}
-                  </mat-panel-description>
-                </mat-expansion-panel-header>
-                <div class="history-body">
-                  <div class="result-meta">
-                    <div>
-                      <span class="label">Winner</span>
-                      <span class="value">
-                        {{ resolveCandidateName(result.winnerId ?? null) }}
-                      </span>
-                    </div>
-                    <div>
-                      <span class="label">Total votes</span>
-                      <span class="value">{{ result.totalVotes }}</span>
-                    </div>
-                    @if (result.flags?.length) {
-                      <div>
-                        <span class="label">Flags</span>
-                        <mat-chip-set>
-                          <mat-chip *ngFor="let flag of result.flags">{{
-                            flag
-                          }}</mat-chip>
-                        </mat-chip-set>
-                      </div>
-                    }
-                  </div>
-                  @if (result.rounds?.length) {
-                    <div class="history-rounds">
-                      @for (round of result.rounds; track round.roundNumber) {
-                        <div class="history-round">
-                          <div class="round-title">
-                            Round {{ round.roundNumber }} ·
-                            {{
-                              formatEliminationMessage(round.eliminationMessage)
-                            }}
-                          </div>
-                          <div class="round-votes">
-                            @for (
-                              vote of round.votes
-                                | keyvalue: compareVoteEntries;
-                              track vote.key
-                            ) {
-                              <div class="vote-row">
-                                <span class="candidate">
-                                  {{ resolveCandidateName(vote.key) }}
-                                </span>
-                                <span class="tally">{{ vote.value }}</span>
-                              </div>
-                            }
-                          </div>
-                          @if (hasEliminated(round)) {
-                            <div class="eliminated">
-                              Eliminated: {{ formatEliminatedList(round) }}
-                            </div>
-                          }
-                        </div>
-                      }
-                    </div>
-                  }
-                </div>
-              </mat-expansion-panel>
-            }
-          </mat-accordion>
-        }
-      </section>
-    } @else {
-      @if (ranked$ | async; as ranked) {
-        @if (unranked$ | async; as unranked) {
-          <div class="ballot-layout" [class.locked]="ballotLocked">
-            <section class="candidate-pane">
-              <h3>Nominees</h3>
-              @if (unranked.length === 0) {
-                <div class="placeholder">No nominations</div>
-              }
-              @if (unranked.length > 0) {
-                <div class="candidates">
-                  @for (c of unranked; track trackByCandidate($index, c)) {
-                    <mat-card class="candidate-card">
-                      <div class="card-body">
-                        <app-book-cover
-                          class="cover"
-                          [src]="c.base.imageURL"
-                          [alt]="c.base.title + ' cover'"></app-book-cover>
-                        <div class="meta">
-                          <div class="book-title">{{ c.base.title }}</div>
-                          <div class="book-author">{{ c.base.author }}</div>
-                        </div>
-                        <div class="spacer"></div>
-                        <button
-                          mat-icon-button
-                          aria-label="View blurb"
-                          (click)="openBlurb(c); $event.stopPropagation()"
-                          matTooltip="View blurb">
-                          <mat-icon>info</mat-icon>
-                        </button>
-                        <button
-                          mat-icon-button
-                          class="add-btn"
-                          aria-label="Add to ballot"
-                          (click)="
-                            addToRanked(c.id, ranked); $event.stopPropagation()
-                          "
-                          matTooltip="Add to ballot">
-                          <mat-icon>add</mat-icon>
-                        </button>
-                      </div>
-                    </mat-card>
-                  }
-                </div>
-              }
-            </section>
-
-            <section class="ballot-pane">
-              <h3>Your Ballot</h3>
-              <div class="ballot-controls gap-2">
-                <button
-                  mat-stroked-button
-                  color="primary"
-                  (click)="submitBallot()"
-                  [disabled]="submittingNow || ranked.length === 0">
-                  <mat-icon>how_to_vote</mat-icon>
-                  {{ submittingNow ? 'Saving…' : 'Save' }}
-                </button>
-                <button
-                  mat-button
-                  color="warn"
-                  (click)="resetBallot()"
-                  [disabled]="ranked.length === 0">
-                  <mat-icon>restart_alt</mat-icon>
-                  Reset
-                </button>
-              </div>
-              <div
-                cdkDropList
-                class="ballot-list"
-                (cdkDropListDropped)="dropRanked($event, ranked)">
-                @if (ranked.length === 0) {
-                  <div class="empty">Tap nominees to add them here.</div>
-                }
-                @for (
-                  c of ranked;
-                  track trackByCandidate(i, c);
-                  let i = $index
-                ) {
-                  <div class="ballot-item" cdkDrag>
-                    <div class="rank">{{ i + 1 }}</div>
-                    <div class="handle" cdkDragHandle>
-                      <mat-icon>drag_indicator</mat-icon>
-                    </div>
-                    <button
-                      mat-icon-button
-                      aria-label="View blurb"
-                      (click)="openBlurb(c); $event.stopPropagation()"
-                      matTooltip="View blurb">
-                      <mat-icon>info</mat-icon>
-                    </button>
-                    <div class="meta">
-                      <div class="book-title">{{ c.base.title }}</div>
-                      <div class="book-author">{{ c.base.author }}</div>
-                    </div>
-                    <div class="mobile-reorder">
-                      <button
-                        mat-icon-button
-                        aria-label="Move up"
-                        (click)="moveUp(i, ranked)">
-                        <mat-icon>arrow_upward</mat-icon>
-                      </button>
-                      <button
-                        mat-icon-button
-                        aria-label="Move down"
-                        (click)="moveDown(i, ranked)">
-                        <mat-icon>arrow_downward</mat-icon>
-                      </button>
-                    </div>
-                    <button
-                      mat-icon-button
-                      color="warn"
-                      (click)="removeFromRanked(c.id, ranked)"
-                      aria-label="Remove">
-                      <mat-icon>close</mat-icon>
-                    </button>
-                  </div>
-                }
-              </div>
-            </section>
+            </div>
           </div>
-        }
-      }
-    }
+
+          <div class="empty-state" *ngIf="!vm.latest && vm.results.length === 0">
+            No results recorded yet.
+          </div>
+        </ng-container>
+      </p-card>
+    </div>
   </div>
-}
+</ng-container>
+
+<ng-template #loading>
+  <div class="loading loading-page">
+    <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+    <span>Loading election…</span>
+  </div>
+</ng-template>

@@ -1,36 +1,28 @@
+import { AsyncPipe, CommonModule, NgClass } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
-  inject,
-  OnDestroy,
   OnInit,
   ViewChild,
+  inject,
 } from '@angular/core';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { Router, RouterLink, RouterOutlet, ActivatedRoute, NavigationEnd } from '@angular/router';
+import { ToolbarModule } from 'primeng/toolbar';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { TagModule } from 'primeng/tag';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TooltipModule } from 'primeng/tooltip';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { Observable, filter, map, startWith } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ElectionHttpService } from '../service/http/election-http.service';
 import { ElectionsDataSource } from '../datasource/elections.datasource';
 import { ElectionDialog } from './election-dialog.component';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { AsyncPipe, NgClass } from '@angular/common';
 import { ElectionRequest } from '../model/request/election-request.model';
-import { Observable } from 'rxjs';
-import { Subject } from 'rxjs';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatCardModule } from '@angular/material/card';
-import {
-  ActivatedRoute,
-  NavigationEnd,
-  Router,
-  RouterOutlet,
-} from '@angular/router';
-import { filter, map, startWith, takeUntil } from 'rxjs/operators';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatRippleModule } from '@angular/material/core';
 import { ElectionResponse } from '../model/response/election-response.model';
 import { Actions, ofType } from '@ngrx/effects';
 import * as ElectionsActions from '../store/action/elections.actions';
@@ -39,70 +31,66 @@ import * as ElectionsActions from '../store/action/elections.actions';
   selector: 'app-elections',
   standalone: true,
   imports: [
-    MatToolbarModule,
-    MatButtonModule,
-    MatProgressBarModule,
-    MatChipsModule,
-    MatIconModule,
-    MatCardModule,
-    MatTooltipModule,
-    MatRippleModule,
+    CommonModule,
+    RouterLink,
     RouterOutlet,
     AsyncPipe,
     NgClass,
+    ToolbarModule,
+    ButtonModule,
+    CardModule,
+    TagModule,
+    ProgressSpinnerModule,
+    TooltipModule,
   ],
   templateUrl: './elections.component.html',
   styleUrls: ['./elections.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ElectionsComponent implements OnInit, AfterViewInit, OnDestroy {
-  dataSource: ElectionsDataSource;
-  loading$: Observable<boolean>;
-  total: number = 0;
+export class ElectionsComponent implements OnInit, AfterViewInit {
+  private readonly electionHttp = inject(ElectionHttpService);
+  private readonly dialog = inject(DialogService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly actions$ = inject(Actions);
+  private readonly destroyRef = inject(DestroyRef);
+
+  dataSource = new ElectionsDataSource(this.electionHttp);
+  loading$ = this.dataSource.loading$;
   elections$!: Observable<ElectionResponse[]>;
+
+  total = 0;
+  private pageIndex = 0;
+  private readonly pageSize = 10;
+  private electionCount = 0;
+
+  hasSelection$: Observable<boolean> = this.router.events.pipe(
+    filter(event => event instanceof NavigationEnd),
+    startWith(null),
+    map(() => !!this.route.firstChild?.snapshot.paramMap.get('id'))
+  );
+
+  selectedId$: Observable<string | null> = this.router.events.pipe(
+    filter(event => event instanceof NavigationEnd),
+    startWith(null),
+    map(() => this.route.firstChild?.snapshot.paramMap.get('id') ?? null)
+  );
 
   @ViewChild('listContainer', { static: true })
   listContainer!: ElementRef<HTMLElement>;
 
-  private readonly electionHttpService: ElectionHttpService =
-    inject(ElectionHttpService);
-  private readonly dialog: MatDialog = inject(MatDialog);
-  private readonly router: Router = inject(Router);
-  private readonly route: ActivatedRoute = inject(ActivatedRoute);
-  private readonly actions$ = inject(Actions);
-  private readonly destroy$ = new Subject<void>();
-
-  hasSelection$: Observable<boolean> = this.router.events.pipe(
-    filter(e => e instanceof NavigationEnd),
-    startWith(null),
-    map((): boolean => !!this.route.firstChild?.snapshot.paramMap.get('id'))
-  );
-  selectedId$: Observable<string | null> = this.router.events.pipe(
-    filter(e => e instanceof NavigationEnd),
-    startWith(null),
-    map(
-      (): string | null =>
-        this.route.firstChild?.snapshot.paramMap.get('id') ?? null
-    )
-  );
-
   constructor() {
-    this.dataSource = new ElectionsDataSource(this.electionHttpService);
-    this.loading$ = this.dataSource.loading$;
-    this.dataSource.total$.subscribe(
-      (count: number): number => (this.total = count)
-    );
+    this.dataSource.total$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(count => (this.total = count));
   }
-
-  private pageIndex: number = 0;
-  private pageSize: number = 10;
-  private electionCount: number = 0;
 
   ngOnInit(): void {
     this.elections$ = this.dataSource.connect();
-    this.elections$.subscribe(
-      (list: ElectionResponse[]): number => (this.electionCount = list.length)
-    );
+    this.elections$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(list => (this.electionCount = list.length));
+
     this.dataSource.loadElections(this.pageIndex, this.pageSize);
 
     this.actions$
@@ -112,7 +100,7 @@ export class ElectionsComponent implements OnInit, AfterViewInit, OnDestroy {
           ElectionsActions.reopenElectionSuccess,
           ElectionsActions.loadElectionSuccess
         ),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(({ election }) => {
         const currentId =
@@ -124,12 +112,7 @@ export class ElectionsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // nothing extra for now
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    // reserved for future enhancements
   }
 
   refresh(reset: boolean = true): void {
@@ -140,18 +123,22 @@ export class ElectionsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openCreateDialog(): void {
-    const dialogRef: MatDialogRef<ElectionDialog> = this.dialog.open(
-      ElectionDialog,
-      { width: '400px' }
-    );
-
-    dialogRef.afterClosed().subscribe((result: ElectionRequest): void => {
-      if (result) {
-        this.electionHttpService.createElection(result).subscribe((): void => {
-          this.dataSource.loadElections(this.pageIndex, this.pageSize);
-        });
-      }
+    const ref: DynamicDialogRef = this.dialog.open(ElectionDialog, {
+      header: 'New Election',
+      width: 'min(420px, 92vw)',
     });
+
+    ref.onClose
+      .pipe(
+        filter((result): result is ElectionRequest => !!result),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(request => {
+        this.electionHttp
+          .createElection(request)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => this.refresh(false));
+      });
   }
 
   navigateToDetail(electionId: string): void {
@@ -159,54 +146,51 @@ export class ElectionsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   deleteElection(electionId: string): void {
-    this.electionHttpService.deleteElection(electionId).subscribe((): void => {
-      this.pageIndex = 0;
-      this.dataSource.loadElections(this.pageIndex, this.pageSize);
-    });
+    this.electionHttp
+      .deleteElection(electionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.pageIndex = 0;
+        this.dataSource.loadElections(this.pageIndex, this.pageSize);
+      });
   }
 
   onListScroll(event: Event): void {
     const el = event.target as HTMLElement;
-    const nearBottom: boolean =
-      el.scrollTop + el.clientHeight >= el.scrollHeight - 200;
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 200;
     if (nearBottom && this.electionCount < this.total) {
-      this.pageIndex++;
+      this.pageIndex += 1;
       this.dataSource.loadElections(this.pageIndex, this.pageSize);
     }
   }
 
-  getStatus(election: ElectionResponse): {
-    text: string;
-    icon: string;
-    class: string;
+  statusFor(election: ElectionResponse): {
+    label: string;
+    severity: 'success' | 'danger' | 'info';
     tooltip?: string;
   } {
     switch (election.status) {
       case 'OPEN':
         return {
-          text: 'Open',
-          icon: election.endDateTime ? 'timer' : 'how_to_vote',
-          class: 'status-chip-open',
+          label: election.endDateTime ? 'Open until' : 'Open',
+          severity: 'success',
           tooltip: election.endDateTime
-            ? `Closes ${new Date(election.endDateTime).toLocaleString()}`
+            ? new Date(election.endDateTime).toLocaleString()
             : 'No scheduled closure',
         };
       case 'CLOSED':
         return {
-          text: 'Closed',
-          icon: 'lock',
-          class: 'status-chip-closed',
+          label: 'Closed',
+          severity: 'danger',
           tooltip: election.endDateTime
-            ? `Closed ${new Date(election.endDateTime).toLocaleString()}`
-            : 'Closed',
+            ? new Date(election.endDateTime).toLocaleString()
+            : undefined,
         };
       case 'INDEFINITE':
       default:
         return {
-          text: 'Indefinite',
-          icon: 'all_inclusive',
-          class: 'status-chip-indefinite',
-          tooltip: 'No scheduled closure',
+          label: 'Indefinite',
+          severity: 'info',
         };
     }
   }

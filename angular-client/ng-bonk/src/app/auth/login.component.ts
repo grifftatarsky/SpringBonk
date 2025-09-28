@@ -1,12 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { UserService } from '../service/user.service';
 import { baseUri, reverseProxyUri } from '../app.config';
 import { Router } from '@angular/router';
-
-import { MatButton } from '@angular/material/button';
+import { ButtonModule } from 'primeng/button';
 
 interface LoginOptionDto {
   label: string;
@@ -21,7 +19,7 @@ function loginOptions(http: HttpClient): Observable<LoginOptionDto[]> {
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, MatButton],
+  imports: [ButtonModule],
   templateUrl: 'login.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

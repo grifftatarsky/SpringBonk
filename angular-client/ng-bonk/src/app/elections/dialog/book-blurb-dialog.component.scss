@@ -1,0 +1,32 @@
+.dialog-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: min(480px, 90vw);
+}
+
+.dialog-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.blurb :is(p, h1, h2, h3) {
+  margin: 0 0 0.75rem;
+}
+
+.blurb code {
+  background: rgba(34, 197, 94, 0.12);
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.blurb a {
+  color: var(--primary-color, #22c55e);
+  text-decoration: underline;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}

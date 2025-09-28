@@ -1,40 +1,51 @@
-<mat-toolbar id="toolbar-primary" class="gap-2">
-  <a class="brand-link gap-1" routerLink="/" aria-label="Go to Home">
-    <!-- Alt text removed for span (Akira) to cover the point of it -->
-    <!-- TODO __ CONVERT TO SVG -->
-    <img
-      id="logo-image"
-      ngSrc="/pill.png"
-      width="32"
-      height="32"
-      alt=""
-      decoding="async"
-      loading="eager" />
-    <span>Akira</span>
-  </a>
+<p-toast position="bottom-right"></p-toast>
 
-  <div class="spacer"></div>
+<p-sidebar
+  [(visible)]="menuVisible"
+  [modal]="true"
+  (onHide)="closeMenu()"
+  styleClass="app-sidebar"
+>
+  <h2 class="sidebar-title">Navigate</h2>
+  <p-menu
+    [model]="menuItems$ | async ?? []"
+    styleClass="sidebar-menu"
+  ></p-menu>
+</p-sidebar>
 
-  @if (isAuthenticated$ | async) {
-    <button
-      mat-button
-      [matMenuTriggerFor]="primaryMenu"
-      aria-label="Navigate"
-      class="gap-1">
-      <mat-icon>menu</mat-icon>
-      Menu
-    </button>
-    <mat-menu #primaryMenu="matMenu">
-      <app-menu-navigation [destination]="['']" label="Home" />
-      <app-menu-navigation [destination]="['about']" label="About" />
-      <app-menu-navigation [destination]="['elections']" label="My elections" />
-      <app-menu-navigation [destination]="['shelves']" label="My shelves" />
-    </mat-menu>
-  }
+<div class="primary-shell">
+  <p-toolbar class="app-toolbar">
+    <div class="p-toolbar-group-start">
+      <button
+        pButton
+        type="button"
+        icon="pi pi-bars"
+        class="p-button-text p-button-lg"
+        aria-label="Toggle navigation"
+        (click)="toggleMenu()"
+      ></button>
+      <a class="brand-link" routerLink="/" aria-label="Go to Home">
+        <img
+          src="/pill.png"
+          width="32"
+          height="32"
+          alt="Akira logo"
+          loading="eager"
+        />
+        <span>Akira</span>
+      </a>
+    </div>
+    <div class="p-toolbar-group-end">
+      <app-authentication></app-authentication>
+    </div>
+  </p-toolbar>
 
-  <app-authentication />
-</mat-toolbar>
-
-<div [@routeFadeAnimation] class="route-container">
-  <router-outlet></router-outlet>
+  <main>
+    <header class="page-heading">
+      <h1>{{ title$ | async }}</h1>
+    </header>
+    <section class="page-content">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
 </div>

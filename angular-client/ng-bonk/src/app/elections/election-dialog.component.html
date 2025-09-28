@@ -1,40 +1,44 @@
-<h2 mat-dialog-title>{{ headline }}</h2>
+<form [formGroup]="form" (ngSubmit)="submit()" class="dialog-shell">
+  <h2 class="dialog-title">{{ headline }}</h2>
+  <p class="intro" *ngIf="!data">
+    So you wanna participate in democracy, do ya?
+  </p>
 
-<form [formGroup]="form" (ngSubmit)="submit()" class="dialog-form">
-  <mat-dialog-content class="dialog-content">
-    @if (!data) {
-      <p class="intro">So you wanna participate in democracy, do ya?</p>
-    }
+  <div class="field">
+    <label for="title">Election title</label>
+    <input
+      id="title"
+      pInputText
+      formControlName="title"
+      autocomplete="off"
+      placeholder="Name your election"
+    />
+    <small class="error" *ngIf="form.controls.title.hasError('required')">
+      Title is required.
+    </small>
+    <small class="error" *ngIf="form.controls.title.hasError('maxlength')">
+      Keep it under 160 characters.
+    </small>
+  </div>
 
-    <mat-form-field appearance="outline" class="title-field">
-      <mat-label>Election title</mat-label>
-      <input matInput formControlName="title" autocomplete="off" />
-      @if (form.controls.title.hasError('required')) {
-        <mat-error>Title is required.</mat-error>
-      }
-      @if (form.controls.title.hasError('maxlength')) {
-        <mat-error>Keep it under 160 characters.</mat-error>
-      }
-    </mat-form-field>
+  <app-date-time-picker
+    formControlName="endDateTime"
+    label="Closure date"
+    [hint]="'Leave blank for an endless election.'"
+  ></app-date-time-picker>
 
-    <app-date-time-picker
-      formControlName="endDateTime"
-      label="Closure date"
-      [hint]="'Leave blank for an endless election.'"
-    ></app-date-time-picker>
-  </mat-dialog-content>
-
-  <mat-dialog-actions align="end">
-    <button mat-stroked-button type="button" (click)="onNoClick()">
-      Cancel
-    </button>
-    <button
-      mat-flat-button
-      color="primary"
+  <div class="actions">
+    <p-button
+      type="button"
+      label="Cancel"
+      styleClass="p-button-text"
+      (onClick)="cancel()"
+    ></p-button>
+    <p-button
       type="submit"
+      [label]="submitLabel"
+      icon="pi pi-check"
       [disabled]="form.invalid"
-    >
-      {{ submitLabel }}
-    </button>
-  </mat-dialog-actions>
+    ></p-button>
+  </div>
 </form>

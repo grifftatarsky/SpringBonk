@@ -1,114 +1,89 @@
-<h2 mat-dialog-title>Nominate to Election</h2>
-
-<mat-dialog-content>
-  <div class="dialog-grid">
-    <!-- Left: Election picker (hidden if fixed) -->
-    @if (!data.electionId) {
-      <div class="election-picker">
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Select election</mat-label>
-          <mat-select
-            [value]="(selectedElectionId$ | async) ?? null"
-            (selectionChange)="selectedElectionId$.next($event.value)">
-            @for (e of (elections$ | async) ?? []; track e) {
-              <mat-option [value]="e.id">
-                {{ e.title }}
-              </mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+<div class="dialog-shell">
+  <div class="book-summary" *ngIf="selectedBook$ | async as current">
+    <app-book-cover class="cover" [src]="current.imageURL" [alt]="current.title"></app-book-cover>
+    <div class="info">
+      <h3>{{ current.title }}</h3>
+      <p class="author">{{ current.author }}</p>
+      <div class="blurb-actions" *ngIf="current.blurb">
+        <p-button
+          type="button"
+          label="View pitch"
+          icon="pi pi-eye"
+          class="p-button-text"
+          (onClick)="viewBlurb(current)"
+        ></p-button>
       </div>
-    }
-
-    <!-- Right: Book chooser or selected book -->
-    <div class="book-chooser">
-      @if (selectedBook$ | async; as book) {
-        <div class="book-card">
-          <div class="cover">
-            <app-book-cover
-              [src]="book.imageURL"
-              [alt]="book.title + ' cover'"></app-book-cover>
-          </div>
-          <div class="meta">
-            <div class="title">{{ book.title }}</div>
-            <div class="author">{{ book.author }}</div>
-          </div>
-        </div>
-      } @else {
-        @if (!(loadingShelves$ | async)) {
-          <div class="dropdowns">
-            <mat-form-field appearance="outline" class="w-full shelf-select">
-              <mat-label>Select shelf</mat-label>
-              <mat-select
-                [value]="(selectedShelfId$ | async) ?? null"
-                (selectionChange)="onShelfSelected($event.value)">
-                @for (s of (shelves$ | async) ?? []; track s.id) {
-                  <mat-option [value]="s.id">{{ s.title }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-
-            @if (selectedShelfId$ | async) {
-              <div class="book-select slide-in">
-                <mat-form-field appearance="outline" class="w-full">
-                  <mat-label>Select book</mat-label>
-                  <mat-select
-                    [disabled]="loadingBooks$ | async"
-                    (selectionChange)="selectedBook$.next($event.value)">
-                    @for (
-                      b of (booksForSelectedShelf$ | async) ?? [];
-                      track b.id
-                    ) {
-                      <mat-option [value]="b">{{ b.title }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-                @if (loadingBooks$ | async) {
-                  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-                }
-              </div>
-            }
-          </div>
-        } @else {
-          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-        }
-      }
     </div>
   </div>
 
-  <!-- Existing nomination info for the selected election -->
-  @if (candidatesForElection$ | async; as candidates) {
-    <div class="existing">
-      @if (candidates.length === 0) {
-        <div class="note">No nominations yet in this election.</div>
-      }
+  <div class="loading" *ngIf="loadingShelves$ | async">
+    <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+    <span>Loading shelves…</span>
+  </div>
+
+  <ng-container *ngIf="!(loadingShelves$ | async)">
+    <ng-container *ngIf="config.data?.book; else selectFromShelves"></ng-container>
+  </ng-container>
+
+  <ng-template #selectFromShelves>
+    <div class="field">
+      <label for="shelfSelect">Choose a shelf</label>
+      <p-dropdown
+        id="shelfSelect"
+        [options]="(shelves$ | async) ?? []"
+        optionLabel="title"
+        optionValue="id"
+        [formControl]="shelfControl"
+        placeholder="Select shelf"
+        filter
+        class="w-full"
+      ></p-dropdown>
     </div>
-  }
-</mat-dialog-content>
 
-<mat-dialog-actions align="end">
-  <button mat-button (click)="close()">Cancel</button>
+    <div class="field" *ngIf="(books$ | async) as shelfBooks">
+      <label for="bookSelect">Select a book</label>
+      <p-dropdown
+        id="bookSelect"
+        [options]="shelfBooks"
+        optionLabel="title"
+        optionValue="id"
+        [formControl]="bookControl"
+        [disabled]="(loadingBooks$ | async) === true || !shelfBooks.length"
+        placeholder="Choose a book"
+        filter
+        class="w-full"
+      ></p-dropdown>
+      <div class="loading" *ngIf="loadingBooks$ | async">
+        <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+        <span>Loading books…</span>
+      </div>
+    </div>
+  </ng-template>
 
-  <!-- Show remove if the selected book is already nominated in this election -->
-  @if (existingCandidate$ | async; as existing) {
-    <button
-      mat-button
-      color="warn"
-      [disabled]="removing"
-      (click)="removeNomination(existing.id)">
-      <mat-icon>remove_circle</mat-icon>
-      {{ removing ? 'Removing...' : 'Remove nomination' }}
-    </button>
-  }
+  <div class="existing" *ngIf="existingCandidate$ | async as candidate">
+    <p-tag value="Already nominated" severity="warning"></p-tag>
+    <p-button
+      type="button"
+      label="Remove nomination"
+      styleClass="p-button-text"
+      icon="pi pi-trash"
+      (onClick)="removeNomination(candidate.id)"
+    ></p-button>
+  </div>
 
-  <button
-    mat-raised-button
-    color="primary"
-    [disabled]="
-      nominating || !(selectedElectionId$ | async) || !(selectedBook$ | async)
-    "
-    (click)="nominate()">
-    <mat-icon>star</mat-icon>
-    {{ nominating ? 'Nominating...' : 'Nominate' }}
-  </button>
-</mat-dialog-actions>
+  <div class="actions">
+    <p-button
+      type="button"
+      label="Cancel"
+      styleClass="p-button-text"
+      (onClick)="cancel()"
+    ></p-button>
+    <p-button
+      type="button"
+      label="Nominate"
+      icon="pi pi-check"
+      (onClick)="nominate()"
+      [disabled]="!selectedBook || nominating"
+    ></p-button>
+  </div>
+</div>

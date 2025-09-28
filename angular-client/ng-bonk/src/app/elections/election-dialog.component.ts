@@ -1,17 +1,16 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+} from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
 import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
+  DynamicDialogConfig,
+  DynamicDialogRef,
+  DynamicDialogModule,
+} from 'primeng/dynamicdialog';
 import { ElectionRequest } from '../model/request/election-request.model';
 import { DateTimePickerComponent } from '../common/date-time-picker.component';
 
@@ -19,11 +18,10 @@ import { DateTimePickerComponent } from '../common/date-time-picker.component';
   selector: 'app-election-dialog',
   standalone: true,
   imports: [
-    MatFormFieldModule,
-    MatInputModule,
+    CommonModule,
     ReactiveFormsModule,
-    MatButtonModule,
-    MatDialogModule,
+    ButtonModule,
+    DynamicDialogModule,
     DateTimePickerComponent,
   ],
   templateUrl: './election-dialog.component.html',
@@ -31,11 +29,13 @@ import { DateTimePickerComponent } from '../common/date-time-picker.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ElectionDialog {
-  readonly dialogRef = inject(MatDialogRef<ElectionDialog>);
   private readonly fb = inject(FormBuilder);
-  readonly data: ElectionRequest | null = inject(MAT_DIALOG_DATA, {
-    optional: true,
-  });
+  private readonly ref = inject<DynamicDialogRef<ElectionRequest | undefined>>(
+    DynamicDialogRef
+  );
+  private readonly config = inject(DynamicDialogConfig<ElectionRequest | null>);
+
+  readonly data = this.config.data ?? null;
 
   readonly form = this.fb.group({
     title: [this.data?.title ?? '', [Validators.required, Validators.maxLength(160)]],
@@ -45,8 +45,8 @@ export class ElectionDialog {
   readonly headline = this.data ? 'Edit election' : 'Create an election';
   readonly submitLabel = this.data ? 'Save changes' : 'Create';
 
-  onNoClick(): void {
-    this.dialogRef.close();
+  cancel(): void {
+    this.ref.close();
   }
 
   submit(): void {
@@ -54,21 +54,23 @@ export class ElectionDialog {
     if (this.form.invalid) return;
 
     const { title, endDateTime } = this.form.value;
-
-    let closure: string | null = null;
-    const rawValue = endDateTime as unknown;
-    if (rawValue instanceof Date) {
-      closure = Number.isNaN(rawValue.getTime()) ? null : rawValue.toISOString();
-    } else if (typeof rawValue === 'string' && rawValue.trim().length > 0) {
-      const parsed = new Date(rawValue);
-      closure = Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
-    }
-
+    const closure = this.normalizeDate(endDateTime);
     const payload: ElectionRequest = {
       title: title?.trim() ?? '',
       endDateTime: closure,
     };
 
-    this.dialogRef.close(payload);
+    this.ref.close(payload);
+  }
+
+  private normalizeDate(value: unknown): string | null {
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? null : value.toISOString();
+    }
+    if (typeof value === 'string' && value.trim().length > 0) {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+    }
+    return null;
   }
 }

@@ -1,19 +1,35 @@
 <div class="home-container">
   @if (user$ | async; as u) {
     @if (u.isAuthenticated) {
-      <div>
-        <h1>Welcome {{ u.name }}</h1>
-        <a mat-button routerLink="/shelves">Go to your shelves</a>
-        <a mat-button routerLink="/elections">Go to your Elections</a>
-      </div>
+      <p-card header="Welcome back">
+        <p class="intro">Hi {{ u.name }}. What would you like to work on today?</p>
+        <div class="action-row">
+          <a
+            pButton
+            routerLink="/shelves"
+            label="My Shelves"
+            icon="pi pi-book"
+            class="p-button-raised"
+          ></a>
+          <a
+            pButton
+            routerLink="/elections"
+            label="My Elections"
+            icon="pi pi-chart-bar"
+            class="p-button-outlined"
+          ></a>
+        </div>
+      </p-card>
     } @else {
-      <pre class="ascii" aria-label="Akira ASCII logo">
-  ______     __  __     __     ______     ______
- /\  __ \   /\ \/ /    /\ \   /\  == \   /\  __ \
- \ \  __ \  \ \  _"-.  \ \ \  \ \  __<   \ \  __ \
-  \ \_\ \_\  \ \_\ \_\  \ \_\  \ \_\ \_\  \ \_\ \_\
-   \/_/\/_/   \/_/\/_/   \/_/   \/_/ /_/   \/_/\/_/
-      </pre>
+      <p-card header="Akira">
+        <p class="intro">
+          Curate your library, nominate favorites, and vote in community elections. Sign in to
+          start exploring.
+        </p>
+        <div class="action-row">
+          <app-login></app-login>
+        </div>
+      </p-card>
     }
   }
 </div>

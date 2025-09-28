@@ -1,15 +1,12 @@
-<h2 mat-dialog-title>
-  <span>{{ data.title }}</span>
-</h2>
-
-<mat-dialog-content>
-  <h2>Pitch:</h2>
-  <div class="blurb" [innerHTML]="html"></div>
-</mat-dialog-content>
-
-<mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close aria-label="Close">
-    <mat-icon>close</mat-icon>
-    Close
-  </button>
-</mat-dialog-actions>
+<div class="dialog-shell">
+  <h2 class="dialog-title">{{ data?.title }}</h2>
+  <section class="blurb" [innerHTML]="html"></section>
+  <div class="actions">
+    <p-button
+      type="button"
+      label="Close"
+      icon="pi pi-times"
+      (onClick)="close()"
+    ></p-button>
+  </div>
+</div>

@@ -1,68 +1,73 @@
-<div class="sheet-search-bar" role="search">
-  <div class="main-search">
-    <mat-form-field class="w-full" appearance="outline">
-      <mat-label>Title and/or Author</mat-label>
+<div class="search-shell">
+  <div class="search-header">
+    <span class="p-input-icon-left search-input">
+      <i class="pi pi-search"></i>
       <input
-        matInput
+        pInputText
         [formControl]="searchControl"
-        placeholder="Search books"
-        autocomplete="off" />
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
+        placeholder="Search by title or author"
+        autocomplete="off"
+      />
+    </span>
+    <button
+      pButton
+      type="button"
+      icon="pi pi-times"
+      class="p-button-text"
+      (click)="cancel()"
+      aria-label="Close search"
+    ></button>
   </div>
 
-  <div class="spacer"></div>
-
-  <button mat-button (click)="cancel()">Cancel</button>
-</div>
-
-<div class="sheet-container">
-  <div class="results-container">
-    @if ((loading$ | async) && hasSearched) {
-      <div>
-        <mat-progress-bar mode="indeterminate" />
-      </div>
-    }
-
-    @if (results$ | async; as results) {
-      @if (hasSearched) {
-        @if (results.length > 0) {
-          <cdk-virtual-scroll-viewport
-            class="results-viewport"
-            [itemSize]="itemSize"
-            (scrolledIndexChange)="onScrolledIndexChange($event)">
-            <mat-card
-              class="result-row-card"
-              *cdkVirtualFor="let book of results">
-              <div class="cover">
-                <app-book-cover
-                  [src]="getCover(book)"
-                  [alt]="book.title + ' cover'"></app-book-cover>
-              </div>
-              <div class="meta">
-                <div class="title">{{ book.title }}</div>
-                <div class="author">{{ book.author_name?.[0] ?? '—' }}</div>
-                <div class="year">{{ book.first_publish_year ?? '—' }}</div>
-              </div>
-              <div class="actions">
-                <button
-                  mat-icon-button
-                  color="primary"
-                  aria-label="Add book"
-                  (click)="select(book)">
-                  <mat-icon>add</mat-icon>
-                </button>
-              </div>
-            </mat-card>
-          </cdk-virtual-scroll-viewport>
-        } @else {
-          <div class="placeholder">
-            No results found. Try a different search.
+  <section class="results" *ngIf="hasSearched">
+    <ng-container *ngIf="results.length; else emptyState">
+      <ng-container *ngFor="let book of results">
+        <p-card class="result-card">
+          <div class="result-body">
+            <div class="cover">
+              <app-book-cover [src]="getCover(book)" [alt]="book.title"></app-book-cover>
+            </div>
+            <div class="meta">
+              <h3>{{ book.title }}</h3>
+              <p class="author">{{ book.author_name?.join(', ') || 'Unknown author' }}</p>
+              <p class="year" *ngIf="book.first_publish_year">
+                First published {{ book.first_publish_year }}
+              </p>
+            </div>
+            <div class="actions">
+              <button
+                pButton
+                type="button"
+                icon="pi pi-plus"
+                label="Add"
+                class="p-button-sm"
+                (click)="select(book)"
+              ></button>
+            </div>
           </div>
-        }
-      } @else {
-        <div class="placeholder">Enter a search term to find books</div>
-      }
-    }
+        </p-card>
+      </ng-container>
+
+      <div class="load-more" *ngIf="hasMore">
+        <button
+          pButton
+          type="button"
+          icon="pi pi-chevron-down"
+          label="Load more"
+          (click)="loadMore()"
+          [disabled]="loading"
+        ></button>
+      </div>
+    </ng-container>
+  </section>
+
+  <div class="loading" *ngIf="loading">
+    <p-progressSpinner strokeWidth="4"></p-progressSpinner>
   </div>
 </div>
+
+<ng-template #emptyState>
+  <div class="empty">
+    <p>No books yet. Try another search.</p>
+  </div>
+</ng-template>

@@ -5,14 +5,12 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-book-cover',
   standalone: true,
-  imports: [MatIconModule, MatProgressSpinnerModule],
+  imports: [ProgressSpinnerModule],
   template: `
     <div class="cover-box">
       @if (hasImage) {
@@ -28,13 +26,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
       @if (loading) {
         <div class="spinner">
-          <mat-progress-spinner diameter="24"></mat-progress-spinner>
+          <p-progressSpinner strokeWidth="4" styleClass="cover-spinner" />
         </div>
       }
 
       @if (showIcon) {
         <div class="placeholder">
-          <mat-icon>menu_book</mat-icon>
+          <i class="pi pi-book"></i>
         </div>
       }
     </div>
@@ -50,9 +48,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         position: relative;
         width: 100%;
         height: 100%;
-        border: 1px solid #00ff41;
-        background: rgba(0, 0, 0, 0.2);
-
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 0.5rem;
+        overflow: hidden;
+        background: var(--surface-section, #f3f4f6);
       }
       .cover-img {
         width: 100%;
@@ -67,13 +66,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         display: flex;
         align-items: center;
         justify-content: center;
+        background: rgba(255, 255, 255, 0.8);
       }
-      .placeholder mat-icon {
-        font-size: 36px;
-        width: 36px;
-        height: 36px;
-        color: #00ff41;
-        opacity: 0.9;
+      .placeholder .pi {
+        font-size: 32px;
+        color: var(--text-color-secondary, #6b7280);
       }
     `,
   ],

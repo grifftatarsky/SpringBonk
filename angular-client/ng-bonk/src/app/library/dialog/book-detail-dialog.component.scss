@@ -1,37 +1,71 @@
-.book-detail-container {
+.dialog-shell {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 1.5rem;
+  min-width: min(520px, 90vw);
 }
 
-.book-cover {
-  margin: 0 auto;
-  width: 160px;
-
-  img {
-    width: 100%;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    border-radius: 4px;
-  }
+.summary {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
 }
 
-.book-info {
+.summary .cover {
+  flex: 0 0 120px;
+  height: 164px;
+}
+
+.summary .info {
   flex: 1;
-
-  h3 {
-    margin: 0 0 8px;
-    font-size: 20px;
-    text-align: center;
-  }
-
-  .author {
-    font-size: 16px;
-    margin: 0 0 16px;
-    color: rgba(0, 0, 0, 0.7);
-    text-align: center;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.full-width {
+.summary h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.summary .author {
+  margin: 0;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field textarea {
   width: 100%;
+}
+
+.hint {
+  color: var(--text-color-secondary, #6b7280);
+  font-size: 0.8rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+@media (max-width: 540px) {
+  .dialog-shell {
+    min-width: 0;
+  }
+
+  .summary {
+    flex-direction: column;
+  }
+
+  .summary .cover {
+    width: 100%;
+    height: auto;
+  }
 }

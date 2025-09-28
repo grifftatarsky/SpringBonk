@@ -1,19 +1,28 @@
-<h2 mat-dialog-title>Name your shelf</h2>
+<form class="dialog-form" (ngSubmit)="submit()">
+  <div class="field">
+    <label for="shelfTitle">Shelf title</label>
+    <input
+      pInputText
+      id="shelfTitle"
+      name="shelfTitle"
+      [(ngModel)]="titleValue"
+      autocomplete="off"
+      required
+      autofocus
+    />
+  </div>
 
-<mat-dialog-content>
-  <mat-form-field>
-    <mat-label>Shelf title</mat-label>
-    <input matInput [(ngModel)]="titleValue" />
-  </mat-form-field>
-</mat-dialog-content>
-
-<mat-dialog-actions>
-  <button mat-button (click)="onCancel()">Cancel</button>
-  <button
-    mat-button
-    [disabled]="!titleValue.trim()"
-    (click)="submit()"
-    cdkFocusInitial>
-    Create
-  </button>
-</mat-dialog-actions>
+  <div class="actions">
+    <p-button
+      type="button"
+      label="Cancel"
+      styleClass="p-button-text"
+      (onClick)="onCancel()"
+    ></p-button>
+    <p-button
+      type="submit"
+      label="Save"
+      [disabled]="!titleValue.trim()"
+    ></p-button>
+  </div>
+</form>

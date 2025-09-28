@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ButtonModule } from 'primeng/button';
 import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
+  DynamicDialogConfig,
+  DynamicDialogRef,
+  DynamicDialogModule,
+} from 'primeng/dynamicdialog';
 
 export interface ConfirmDialogData {
   title?: string;
@@ -16,26 +17,43 @@ export interface ConfirmDialogData {
 @Component({
   selector: 'app-confirm-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+  imports: [CommonModule, ButtonModule, DynamicDialogModule],
   template: `
-    <h2 mat-dialog-title>{{ data.title || 'Confirm' }}</h2>
-    <div mat-dialog-content>{{ data.message }}</div>
-    <div mat-dialog-actions align="end">
-      <button mat-button (click)="close(false)">
-        {{ data.cancelText || 'Cancel' }}
-      </button>
-      <button mat-flat-button color="warn" (click)="close(true)">
-        {{ data.confirmText || 'OK' }}
-      </button>
+    <div class="dialog-wrapper">
+      <h2 class="dialog-title">{{ model.title || 'Confirm' }}</h2>
+      <p class="dialog-message">{{ model.message }}</p>
+      <div class="dialog-actions">
+        <p-button
+          label="{{ model.cancelText || 'Cancel' }}"
+          (onClick)="close(false)"
+          styleClass="p-button-text"
+        />
+        <p-button
+          label="{{ model.confirmText || 'OK' }}"
+          (onClick)="close(true)"
+          severity="danger"
+        />
+      </div>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConfirmDialogComponent {
+  private readonly data = this.config.data as ConfirmDialogData | undefined;
+
   constructor(
-    private ref: MatDialogRef<ConfirmDialogComponent, boolean>,
-    @Inject(MAT_DIALOG_DATA) public data: ConfirmDialogData
+    private readonly ref: DynamicDialogRef,
+    @Inject(DynamicDialogConfig)
+    private readonly config: DynamicDialogConfig<ConfirmDialogData>
   ) {}
+
+  get model(): ConfirmDialogData {
+    return (
+      this.data ?? {
+        message: '',
+      }
+    );
+  }
 
   close(result: boolean): void {
     this.ref.close(result);

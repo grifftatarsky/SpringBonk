@@ -1,44 +1,54 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { ButtonModule } from 'primeng/button';
+import {
+  DynamicDialogConfig,
+  DynamicDialogRef,
+  DynamicDialogModule,
+} from 'primeng/dynamicdialog';
 import { ShelfRequest } from '../../model/request/shelf-request.model';
 
 @Component({
   selector: 'app-shelf-dialog',
   standalone: true,
   imports: [
-    MatFormFieldModule,
-    MatInputModule,
+    CommonModule,
     FormsModule,
-    MatButtonModule,
-    MatDialogModule,
+    InputTextModule,
+    ButtonModule,
+    DynamicDialogModule,
   ],
   templateUrl: './shelf-dialog.component.html',
   styleUrls: ['./shelf-dialog.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShelfDialog {
-  readonly dialogRef = inject(MatDialogRef<ShelfDialog>);
-  readonly data: ShelfRequest = inject<ShelfRequest>(MAT_DIALOG_DATA);
+  readonly data: ShelfRequest;
+  titleValue = '';
 
-  titleValue: string = this.data?.title ?? '';
+  constructor(
+    private readonly ref: DynamicDialogRef,
+    @Inject(DynamicDialogConfig)
+    config: DynamicDialogConfig<ShelfRequest>
+  ) {
+    this.data = config.data ?? { title: '' };
+    this.titleValue = this.data.title ?? '';
+  }
 
   onCancel(): void {
-    this.dialogRef.close();
+    this.ref.close();
   }
 
   submit(): void {
     const payload: ShelfRequest = {
-      title: this.titleValue,
+      title: this.titleValue.trim(),
     };
-
-    this.dialogRef.close(payload);
+    this.ref.close(payload);
   }
 }

@@ -1,123 +1,116 @@
-import { Component, Inject, OnInit } from '@angular/core';
-
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
 import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { finalize, map } from 'rxjs/operators';
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+} from '@angular/core';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DropdownModule } from 'primeng/dropdown';
+import { ButtonModule } from 'primeng/button';
+import { DividerModule } from 'primeng/divider';
+import {
+  DynamicDialogConfig,
+  DynamicDialogRef,
+  DynamicDialogModule,
+} from 'primeng/dynamicdialog';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ShelfResponse } from '../../model/response/shelf-response.model';
 import { OpenLibraryBookResponse } from '../../model/response/open-library-book-response.model';
 import { ShelfHttpService } from '../../service/http/shelves-http.service';
 import { BookCoverComponent } from '../../common/book-cover.component';
 import { BookHttpService } from '../../service/http/books-http.service';
 
+interface BookSelectShelfResult {
+  book: OpenLibraryBookResponse;
+  shelfId: string;
+}
+
 @Component({
   selector: 'app-book-select-shelf-dialog',
   standalone: true,
   imports: [
+    CommonModule,
     ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatDividerModule,
-    MatProgressSpinnerModule,
+    DropdownModule,
+    ButtonModule,
+    DividerModule,
+    DynamicDialogModule,
+    ProgressSpinnerModule,
     BookCoverComponent,
   ],
   templateUrl: './book-select-shelf-dialog.component.html',
   styleUrls: ['./book-select-shelf-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookSelectShelfDialog implements OnInit {
-  shelves: ShelfResponse[] = [];
-  shelfControl: FormControl<string | null> = new FormControl<string | null>(
-    null,
-    [Validators.required]
-  );
-  loading: boolean = true;
-  unshelvedShelf?: ShelfResponse;
-  regularShelves: ShelfResponse[] = [];
+  private readonly shelfHttp = inject(ShelfHttpService);
+  private readonly bookHttp = inject(BookHttpService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  constructor(
-    public dialogRef: MatDialogRef<
-      BookSelectShelfDialog,
-      {
-        book: OpenLibraryBookResponse;
-        shelfId: string;
-      }
-    >,
-    @Inject(MAT_DIALOG_DATA) public data: { book: OpenLibraryBookResponse },
-    private shelfHttp: ShelfHttpService,
-    public bookHttp: BookHttpService
-  ) {}
+  readonly ref = inject<DynamicDialogRef<BookSelectShelfResult | undefined>>(DynamicDialogRef);
+  readonly data = inject(DynamicDialogConfig<{ book: OpenLibraryBookResponse }>).data;
+
+  readonly shelfControl = new FormControl<string | null>(null, {
+    nonNullable: false,
+    validators: [Validators.required],
+  });
+
+  shelves: ShelfResponse[] = [];
+  loading = true;
 
   ngOnInit(): void {
     this.loadShelves();
   }
 
-  getCoverImageUrl(): string {
-    return this.data.book.cover_i
-      ? this.bookHttp.getOpenLibraryCoverImageUrl(this.data.book.cover_i, 'L')
+  get book(): OpenLibraryBookResponse {
+    return this.data?.book;
+  }
+
+  get coverUrl(): string {
+    return this.book?.cover_i
+      ? this.bookHttp.getOpenLibraryCoverImageUrl(this.book.cover_i, 'L')
       : '';
   }
 
-  getAuthor(): string {
-    return this.data.book.author_name?.[0] || 'Unknown author';
+  get author(): string {
+    return this.book?.author_name?.[0] || 'Unknown author';
   }
 
   loadShelves(): void {
     this.loading = true;
     this.shelfHttp
       .getUserShelves()
-      .pipe(
-        map((shelves: ShelfResponse[]): ShelfResponse[] =>
-          shelves.filter(
-            (shelf: ShelfResponse): boolean => shelf.title !== 'My Nominations'
-          )
-        ),
-        finalize((): boolean => (this.loading = false))
-      )
-      .subscribe((shelves: ShelfResponse[]): void => {
-        this.shelves = shelves;
-
-        const unshelvedIndex: number = shelves.findIndex(
-          (shelf: ShelfResponse): boolean => shelf.title === 'Unshelved'
-        );
-
-        if (unshelvedIndex !== -1) {
-          this.unshelvedShelf = shelves[unshelvedIndex];
-          this.regularShelves = [
-            ...shelves.slice(0, unshelvedIndex),
-            ...shelves.slice(unshelvedIndex + 1),
-          ].sort((a, b) => a.title.localeCompare(b.title));
-        } else {
-          this.regularShelves = [...shelves].sort((a, b) =>
-            a.title.localeCompare(b.title)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: shelves => {
+          this.loading = false;
+          const filtered = shelves.filter(
+            shelf => shelf.title !== 'My Nominations'
           );
-        }
-
-        const defaultShelf =
-          shelves.find(s => s.defaultShelf) ?? this.unshelvedShelf;
-        if (defaultShelf) {
-          this.shelfControl.setValue(defaultShelf.id);
-        }
+          this.shelves = [...filtered].sort((a, b) => a.title.localeCompare(b.title));
+          const preferred =
+            this.shelves.find(shelf => shelf.defaultShelf) ?? this.shelves[0];
+          if (preferred) {
+            this.shelfControl.setValue(preferred.id);
+          }
+        },
+        error: () => {
+          this.loading = false;
+        },
       });
   }
 
-  onCancel(): void {
-    this.dialogRef.close();
+  cancel(): void {
+    this.ref.close();
   }
 
-  onConfirm(): void {
+  confirm(): void {
     if (this.shelfControl.valid && this.shelfControl.value) {
-      this.dialogRef.close({
-        book: this.data.book,
+      this.ref.close({
+        book: this.book,
         shelfId: this.shelfControl.value,
       });
     }

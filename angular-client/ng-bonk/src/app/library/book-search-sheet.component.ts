@@ -1,122 +1,95 @@
+import { AsyncPipe, CommonModule, NgClass, NgIf } from '@angular/common';
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
-  OnDestroy,
-  ViewChild,
+  DestroyRef,
+  OnInit,
+  inject,
 } from '@angular/core';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatCardModule } from '@angular/material/card';
-import { Observable, Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
-import { MatIconModule } from '@angular/material/icon';
-// Removed select/sidenav (advanced filters)
-import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
-import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { AsyncPipe } from '@angular/common';
-import { BookSelectShelfDialog } from './dialog/book-select-shelf-dialog.component';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { CardModule } from 'primeng/card';
+import { Observable, debounceTime, distinctUntilChanged, filter } from 'rxjs';
 import { Store } from '@ngrx/store';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { OpenLibraryBookResponse } from '../model/response/open-library-book-response.model';
 import * as LibraryActions from '../store/action/library.actions';
 import {
   selectOpenLibraryResults,
   selectOpenLibraryTotal,
   selectSearchLoading,
 } from '../store/selector/library.selectors';
-import { BookHttpService } from '../service/http/books-http.service';
 import { BookCoverComponent } from '../common/book-cover.component';
-import {
-  CdkVirtualScrollViewport,
-  ScrollingModule,
-} from '@angular/cdk/scrolling';
+import { BookHttpService } from '../service/http/books-http.service';
+import { BookSelectShelfDialog } from './dialog/book-select-shelf-dialog.component';
 
 @Component({
-  selector: 'app-book-search-dialog',
+  selector: 'app-book-search-sheet',
   standalone: true,
   imports: [
-    FormsModule,
+    CommonModule,
     ReactiveFormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatProgressBarModule,
-    MatCardModule,
-    MatIconModule,
-    BookCoverComponent,
-    ScrollingModule,
     AsyncPipe,
+    NgIf,
+    NgClass,
+    ButtonModule,
+    InputTextModule,
+    ProgressSpinnerModule,
+    CardModule,
+    BookCoverComponent,
   ],
   templateUrl: './book-search-sheet.component.html',
   styleUrls: ['./book-search-sheet.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BookSearchSheet implements AfterViewInit, OnDestroy {
-  searchControl = new FormControl('');
-  hasSearched: boolean = false;
+export class BookSearchSheet implements OnInit {
+  private readonly store = inject(Store);
+  private readonly dialog = inject(DialogService);
+  private readonly ref = inject(DynamicDialogRef);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly bookHttp = inject(BookHttpService);
 
-  results$: Observable<OpenLibraryBookResponse[]>;
-  loading$: Observable<boolean>;
-  total$: Observable<number>;
+  readonly results$: Observable<OpenLibraryBookResponse[]> = this.store.select(
+    selectOpenLibraryResults
+  );
+  readonly loading$: Observable<boolean> = this.store.select(selectSearchLoading);
+  readonly total$: Observable<number> = this.store.select(selectOpenLibraryTotal);
 
-  private destroy$: Subject<void> = new Subject<void>();
-  private searchSubscription?: Subscription;
-  private pageIndex: number = 0;
-  private pageSize: number = 10;
-  private currentCount: number = 0;
-  private totalCount: number = 0;
-  private isLoading: boolean = false;
-  readonly itemSize: number = 110;
-  private preloadThreshold: number = 3; // items beyond viewport to trigger prefetch
+  readonly searchControl = new FormControl<string>('', { nonNullable: true });
 
-  @ViewChild(CdkVirtualScrollViewport) viewport?: CdkVirtualScrollViewport;
+  results: OpenLibraryBookResponse[] = [];
+  loading = false;
+  totalCount = 0;
+  hasSearched = false;
+  private pageIndex = 0;
+  private readonly pageSize = 10;
 
-  constructor(
-    private dialogRef: MatBottomSheetRef<BookSearchSheet>,
-    private dialog: MatDialog,
-    private store: Store,
-    private bookHttp: BookHttpService
-  ) {
-    this.results$ = this.store.select(selectOpenLibraryResults);
-    this.loading$ = this.store.select(selectSearchLoading);
-    this.total$ = this.store.select(selectOpenLibraryTotal);
-  }
-
-  ngAfterViewInit(): void {
-    // Track result length, total, and loading state for infinite scroll
-    this.results$.pipe(takeUntil(this.destroy$)).subscribe(r => {
-      this.currentCount = r.length;
-      // If initial results don't fill the viewport, prefetch more
-      this.maybePrefetchMore();
-    });
-    this.total$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((t: number): number => (this.totalCount = t ?? 0));
-    this.loading$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((l: boolean): boolean => (this.isLoading = l));
-
-    // Set up search with debounce on main control
-    this.searchSubscription = this.searchControl.valueChanges
-      .pipe(takeUntil(this.destroy$), debounceTime(300), distinctUntilChanged())
-      .subscribe((): void => {
+  ngOnInit(): void {
+    this.searchControl.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
         this.pageIndex = 0;
         this.loadData();
       });
-  }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.searchSubscription?.unsubscribe();
+    this.results$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(list => (this.results = list));
+
+    this.loading$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(flag => (this.loading = flag));
+
+    this.total$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(total => (this.totalCount = total ?? 0));
   }
 
   loadData(): void {
-    const query: string = (this.searchControl.value || '').toString().trim();
+    const query = this.searchControl.value.trim();
     this.hasSearched = true;
     this.store.dispatch(
       LibraryActions.searchOpenLibrary({
@@ -127,70 +100,42 @@ export class BookSearchSheet implements AfterViewInit, OnDestroy {
     );
   }
 
+  loadMore(): void {
+    if (this.loading || !this.hasMore) return;
+    this.pageIndex += 1;
+    this.loadData();
+  }
+
+  get hasMore(): boolean {
+    return this.results.length < this.totalCount;
+  }
+
   getCover(book: OpenLibraryBookResponse): string {
-    // Use medium size for better clarity in the results list
     return book.cover_i
       ? this.bookHttp.getOpenLibraryCoverImageUrl(book.cover_i, 'M')
       : '';
   }
 
   select(book: OpenLibraryBookResponse): void {
-    // Open the confirmation dialog instead of immediately dismissing
     const dialogRef = this.dialog.open(BookSelectShelfDialog, {
+      header: 'Add to shelf',
+      width: 'min(420px, 92vw)',
       data: { book },
-      width: '500px',
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        // If we got a result back with the book and shelfId, dismiss the bottom sheet with the book
-        this.dialogRef.dismiss({
-          book: result.book,
-          shelfId: result.shelfId,
-        });
-      }
-      // If canceled, the bottom sheet stays open so they can select another book
-    });
+    dialogRef.onClose
+      .pipe(
+        filter(
+          (result): result is { book: OpenLibraryBookResponse; shelfId: string } =>
+            !!result
+        )
+      )
+      .subscribe(result => {
+        this.ref.close(result);
+      });
   }
 
   cancel(): void {
-    this.dialogRef.dismiss();
-  }
-
-  private maybePrefetchMore(): void {
-    if (
-      !this.hasSearched ||
-      this.isLoading ||
-      this.currentCount >= this.totalCount
-    ) {
-      return;
-    }
-    const visible: number = this.viewport
-      ? Math.ceil(this.viewport.getViewportSize() / this.itemSize)
-      : 10;
-    if (
-      this.currentCount <
-      Math.max(visible + this.preloadThreshold, this.pageSize)
-    ) {
-      this.pageIndex++;
-      this.loadData();
-    }
-  }
-
-  onScrolledIndexChange(index: number): void {
-    const visible: number = this.viewport
-      ? Math.ceil(this.viewport.getViewportSize() / this.itemSize)
-      : 10;
-    const nearEnd: boolean =
-      index + visible + this.preloadThreshold >= this.currentCount;
-    if (
-      this.hasSearched &&
-      !this.isLoading &&
-      this.currentCount < this.totalCount &&
-      nearEnd
-    ) {
-      this.pageIndex++;
-      this.loadData();
-    }
+    this.ref.close();
   }
 }

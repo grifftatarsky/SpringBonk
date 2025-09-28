@@ -3,12 +3,12 @@ import { UserService } from '../service/user.service';
 import { lastValueFrom } from 'rxjs';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { baseUri, reverseProxyUri } from '../app.config';
-import { MatButton } from '@angular/material/button';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'app-logout',
   standalone: true,
-  imports: [MatButton],
+  imports: [ButtonModule],
   templateUrl: './logout.component.html',
   styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush,
