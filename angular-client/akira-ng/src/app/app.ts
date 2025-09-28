@@ -25,16 +25,16 @@ type NavLink = Readonly<{
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
-  protected readonly title: WritableSignal<string> = signal('akira-ng');
+  protected readonly title: WritableSignal<string> = signal('Akira');
+
   protected readonly navLinks: readonly NavLink[] = [
     { label: 'Docs', href: '/docs' },
     { label: 'Blog', href: '/blog' },
     { label: 'Showcase', href: '/showcase' },
     { label: 'Sponsor', href: '/sponsor' },
-    { label: 'Plus', href: '/plus?ref=top', accent: true },
     {
       label: 'GitHub',
-      href: 'https://github.com/tailwindlabs/tailwindcss',
+      href: 'https://github.com/grifftatarsky/SpringBonk',
       external: true,
       ariaLabel: 'GitHub repository',
     },
