@@ -1,4 +1,4 @@
-package com.gpt.springbonk.service.electoral;
+package com.gpt.springbonk.service.impl;
 
 import com.gpt.springbonk.exception.DuplicateCandidateException;
 import com.gpt.springbonk.exception.ResourceNotFoundException;
@@ -10,6 +10,8 @@ import com.gpt.springbonk.model.Election;
 import com.gpt.springbonk.model.dto.response.CandidateResponse;
 import com.gpt.springbonk.repository.CandidateRepository;
 import com.gpt.springbonk.service.BookService;
+import com.gpt.springbonk.service.CandidateService;
+import com.gpt.springbonk.service.ElectionService;
 import com.gpt.springbonk.service.ShelfService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
@@ -25,7 +27,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class CandidateService {
+public class CandidateServiceImpl implements CandidateService {
   // region DI
 
   private final BookService bookService;
@@ -37,6 +39,7 @@ public class CandidateService {
 
   // endregion
 
+  @Override
   public CandidateResponse nominateCandidate(
       @NotNull UUID bookId,
       @NotNull UUID userId,
@@ -70,6 +73,7 @@ public class CandidateService {
     return new CandidateResponse(candidateRepository.saveAndFlush(candidate));
   }
 
+  @Override
   public void deleteCandidate(
       @NotNull UUID electionId,
       @NotNull UUID candidateId,
@@ -89,6 +93,7 @@ public class CandidateService {
     candidateRepository.delete(candidate);
   }
 
+  @Override
   public List<CandidateResponse> getCandidatesByElection(
       @NotNull UUID electionId
   ) {
@@ -99,6 +104,7 @@ public class CandidateService {
         .collect(Collectors.toList());
   }
 
+  @Override
   public Candidate getCandidate(UUID candidateId) {
     return candidateRepository.findById(candidateId).orElseThrow(
         () -> new ResourceNotFoundException("Candidate does not exist.")

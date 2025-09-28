@@ -21,5 +21,12 @@ For logs, please use format: `[CLASS] Content of log`.
 
 ### Tasks
 
+#### Backend
+
 1. Upgrade to latest Java
 2. Add liquibase (Priority)
+
+#### Frontend
+
+1. Book blurb does not update based on state in the frontend.
+2. Election delete doesn't update the main page

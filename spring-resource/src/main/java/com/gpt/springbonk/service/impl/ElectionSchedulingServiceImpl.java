@@ -1,11 +1,12 @@
-package com.gpt.springbonk.service.schedule;
+package com.gpt.springbonk.service.impl;
 
 import com.gpt.springbonk.constant.enumeration.election.Status;
 import com.gpt.springbonk.model.Election;
 import com.gpt.springbonk.repository.ElectionRepository;
-import com.gpt.springbonk.service.electoral.ElectionService;
-import com.gpt.springbonk.service.schedule.event.ElectionChangedEvent;
-import com.gpt.springbonk.service.schedule.event.ElectionDeletedEvent;
+import com.gpt.springbonk.service.ElectionSchedulingService;
+import com.gpt.springbonk.service.ElectionService;
+import com.gpt.springbonk.service.event.ElectionChangedEvent;
+import com.gpt.springbonk.service.event.ElectionDeletedEvent;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class ElectionSchedulingService {
+public class ElectionSchedulingServiceImpl implements ElectionSchedulingService {
 
   /*
    * SEE:
@@ -44,18 +45,21 @@ public class ElectionSchedulingService {
 
   /// On startup, (re)hydrate schedule for any still-open elections in the future.
   @EventListener(ApplicationReadyEvent.class)
+  @Override
   public void bootstrap() {
     log.info("[ElectionSchedulingService] Rehydrating election closure schedule.");
     electionRepository.findAllOpenEndingAfter(ZonedDateTime.now()).forEach(this::scheduleOrRunNow);
   }
 
   /// Schedule (or reschedule) a single election (C/U ops).
+  @Override
   public void schedule(Election election) {
     cancel(election.getId());
     scheduleOrRunNow(election);
   }
 
   /// Cancel a scheduled closure (D ops).
+  @Override
   public void cancel(UUID electionId) {
     var f = futures.remove(electionId);
 

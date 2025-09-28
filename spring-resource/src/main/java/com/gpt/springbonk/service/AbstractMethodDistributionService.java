@@ -1,4 +1,4 @@
-package com.gpt.springbonk.service.distribution;
+package com.gpt.springbonk.service;
 
 import com.gpt.springbonk.constant.enumeration.system.VotingSystemMethod;
 import com.gpt.springbonk.model.Election;

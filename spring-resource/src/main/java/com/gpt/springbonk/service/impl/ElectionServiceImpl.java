@@ -1,4 +1,4 @@
-package com.gpt.springbonk.service.electoral;
+package com.gpt.springbonk.service.impl;
 
 import com.gpt.springbonk.constant.enumeration.election.Flag;
 import com.gpt.springbonk.constant.enumeration.election.Status;
@@ -15,9 +15,10 @@ import com.gpt.springbonk.model.record.ElectionResultRecord;
 import com.gpt.springbonk.repository.ElectionRepository;
 import com.gpt.springbonk.repository.ElectionResultRepository;
 import com.gpt.springbonk.repository.VoteRepository;
-import com.gpt.springbonk.service.distribution.SingleWinnerMethodDistributionService;
-import com.gpt.springbonk.service.schedule.event.ElectionChangedEvent;
-import com.gpt.springbonk.service.schedule.event.ElectionDeletedEvent;
+import com.gpt.springbonk.service.ElectionService;
+import com.gpt.springbonk.service.SingleWinnerMethodDistributionService;
+import com.gpt.springbonk.service.event.ElectionChangedEvent;
+import com.gpt.springbonk.service.event.ElectionDeletedEvent;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -40,7 +41,7 @@ import static com.gpt.springbonk.constant.enumeration.system.single.SingleWinner
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class ElectionService {
+public class ElectionServiceImpl implements ElectionService {
   // region DI
   private final SingleWinnerMethodDistributionService singleWinnerMethodDistributionService;
   private final KeycloakUserService keycloakUserService;
@@ -55,6 +56,7 @@ public class ElectionService {
 
   // region C/U/D
 
+  @Override
   public ElectionResponse createElection(
       @NotNull ElectionRequest electionRequest,
       @NotNull UUID userId
@@ -71,6 +73,7 @@ public class ElectionService {
     return new ElectionResponse(saved);
   }
 
+  @Override
   public ElectionResponse updateElection(
       @NotNull UUID electionId,
       @NotNull ElectionRequest electionRequest,
@@ -118,7 +121,8 @@ public class ElectionService {
       return new ElectionResponse(election);
     }
 
-    log.info("[ElectionService] Updating election {} -> status {}", electionId, election.getStatus());
+    log.info("[ElectionService] Updating election {} -> status {}", electionId,
+        election.getStatus());
     Election saved = electionRepository.saveAndFlush(election);
 
     publisher.publishEvent(new ElectionChangedEvent(saved.getId()));
@@ -126,6 +130,7 @@ public class ElectionService {
     return new ElectionResponse(saved);
   }
 
+  @Override
   public void deleteElection(
       @NotNull UUID electionId,
       @NotNull UUID userId
@@ -139,6 +144,7 @@ public class ElectionService {
     publisher.publishEvent(new ElectionDeletedEvent(election.getId()));
   }
 
+  @Override
   public ElectionResponse reopenElection(
       @NotNull UUID electionId,
       @NotNull ZonedDateTime newEndDateTime,
@@ -171,20 +177,24 @@ public class ElectionService {
   // endregion
 
   // region Get Methods
+  @Override
   public ElectionResponse getOneElection(
       @NotNull UUID electionId
   ) {
     return new ElectionResponse(getElection(electionId));
   }
 
+  @Override
   public List<ElectionResponse> getAllElections() {
     return electionRepository.findAll().stream().map(ElectionResponse::new).toList();
   }
 
+  @Override
   public Page<ElectionResponse> getPagedElections(Pageable pageable) {
     return electionRepository.findAll(pageable).map(ElectionResponse::new);
   }
 
+  @Override
   public List<ElectionResultResponse> getElectionResults(@NotNull UUID electionId) {
     // Ensure election exists for consistent 404 semantics.
     getElection(electionId);
@@ -198,6 +208,7 @@ public class ElectionService {
     return results;
   }
 
+  @Override
   public ElectionResultResponse getLatestElectionResult(@NotNull UUID electionId) {
     getElection(electionId);
     return electionResultRepository
@@ -212,6 +223,7 @@ public class ElectionService {
   }
   // endregion
 
+  @Override
   public ElectionResultRecord runRankedChoiceElection(
       UUID electionId
   ) {
@@ -220,12 +232,14 @@ public class ElectionService {
   }
 
   // region Helper Methods
+  @Override
   public Election getElection(UUID electionId) {
     return electionRepository.findById(electionId).orElseThrow(
         () -> new ResourceNotFoundException("Election does not exist.")
     );
   }
 
+  @Override
   public List<VoteResponse> getVotesByUser(
       @NotNull UUID electionId,
       @NotNull UUID userId
@@ -237,6 +251,7 @@ public class ElectionService {
         .toList();
   }
 
+  @Override
   public void closeElection(UUID electionId) {
     Election election = getElection(electionId);
 
@@ -267,6 +282,7 @@ public class ElectionService {
     electionRepository.saveAndFlush(election);
   }
 
+  @Override
   public Election createElectionAndHandleStatus(@Valid ElectionRequest request) {
     final ZonedDateTime endDateTime = request.getEndDateTime();
     if (endDateTime != null) {

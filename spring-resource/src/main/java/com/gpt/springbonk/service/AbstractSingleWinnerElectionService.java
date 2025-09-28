@@ -1,4 +1,4 @@
-package com.gpt.springbonk.service.electoral.single;
+package com.gpt.springbonk.service;
 
 import com.gpt.springbonk.model.BallotBox;
 import com.gpt.springbonk.model.Candidate;

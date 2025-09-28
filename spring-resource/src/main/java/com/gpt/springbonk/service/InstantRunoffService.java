@@ -1,4 +1,4 @@
-package com.gpt.springbonk.service.electoral.single;
+package com.gpt.springbonk.service;
 
 import com.gpt.springbonk.constant.enumeration.process.EliminationMessage;
 import com.gpt.springbonk.exception.ElectionCannotBeCompletedException;
@@ -22,8 +22,8 @@ import static com.gpt.springbonk.constant.enumeration.process.EliminationMessage
 import static com.gpt.springbonk.constant.enumeration.process.EliminationMessage.WINNER_ATTRITION;
 import static com.gpt.springbonk.constant.enumeration.process.EliminationMessage.WINNER_MAJORITY;
 import static com.gpt.springbonk.exception.ElectionCannotBeCompletedException.NO_ELECTION_MESSAGE;
-import static com.gpt.springbonk.service.electoral.utility.BallotUtility.conductRound;
-import static com.gpt.springbonk.service.electoral.utility.BallotUtility.processCandidates;
+import static com.gpt.springbonk.util.BallotUtility.conductRound;
+import static com.gpt.springbonk.util.BallotUtility.processCandidates;
 
 @Slf4j
 @Service

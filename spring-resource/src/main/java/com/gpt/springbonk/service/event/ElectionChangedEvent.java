@@ -1,4 +1,4 @@
-package com.gpt.springbonk.service.schedule.event;
+package com.gpt.springbonk.service.event;
 
 import java.util.UUID;
 

@@ -1,4 +1,4 @@
-package com.gpt.springbonk.service.electoral;
+package com.gpt.springbonk.service.impl;
 
 import com.gpt.springbonk.exception.DuplicateVoteException;
 import com.gpt.springbonk.exception.ResourceNotFoundException;
@@ -7,6 +7,8 @@ import com.gpt.springbonk.model.Candidate;
 import com.gpt.springbonk.model.Vote;
 import com.gpt.springbonk.model.dto.response.VoteResponse;
 import com.gpt.springbonk.repository.VoteRepository;
+import com.gpt.springbonk.service.CandidateService;
+import com.gpt.springbonk.service.VotingService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
@@ -19,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class VotingService {
+public class VotingServiceImpl implements VotingService {
   // region DI
 
   private final VoteRepository voteRepository;
@@ -28,6 +30,7 @@ public class VotingService {
 
   // endregion
 
+  @Override
   public VoteResponse voteForCandidate(
       @NotNull UUID candidateId,
       @NotNull UUID userId,
@@ -54,6 +57,7 @@ public class VotingService {
     return new VoteResponse(voteRepository.saveAndFlush(vote));
   }
 
+  @Override
   public void deleteVoteForCandidate(
       @NotNull UUID candidateId,
       @NotNull UUID userId
@@ -65,6 +69,7 @@ public class VotingService {
     voteRepository.delete(vote);
   }
 
+  @Override
   public Vote getVote(UUID candidateId, UUID userId) {
     return voteRepository.findByCandidate_IdAndVoter_Id(candidateId, userId).orElse(null);
   }
