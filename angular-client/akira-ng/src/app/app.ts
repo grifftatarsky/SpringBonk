@@ -11,7 +11,6 @@ import { Auth } from './auth/auth';
 import { UserService } from './auth/user.service';
 import { map, Observable } from 'rxjs';
 import { User } from './auth/user.model';
-import { baseUri, reverseProxyUri } from './app.config';
 import { ToastContainerComponent } from './common/notification/toast-container.component';
 
 type NavLink = Readonly<{
@@ -57,8 +56,6 @@ export class App {
   constructor(
     private readonly user: UserService,
   ) {
-    console.log(baseUri);
-    console.log(reverseProxyUri);
     this.isAuthenticated$ = this.user.valueChanges.pipe(
       map((user: User): boolean => user.isAuthenticated),
     );
