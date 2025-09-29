@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseHttpService } from './base-http.service';
-import { UserInfoResponse } from '../model/response/user-info-response.model';
+import { UserInfoResponse } from '../../model/response/user-info-response.model';
 import { baseUri, reverseProxyUri } from '../../app.config';
 
 @Injectable({

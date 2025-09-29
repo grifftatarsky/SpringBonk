@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { User } from './user.model';
 import { Login } from './login/login';
@@ -12,11 +12,16 @@ import { AsyncPipe } from '@angular/common';
   templateUrl: './auth.html',
 })
 export class Auth {
-  // TODO: Can I ... or should I ... replace this with a signal.
+  // region DI
+
+  private readonly userService: UserService = inject(UserService);
+
+  // endregion
+
   isAuthenticated$!: Observable<boolean>;
 
-  constructor(private user: UserService) {
-    this.isAuthenticated$ = this.user.valueChanges.pipe(
+  constructor() {
+    this.isAuthenticated$ = this.userService.valueChanges.pipe(
       map((u: User): boolean => u.isAuthenticated),
     );
   }

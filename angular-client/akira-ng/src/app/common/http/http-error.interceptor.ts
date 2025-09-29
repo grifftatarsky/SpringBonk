@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { catchError, throwError } from 'rxjs';
+import { catchError, Observable, throwError } from 'rxjs';
 import { NotificationService } from '../notification/notification.service';
 import { inject } from '@angular/core';
 
@@ -34,7 +34,7 @@ export const httpErrorInterceptor: HttpInterceptorFn = (req, next) => {
   const notify: NotificationService = inject(NotificationService);
 
   return next(req).pipe(
-    catchError((err: unknown) => {
+    catchError((err: unknown): Observable<never> => {
       if (err instanceof HttpErrorResponse) {
         const url: string = (req.url || '').toString();
 

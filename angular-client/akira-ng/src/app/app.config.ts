@@ -9,7 +9,7 @@ import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { httpErrorInterceptor } from './common/http/http-error.interceptor';
 import { environment } from '../environments/environment';
-import { API_BASE_URL } from './common/config/app-tokens';
+import { API_BASE_URL } from './app.tokens';
 
 export const appConfig: ApplicationConfig = {
   providers: [

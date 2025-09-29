@@ -1,24 +1,32 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, interval, Observable, Subscription } from 'rxjs';
 import { User } from './user.model';
 import { UserHttpService } from '../common/http/user-http.service';
-import { UserInfoResponse } from '../common/model/response/user-info-response.model';
+import { UserInfoResponse } from '../model/response/user-info-response.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
+  // region DI
+
+  private readonly http: UserHttpService = inject(UserHttpService);
+
+  // endregion
+
   private user$: BehaviorSubject<User> = new BehaviorSubject<User>(
     User.ANONYMOUS,
   );
+
   private refreshSub?: Subscription;
 
-  constructor(private http: UserHttpService) {
+  constructor() {
     this.refresh();
   }
 
   refresh(): void {
     this.refreshSub?.unsubscribe();
+
     this.http.getDetails().subscribe({
       next: (user: UserInfoResponse): void => {
         if (
@@ -28,8 +36,10 @@ export class UserService {
           (user.roles || []).toString() !== this.user$.value.roles.toString()
         ) {
           const id: string = (user.id || '').toString();
+
           const normalizedId: string =
             id && id !== '00000000-0000-0000-0000-000000000000' ? id : '';
+
           this.user$.next(
             normalizedId
               ? new User(
@@ -44,10 +54,10 @@ export class UserService {
 
         if (user.exp > 0 && user.exp < Number.MAX_SAFE_INTEGER / 1000) {
           const now: number = Date.now();
-          const expMs: number = user.exp * 1000; // Convert expiration time to milliseconds safely
+
+          const expMs: number = user.exp * 1000;
 
           if (expMs > now) {
-            // Ensure expiration is in the future
             const delay: number = (expMs - now) * 0.8;
 
             if (delay > 2000 && delay < Number.MAX_SAFE_INTEGER) {
@@ -59,14 +69,12 @@ export class UserService {
         }
       },
       error: (error): void => {
-        console.warn(error);
         this.user$.next(User.ANONYMOUS);
       },
     });
   }
 
   get valueChanges(): Observable<User> {
-    console.log('VALUE CHANGE');
     return this.user$;
   }
 
