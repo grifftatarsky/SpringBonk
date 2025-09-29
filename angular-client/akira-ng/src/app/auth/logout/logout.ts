@@ -1,39 +1,31 @@
-import { Component } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { Component, inject } from '@angular/core';
+import { HttpResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { UserService } from '../user.service';
-import { lastValueFrom } from 'rxjs';
-import { baseUri, reverseProxyUri } from '../../app.config';
+import { UserHttpService } from '../../common/http/user-http.service';
 
 @Component({
   selector: 'app-logout',
   imports: [],
   templateUrl: './logout.html',
-  styleUrl: './logout.css',
 })
 export class Logout {
-  constructor(
-    private http: HttpClient,
-    private user: UserService,
-  ) {
-  }
+  // region DI
 
-  logout(): void {
-    lastValueFrom(
-      this.http.post(`${reverseProxyUri}/logout`, null, {
-        headers: {
-          'X-POST-LOGOUT-SUCCESS-URI': baseUri,
-        },
-        observe: 'response',
-      }),
-    )
-      .then((resp: HttpResponse<Object>): void => {
-        const logoutUri: string | null = resp.headers.get('Location');
-        if (!!logoutUri) {
-          window.location.href = logoutUri;
-        }
-      })
-      .finally((): void => {
-        this.user.refresh();
-      });
+  private readonly userService: UserService = inject(UserService);
+  private readonly http: UserHttpService = inject(UserHttpService);
+
+  // endregion
+
+  async logout(): Promise<void> {
+    try {
+      const resp: HttpResponse<void> = await firstValueFrom(this.http.logout());
+      const logoutUri: string | null = resp.headers.get('Location');
+      if (logoutUri && typeof window !== 'undefined') {
+        window.location.href = logoutUri;
+      }
+    } finally {
+      this.userService.refresh();
+    }
   }
 }

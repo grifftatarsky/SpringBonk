@@ -1,18 +1,18 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../config/app-tokens';
 
 @Injectable({ providedIn: 'root' })
 export class BaseHttpService {
-  protected apiBase: string;
+  // region DI
 
-  constructor(
-    protected http: HttpClient,
-    @Inject(API_BASE_URL) apiBaseUrl: string,
-  ) {
-    this.apiBase = apiBaseUrl;
-  }
+  protected readonly http: HttpClient = inject(HttpClient);
+  protected readonly apiBase: string = inject(API_BASE_URL);
+
+  // endregion
+
+  // region G/P/P/D Methods
 
   /**
    * Perform a GET request
@@ -68,6 +68,9 @@ export class BaseHttpService {
     });
   }
 
+  // endregion
+
+  // region Helper Methods
   /**
    * Normalizes various param types to HttpParams
    */
@@ -75,9 +78,10 @@ export class BaseHttpService {
     params?: HttpParams | { [param: string]: string | number | boolean },
   ): HttpParams | undefined {
     if (!params) return undefined;
+
     if (params instanceof HttpParams) return params;
 
-    let httpParams = new HttpParams();
+    let httpParams: HttpParams = new HttpParams();
     Object.entries(params).forEach(([key, value]): void => {
       httpParams = httpParams.set(key, String(value));
     });
@@ -104,5 +108,5 @@ export class BaseHttpService {
     return httpHeaders;
   }
 
-  // Errors are surfaced by a global interceptor; callers may still handle them locally if needed
+  // endregion
 }

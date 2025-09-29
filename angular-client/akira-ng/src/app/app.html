@@ -34,6 +34,7 @@
               </a>
             }
           }
+          <div class="h-6 w-px bg-gray-950/10 dark:bg-white/10"></div>
           <app-auth />
         </div>
         <div class="flex items-center gap-2.5 md:hidden">
@@ -49,6 +50,8 @@
                 d="M8 2a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM8 6.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM9.5 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Z"></path>
             </svg>
           </button>
+          <div class="h-6 mr-2.5 w-px bg-gray-950/10 dark:bg-white/10"></div>
+          <app-auth />
         </div>
       </div>
     </div>
@@ -227,9 +230,7 @@
         </div>
       </div>
     </div>
-    <!-- DO I NEED THIS? -->
-    <div class="fixed!" aria-hidden="true"><input type="text" tabindex="-1"></div>
-
+    
     <!-- BREAKER RIGHT -->
     <div
       class="row-span-full row-start-1 hidden border-x border-x-(--pattern-fg) bg-[image:repeating-linear-gradient(315deg,_var(--pattern-fg)_0,_var(--pattern-fg)_1px,_transparent_0,_transparent_50%)] bg-[size:10px_10px] bg-fixed [--pattern-fg:var(--color-black)]/5 md:col-start-3 md:block dark:[--pattern-fg:var(--color-white)]/10">
@@ -281,3 +282,5 @@
     </div>
   </div>
 }
+
+<app-toast-container />

@@ -10,7 +10,6 @@ import { AsyncPipe } from '@angular/common';
   selector: 'app-auth',
   imports: [Login, Logout, AsyncPipe],
   templateUrl: './auth.html',
-  styleUrl: './auth.css',
 })
 export class Auth {
   // TODO: Can I ... or should I ... replace this with a signal.

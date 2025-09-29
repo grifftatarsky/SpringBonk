@@ -1,25 +1,27 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { UserService } from '../user.service';
-import { Observable } from 'rxjs';
-import { baseUri, reverseProxyUri } from '../../app.config';
+import { baseUri } from '../../app.config';
+import { UserHttpService } from '../../common/http/user-http.service';
 
 @Component({
   selector: 'app-login',
   imports: [],
   templateUrl: './login.html',
-  styleUrl: './login.css',
 })
 export class Login {
+  // region DI
+
+  private readonly userService: UserService = inject(UserService);
+  private readonly http: UserHttpService = inject(UserHttpService);
+  private readonly router: Router = inject(Router);
+
+  // endregion
+
   private loginUri?: string;
 
-  constructor(
-    http: HttpClient,
-    private user: UserService,
-    private router: Router,
-  ) {
-    loginOptions(http).subscribe((opts: LoginOptionResponse[]): void => {
+  constructor() {
+    this.http.getLoginOptions().subscribe((opts: LoginOptionResponse[]): void => {
       if (opts.length) {
         this.loginUri = opts[0].loginUri;
       }
@@ -27,7 +29,7 @@ export class Login {
   }
 
   get isLoginEnabled(): boolean {
-    return !this.user.current.isAuthenticated;
+    return !this.userService.current.isAuthenticated;
   }
 
   login(): void {
@@ -45,10 +47,4 @@ export class Login {
     url.searchParams.append('post_login_failure_uri', `${baseUri}login-error`);
     window.location.href = url.toString();
   }
-
-}
-
-// TODO: I do not like this.
-function loginOptions(http: HttpClient): Observable<LoginOptionResponse[]> {
-  return http.get<LoginOptionResponse[]>(`${reverseProxyUri}/login-options`);
 }

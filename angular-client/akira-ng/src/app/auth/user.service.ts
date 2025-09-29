@@ -27,8 +27,8 @@ export class UserService {
           user.email !== this.user$.value.email ||
           (user.roles || []).toString() !== this.user$.value.roles.toString()
         ) {
-          const id = (user.id || '').toString();
-          const normalizedId =
+          const id: string = (user.id || '').toString();
+          const normalizedId: string =
             id && id !== '00000000-0000-0000-0000-000000000000' ? id : '';
           this.user$.next(
             normalizedId
@@ -41,6 +41,7 @@ export class UserService {
               : User.ANONYMOUS,
           );
         }
+
         if (user.exp > 0 && user.exp < Number.MAX_SAFE_INTEGER / 1000) {
           const now: number = Date.now();
           const expMs: number = user.exp * 1000; // Convert expiration time to milliseconds safely
@@ -65,6 +66,7 @@ export class UserService {
   }
 
   get valueChanges(): Observable<User> {
+    console.log('VALUE CHANGE');
     return this.user$;
   }
 

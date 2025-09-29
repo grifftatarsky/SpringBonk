@@ -1,5 +1,7 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
+import { NotificationService } from '../notification/notification.service';
+import { inject } from '@angular/core';
 
 function toDisplayMessage(error: HttpErrorResponse): string {
   if (error.error?.message) return error.error.message;
@@ -25,29 +27,31 @@ function toDisplayMessage(error: HttpErrorResponse): string {
   }
 }
 
-let lastErrorKey = '';
-let lastErrorAt = 0;
+let lastErrorKey: string = '';
+let lastErrorAt: number = 0;
 
 export const httpErrorInterceptor: HttpInterceptorFn = (req, next) => {
-  // const notify = inject(NotificationService);
+  const notify: NotificationService = inject(NotificationService);
+
   return next(req).pipe(
     catchError((err: unknown) => {
       if (err instanceof HttpErrorResponse) {
-        const url = (req.url || '').toString();
-        // Do not show toasts for expected background auth checks
+        const url: string = (req.url || '').toString();
+
         if (url.includes('/user/details') || url.includes('/login-options')) {
-          return throwError(() => err);
+          return throwError((): HttpErrorResponse => err);
         }
-        const message = toDisplayMessage(err);
-        // Coalesce duplicate errors within 800ms to reduce flicker
-        const key = `${err.status}:${message}`;
-        const now = Date.now();
+
+        const message: string = toDisplayMessage(err);
+        const key: string = `${err.status}:${message}`;
+        const now: number = Date.now();
+
         if (key !== lastErrorKey || now - lastErrorAt > 800) {
-          // notify.error(message);
+          notify.error(message);
           lastErrorKey = key;
           lastErrorAt = now;
         }
-        // Helpful console signal for local debugging
+
         console.error('[HTTP ERROR]', err.status, err.message, err);
       }
       return throwError(() => err);
