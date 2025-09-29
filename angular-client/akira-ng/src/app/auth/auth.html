@@ -1,0 +1,6 @@
+@if (!(isAuthenticated$ | async)) {
+  <app-login></app-login>
+}
+@if (isAuthenticated$ | async) {
+  <app-logout></app-logout>
+}

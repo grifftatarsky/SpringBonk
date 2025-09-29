@@ -7,6 +7,10 @@ import {
 } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
+import { Auth } from './auth/auth';
+import { UserService } from './auth/user.service';
+import { map, Observable } from 'rxjs';
+import { User } from './auth/user.model';
 
 type NavLink = Readonly<{
   label: string;
@@ -21,6 +25,7 @@ type NavLink = Readonly<{
   imports: [
     NgOptimizedImage,
     RouterOutlet,
+    Auth,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -43,6 +48,16 @@ export class App {
   ];
   protected readonly mobileMenuOpen: WritableSignal<boolean> = signal(false);
   protected readonly mobileMenuId: string = 'mobile-nav-panel';
+
+  readonly isAuthenticated$: Observable<boolean>;
+
+  constructor(
+    private readonly user: UserService,
+  ) {
+    this.isAuthenticated$ = this.user.valueChanges.pipe(
+      map((user: User): boolean => user.isAuthenticated),
+    );
+  }
 
   protected toggleMobileMenu(): void {
     this.mobileMenuOpen.update((isOpen: boolean): boolean => !isOpen);
