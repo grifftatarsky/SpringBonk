@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   HostListener,
+  inject,
   signal,
   WritableSignal,
 } from '@angular/core';
@@ -34,13 +35,29 @@ type NavLink = Readonly<{
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
+  // region DI
+
+  private readonly userService: UserService = inject(UserService);
+
+  // endregion
+
+  // What do I do with this again...?
   protected readonly title: WritableSignal<string> = signal('Akira');
+  readonly isAuthenticated$: Observable<boolean>;
+
+  constructor() {
+    this.isAuthenticated$ = this.userService.valueChanges.pipe(
+      map((user: User): boolean => user.isAuthenticated),
+    );
+  }
+
+  // region Mobile Menu
 
   protected readonly navLinks: readonly NavLink[] = [
     { label: 'Docs', href: '/docs' },
     { label: 'Blog', href: '/blog' },
     { label: 'Showcase', href: '/showcase' },
-    { label: 'Sponsor', href: '/sponsor' },
+    { label: 'Profile', href: '/profile' },
     {
       label: 'GitHub',
       href: 'https://github.com/grifftatarsky/SpringBonk',
@@ -50,16 +67,6 @@ export class App {
   ];
   protected readonly mobileMenuOpen: WritableSignal<boolean> = signal(false);
   protected readonly mobileMenuId: string = 'mobile-nav-panel';
-
-  readonly isAuthenticated$: Observable<boolean>;
-
-  constructor(
-    private readonly user: UserService,
-  ) {
-    this.isAuthenticated$ = this.user.valueChanges.pipe(
-      map((user: User): boolean => user.isAuthenticated),
-    );
-  }
 
   protected toggleMobileMenu(): void {
     this.mobileMenuOpen.update((isOpen: boolean): boolean => !isOpen);
@@ -75,4 +82,6 @@ export class App {
   protected handleEscape(): void {
     this.closeMobileMenu();
   }
+
+  // endregion
 }
