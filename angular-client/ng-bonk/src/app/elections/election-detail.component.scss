@@ -199,6 +199,44 @@
   padding: 10px;
 }
 
+.candidate-card .remove-btn {
+  color: #ff6b6b;
+}
+
+.my-nominations {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px dashed rgba(58, 255, 131, 0.3);
+  border-radius: 6px;
+  background: rgba(0, 20, 7, 0.6);
+}
+
+.my-nominations h4 {
+  margin: 0;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #67ff9c;
+}
+
+.my-nominations-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.my-nomination-chip {
+  background: rgba(0, 40, 14, 0.75);
+  border: 1px solid rgba(58, 255, 131, 0.45);
+  color: #b5ffd0;
+}
+
+.my-nomination-chip[disabled] {
+  opacity: 0.6;
+}
+
 .candidate-card .cover {
   width: 48px;
   height: 70px;

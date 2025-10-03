@@ -142,7 +142,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   ranked$!: Observable<CandidateResponse[]>;
   unranked$!: Observable<CandidateResponse[]>;
   order$!: Observable<string[]>;
-  myNominationId$!: Observable<string | null>;
+  myNominations$!: Observable<CandidateResponse[]>;
   isHandset$!: Observable<boolean>;
   private pending: boolean = false;
   ballotLocked: boolean = false;
@@ -156,6 +156,7 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
   private closureToastShown = false;
   private awaitingClosure = false;
   private candidateMap: Map<string, CandidateResponse> = new Map();
+  private myNominationIds: Set<string> = new Set();
   private closurePollSub: Subscription | null = null;
 
   ngOnInit(): void {
@@ -230,22 +231,44 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
         startWith(false)
       );
 
-    this.myNominationId$ = combineLatest([
+    this.myNominations$ = combineLatest([
       this.store.select(selectCandidates),
       this.userService.valueChanges,
     ]).pipe(
-      map(
-        ([candidates, u]: [CandidateResponse[], { id: string }]):
-          | string
-          | null => {
-          const myId: string = u?.id ?? '';
-          const mine: CandidateResponse | undefined = candidates.find(
-            (c: CandidateResponse): boolean => c.nominatorId === myId
-          );
-          return mine?.id ?? null;
+      map(([candidates, u]): CandidateResponse[] => {
+        const myId: string = u?.id ?? '';
+        if (!myId) {
+          return [];
         }
-      ),
-      distinctUntilChanged()
+        const mine: CandidateResponse[] = candidates.filter(
+          (candidate: CandidateResponse): boolean =>
+            candidate.nominatorId === myId
+        );
+        return [...mine].sort(
+          (a: CandidateResponse, b: CandidateResponse): number =>
+            new Date(a.createdDate).getTime() -
+            new Date(b.createdDate).getTime()
+        );
+      }),
+      tap((mine: CandidateResponse[]): void => {
+        this.myNominationIds = new Set(
+          mine.map((candidate: CandidateResponse): string => candidate.id)
+        );
+      }),
+      distinctUntilChanged(
+        (
+          prev: CandidateResponse[],
+          curr: CandidateResponse[]
+        ): boolean => {
+          if (prev.length !== curr.length) {
+            return false;
+          }
+          return prev.every(
+            (candidate: CandidateResponse, index: number): boolean =>
+              candidate.id === curr[index]?.id
+          );
+        }
+      )
     );
 
     this.store
@@ -390,45 +413,67 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       });
   }
 
-  removeMyNomination(candidateId: string): void {
-    // Find bookId for candidate so we can also remove it from "My Nominations" shelf
-    this.store
-      .select(selectCandidates)
-      .pipe(take(1))
-      .subscribe((candidates: CandidateResponse[]): void => {
-        const candidate: CandidateResponse | undefined = candidates.find(
-          (c: CandidateResponse) => c.id === candidateId
-        );
-        const bookId: string | undefined = candidate?.base?.id;
-        this.electionHttpService
-          .deleteCandidate(this.electionId, candidateId)
-          .subscribe((): void => {
+  openNominateSearch(): void {
+    import('./sheet/election-book-search.sheet').then(m => {
+      this.bottomSheet
+        .open(m.ElectionBookSearchSheetComponent, {
+          panelClass: ['sheet-max', 'book-sheet'],
+          data: { electionId: this.electionId },
+        })
+        .afterDismissed()
+        .pipe(take(1))
+        .subscribe(changed => {
+          if (changed) {
             this.store.dispatch(
               ElectionsActions.loadCandidates({ electionId: this.electionId })
             );
-            if (bookId) {
-              this.shelfHttpService
-                .getUserShelves()
-                .pipe(take(1))
-                .subscribe((shelves: ShelfResponse[]): void => {
-                  const nominationsShelf: ShelfResponse | undefined =
-                    shelves.find(
-                      (s: ShelfResponse): boolean =>
-                        s.title === 'My Nominations'
-                    );
-                  if (nominationsShelf) {
-                    this.bookHttpService
-                      .removeBookFromShelf(bookId, nominationsShelf.id)
-                      .pipe(take(1))
-                      .subscribe({
-                        next: (): void => {},
-                        error: (): void => {},
-                      });
-                  }
-                });
-            }
-          });
+          }
+        });
+    });
+  }
+
+  removeNomination(candidate: CandidateResponse): void {
+    if (this.ballotLocked) {
+      return;
+    }
+    const candidateId: string = candidate.id;
+    const bookId: string | undefined = candidate.base?.id;
+    this.electionHttpService
+      .deleteCandidate(this.electionId, candidateId)
+      .subscribe({
+        next: (): void => {
+          this.store.dispatch(
+            ElectionsActions.loadCandidates({ electionId: this.electionId })
+          );
+          if (bookId) {
+            this.shelfHttpService
+              .getUserShelves()
+              .pipe(take(1))
+              .subscribe((shelves: ShelfResponse[]): void => {
+                const nominationsShelf: ShelfResponse | undefined = shelves.find(
+                  (s: ShelfResponse): boolean => s.title === 'My Nominations'
+                );
+                if (nominationsShelf) {
+                  this.bookHttpService
+                    .removeBookFromShelf(bookId, nominationsShelf.id)
+                    .pipe(take(1))
+                    .subscribe({
+                      next: (): void => {},
+                      error: (): void => {},
+                    });
+                }
+              });
+          }
+          this.notify.success('Nomination removed');
+        },
+        error: (): void => {
+          this.notify.error('Failed to remove nomination');
+        },
       });
+  }
+
+  isMyNomination(candidateId: string): boolean {
+    return this.myNominationIds.has(candidateId);
   }
 
   runElection(): void {

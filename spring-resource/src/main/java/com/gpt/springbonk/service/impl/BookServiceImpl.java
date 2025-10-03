@@ -39,7 +39,7 @@ public class BookServiceImpl implements BookService {
       @NotNull BookRequest bookRequest,
       @NotNull UUID userId
   ) {
-    Set<UUID> shelfIds = bookRequest.getShelfIds();
+    Set<UUID> shelfIds = resolveShelfIds(bookRequest.getShelfIds(), userId);
 
     Book book;
 
@@ -57,16 +57,7 @@ public class BookServiceImpl implements BookService {
           bookRequest.getOpenLibraryId()
       );
       // Update the shelves.
-      if (shelfIds != null && !shelfIds.isEmpty()) {
-        shelfIds.forEach(shelfId -> addBookToShelf(book, shelfId, userId));
-      } else {
-        Shelf unshelvedShelf = shelfRepository.findByUserIdAndDefaultShelfAndTitle(
-            userId,
-            true,
-            UNSHELVED
-        ).orElseThrow(() -> new ResourceNotFoundException("Default shelf not found for user"));
-        addBookToShelf(book, unshelvedShelf.getId(), userId);
-      }
+      shelfIds.forEach(shelfId -> addBookToShelf(book, shelfId, userId));
       // Return the new book.
       return new BookResponse(bookRepository.saveAndFlush(book));
     } else {
@@ -134,21 +125,24 @@ public class BookServiceImpl implements BookService {
     book.setAuthor(bookUpdateRequest.getAuthor());
     book.setImageURL(bookUpdateRequest.getImageURL());
     book.setBlurb(bookUpdateRequest.getBlurb());
-    Set<UUID> shelfIds = bookUpdateRequest.getShelfIds();
-    // If shelf update is requested
-    // TODO: Fix this duplicated code.
-    if (shelfIds != null && !shelfIds.isEmpty()) {
-      shelfIds.forEach(shelfId -> addBookToShelf(book, shelfId, userId));
-    } else {
-      Shelf unshelvedShelf = shelfRepository.findByUserIdAndDefaultShelfAndTitle(
-          userId,
-          true,
-          UNSHELVED
-      ).orElseThrow(() -> new ResourceNotFoundException("Default shelf not found for user"));
-      addBookToShelf(book, unshelvedShelf.getId(), userId);
-    }
+    Set<UUID> shelfIds = resolveShelfIds(bookUpdateRequest.getShelfIds(), userId);
+    shelfIds.forEach(shelfId -> addBookToShelf(book, shelfId, userId));
 
     return new BookResponse(bookRepository.saveAndFlush(book));
+  }
+
+  private Set<UUID> resolveShelfIds(Set<UUID> shelfIds, UUID userId) {
+    if (shelfIds != null && !shelfIds.isEmpty()) {
+      return new HashSet<>(shelfIds);
+    }
+
+    Shelf unshelvedShelf = shelfRepository.findByUserIdAndDefaultShelfAndTitle(
+        userId,
+        true,
+        UNSHELVED
+    ).orElseThrow(() -> new ResourceNotFoundException("Default shelf not found for user"));
+
+    return new HashSet<>(List.of(unshelvedShelf.getId()));
   }
 
   @Override
