@@ -49,6 +49,13 @@
           @if (!myNomination) {
             <button
               mat-stroked-button
+              (click)="openNominateSearch()"
+              [disabled]="ballotLocked">
+              <mat-icon>library_add</mat-icon>
+              Search &amp; nominate
+            </button>
+            <button
+              mat-stroked-button
               (click)="openNominateDialog()"
               [disabled]="ballotLocked">
               <mat-icon>star</mat-icon>
@@ -111,7 +118,14 @@
         </button>
         <mat-menu #actionsMenu="matMenu">
           @if (!closed) {
-            @if (!myNomination) {
+          @if (!myNomination) {
+              <button
+                mat-menu-item
+                (click)="openNominateSearch()"
+                [disabled]="ballotLocked">
+                <mat-icon>library_add</mat-icon>
+                <span>Search &amp; nominate</span>
+              </button>
               <button
                 mat-menu-item
                 (click)="openNominateDialog()"

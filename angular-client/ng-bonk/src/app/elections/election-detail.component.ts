@@ -390,6 +390,25 @@ export class ElectionDetailComponent implements OnInit, OnDestroy {
       });
   }
 
+  openNominateSearch(): void {
+    import('./sheet/election-book-search.sheet').then(m => {
+      this.bottomSheet
+        .open(m.ElectionBookSearchSheetComponent, {
+          panelClass: ['sheet-max', 'book-sheet'],
+          data: { electionId: this.electionId },
+        })
+        .afterDismissed()
+        .pipe(take(1))
+        .subscribe(changed => {
+          if (changed) {
+            this.store.dispatch(
+              ElectionsActions.loadCandidates({ electionId: this.electionId })
+            );
+          }
+        });
+    });
+  }
+
   removeMyNomination(candidateId: string): void {
     // Find bookId for candidate so we can also remove it from "My Nominations" shelf
     this.store
