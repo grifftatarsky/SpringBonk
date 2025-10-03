@@ -3,7 +3,6 @@
   @let chip = statusChip(election);
   @let latest = latestResult$ | async;
   @let results = results$ | async;
-  @let myNomination = myNominationId$ | async;
   @let isHandset = (isHandset$ | async) === true;
   @let runningNow = (running$ | async) === true;
   @let submittingNow = (submitting$ | async) === true;
@@ -122,14 +121,22 @@
               (click)="openNominateSearch()"
               [disabled]="ballotLocked">
               <mat-icon>library_add</mat-icon>
-              <span>{{ hasMyNominations ? 'Add another via search' : 'Search &amp; nominate' }}</span>
+              <span>{{
+                hasMyNominations
+                  ? 'Add another via search'
+                  : 'Search &amp; nominate'
+              }}</span>
             </button>
             <button
               mat-menu-item
               (click)="openNominateDialog()"
               [disabled]="ballotLocked">
               <mat-icon>star</mat-icon>
-              <span>{{ hasMyNominations ? 'Add another from shelf' : 'Nominate from shelf' }}</span>
+              <span>{{
+                hasMyNominations
+                  ? 'Add another from shelf'
+                  : 'Nominate from shelf'
+              }}</span>
             </button>
             <button
               mat-menu-item
@@ -395,7 +402,9 @@
                             color="warn"
                             class="remove-btn"
                             aria-label="Remove nomination"
-                            (click)="removeNomination(c); $event.stopPropagation()"
+                            (click)="
+                              removeNomination(c); $event.stopPropagation()
+                            "
                             matTooltip="Remove your nomination">
                             <mat-icon>delete</mat-icon>
                           </button>

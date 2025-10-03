@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://localhost:7080',
+  apiBaseUrl: '',
   bffPath: '/bff',
 };
