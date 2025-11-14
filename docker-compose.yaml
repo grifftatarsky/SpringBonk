@@ -18,7 +18,7 @@ services:
     env_file:
       - .env
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
