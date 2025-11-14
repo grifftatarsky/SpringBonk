@@ -1,0 +1,110 @@
+<div class="grid gap-12 pb-24 text-gray-950 sm:gap-20 md:pb-40 dark:text-white">
+  <section>
+    <div aria-hidden="true"
+         class="flex h-14 items-end px-2 font-mono text-xs/6 whitespace-pre text-black/20 max-sm:px-4 sm:h-20 dark:text-white/25">
+      <span>Welcome back. Let's make this dashboard sing.</span>
+    </div>
+    <div
+      class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-gray-950/5 dark:before:bg-white/10 before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-gray-950/5 dark:after:bg-white/10 after:-left-[100vw]">
+      <h1 class="px-2 text-4xl tracking-tighter text-balance max-lg:font-medium max-sm:px-4 sm:text-5xl lg:text-6xl xl:text-7xl">
+        Your Bonk! control surface.
+      </h1>
+    </div>
+    <div aria-hidden="true"
+         class="flex h-6 items-end px-2 font-mono text-xs/6 whitespace-pre text-black/20 max-sm:px-4 sm:h-10 dark:text-white/25">
+      <span>Profile. Shelves. Elections. All tied together.</span>
+    </div>
+    <div
+      class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-gray-950/5 dark:before:bg-white/10 before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-gray-950/5 dark:after:bg-white/10 after:-left-[100vw]">
+      <p class="max-w-(--breakpoint-lg) px-2 text-base/7 font-medium text-gray-600 max-sm:px-4 dark:text-gray-400">
+        Keep an eye on your authenticated profile, boot up the shelves experience, and stage elections
+        for the club. The sections below start with the profile card fully wired; shelves and elections
+        follow the same structure so we can layer in their data streams next.
+      </p>
+    </div>
+  </section>
+
+  <section class="grid gap-6 lg:grid-cols-3">
+    <!-- PROFILE CARD -->
+    <article
+      class="relative lg:col-span-2 rounded-3xl border border-emerald-400/30 bg-black text-white/90 px-4 py-6 shadow-[0_0_40px_rgba(16,185,129,0.15)] sm:px-6">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div class="flex items-center gap-4">
+          <div
+            class="grid size-16 place-items-center rounded-2xl border border-emerald-300/40 bg-emerald-500/10 text-2xl font-semibold text-emerald-300">
+            {{ vm().initials }}
+          </div>
+          <div>
+            <p data-testid="profile-name" class="text-lg font-semibold tracking-tight sm:text-xl">
+              {{ vm().name }}
+            </p>
+            <p data-testid="profile-status" class="text-xs font-semibold uppercase tracking-[0.5em] text-emerald-300">
+              {{ vm().statusLabel }}
+            </p>
+          </div>
+        </div>
+        <button
+          data-testid="profile-refresh"
+          type="button"
+          class="inline-flex items-center gap-2 rounded-full border border-emerald-400/50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200 transition hover:bg-emerald-500/10"
+          (click)="refreshProfile()">
+          <span class="relative flex size-2">
+            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70"></span>
+            <span class="relative inline-flex size-2 rounded-full bg-emerald-400"></span>
+          </span>
+          Refresh
+        </button>
+      </div>
+
+      <dl class="mt-8 grid gap-6 sm:grid-cols-2">
+        <div
+          class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left shadow-inner shadow-black/40">
+          <dt class="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">Email</dt>
+          <dd data-testid="profile-email" class="mt-2 text-base font-medium text-white">
+            {{ vm().email }}
+          </dd>
+        </div>
+        <div
+          class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left shadow-inner shadow-black/40">
+          <dt class="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">Roles</dt>
+          <dd class="mt-3 flex flex-wrap gap-2">
+            @if (vm().roles.length) {
+              @for (role of vm().roles; track role) {
+                <span
+                  data-testid="profile-role-pill"
+                  class="rounded-full border border-emerald-300/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">
+                  {{ role }}
+                </span>
+              }
+            } @else {
+              <span class="text-sm text-gray-300">No roles assigned yet.</span>
+            }
+          </dd>
+        </div>
+      </dl>
+
+      <p data-testid="profile-helper" class="mt-6 text-sm text-emerald-100/80">
+        {{ vm().helperText }}
+      </p>
+
+      <div class="mt-6 flex flex-wrap gap-3">
+        <button type="button"
+                class="cursor-not-allowed rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-gray-400">
+          Manage profile (soon)
+        </button>
+        <a
+          class="inline-flex items-center gap-2 rounded-full border border-white/25 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/5"
+          href="/docs">
+          Docs
+          <svg viewBox="0 0 10 10" aria-hidden="true" class="size-2.5 fill-current">
+            <path d="M4.85355 0.146423L9.70711 4.99998L4.85355 9.85353L4.14645 9.14642L7.79289 5.49998H0V4.49998H7.79289L4.14645 0.85353L4.85355 0.146423Z"></path>
+          </svg>
+        </a>
+      </div>
+    </article>
+
+    <app-shelf-widget />
+
+    <app-election-widget />
+  </section>
+</div>

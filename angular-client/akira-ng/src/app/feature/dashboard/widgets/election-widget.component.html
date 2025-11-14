@@ -1,0 +1,83 @@
+@let state = vm();
+
+<div class="w-full px-2 sm:px-0">
+  <app-paginated-list
+    title="Elections"
+    [page]="state.page"
+    [filterValue]="state.filter"
+    filterPlaceholder="Filter by name"
+    [busy]="state.busy"
+    [hasItems]="!!state.items.length"
+    [emptyMessage]="state.emptyMessage"
+    [showPageSize]="true"
+    [pageSizeOptions]="[5, 10, 20]"
+    (filterValueChange)="onFilterChange($event)"
+    (pageChange)="onPage($event)"
+    (pageSizeChange)="onPageSize($event)">
+
+    <div list-actions class="flex w-full flex-col gap-3 text-white/80 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+      <label class="text-xs uppercase tracking-[0.4em] text-white/50" for="election-sort">Sort</label>
+      <select
+        id="election-sort"
+        class="rounded-full border border-white/10 bg-black/50 px-3 py-1 text-sm"
+        (change)="updateSort(sortOptions[$any($event.target).selectedIndex])"
+        aria-label="Sort elections">
+        @for (option of sortOptions; track option.label) {
+          <option [selected]="option.field === state.sortField && option.direction === state.sortDirection">
+            {{ option.label }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <ul class="flex flex-col gap-3">
+      @for (election of state.items; track election.id) {
+        <li>
+          <a [routerLink]="['/elections', election.id]"
+             class="group block rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-white transition hover:-translate-y-0.5 hover:border-sky-300/60 hover:bg-sky-500/10">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p class="text-lg font-semibold tracking-tight">
+                  {{ election.title }}
+                  <span class="status-pill" [class.emerald]="election.badgeTone === 'emerald'" [class.amber]="election.badgeTone === 'amber'" [class.sky]="election.badgeTone === 'sky'">
+                    {{ election.statusLabel }}
+                  </span>
+                </p>
+                <p class="text-sm text-white/60">
+                  {{ election.metaLabel }}
+                  @if (election.metaDate) {
+                    <span>
+                      {{ election.metaDate | date: 'mediumDate' }}
+                    </span>
+                  }
+                </p>
+              </div>
+              <div class="flex items-center gap-2 text-xs uppercase tracking-[0.4em] text-white/50">
+                Details
+                <svg viewBox="0 0 10 10" class="size-2.5 text-sky-300" aria-hidden="true">
+                  <path fill="currentColor" d="M4.85355 0.146423L9.70711 4.99998L4.85355 9.85353L4.14645 9.14642L7.79289 5.49998H0V4.49998H7.79289L4.14645 0.85353L4.85355 0.146423Z"></path>
+                </svg>
+              </div>
+            </div>
+          </a>
+        </li>
+      }
+    </ul>
+  </app-paginated-list>
+
+  @if (state.error) {
+    <p class="mt-3 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200" role="status">
+      {{ state.error }}
+    </p>
+  }
+
+  <div class="mt-4 flex justify-end">
+    <a routerLink="/elections"
+       class="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10">
+      Go to elections
+      <svg viewBox="0 0 10 10" class="size-2.5" aria-hidden="true">
+        <path fill="currentColor" d="M4.85355 0.146423L9.70711 4.99998L4.85355 9.85353L4.14645 9.14642L7.79289 5.49998H0V4.49998H7.79289L4.14645 0.85353L4.85355 0.146423Z"></path>
+      </svg>
+    </a>
+  </div>
+</div>

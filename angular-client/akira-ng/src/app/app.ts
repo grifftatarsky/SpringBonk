@@ -57,7 +57,7 @@ export class App {
     { label: 'Docs', href: '/docs' },
     { label: 'Blog', href: '/blog' },
     { label: 'Showcase', href: '/showcase' },
-    { label: 'Profile', href: '/profile' },
+    { label: 'Dashboard', href: '/dashboard' },
     {
       label: 'GitHub',
       href: 'https://github.com/grifftatarsky/SpringBonk',

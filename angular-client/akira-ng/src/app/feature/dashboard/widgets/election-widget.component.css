@@ -1,0 +1,28 @@
+:host {
+  display: block;
+}
+
+.status-pill {
+  margin-left: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+}
+
+.status-pill.emerald {
+  border-color: rgba(16, 185, 129, 0.4);
+  color: rgb(110, 231, 183);
+}
+
+.status-pill.amber {
+  border-color: rgba(251, 191, 36, 0.5);
+  color: rgba(251, 191, 36, 0.9);
+}
+
+.status-pill.sky {
+  border-color: rgba(125, 211, 252, 0.4);
+  color: rgba(125, 211, 252, 0.9);
+}
