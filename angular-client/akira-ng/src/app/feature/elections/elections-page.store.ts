@@ -233,7 +233,7 @@ export class ElectionsPageStore {
       );
     }
 
-    return this.http.getElectionsPage({ page: state.page, size: state.size, sort: 'createDate,desc' }).pipe(
+    return this.http.getElectionsPage({ page: state.page, size: state.size, sort: 'createdDate,desc' }).pipe(
       map((response) => mapSpringPagedResponse<ElectionResponse>(response)),
     );
   }

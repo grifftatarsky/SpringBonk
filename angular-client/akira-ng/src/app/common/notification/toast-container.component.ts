@@ -13,6 +13,11 @@ import { Toast } from './toast.model';
         animation-name: toastDrain;
         animation-timing-function: linear;
         animation-fill-mode: forwards;
+        transform-origin: left;
+      }
+
+      .toast-progress-track {
+        overflow: hidden;
       }
 
       @keyframes toastDrain {
@@ -31,36 +36,37 @@ import { Toast } from './toast.model';
          items-center sm:items-end gap-2 p-4 sm:p-6 pb-[max(env(safe-area-inset-bottom),1rem)]">
       @for (t of toasts(); track t.id) {
         <div
-          class="pointer-events-auto w-full max-w-sm rounded-2xl border border-black/5 bg-white/95 p-4 shadow-xl ring-1 ring-black/5 backdrop-blur-md
+          class="pointer-events-auto w-full max-w-sm rounded-2xl border border-black/5 bg-white/95 shadow-xl ring-1 ring-black/5 backdrop-blur-md
              dark:border-white/10 dark:bg-gray-900/95 dark:ring-white/10 transition ease-out duration-200
              data-[state=enter]:translate-y-2 data-[state=enter]:opacity-0 data-[state=show]:translate-y-0 data-[state=show]:opacity-100
-             self-center sm:self-end">
-          <div class="flex items-start gap-3">
-            <div>
-              <span [ngClass]="iconClass(t.kind)"
-                    class="inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold">
-                {{ iconGlyph(t.kind) }}
-              </span>
-            </div>
+             self-center sm:self-end relative overflow-hidden">
+          <div class="p-4 pb-6">
+            <div class="flex items-start gap-3">
+              <div>
+                <span [ngClass]="iconClass(t.kind)"
+                      class="inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold">
+                  {{ iconGlyph(t.kind) }}
+                </span>
+              </div>
 
-            <div class="min-w-0 flex-1 text-sm text-gray-800 dark:text-gray-100">
-              {{ t.message }}
-            </div>
+              <div class="min-w-0 flex-1 text-sm text-gray-800 dark:text-gray-100">
+                {{ t.message }}
+              </div>
 
-            <button
-              type="button"
-              class="rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-black/20 dark:text-gray-400 dark:hover:text-white dark:focus:ring-white/20"
-              aria-label="Close notification"
-              (click)="close(t.id)">
-              ✕
-            </button>
+              <button
+                type="button"
+                class="rounded-md p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-black/20 dark:text-gray-400 dark:hover:text-white dark:focus:ring-white/20"
+                aria-label="Close notification"
+                (click)="close(t.id)">
+                ✕
+              </button>
+            </div>
           </div>
-          <div class="mt-3 h-1 w-full rounded-full bg-black/10 dark:bg-white/20">
+          <div class="toast-progress-track absolute inset-x-0 bottom-0 h-1 bg-black/10 dark:bg-white/20">
             <span
-              class="block h-full rounded-full toast-bar"
+              class="block h-full toast-bar"
               [ngClass]="barClass(t.kind)"
-              [style.transform-origin]="'left'"
-              [style.animationDuration.ms]="t.timeoutMs"></span>
+              [style.animation-duration.ms]="t.timeoutMs"></span>
           </div>
         </div>
       }

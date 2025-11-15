@@ -14,5 +14,6 @@ import java.util.UUID;
 public record UserInfoResponse(UUID id, String username, String email, List<String> roles,
                                Long exp, ProfileAvatar avatar) {
   public static final UserInfoResponse ANONYMOUS =
-      new UserInfoResponse(new UUID(0L, 0L), "", "", List.of(), Long.MAX_VALUE, ProfileAvatar.BOOKLING_EMERALD);
+      new UserInfoResponse(new UUID(0L, 0L), "", "", List.of(), Long.MAX_VALUE,
+          ProfileAvatar.BONKLING_PLUM);
 }

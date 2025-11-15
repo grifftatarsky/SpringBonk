@@ -57,7 +57,7 @@ public class KeycloakUser {
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private ProfileAvatar avatar = ProfileAvatar.BOOKLING_EMERALD;
+  private ProfileAvatar avatar = ProfileAvatar.BONKLING_PLUM;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   @ToString.Exclude
@@ -78,7 +78,7 @@ public class KeycloakUser {
       "anonymous@anonymous.com",
       LocalDateTime.now(),
       LocalDateTime.now(),
-      ProfileAvatar.BOOKLING_EMERALD
+      ProfileAvatar.BONKLING_PLUM
   );
 
   // Shelfless :)

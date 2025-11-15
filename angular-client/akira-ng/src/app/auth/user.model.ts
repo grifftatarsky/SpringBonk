@@ -1,7 +1,7 @@
 import { ProfileAvatarId } from '../model/type/profile-avatar-id';
 
 export class User {
-  static readonly ANONYMOUS: User = new User('', '', '', [], 'BOOKLING_EMERALD');
+  static readonly ANONYMOUS: User = new User('', '', '', [], 'BONKLING_PLUM');
 
   constructor(
     readonly id: string,

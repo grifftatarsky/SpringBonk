@@ -35,10 +35,12 @@
       <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div class="flex items-center gap-4">
           <div class="relative">
-            <img [src]="selectedAvatar().asset"
-                 [alt]="selectedAvatar().label"
-                 class="size-16 rounded-2xl border border-emerald-300/40 bg-emerald-500/10 object-cover" />
-            <span class="absolute -bottom-2 -right-2 rounded-full border border-black/50 bg-emerald-400 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-black">
+            <span role="img"
+                  class="avatar-sprite size-16 rounded-2xl border border-emerald-300/40"
+                  [style.background-position]="selectedAvatar().spritePosition"
+                  [attr.aria-label]="selectedAvatar().label"></span>
+            <span
+              class="absolute -bottom-2 -right-2 rounded-full border border-black/50 bg-emerald-400 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-black">
               {{ selectedAvatar().label.split(' ')[1] }}
             </span>
           </div>
@@ -65,7 +67,8 @@
             class="inline-flex items-center gap-2 rounded-full border border-emerald-400/50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200 transition hover:bg-emerald-500/10"
             (click)="refreshProfile()">
             <span class="relative flex size-2">
-              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70"></span>
+              <span
+                class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70"></span>
               <span class="relative inline-flex size-2 rounded-full bg-emerald-400"></span>
             </span>
             Refresh
@@ -128,16 +131,20 @@
 
 @if (avatarPickerOpen()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center px-4">
-    <div class="absolute inset-0 bg-black/70" (click)="closeAvatarPicker()" aria-hidden="true"></div>
-    <section class="relative z-10 w-full max-w-3xl rounded-3xl border border-emerald-400/30 bg-gray-950 px-6 py-6 text-white shadow-[0_0_40px_rgba(16,185,129,0.35)]"
-             role="dialog"
-             aria-modal="true">
+    <div class="absolute inset-0 bg-black/70" (click)="closeAvatarPicker()"
+         aria-hidden="true"></div>
+    <section
+      class="relative z-10 w-full max-w-3xl rounded-3xl border border-emerald-400/30 bg-gray-950 px-6 py-6 text-white shadow-[0_0_40px_rgba(16,185,129,0.35)]"
+      role="dialog"
+      aria-modal="true">
       <header class="flex items-center justify-between">
         <div>
           <p class="text-xs uppercase tracking-[0.4em] text-emerald-300">Profile</p>
           <h2 class="text-2xl font-semibold">Choose your avatar</h2>
         </div>
-        <button type="button" class="text-sm text-white/70 hover:text-white" (click)="closeAvatarPicker()">Close</button>
+        <button type="button" class="text-sm text-white/70 hover:text-white"
+                (click)="closeAvatarPicker()">Close
+        </button>
       </header>
       <div class="mt-6 grid gap-4 sm:grid-cols-2">
         @for (option of avatarOptions; track option.id) {
@@ -146,12 +153,12 @@
                   [class.border-emerald-400]="vm().avatar === option.id"
                   [disabled]="avatarSaving()"
                   (click)="selectAvatar(option.id)">
-            <img [src]="option.asset" [alt]="option.label" class="size-16 rounded-2xl border border-white/10 object-cover" />
             <div>
               <p class="text-base font-semibold">{{ option.label }}</p>
               <p class="text-xs text-white/60">{{ option.tagline }}</p>
               @if (vm().avatar === option.id) {
-                <span class="mt-1 inline-flex items-center gap-1 rounded-full border border-emerald-300/40 px-2 py-0.5 text-[0.65rem] uppercase tracking-[0.3em] text-emerald-100">
+                <span
+                  class="mt-1 inline-flex items-center gap-1 rounded-full border border-emerald-300/40 px-2 py-0.5 text-[0.65rem] uppercase tracking-[0.3em] text-emerald-100">
                   Selected
                 </span>
               }

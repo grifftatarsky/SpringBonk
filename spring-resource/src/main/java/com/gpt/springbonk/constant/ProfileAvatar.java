@@ -1,19 +1,17 @@
 package com.gpt.springbonk.constant;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public enum ProfileAvatar {
-  BOOKLING_EMERALD("bookling-emerald"),
-  BOOKLING_SUNRISE("bookling-sunrise"),
-  BOOKLING_LAGOON("bookling-lagoon"),
-  BOOKLING_PLUM("bookling-plum"),
-  BOOKLING_EMBER("bookling-ember");
+  BONKLING_EMERALD("bonkling-emerald"),
+  BONKLING_SUNRISE("bonkling-sunrise"),
+  BONKLING_LAGOON("bonkling-lagoon"),
+  BONKLING_PLUM("bonkling-plum"),
+  BONKLING_EMBER("bonkling-ember"),
+  BONKLING_DIAMOND("bonkling-diamond");
 
   private final String assetKey;
-
-  ProfileAvatar(String assetKey) {
-    this.assetKey = assetKey;
-  }
-
-  public String getAssetKey() {
-    return assetKey;
-  }
 }

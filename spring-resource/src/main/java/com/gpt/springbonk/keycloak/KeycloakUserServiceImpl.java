@@ -86,7 +86,7 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
             email,
             now,
             now,
-            ProfileAvatar.BOOKLING_EMERALD
+            ProfileAvatar.BONKLING_PLUM
         ));
       }
 

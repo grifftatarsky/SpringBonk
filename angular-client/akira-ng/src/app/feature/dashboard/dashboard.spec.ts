@@ -16,7 +16,7 @@ class DashboardStoreStub {
     isAuthenticated: true,
     statusLabel: 'Session active',
     helperText: 'Helper text',
-    avatar: 'BOOKLING_EMERALD',
+    avatar: 'BONKLING_PLUM',
   });
 
   readonly refreshProfile = jasmine.createSpy('refreshProfile');
@@ -95,7 +95,8 @@ describe('Dashboard', () => {
 
   it('refreshes the profile when requested', () => {
     const compiled: HTMLElement = fixture.nativeElement as HTMLElement;
-    const refreshButton = compiled.querySelector('[data-testid="profile-refresh"]') as HTMLButtonElement;
+    const refreshButton = compiled.querySelector(
+      '[data-testid="profile-refresh"]') as HTMLButtonElement;
 
     refreshButton.click();
 

@@ -12,7 +12,7 @@ export class NotificationService {
   // endregion
 
   // region API
-  private readonly defaultTimeout = 15000;
+  private readonly defaultTimeout = 7500;
 
   success(message: string, ms: number = this.defaultTimeout): void {
     this.push('success', message, ms);

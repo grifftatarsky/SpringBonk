@@ -24,15 +24,6 @@
               (click)="toggleControls()">
         ⋮
       </button>
-      <button type="button"
-              class="inline-flex items-center gap-2 rounded-full border border-sky-400/40 bg-sky-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-sky-200 hover:bg-sky-500/20"
-              (click)="openCreate()">
-        ＋ New election
-      </button>
-      <a routerLink="/elections"
-         class="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10">
-        Elections →
-      </a>
     </div>
 
     @if (controlsOpen()) {
@@ -85,6 +76,20 @@
         </li>
       }
     </ul>
+
+    <div list-footer
+         class="mt-6 rounded-2xl border border-white/5 bg-black/40 px-4 py-3 text-white/70 sm:flex sm:items-center sm:justify-between">
+      <a routerLink="/elections"
+         class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:text-sky-200">
+        Elections →
+      </a>
+      <button type="button"
+              class="mt-3 inline-flex size-11 items-center justify-center rounded-full border border-sky-400/40 text-lg text-sky-200 transition hover:bg-sky-500/10 sm:mt-0"
+              aria-label="Create election"
+              (click)="openCreate()">
+        ＋
+      </button>
+    </div>
   </app-paginated-list>
 
   @if (state.error) {
