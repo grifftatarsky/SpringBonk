@@ -85,6 +85,8 @@ describe('ShelfWidgetComponent', () => {
   });
 
   it('opens the create modal and submits a new shelf', async () => {
+    (fixture.componentInstance as any).controlsOpen.set(true);
+    fixture.detectChanges();
     const createButton: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="open-create-shelf"]');
     createButton.click();
     fixture.detectChanges();

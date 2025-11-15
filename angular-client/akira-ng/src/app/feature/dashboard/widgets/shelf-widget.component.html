@@ -6,37 +6,54 @@
     [page]="state.page"
     [filterValue]="state.filter"
     filterPlaceholder="Filter by name"
+    [showFilterControl]="controlsOpen()"
     [busy]="state.busy"
     [hasItems]="!!state.items.length"
     [emptyMessage]="state.emptyMessage"
     [showPageSize]="true"
+    [showPageSizeControl]="controlsOpen()"
     [pageSizeOptions]="[5, 10, 20]"
     (filterValueChange)="onFilterChange($event)"
     (pageChange)="onPage($event)"
     (pageSizeChange)="onPageSize($event)">
 
-    <div list-actions class="flex w-full flex-col gap-3 text-white/80 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-      <div class="flex items-center gap-2">
-        <label class="text-xs uppercase tracking-[0.4em] text-white/50">Sort</label>
-        <select
-          class="rounded-full border border-white/10 bg-black/50 px-3 py-1 text-sm"
-          (change)="updateSort(sortOptions[$any($event.target).selectedIndex])"
-          aria-label="Sort shelves">
-          @for (option of sortOptions; track option.label) {
-            <option [selected]="option.field === state.sortField && option.direction === state.sortDirection">
-              {{ option.label }}
-            </option>
-          }
-        </select>
-      </div>
+    <div list-actions class="flex items-center gap-2">
       <button type="button"
-              data-testid="open-create-shelf"
-              class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200 hover:bg-emerald-500/20 sm:w-auto"
-              (click)="openCreate()">
-        <span aria-hidden="true">＋</span>
-        New shelf
+              class="rounded-full border border-white/15 p-2 text-white hover:bg-white/10"
+              [attr.aria-label]="controlsOpen() ? 'Hide shelf controls' : 'Show shelf controls'"
+              (click)="toggleControls()">
+        ⋮
       </button>
+      <a routerLink="/shelves"
+         class="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10">
+        Shelves →
+      </a>
     </div>
+
+    @if (controlsOpen()) {
+      <div list-actions class="flex w-full flex-col gap-3 text-white/80 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+        <div class="flex items-center gap-2">
+          <label class="text-xs uppercase tracking-[0.4em] text-white/50">Sort</label>
+          <select
+            class="rounded-full border border-white/10 bg-black/50 px-3 py-1 text-sm"
+            (change)="updateSort(sortOptions[$any($event.target).selectedIndex])"
+            aria-label="Sort shelves">
+            @for (option of sortOptions; track option.label) {
+              <option [selected]="option.field === state.sortField && option.direction === state.sortDirection">
+                {{ option.label }}
+              </option>
+            }
+          </select>
+        </div>
+        <button type="button"
+                data-testid="open-create-shelf"
+                class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200 hover:bg-emerald-500/20 sm:w-auto"
+                (click)="openCreate()">
+          <span aria-hidden="true">＋</span>
+          New shelf
+        </button>
+      </div>
+    }
 
     <ul class="flex flex-col gap-3">
       @for (shelf of state.items; track shelf.id) {
@@ -73,15 +90,6 @@
     </p>
   }
 
-  <div class="mt-4 flex justify-end">
-    <a routerLink="/shelves"
-       class="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10">
-      Go to shelves
-      <svg viewBox="0 0 10 10" class="size-2.5" aria-hidden="true">
-        <path fill="currentColor" d="M4.85355 0.146423L9.70711 4.99998L4.85355 9.85353L4.14645 9.14642L7.79289 5.49998H0V4.49998H7.79289L4.14645 0.85353L4.85355 0.146423Z"></path>
-      </svg>
-    </a>
-  </div>
 </div>
 
 @if (createModalOpen()) {

@@ -15,10 +15,12 @@ export class PaginatedListComponent {
   @Input({ required: true }) page!: PageMetadata;
   @Input() filterValue = '';
   @Input() filterPlaceholder = 'Filter items';
+  @Input() showFilterControl = true;
   @Input() busy = false;
   @Input() hasItems = false;
   @Input() emptyMessage = 'No records yet.';
   @Input() showPageSize = false;
+  @Input() showPageSizeControl = true;
   @Input() pageSizeOptions: ReadonlyArray<number> = [5, 10, 20];
 
   @Output() filterValueChange = new EventEmitter<string>();

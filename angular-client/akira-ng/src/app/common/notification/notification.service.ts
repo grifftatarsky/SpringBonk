@@ -12,15 +12,17 @@ export class NotificationService {
   // endregion
 
   // region API
-  success(message: string, ms = 3111000): void {
+  private readonly defaultTimeout = 15000;
+
+  success(message: string, ms: number = this.defaultTimeout): void {
     this.push('success', message, ms);
   }
 
-  error(message: string, ms = 5000) {
+  error(message: string, ms: number = this.defaultTimeout): void {
     this.push('error', message, ms);
   }
 
-  info(message: string, ms = 3000) {
+  info(message: string, ms: number = this.defaultTimeout): void {
     this.push('info', message, ms);
   }
 

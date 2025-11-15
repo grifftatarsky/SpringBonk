@@ -1,8 +1,9 @@
 import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, interval, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, interval, Observable, Subscription } from 'rxjs';
 import { User } from './user.model';
 import { UserHttpService } from '../common/http/user-http.service';
 import { UserInfoResponse } from '../model/response/user-info-response.model';
+import { ProfileAvatarId } from '../model/type/profile-avatar-id';
 
 @Injectable({
   providedIn: 'root',
@@ -47,6 +48,7 @@ export class UserService {
                 user.username || '',
                 user.email || '',
                 user.roles || [],
+                user.avatar as ProfileAvatarId,
               )
               : User.ANONYMOUS,
           );
@@ -80,5 +82,21 @@ export class UserService {
 
   get current(): User {
     return this.user$.value;
+  }
+
+  async setAvatar(avatar: ProfileAvatarId): Promise<void> {
+    const response = await firstValueFrom(this.http.updateAvatar(avatar));
+    const normalizedId: string = (response.id || '').toString();
+    this.user$.next(
+      normalizedId
+        ? new User(
+          normalizedId,
+          response.username || '',
+          response.email || '',
+          response.roles || [],
+          response.avatar as ProfileAvatarId,
+        )
+        : User.ANONYMOUS,
+    );
   }
 }

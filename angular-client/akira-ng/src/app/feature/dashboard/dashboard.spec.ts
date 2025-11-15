@@ -16,9 +16,11 @@ class DashboardStoreStub {
     isAuthenticated: true,
     statusLabel: 'Session active',
     helperText: 'Helper text',
+    avatar: 'BOOKLING_EMERALD',
   });
 
   readonly refreshProfile = jasmine.createSpy('refreshProfile');
+  readonly setAvatar = jasmine.createSpy('setAvatar');
 }
 
 class ShelfWidgetStoreStub {

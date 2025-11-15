@@ -4,7 +4,9 @@ import { ElectionResponse, ElectionStatus } from '../../../model/response/electi
 import { PaginatedResult, PageMetadata, SortDirection } from '../../../model/type/pagination';
 import { mapSpringPagedResponse, paginateArray, createEmptyResult } from '../../../common/util/pagination.util';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { catchError, debounceTime, map, of, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, firstValueFrom, map, of, switchMap, tap } from 'rxjs';
+import { ElectionRequest } from '../../../model/request/election-request.model';
+import { NotificationService } from '../../../common/notification/notification.service';
 
 export interface ElectionListItem {
   id: string;
@@ -35,21 +37,26 @@ interface ElectionQueryState extends ElectionPageRequest {
   filter: string;
   sortField: ElectionSortField;
   direction: SortDirection;
+  refreshKey: number;
 }
 
 @Injectable({ providedIn: 'root' })
 export class ElectionWidgetStore {
   private readonly electionHttp = inject(ElectionHttpService);
+  private readonly notifications = inject(NotificationService);
 
   private readonly pageIndex = signal(0);
   private readonly pageSize = signal(5);
   private readonly sortField = signal<ElectionSortField>('title');
   private readonly sortDirection = signal<SortDirection>('asc');
   private readonly filterTerm = signal('');
+  private readonly refreshKey = signal(0);
 
   private readonly busy = signal(false);
   private readonly error = signal<string | null>(null);
   private readonly result = signal<PaginatedResult<ElectionResponse>>(createEmptyResult<ElectionResponse>(5));
+  private readonly creating = signal(false);
+  private readonly createError = signal<string | null>(null);
 
   private readonly params = computed<ElectionQueryState>(() => ({
     page: this.pageIndex(),
@@ -58,9 +65,11 @@ export class ElectionWidgetStore {
     filter: this.filterTerm(),
     sortField: this.sortField(),
     direction: this.sortDirection(),
+    refreshKey: this.refreshKey(),
   }));
 
   readonly sortOptions = SORT_OPTIONS;
+  readonly createState = computed(() => ({ creating: this.creating(), error: this.createError() }));
 
   constructor() {
     toObservable(this.params)
@@ -85,6 +94,37 @@ export class ElectionWidgetStore {
           this.error.set(null);
         }
       });
+  }
+
+  clearCreateError(): void {
+    this.createError.set(null);
+  }
+
+  async createElection(request: { title: string; endDateTime: string | null }): Promise<boolean> {
+    if (this.creating()) {
+      return false;
+    }
+    this.creating.set(true);
+    this.createError.set(null);
+    const payload: ElectionRequest = {
+      title: request.title,
+      endDateTime: request.endDateTime,
+    };
+    try {
+      await firstValueFrom(this.electionHttp.createElection(payload));
+      this.pageIndex.set(0);
+      this.filterTerm.set('');
+      this.refreshKey.update((key) => key + 1);
+      this.notifications.success('Election created');
+      return true;
+    } catch (error) {
+      console.error('[ElectionWidgetStore] Failed to create election', error);
+      this.createError.set('Unable to create election right now.');
+      this.notifications.error('Unable to create election right now.');
+      return false;
+    } finally {
+      this.creating.set(false);
+    }
   }
 
   readonly vm = computed(() => {

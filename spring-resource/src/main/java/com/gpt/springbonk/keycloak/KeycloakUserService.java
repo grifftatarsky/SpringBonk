@@ -1,5 +1,6 @@
 package com.gpt.springbonk.keycloak;
 
+import com.gpt.springbonk.constant.ProfileAvatar;
 import com.gpt.springbonk.model.dto.response.UserInfoResponse;
 import java.util.UUID;
 import org.springframework.security.core.Authentication;
@@ -18,4 +19,6 @@ public interface KeycloakUserService {
   KeycloakUser updateUser(UUID id, KeycloakUser userDetails);
 
   void createDefaultShelf(String defaultShelfName, KeycloakUser user);
+
+  void updateAvatar(UUID userId, ProfileAvatar avatar);
 }

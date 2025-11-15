@@ -28,6 +28,7 @@ export class ShelfWidgetComponent {
   readonly vm = this.store.vm;
   readonly sortOptions = this.store.sortOptions;
   readonly createState = this.store.createState;
+  protected readonly controlsOpen = signal(false);
 
   protected readonly createForm = this.fb.group({
     title: ['', [Validators.required, Validators.maxLength(80)]],
@@ -54,6 +55,10 @@ export class ShelfWidgetComponent {
 
   protected updateSort(option: ShelfSortOption): void {
     this.store.setSort(option);
+  }
+
+  protected toggleControls(): void {
+    this.controlsOpen.update((open) => !open);
   }
 
   protected openCreate(): void {

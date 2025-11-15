@@ -93,6 +93,15 @@ public class ElectionController {
     return ResponseEntity.noContent().build();
   }
 
+  @PostMapping("/{id}/close")
+  @Operation(summary = "Close an open election and record results immediately")
+  public ResponseEntity<Void> closeElection(
+      @PathVariable UUID id
+  ) {
+    electionService.closeElection(id);
+    return ResponseEntity.ok().build();
+  }
+
   // GETS
 
   @GetMapping("/all")

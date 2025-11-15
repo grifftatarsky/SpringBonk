@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseHttpService } from './base-http.service';
 import { UserInfoResponse } from '../../model/response/user-info-response.model';
+import { ProfileAvatarId } from '../../model/type/profile-avatar-id';
 import { baseUri, reverseProxyUri } from '../../app.config';
 
 @Injectable({
@@ -12,6 +13,10 @@ export class UserHttpService extends BaseHttpService {
 
   getDetails(): Observable<UserInfoResponse> {
     return this.get<UserInfoResponse>(`${this.baseUrl}/details`);
+  }
+
+  updateAvatar(avatar: ProfileAvatarId): Observable<UserInfoResponse> {
+    return this.put<UserInfoResponse>(`${this.baseUrl}/avatar`, { avatar });
   }
 
   getLoginOptions(): Observable<LoginOptionResponse[]> {

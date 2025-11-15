@@ -2,6 +2,7 @@ import { computed, inject, Injectable } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { UserService } from '../../auth/user.service';
 import { User } from '../../auth/user.model';
+import { ProfileAvatarId } from '../../model/type/profile-avatar-id';
 
 export type DashboardViewModel = Readonly<{
   id: string;
@@ -12,7 +13,8 @@ export type DashboardViewModel = Readonly<{
   isAuthenticated: boolean;
   statusLabel: string;
   helperText: string;
-}>;
+  avatar: ProfileAvatarId;
+}>; 
 
 @Injectable({ providedIn: 'root' })
 export class DashboardStore {
@@ -44,12 +46,17 @@ export class DashboardStore {
       helperText: isAuthenticated
         ? 'Access elections and shelves without interruption.'
         : 'Sign in to vote, nominate books, and curate your shelves.',
+      avatar: user.avatar,
     };
   });
 
   refreshProfile(): void {
     console.debug('[DashboardStore] refreshProfile invoked');
     this.userService.refresh();
+  }
+
+  setAvatar(avatar: ProfileAvatarId): Promise<void> {
+    return this.userService.setAvatar(avatar);
   }
 
   private createInitials(name: string): string {

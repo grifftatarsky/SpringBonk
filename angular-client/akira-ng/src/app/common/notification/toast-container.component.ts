@@ -7,6 +7,24 @@ import { Toast } from './toast.model';
   selector: 'app-toast-container',
   standalone: true,
   imports: [NgClass],
+  styles: [
+    `
+      .toast-bar {
+        animation-name: toastDrain;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+      }
+
+      @keyframes toastDrain {
+        from {
+          transform: scaleX(1);
+        }
+        to {
+          transform: scaleX(0);
+        }
+      }
+    `,
+  ],
   template: `
     <section
       class="pointer-events-none fixed inset-x-0 bottom-0 z-[9999] flex flex-col
@@ -37,6 +55,13 @@ import { Toast } from './toast.model';
               ✕
             </button>
           </div>
+          <div class="mt-3 h-1 w-full rounded-full bg-black/10 dark:bg-white/20">
+            <span
+              class="block h-full rounded-full toast-bar"
+              [ngClass]="barClass(t.kind)"
+              [style.transform-origin]="'left'"
+              [style.animationDuration.ms]="t.timeoutMs"></span>
+          </div>
         </div>
       }
     </section>
@@ -60,6 +85,14 @@ export class ToastContainerComponent {
       'bg-green-600 text-white': kind === 'success',
       'bg-red-600 text-white': kind === 'error',
       'bg-blue-600 text-white': kind === 'info',
+    };
+  }
+
+  barClass(kind: 'success' | 'error' | 'info') {
+    return {
+      'bg-gradient-to-r from-emerald-400 to-emerald-200': kind === 'success',
+      'bg-gradient-to-r from-red-400 to-red-200': kind === 'error',
+      'bg-gradient-to-r from-sky-400 to-sky-200': kind === 'info',
     };
   }
 

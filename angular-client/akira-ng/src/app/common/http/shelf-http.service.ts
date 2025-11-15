@@ -28,4 +28,8 @@ export class ShelfHttpService extends BaseHttpService {
   createShelf(payload: ShelfRequest): Observable<ShelfResponse> {
     return this.post<ShelfResponse>(this.baseUrl, payload);
   }
+
+  getShelf(id: string): Observable<ShelfResponse> {
+    return this.get<ShelfResponse>(`${this.baseUrl}/${id}`);
+  }
 }
