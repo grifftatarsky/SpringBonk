@@ -33,7 +33,7 @@
     <div>
       <p class="text-xs uppercase tracking-[0.4em] text-emerald-200">How to use Akira</p>
       <h2 class="text-2xl font-semibold">Follow the primary nav</h2>
-      <p class="mt-2 text-sm text-white/70">Each nav item is a capability—dashboards, shelves, elections, and these docs. Walk through them in the order your club normally runs operations.</p>
+      <p class="mt-2 text-sm text-white/70">Each nav item is a capability.</p>
     </div>
     <span
       class="rounded-full border border-white/20 px-3 py-1 text-[0.7rem] uppercase tracking-[0.3em] text-white/70">Menu → page → action</span>
@@ -124,7 +124,9 @@
     <div>
       <p class="text-xs uppercase tracking-[0.4em] text-emerald-200">Tech stack</p>
       <h2 class="text-2xl font-semibold">Why Akira feels cohesive</h2>
-      <p class="mt-2 text-sm text-white/70">Angular 20 drives the UI, NGINX fronts a backend-for-frontend, Spring Boot and Java 24 handle business logic, and Keycloak secures the OAuth 2 flow—architecture keeps everything honest.</p>
+      <p class="mt-2 text-sm text-white/70">Angular 20 drives the UI, NGINX fronts a
+        backend-for-frontend, Spring Boot and Java 24 handle business logic, and Keycloak secures
+        the OAuth 2 flow—architecture keeps everything honest.</p>
     </div>
     <a href="https://github.com/grifftatarsky/SpringBonk"
        class="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10"
@@ -150,11 +152,19 @@
   <p class="mt-4 text-sm text-white/70">The Bonk! Book Club uses Akira to run preferential elections
     every reading cycle:</p>
   <ul class="mt-4 list-disc space-y-2 pl-5 text-sm text-white/80">
-    <li>Each meeting opens with nominations seeded from shelves or custom picks so the ballot mirrors what the club is reading right now.</li>
-    <li>Members rank as many titles as they want using American ranked-choice rules, and the election detail page surfaces every instant-runoff redistribution.</li>
-    <li>When the organizer taps “Close election,” the workflow locks the slate, announces the winning book, and queues the next reading cycle.</li>
+    <li>Each meeting opens with nominations seeded from shelves or custom picks so the ballot
+      mirrors what the club is reading right now.
+    </li>
+    <li>Members rank as many titles as they want using American ranked-choice rules, and the
+      election detail page surfaces every instant-runoff redistribution.
+    </li>
+    <li>When the organizer taps “Close election,” the workflow locks the slate, announces the
+      winning book, and queues the next reading cycle.
+    </li>
   </ul>
-  <p class="mt-6 text-sm text-white/70">Because every step is transparent, members see how their preferences roll up into the final outcome and why the winning book fits the club’s taste profile.</p>
+  <p class="mt-6 text-sm text-white/70">Because every step is transparent, members see how their
+    preferences roll up into the final outcome and why the winning book fits the club’s taste
+    profile.</p>
   <div class="mt-8 grid gap-4 lg:grid-cols-2">
     @for (point of adoptionPoints; track point.title) {
       <article class="rounded-2xl border border-white/10 bg-black/40 p-4">

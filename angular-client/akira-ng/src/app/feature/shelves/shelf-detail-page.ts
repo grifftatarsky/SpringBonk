@@ -42,6 +42,7 @@ export class ShelfDetailPage {
   protected readonly customActionError = signal<string | null>(null);
   protected readonly searchActionBusy = signal(false);
   protected readonly customActionBusy = signal(false);
+  protected readonly searchPitchInput = this.fb.control('');
 
   constructor() {
     this.route.paramMap
@@ -80,6 +81,7 @@ export class ShelfDetailPage {
     this.searchOpen.set(true);
     this.customOpen.set(false);
     this.searchInput.setValue('');
+    this.searchPitchInput.setValue('');
     this.searchActionError.set(null);
   }
 
@@ -102,7 +104,8 @@ export class ShelfDetailPage {
     this.searchActionError.set(null);
     this.searchActionBusy.set(true);
     try {
-      await this.store.addBookFromOpenLibrary(book);
+      await this.store.addBookFromOpenLibrary(book, this.searchPitchInput.value ?? '');
+      this.searchPitchInput.setValue('');
       this.closeSearch();
     } catch (error) {
       console.error(error);

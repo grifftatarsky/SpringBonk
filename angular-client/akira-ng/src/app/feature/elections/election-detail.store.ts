@@ -192,10 +192,11 @@ export class ElectionDetailStore {
     }
   }
 
-  async nominateFromOpenLibrary(doc: OpenLibraryBookResponse): Promise<void> {
+  async nominateFromOpenLibrary(doc: OpenLibraryBookResponse, pitch: string): Promise<void> {
     const electionId = this.electionId();
     if (!electionId) return;
 
+    const normalizedPitch = pitch?.trim() ?? '';
     const placeholderId = `tmp-${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
     const placeholder: CandidateResponse = {
       id: placeholderId,
@@ -204,7 +205,7 @@ export class ElectionDetailStore {
         title: doc.title || 'Untitled',
         author: doc.author_name?.[0] || 'Unknown author',
         imageURL: doc.cover_i ? this.bookHttp.getOpenLibraryCoverImageUrl(doc.cover_i, 'M') : '',
-        blurb: '',
+        blurb: normalizedPitch,
         openLibraryId: doc.key?.replace('/works/', '') || doc.key || '',
       },
       pitch: '',
@@ -221,7 +222,7 @@ export class ElectionDetailStore {
         title: placeholder.base.title,
         author: placeholder.base.author,
         imageURL: placeholder.base.imageURL,
-        blurb: '',
+        blurb: normalizedPitch,
         openLibraryId: placeholder.base.openLibraryId,
       };
       const createdBook = await firstValueFrom(this.bookHttp.createBook(request));
@@ -409,6 +410,7 @@ export class ElectionDetailStore {
         return { id: `temp-${candidateId}`, candidateId, userId: fallbackUser, rank };
       });
       this.votes.set(finalVotes);
+      this.syncVotesWithCandidates(previousVotes, finalVotes);
       this.votesError.set(null);
     } catch (error) {
       console.error('[ElectionDetailStore] Failed to reorder ballot', error);
@@ -426,6 +428,7 @@ export class ElectionDetailStore {
       return;
     }
 
+    const previousVotes = this.votes();
     this.setVoteBusy(candidateId, true);
     try {
       if (rank === null) {
@@ -437,6 +440,8 @@ export class ElectionDetailStore {
         this.upsertVote(vote);
         this.notifications.success('Vote recorded');
       }
+      const updatedVotes = this.votes();
+      this.syncVotesWithCandidates(previousVotes, updatedVotes);
       this.votesError.set(null);
     } catch (error) {
       console.error('[ElectionDetailStore] Failed to update vote', error);
@@ -624,6 +629,50 @@ export class ElectionDetailStore {
       ...current,
       [candidateId]: busy,
     }));
+  }
+
+  private syncVotesWithCandidates(previous: VoteResponse[], next: VoteResponse[]): void {
+    const previousMap = new Map(previous.map((vote) => [vote.candidateId, vote]));
+    const nextMap = new Map(next.map((vote) => [vote.candidateId, vote]));
+
+    previousMap.forEach((vote, candidateId) => {
+      if (!nextMap.has(candidateId)) {
+        this.updateCandidateVoteReference(candidateId, vote.userId, null);
+      }
+    });
+
+    nextMap.forEach((vote, candidateId) => {
+      this.updateCandidateVoteReference(candidateId, vote.userId, vote);
+    });
+  }
+
+  private updateCandidateVoteReference(
+    candidateId: string,
+    userId: string,
+    vote: VoteResponse | null,
+  ): void {
+    if (!userId) {
+      return;
+    }
+    this.candidates.update((candidates) =>
+      candidates.map((candidate) => {
+        if (candidate.id !== candidateId) {
+          return candidate;
+        }
+        const votes = [...(candidate.votes ?? [])];
+        const index = votes.findIndex((existing) => existing.userId === userId);
+        if (vote) {
+          if (index === -1) {
+            votes.push(vote);
+          } else {
+            votes[index] = vote;
+          }
+        } else if (index !== -1) {
+          votes.splice(index, 1);
+        }
+        return { ...candidate, votes };
+      }),
+    );
   }
 
   private normalizeOrder(order: readonly string[]): string[] {

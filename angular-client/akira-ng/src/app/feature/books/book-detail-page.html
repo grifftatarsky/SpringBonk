@@ -15,7 +15,7 @@
           <p class="text-xs font-semibold uppercase tracking-[0.5em] text-sky-300">Book</p>
           <h1 class="mt-2 text-4xl font-semibold tracking-tight text-white">{{ book.title }}</h1>
           <p class="mt-2 text-lg text-white/80">by {{ book.author || 'Unknown author' }}</p>
-          <p class="mt-6 text-sm text-white/70 whitespace-pre-line">{{ book.blurb || 'No blurb available yet.' }}</p>
+          <p class="mt-6 text-sm text-white/70 whitespace-pre-line">{{ book.blurb || 'No pitch available yet.' }}</p>
           <div class="mt-6 text-sm text-white/60">
             <p>Open Library ID: <span class="font-mono text-white">{{ book.openLibraryId || 'n/a' }}</span></p>
           </div>
@@ -27,6 +27,33 @@
                 {{ shelf.title }}
               </span>
             </div>
+          </div>
+          <div class="mt-8 rounded-3xl border border-white/10 bg-white/5 px-4 py-5">
+            <h2 class="text-xs font-semibold uppercase tracking-[0.4em] text-white/60">Edit pitch</h2>
+            <form class="mt-4 flex flex-col gap-3" [formGroup]="pitchForm" (ngSubmit)="savePitch()">
+              <textarea rows="4"
+                        formControlName="blurb"
+                        class="w-full rounded-2xl border border-white/15 bg-black/40 px-4 py-3 text-sm text-white focus:border-sky-400 focus:outline-none"
+                        placeholder="Why should the club read this?" ></textarea>
+              @if (pitchForm.controls.blurb.invalid && pitchForm.controls.blurb.touched) {
+                <p class="text-sm text-red-300">Pitch must be under 1000 characters.</p>
+              }
+              @if (vm().saveError) {
+                <p class="text-sm text-red-300">{{ vm().saveError }}</p>
+              }
+              <div class="flex flex-wrap gap-3">
+                <button type="button"
+                        class="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10"
+                        (click)="resetPitch()">
+                  Reset
+                </button>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 rounded-full border border-sky-400/60 bg-sky-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-sky-100 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                        [disabled]="pitchForm.invalid || vm().savingPitch">
+                  {{ vm().savingPitch ? 'Saving…' : 'Save pitch' }}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>

@@ -90,19 +90,20 @@ export class ShelfDetailStore {
     this.pageIndex.set(0);
   }
 
-  async addBookFromOpenLibrary(doc: OpenLibraryBookResponse): Promise<void> {
+  async addBookFromOpenLibrary(doc: OpenLibraryBookResponse, pitch: string): Promise<void> {
     const shelfId = this.shelfId();
     if (!shelfId) {
       throw new Error('Shelf not loaded');
     }
 
+    const normalizedPitch = pitch?.trim() ?? '';
     const tempId = `tmp-${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
     const placeholder: BookResponse = {
       id: tempId,
       title: doc.title || 'Untitled',
       author: doc.author_name?.[0] || 'Unknown author',
       imageURL: doc.cover_i ? this.bookHttp.getOpenLibraryCoverImageUrl(doc.cover_i, 'M') : '',
-      blurb: doc.has_fulltext ? 'Full text available via Open Library.' : '',
+      blurb: normalizedPitch || (doc.has_fulltext ? 'Full text available via Open Library.' : ''),
       openLibraryId: doc.key?.replace('/works/', '') || doc.key || '',
       shelves: [],
     };

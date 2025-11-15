@@ -17,29 +17,40 @@
     (pageChange)="onPage($event)"
     (pageSizeChange)="onPageSize($event)">
 
-    <div list-actions class="flex items-center gap-2">
+    <div list-actions
+         class="flex flex-wrap items-center gap-2 text-xs text-white/70 sm:justify-end">
       <button type="button"
-              class="rounded-full border border-white/15 p-2 text-white hover:bg-white/10"
-              [attr.aria-label]="controlsOpen() ? 'Hide election controls' : 'Show election controls'"
-              (click)="toggleControls()">
-        ⋮
+              class="relative inline-grid size-7 place-items-center rounded-md text-gray-950 hover:bg-gray-950/5 dark:text-white dark:hover:bg-white/10"
+              aria-label="Navigation" aria-haspopup="true"
+              (click)="toggleControls()"><span
+        class="absolute top-1/2 left-1/2 size-11 -translate-1/2 pointer-fine:hidden"></span>
+        <svg viewBox="0 0 16 16" fill="currentColor" class="size-4">
+          <path
+            d="M8 2a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM8 6.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM9.5 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Z"></path>
+        </svg>
       </button>
+
     </div>
 
     @if (controlsOpen()) {
-      <div list-actions class="flex w-full flex-col gap-3 text-white/80 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-        <label class="text-xs uppercase tracking-[0.4em] text-white/50" for="election-sort">Sort</label>
-        <select
-          id="election-sort"
-          class="rounded-full border border-white/10 bg-black/50 px-3 py-1 text-sm"
-          (change)="updateSort(sortOptions[$any($event.target).selectedIndex])"
-          aria-label="Sort elections">
-          @for (option of sortOptions; track option.label) {
-            <option [selected]="option.field === state.sortField && option.direction === state.sortDirection">
-              {{ option.label }}
-            </option>
-          }
-        </select>
+      <div list-actions
+           class="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-white/80 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-1 items-center gap-2">
+          <label class="text-xs uppercase tracking-[0.3em] text-white/50"
+                 for="election-sort">Sort</label>
+          <select
+            id="election-sort"
+            class="flex-1 rounded-full border border-white/15 bg-black/40 px-3 py-1 text-sm"
+            (change)="updateSort(sortOptions[$any($event.target).selectedIndex])"
+            aria-label="Sort elections">
+            @for (option of sortOptions; track option.label) {
+              <option
+                [selected]="option.field === state.sortField && option.direction === state.sortDirection">
+                {{ option.label }}
+              </option>
+            }
+          </select>
+        </div>
       </div>
     }
 
@@ -52,7 +63,9 @@
               <div>
                 <p class="text-lg font-semibold tracking-tight">
                   {{ election.title }}
-                  <span class="status-pill" [class.emerald]="election.badgeTone === 'emerald'" [class.amber]="election.badgeTone === 'amber'" [class.sky]="election.badgeTone === 'sky'">
+                  <span class="status-pill" [class.emerald]="election.badgeTone === 'emerald'"
+                        [class.amber]="election.badgeTone === 'amber'"
+                        [class.sky]="election.badgeTone === 'sky'">
                     {{ election.statusLabel }}
                   </span>
                 </p>
@@ -68,7 +81,8 @@
               <div class="flex items-center gap-2 text-xs uppercase tracking-[0.4em] text-white/50">
                 Details
                 <svg viewBox="0 0 10 10" class="size-2.5 text-sky-300" aria-hidden="true">
-                  <path fill="currentColor" d="M4.85355 0.146423L9.70711 4.99998L4.85355 9.85353L4.14645 9.14642L7.79289 5.49998H0V4.49998H7.79289L4.14645 0.85353L4.85355 0.146423Z"></path>
+                  <path fill="currentColor"
+                        d="M4.85355 0.146423L9.70711 4.99998L4.85355 9.85353L4.14645 9.14642L7.79289 5.49998H0V4.49998H7.79289L4.14645 0.85353L4.85355 0.146423Z"></path>
                 </svg>
               </div>
             </div>
@@ -93,7 +107,9 @@
   </app-paginated-list>
 
   @if (state.error) {
-    <p class="mt-3 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200" role="status">
+    <p
+      class="mt-3 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+      role="status">
       {{ state.error }}
     </p>
   }
@@ -102,31 +118,43 @@
 @if (createOpen()) {
   <div class="fixed inset-0 z-40 flex items-center justify-center px-4">
     <div class="absolute inset-0 bg-black/70" (click)="closeCreate()" aria-hidden="true"></div>
-    <section class="relative z-10 w-full max-w-xl rounded-3xl border border-sky-400/30 bg-gray-950 px-6 py-6 text-white shadow-[0_0_40px_rgba(56,189,248,0.35)]" role="dialog" aria-modal="true">
+    <section
+      class="relative z-10 w-full max-w-xl rounded-3xl border border-sky-400/30 bg-gray-950 px-6 py-6 text-white shadow-[0_0_40px_rgba(56,189,248,0.35)]"
+      role="dialog" aria-modal="true">
       <header class="flex items-center justify-between">
         <div>
           <p class="text-xs font-semibold uppercase tracking-[0.4em] text-sky-300">Elections</p>
           <h2 class="text-2xl font-semibold">Create election</h2>
         </div>
-        <button type="button" class="text-sm text-white/70 hover:text-white" (click)="closeCreate()">Close</button>
+        <button type="button" class="text-sm text-white/70 hover:text-white"
+                (click)="closeCreate()">Close
+        </button>
       </header>
       <form class="mt-6 flex flex-col gap-4" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <label class="text-xs uppercase tracking-[0.4em] text-white/60">
           Title
-          <input type="text" formControlName="title" class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-sky-400 focus:outline-none" />
+          <input type="text" formControlName="title"
+                 class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-sky-400 focus:outline-none" />
         </label>
         <label class="text-xs uppercase tracking-[0.4em] text-white/60">
           End date (optional)
-          <input type="datetime-local" formControlName="endDateTime" class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-sky-400 focus:outline-none" />
+          <input type="datetime-local" formControlName="endDateTime"
+                 class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-sky-400 focus:outline-none" />
         </label>
         @if (createState().error) {
-          <p class="rounded-2xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200" role="alert">
+          <p
+            class="rounded-2xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200"
+            role="alert">
             {{ createState().error }}
           </p>
         }
         <div class="flex justify-end gap-3">
-          <button type="button" class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10" (click)="closeCreate()">Cancel</button>
-          <button type="submit" class="rounded-full border border-sky-400/60 bg-sky-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-sky-100 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+          <button type="button"
+                  class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10"
+                  (click)="closeCreate()">Cancel
+          </button>
+          <button type="submit"
+                  class="rounded-full border border-sky-400/60 bg-sky-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-sky-100 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                   [disabled]="createState().creating || createForm.invalid">
             {{ createState().creating ? 'Creating…' : 'Create election' }}
           </button>

@@ -62,12 +62,6 @@ import { Toast } from './toast.model';
               </button>
             </div>
           </div>
-          <div class="toast-progress-track absolute inset-x-0 bottom-0 h-1 bg-black/10 dark:bg-white/20">
-            <span
-              class="block h-full toast-bar"
-              [ngClass]="barClass(t.kind)"
-              [style.animation-duration.ms]="t.timeoutMs"></span>
-          </div>
         </div>
       }
     </section>

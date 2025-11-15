@@ -34,6 +34,7 @@ export class ElectionDetailPage {
   protected readonly searchOpen = signal(false);
   protected readonly customOpen = signal(false);
   protected readonly searchInput = this.fb.control('');
+  protected readonly searchPitchInput = this.fb.control('');
   protected readonly customForm = this.fb.group({
     title: ['', [Validators.required, Validators.maxLength(160)]],
     author: ['', [Validators.required, Validators.maxLength(120)]],
@@ -74,6 +75,7 @@ export class ElectionDetailPage {
     this.searchOpen.set(true);
     this.customOpen.set(false);
     this.searchInput.setValue('');
+    this.searchPitchInput.setValue('');
     this.closeMenus();
   }
 
@@ -96,7 +98,11 @@ export class ElectionDetailPage {
   }
 
   protected addFromOpenLibrary(result: OpenLibraryBookResponse): void {
-    void this.store.nominateFromOpenLibrary(result).then(() => this.closeSearch());
+    const pitch = this.searchPitchInput.value ?? '';
+    void this.store.nominateFromOpenLibrary(result, pitch).then(() => {
+      this.searchPitchInput.setValue('');
+      this.closeSearch();
+    });
   }
 
   protected async addCustomBook(): Promise<void> {

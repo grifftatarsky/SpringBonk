@@ -46,6 +46,10 @@ export class BookHttpService extends BaseHttpService {
     return this.post<BookResponse>(this.baseUrl, request);
   }
 
+  updateBook(id: string, request: BookRequest): Observable<BookResponse> {
+    return this.put<BookResponse>(`${this.baseUrl}/${id}`, request);
+  }
+
   getPagedBooksByShelfId(
     shelfId: string,
     page = 0,
