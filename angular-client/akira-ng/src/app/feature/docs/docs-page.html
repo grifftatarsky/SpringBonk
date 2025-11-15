@@ -1,17 +1,19 @@
-<section class="rounded-3xl border border-emerald-400/30 bg-black/90 px-4 py-12 text-white shadow-[0_0_35px_rgba(16,185,129,0.35)] sm:px-8">
+<section
+  class="rounded-3xl border border-emerald-400/30 bg-black/90 px-4 py-12 text-white shadow-[0_0_35px_rgba(16,185,129,0.35)] sm:px-8">
   <p class="text-xs font-semibold uppercase tracking-[0.5em] text-emerald-200">Documentation</p>
   <h1 class="mt-4 text-3xl font-semibold tracking-tight sm:text-5xl">Akira operations manual</h1>
   <p class="mt-4 max-w-4xl text-base text-white/80">
-    Everything in the header and footer nav is accounted for here. Use this page to understand how to
-    move through the dashboard, shelves, and elections surfaces, what powers them under the hood,
-    and how the Bonk! case study informs other ranked-choice deployments.
+    Use this page to understand how to move through the dashboard, shelves, and elections surfaces,
+    what powers them under the hood, and how the Bonk! case study informs other ranked-choice
+    deployments.
   </p>
   <div class="mt-6 flex flex-wrap gap-3">
     <a routerLink="/dashboard"
        class="inline-flex items-center gap-2 rounded-full border border-emerald-300/60 bg-emerald-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-100 hover:bg-emerald-500/20">
       Jump to dashboard
       <svg viewBox="0 0 10 10" class="size-2.5" aria-hidden="true" fill="currentColor">
-        <path d="M4.85355 0.146423L9.70711 4.99998L4.85355 9.85353L4.14645 9.14642L7.79289 5.49998H0V4.49998H7.79289L4.14645 0.85353L4.85355 0.146423Z" />
+        <path
+          d="M4.85355 0.146423L9.70711 4.99998L4.85355 9.85353L4.14645 9.14642L7.79289 5.49998H0V4.49998H7.79289L4.14645 0.85353L4.85355 0.146423Z" />
       </svg>
     </a>
     <a routerLink="/shelves"
@@ -25,20 +27,22 @@
   </div>
 </section>
 
-<section id="getting-started" class="mt-10 rounded-3xl border border-white/10 bg-white/5 px-5 py-8 text-white shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+<section id="getting-started"
+         class="mt-10 rounded-3xl border border-white/10 bg-white/5 px-5 py-8 text-white shadow-[0_0_30px_rgba(16,185,129,0.2)]">
   <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <div>
       <p class="text-xs uppercase tracking-[0.4em] text-emerald-200">How to use Akira</p>
       <h2 class="text-2xl font-semibold">Follow the primary nav</h2>
-      <p class="mt-2 text-sm text-white/70">Each main menu destination has a focused purpose. The cards below walk through those flows in
-        the order most clubs use them.</p>
+      <p class="mt-2 text-sm text-white/70">Each nav item is a capability—dashboards, shelves, elections, and these docs. Walk through them in the order your club normally runs operations.</p>
     </div>
-    <span class="rounded-full border border-white/20 px-3 py-1 text-[0.7rem] uppercase tracking-[0.3em] text-white/70">Menu → page → action</span>
+    <span
+      class="rounded-full border border-white/20 px-3 py-1 text-[0.7rem] uppercase tracking-[0.3em] text-white/70">Menu → page → action</span>
   </header>
   <div class="mt-6 grid gap-4 md:grid-cols-2">
     @for (guide of workflowGuides; track guide.name) {
       <article class="rounded-2xl border border-white/15 bg-black/40 p-5">
-        <div class="flex items-center justify-between text-xs uppercase tracking-[0.4em] text-white/50">
+        <div
+          class="flex items-center justify-between text-xs uppercase tracking-[0.4em] text-white/50">
           <span>{{ guide.badge }}</span>
           <span>{{ guide.name }}</span>
         </div>
@@ -53,9 +57,11 @@
 </section>
 
 <section id="navigation" class="mt-10 grid gap-6 lg:grid-cols-[3fr_2fr]">
-  <article class="rounded-3xl border border-white/10 bg-gradient-to-b from-emerald-950/80 to-black px-5 py-6 text-white">
+  <article
+    class="rounded-3xl border border-white/10 bg-gradient-to-b from-emerald-950/80 to-black px-5 py-6 text-white">
     <h2 class="text-2xl font-semibold">Main menu breakdown</h2>
-    <p class="mt-2 text-sm text-white/70">Header links stick to the authenticated experience so there is always a path back into the tools.</p>
+    <p class="mt-2 text-sm text-white/70">Header links stick to the authenticated experience so
+      there is always a path back into the tools.</p>
     <ul class="mt-6 space-y-4">
       @for (link of mainNavGuides; track link.label) {
         <li class="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -79,7 +85,8 @@
   </article>
   <article class="rounded-3xl border border-white/10 bg-white/5 px-5 py-6 text-white">
     <h2 class="text-2xl font-semibold">Footer references</h2>
-    <p class="mt-2 text-sm text-white/70">The footer surfaces long-form resources. Use them when you need context or supporting material.</p>
+    <p class="mt-2 text-sm text-white/70">The footer surfaces long-form resources. Use them when you
+      need context or supporting material.</p>
     <ul class="mt-6 space-y-4">
       @for (group of footerGuides; track group.label) {
         <li class="rounded-2xl border border-white/10 bg-black/40 p-4">
@@ -111,12 +118,13 @@
   </article>
 </section>
 
-<section id="tech" class="mt-10 rounded-3xl border border-emerald-400/20 bg-black/80 px-5 py-8 text-white">
+<section id="tech"
+         class="mt-10 rounded-3xl border border-emerald-400/20 bg-black/80 px-5 py-8 text-white">
   <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <div>
       <p class="text-xs uppercase tracking-[0.4em] text-emerald-200">Tech stack</p>
       <h2 class="text-2xl font-semibold">Why Akira feels cohesive</h2>
-      <p class="mt-2 text-sm text-white/70">We keep the front end and backend aligned so Pip-Boy visuals meet enterprise reliability.</p>
+      <p class="mt-2 text-sm text-white/70">Angular 20 drives the UI, NGINX fronts a backend-for-frontend, Spring Boot and Java 24 handle business logic, and Keycloak secures the OAuth 2 flow—architecture keeps everything honest.</p>
     </div>
     <a href="https://github.com/grifftatarsky/SpringBonk"
        class="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10"
@@ -135,14 +143,16 @@
   </div>
 </section>
 
-<section id="case-study" class="mt-10 rounded-3xl border border-white/10 bg-white/5 px-5 py-8 text-white">
+<section id="case-study"
+         class="mt-10 rounded-3xl border border-white/10 bg-white/5 px-5 py-8 text-white">
   <p class="text-xs uppercase tracking-[0.4em] text-emerald-200">Case study</p>
   <h2 class="mt-2 text-3xl font-semibold tracking-tight">Bonk! ranked-choice book club</h2>
-  <p class="mt-4 text-sm text-white/70">The Bonk! Book Club uses Akira to run preferential elections every reading cycle:</p>
+  <p class="mt-4 text-sm text-white/70">The Bonk! Book Club uses Akira to run preferential elections
+    every reading cycle:</p>
   <ul class="mt-4 list-disc space-y-2 pl-5 text-sm text-white/80">
-    <li>Members nominate titles straight from shelves or custom entries, so the ballot mirrors live shelf curation.</li>
-    <li>Ranked ballots capture everyone’s first, second, and third choices, letting the election detail page show instant-runoff rounds.</li>
-    <li>Once the organizer taps “Close election,” the workflow locks the slate, broadcasts the winning shelf, and queues the next cycle.</li>
+    <li>Each meeting opens with nominations seeded from shelves or custom picks so the ballot mirrors what the club is reading right now.</li>
+    <li>Members rank as many titles as they want using American ranked-choice rules, and the election detail page surfaces every instant-runoff redistribution.</li>
+    <li>When the organizer taps “Close election,” the workflow locks the slate, announces the winning book, and queues the next reading cycle.</li>
   </ul>
   <p class="mt-6 text-sm text-white/70">Because every step is transparent, members see how their preferences roll up into the final outcome and why the winning book fits the club’s taste profile.</p>
   <div class="mt-8 grid gap-4 lg:grid-cols-2">
@@ -153,7 +163,9 @@
       </article>
     }
   </div>
-  <p class="mt-6 text-sm text-white/70">Any quickstart org—from neighborhood councils to volunteer-run festivals—can fork these flows and trust that elections stay free, fair, and preferential without building the rails from scratch.</p>
+  <p class="mt-6 text-sm text-white/70">Any quickstart org—from neighborhood councils to
+    volunteer-run festivals—can fork these flows and trust that elections stay free, fair, and
+    preferential without building the rails from scratch.</p>
 </section>
 
 <section class="mt-10 flex flex-wrap gap-4">

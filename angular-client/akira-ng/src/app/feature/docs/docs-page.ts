@@ -19,17 +19,17 @@ type AdoptionPoint = Readonly<{ title: string; detail: string }>;
 export class DocsPage {
   protected readonly workflowGuides: ReadonlyArray<WorkflowGuide> = [
     {
-      name: 'Dashboard overview',
+      name: 'Dashboard operations',
       summary:
-        'Centralizes profile data, the shelf widget, and elections widget so you can see live status before drilling in.',
+        'Audit your authenticated profile, avatar picker, and toast telemetry while watching shelves and elections update live.',
       action: 'Open dashboard',
       href: '/dashboard',
       badge: '01',
     },
     {
-      name: 'Shelves service',
+      name: 'Shelf intelligence',
       summary:
-        'Create curated book collections, search Open Library, and feed nominations directly into elections from default shelves.',
+        'Create curated lists, paginate them Pip-Boy style, and feed the nominations widget so ballots stay aligned with current reading moods.',
       action: 'View shelves',
       href: '/shelves',
       badge: '02',
@@ -37,17 +37,17 @@ export class DocsPage {
     {
       name: 'Election control',
       summary:
-        'Spin up ranked-choice elections, reopen or close them, and manage candidate pools sourced from shelves or custom entries.',
+        'Schedule ranked-choice races, reopen or close them, and manage candidate pools backed by shelves, Open Library search, or custom entries.',
       action: 'Review elections',
       href: '/elections',
       badge: '03',
     },
     {
-      name: 'Book detail flyout',
+      name: 'Docs & telemetry',
       summary:
-        'Use /books/:id to inspect metadata, confirm ISBNs, and keep members aligned on the edition that will hit the ballot.',
-      action: 'Inspect a book',
-      href: '/books/ol12345m',
+        'Need the architecture map or troubleshooting steps? Everything lives here so you can stay oriented while shipping features.',
+      action: 'Explore docs',
+      href: '/docs',
       badge: '04',
     },
   ];
@@ -89,22 +89,22 @@ export class DocsPage {
     {
       title: 'Angular 20 + signals',
       detail:
-        'Standalone components, Control Flow syntax, and signal-based stores keep the UI reactive without zone overhead.',
+        'Standalone components, modern control flow, and signal stores keep the UI fast with OnPush change detection and zero zone overhead.',
     },
     {
-      title: 'Tailwind 4 Pip-Boy aesthetic',
+      title: 'NGINX BFF + OAuth 2',
       detail:
-        'Green-on-black palette, neon glows, and thin borders mirror the Pip-Boy HUD for every widget and marketing page.',
+        'The browser talks to NGINX, which fronts a backend-for-frontend so OAuth 2 + Keycloak sessions stay scoped per request.',
     },
     {
-      title: 'NgRx-style stores',
+      title: 'Spring Boot on Java 24',
       detail:
-        'Store classes use inject(), effects, and typed actions to orchestrate HTTP calls with optimistic updates and toasts.',
+        'The resource server uses virtual threads and purpose-built data structures so shelves and elections stay responsive under load.',
     },
     {
-      title: 'Spring resource server',
+      title: 'Postgres, Docker & Pi fleet',
       detail:
-        'Shelf, Book, and Election HTTP services talk to the Spring backend with proper auth tokens and pagination helpers.',
+        'Data lands in Postgres, containers are orchestrated with Docker + Kubernetes, and everything runs on a Raspberry Pi cluster in an undisclosed location.',
     },
   ];
 
