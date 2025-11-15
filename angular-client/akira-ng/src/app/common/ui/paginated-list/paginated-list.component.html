@@ -1,0 +1,80 @@
+<section class="rounded-3xl border border-emerald-400/20 bg-gray-950/80 text-white shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+  <header class="flex flex-col gap-4 border-b border-white/5 px-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-300">{{ title }}</p>
+      <p class="text-sm text-white/60">Page {{ page.number + 1 }} of {{ page.totalPages }}</p>
+    </div>
+    <div class="flex w-full flex-col gap-3 sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+      <ng-container *ngIf="showFilterControl">
+        <label class="sr-only" for="list-filter">{{ filterPlaceholder }}</label>
+        <div class="flex min-w-[220px] flex-1 items-center gap-3 rounded-full border border-white/10 bg-black/60 px-4 py-2 text-sm text-white focus-within:border-emerald-400">
+          <span class="text-emerald-300" aria-hidden="true">
+            <svg viewBox="0 0 24 24" class="size-4">
+              <path fill="currentColor"
+                    d="M15.5 14h-.79l-.28-.27A6 6 0 1 0 14 15.5l.27.28v.79l4.5 4.5L20 18.99l-4.5-4.49zM10 14a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z" />
+            </svg>
+          </span>
+          <input
+            id="list-filter"
+            type="search"
+            [value]="filterValue"
+            (input)="onFilterInput($event)"
+            [placeholder]="filterPlaceholder"
+            class="w-full border-none bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none" />
+        </div>
+      </ng-container>
+      <div class="flex items-center gap-3 sm:flex-none" *ngIf="showPageSize && showPageSizeControl">
+        <label class="text-xs uppercase tracking-[0.4em] text-white/50">Size</label>
+        <select class="rounded-full border border-white/10 bg-black/60 px-3 py-1 text-sm"
+                (change)="changePageSize($event)">
+          @for (option of pageSizeOptions; track option) {
+            <option [value]="option" [selected]="option === page.size">
+              {{ option }}
+            </option>
+          }
+        </select>
+      </div>
+      <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+        <ng-content select="[list-actions]"></ng-content>
+      </div>
+    </div>
+  </header>
+
+  <div class="px-3 py-6 sm:px-6">
+    <div *ngIf="busy" class="flex items-center gap-3 rounded-2xl border border-white/5 bg-black/40 px-4 py-3 text-sm">
+      <span class="relative flex size-3">
+        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400"></span>
+        <span class="relative inline-flex size-3 rounded-full bg-emerald-300"></span>
+      </span>
+      Loading data…
+    </div>
+
+    <div *ngIf="!busy && hasItems">
+      <ng-content></ng-content>
+    </div>
+
+    <p *ngIf="!busy && !hasItems" class="rounded-2xl border border-white/5 bg-black/40 px-4 py-5 text-center text-sm text-white/50">
+      {{ emptyMessage }}
+    </p>
+
+    <ng-content select="[list-footer]"></ng-content>
+  </div>
+
+  <footer class="flex items-center justify-between gap-4 border-t border-white/5 px-3 py-4 text-xs uppercase tracking-[0.3em] text-white/60 sm:px-6">
+    <span>{{ page.totalElements }} total</span>
+    <div class="flex items-center gap-2">
+      <button type="button"
+              (click)="goPrevious()"
+              [disabled]="!canGoPrevious"
+              class="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30">
+        Prev
+      </button>
+      <button type="button"
+              (click)="goNext()"
+              [disabled]="!canGoNext"
+              class="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30">
+        Next
+      </button>
+    </div>
+  </footer>
+</section>

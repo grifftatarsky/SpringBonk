@@ -1,0 +1,181 @@
+<section class="rounded-3xl border border-emerald-400/20 bg-black/80 px-4 py-10 text-white shadow-[0_0_30px_rgba(16,185,129,0.2)] sm:px-8">
+  <a routerLink="/shelves" class="text-xs uppercase tracking-[0.4em] text-white/50 hover:text-white/80">← Shelves</a>
+  @let shelfState = shelfVm();
+  <div *ngIf="shelfState.loading" class="mt-6 text-sm text-white/70">Loading shelf…</div>
+  <div *ngIf="shelfState.error && !shelfState.loading" class="mt-6 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+    {{ shelfState.error }}
+  </div>
+  <ng-container *ngIf="shelfState.shelf as shelf">
+    <div class="mt-6 flex flex-col gap-6 lg:flex-row lg:items-start">
+      <div class="flex-1">
+        <p class="text-xs font-semibold uppercase tracking-[0.5em] text-emerald-300">Shelf</p>
+        <h1 class="mt-2 text-4xl font-semibold text-white">{{ shelf.title }}</h1>
+        <p class="mt-2 text-sm text-white/60">Created {{ shelf.createdDate | date: 'mediumDate' }}</p>
+        <p class="mt-4 text-sm text-white/70">{{ shelf.books.length }} books</p>
+        <div class="mt-4 flex flex-wrap gap-3">
+          <span *ngIf="shelf.defaultShelf" class="rounded-full border border-emerald-300/30 px-2.5 py-0.5 text-[0.6rem] uppercase tracking-[0.2em] text-emerald-200/90">Default</span>
+          <button type="button" class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10" (click)="openSearch()">Search Open Library</button>
+          <button type="button" class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10" (click)="openCustom()">Add custom book</button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</section>
+
+<div class="mt-10">
+  @let booksState = booksVm();
+  <app-paginated-list
+    title="Books on this shelf"
+    [page]="booksState.page"
+    [filterValue]="booksState.filter"
+    filterPlaceholder="Filter books"
+    [busy]="booksState.loading"
+    [hasItems]="!!booksState.items.length"
+    [emptyMessage]="booksState.filter ? 'No books match this filter.' : 'Use the actions above to add your first book.'"
+    [showPageSize]="true"
+    [pageSizeOptions]="[4, 8, 12]"
+    (filterValueChange)="setFilter($event)"
+    (pageChange)="changePage($event)"
+    (pageSizeChange)="changePageSize($event)">
+
+    <ul class="flex flex-col gap-4">
+      @for (book of booksState.items; track book.id) {
+        <li class="rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-white">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-start gap-4">
+              <img [src]="book.imageURL || 'https://placehold.co/100x150/111111/FFFFFF?text=No+Cover'"
+                   [alt]="book.title + ' cover'"
+                   class="h-32 w-24 rounded-2xl border border-white/10 object-cover" />
+              <div>
+                <p class="text-xl font-semibold tracking-tight">{{ book.title }}</p>
+                <p class="text-sm text-white/70">{{ book.author || 'Unknown author' }}</p>
+                <p class="mt-2 text-sm text-white/60 line-clamp-3">{{ book.blurb || 'No blurb yet.' }}</p>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2 sm:items-end">
+              <a [routerLink]="['/books', book.id]"
+                 class="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10">
+                View
+              </a>
+              <button type="button"
+                      class="inline-flex items-center gap-2 rounded-full border border-red-400/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-red-200 hover:bg-red-500/10"
+                      (click)="removeBook(book.id)">
+                Remove
+              </button>
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  </app-paginated-list>
+
+  @if (booksState.error) {
+    <p class="mt-3 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+      {{ booksState.error }}
+    </p>
+  }
+</div>
+
+@if (searchOpen()) {
+  @let searchState = searchVm();
+  <div class="fixed inset-0 z-40 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-black/70" (click)="closeSearch()" aria-hidden="true"></div>
+    <section class="relative z-10 w-full max-w-3xl rounded-3xl border border-emerald-400/30 bg-gray-950 px-6 py-6 text-white shadow-[0_0_40px_rgba(16,185,129,0.35)]" role="dialog" aria-modal="true">
+      <header class="flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-300">Open Library</p>
+          <h2 class="text-2xl font-semibold">Search for a book</h2>
+        </div>
+        <button type="button" class="text-sm text-white/70 hover:text-white" (click)="closeSearch()">Close</button>
+      </header>
+      <div class="mt-4">
+        <input type="search" [formControl]="searchInput" placeholder="Search title or author" class="w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-emerald-400 focus:outline-none" />
+      </div>
+      <div class="mt-4">
+        <label class="text-xs uppercase tracking-[0.4em] text-white/60">
+          Pitch (optional)
+          <textarea rows="3" [formControl]="searchPitchInput" class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-sm text-white focus:border-emerald-400 focus:outline-none" placeholder="Why should this book land on the shelf?"></textarea>
+        </label>
+      </div>
+      @if (searchActionError()) {
+        <p class="mt-2 rounded-2xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200" role="alert">
+          {{ searchActionError() }}
+        </p>
+      }
+      <div class="mt-4 max-h-[60vh] overflow-y-auto">
+        @if (searchState.loading) {
+          <p class="text-sm text-white/70">Searching…</p>
+        }
+        @if (!searchState.loading && !searchState.results.length && searchState.query) {
+          <p class="text-sm text-white/70">No results yet. Try another query.</p>
+        }
+        <ul class="flex flex-col gap-3">
+          @for (result of searchState.results; track result.key) {
+            <li class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white">
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-lg font-semibold">{{ result.title }}</p>
+                  <p class="text-sm text-white/70">{{ result.author_name?.[0] || 'Unknown author' }}</p>
+                </div>
+                <button type="button" class="rounded-full border border-emerald-400/40 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200 hover:bg-emerald-500/10"
+                        [disabled]="searchActionBusy()"
+                        (click)="addFromOpenLibrary(result)">
+                  {{ searchActionBusy() ? 'Adding…' : 'Add' }}
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+        @if (searchState.canLoadMore) {
+          <div class="mt-4 flex justify-center">
+            <button type="button" class="rounded-full border border-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10" (click)="loadMoreSearch()">
+              Load more
+            </button>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+}
+
+@if (customOpen()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-black/70" (click)="closeCustom()" aria-hidden="true"></div>
+    <section class="relative z-10 w-full max-w-xl rounded-3xl border border-emerald-400/30 bg-gray-950 px-6 py-6 text-white shadow-[0_0_40px_rgba(16,185,129,0.35)]" role="dialog" aria-modal="true">
+      <header class="flex items-center justify-between">
+        <h2 class="text-2xl font-semibold">Add custom book</h2>
+        <button type="button" class="text-sm text-white/70 hover:text-white" (click)="closeCustom()">Close</button>
+      </header>
+      <form class="mt-6 flex flex-col gap-4" [formGroup]="customForm" (ngSubmit)="addCustomBook()">
+        <label class="text-xs uppercase tracking-[0.4em] text-white/60">
+          Title
+          <input type="text" formControlName="title" class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-emerald-400 focus:outline-none" />
+        </label>
+        <label class="text-xs uppercase tracking-[0.4em] text-white/60">
+          Author
+          <input type="text" formControlName="author" class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-emerald-400 focus:outline-none" />
+        </label>
+        <label class="text-xs uppercase tracking-[0.4em] text-white/60">
+          Cover image URL
+          <input type="url" formControlName="imageURL" class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-emerald-400 focus:outline-none" />
+        </label>
+        <label class="text-xs uppercase tracking-[0.4em] text-white/60">
+          Pitch
+          <textarea rows="4" formControlName="blurb" class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-emerald-400 focus:outline-none" placeholder="Give club members a reason to rally behind this pick."></textarea>
+        </label>
+        @if (customActionError()) {
+          <p class="rounded-2xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200" role="alert">
+            {{ customActionError() }}
+          </p>
+        }
+        <div class="flex justify-end gap-3">
+          <button type="button" class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10" (click)="closeCustom()">Cancel</button>
+          <button type="submit" class="rounded-full border border-emerald-400/60 bg-emerald-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-100 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  [disabled]="customForm.invalid || customActionBusy()">
+            {{ customActionBusy() ? 'Adding…' : 'Add book' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

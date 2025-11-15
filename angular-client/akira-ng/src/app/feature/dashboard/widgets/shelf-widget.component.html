@@ -1,0 +1,168 @@
+@let state = vm();
+
+<div class="w-full px-2 sm:px-0">
+  <app-paginated-list
+    title="Shelves"
+    [page]="state.page"
+    [filterValue]="state.filter"
+    filterPlaceholder="Filter by name"
+    [showFilterControl]="controlsOpen()"
+    [busy]="state.busy"
+    [hasItems]="!!state.items.length"
+    [emptyMessage]="state.emptyMessage"
+    [showPageSize]="true"
+    [showPageSizeControl]="controlsOpen()"
+    [pageSizeOptions]="[5, 10, 20]"
+    (filterValueChange)="onFilterChange($event)"
+    (pageChange)="onPage($event)"
+    (pageSizeChange)="onPageSize($event)">
+
+    <div list-actions
+         class="flex flex-wrap items-center gap-2 text-xs text-white/70 sm:justify-end">
+      <button type="button"
+              class="relative inline-grid size-7 place-items-center rounded-md text-gray-950 hover:bg-gray-950/5 dark:text-white dark:hover:bg-white/10"
+              aria-label="Navigation" aria-haspopup="true"
+              (click)="toggleControls()"><span
+        class="absolute top-1/2 left-1/2 size-11 -translate-1/2 pointer-fine:hidden"></span>
+        <svg viewBox="0 0 16 16" fill="currentColor" class="size-4">
+          <path
+            d="M8 2a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM8 6.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM9.5 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Z"></path>
+        </svg>
+      </button>
+
+    </div>
+
+    @if (controlsOpen()) {
+      <div list-actions
+           class="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-white/80 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-1 items-center gap-2">
+          <label class="text-xs uppercase tracking-[0.3em] text-white/50">Sort</label>
+          <select
+            class="flex-1 rounded-full border border-white/15 bg-black/40 px-3 py-1 text-sm"
+            (change)="updateSort(sortOptions[$any($event.target).selectedIndex])"
+            aria-label="Sort shelves">
+            @for (option of sortOptions; track option.label) {
+              <option
+                [selected]="option.field === state.sortField && option.direction === state.sortDirection">
+                {{ option.label }}
+              </option>
+            }
+          </select>
+        </div>
+      </div>
+    }
+
+    <ul class="flex flex-col gap-3">
+      @for (shelf of state.items; track shelf.id) {
+        <li>
+          <a [routerLink]="['/shelves', shelf.id]"
+             class="group block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white transition hover:-translate-y-0.5 hover:border-emerald-300/60 hover:bg-emerald-500/10">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p class="text-lg font-semibold tracking-tight">
+                  {{ shelf.title }}
+                  <span *ngIf="shelf.defaultShelf"
+                        class="ml-2 rounded-full border border-emerald-300/30 px-2 py-0.5 text-[0.6rem] uppercase tracking-[0.2em] text-emerald-200/90">
+                    Default
+                  </span>
+                </p>
+                <p class="text-sm text-white/60">{{ shelf.bookCount }} books</p>
+              </div>
+              <div class="flex items-center gap-2 text-xs uppercase tracking-[0.4em] text-white/50">
+                <span>{{ shelf.createdDate | date: 'mediumDate' }}</span>
+                <svg viewBox="0 0 10 10" class="size-2.5 text-emerald-300" aria-hidden="true">
+                  <path fill="currentColor"
+                        d="M4.85355 0.146423L9.70711 4.99998L4.85355 9.85353L4.14645 9.14642L7.79289 5.49998H0V4.49998H7.79289L4.14645 0.85353L4.85355 0.146423Z"></path>
+                </svg>
+              </div>
+            </div>
+          </a>
+        </li>
+      }
+    </ul>
+
+    <div list-footer
+         class="mt-6 rounded-2xl border border-white/5 bg-black/40 px-4 py-3 text-white/70 sm:flex sm:items-center sm:justify-between">
+      <a routerLink="/shelves"
+         class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:text-emerald-200">
+        Shelves →
+      </a>
+      <button type="button"
+              data-testid="open-create-shelf"
+              class="mt-3 inline-flex size-11 items-center justify-center rounded-full border border-emerald-400/40 text-lg text-emerald-200 transition hover:bg-emerald-500/10 sm:mt-0"
+              aria-label="Create shelf"
+              (click)="openCreate()">
+        ＋
+      </button>
+    </div>
+  </app-paginated-list>
+
+  @if (state.error) {
+    <p
+      class="mt-3 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+      role="status">
+      {{ state.error }}
+    </p>
+  }
+
+</div>
+
+@if (createModalOpen()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center px-4" aria-live="polite">
+    <div class="absolute inset-0 bg-black/70" (click)="closeCreate()" aria-hidden="true"></div>
+    <section
+      class="relative z-10 w-full max-w-md rounded-3xl border border-emerald-400/30 bg-gray-950 px-6 py-6 shadow-[0_0_40px_rgba(16,185,129,0.35)]"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="createTitleId"
+      [attr.aria-describedby]="createDescId">
+      <header class="mb-6">
+        <p class="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-300">Shelves</p>
+        <h2 class="mt-2 text-2xl font-semibold text-white" [id]="createTitleId">Create a shelf</h2>
+        <p class="mt-2 text-sm text-white/70" [id]="createDescId">
+          Give your shelf a short, descriptive name. You can always update it later.
+        </p>
+      </header>
+
+      <form class="space-y-6" (ngSubmit)="submitCreate()" [formGroup]="createForm" novalidate
+            data-testid="create-shelf-form">
+        <div>
+          <label for="create-shelf-name"
+                 class="text-xs font-semibold uppercase tracking-[0.4em] text-white/60">Shelf
+            name</label>
+          <input
+            #createTitleInput
+            id="create-shelf-name"
+            type="text"
+            formControlName="title"
+            autocomplete="off"
+            class="mt-3 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-emerald-400 focus:outline-none"
+            [attr.aria-invalid]="!!titleError"
+            [attr.aria-describedby]="titleError ? createDescId + ' ' + titleErrorId : createDescId" />
+          @if (titleError) {
+            <p class="mt-2 text-sm text-red-300" role="alert"
+               [id]="titleErrorId">{{ titleError }}</p>
+          }
+        </div>
+
+        <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <button type="button"
+                  class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10"
+                  (click)="closeCreate()">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/60 bg-emerald-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-100 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  [disabled]="createForm.invalid || createState().creating">
+            <span *ngIf="createState().creating" class="relative flex size-3">
+              <span
+                class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300"></span>
+              <span class="relative inline-flex size-3 rounded-full bg-emerald-100"></span>
+            </span>
+            <span>{{ createState().creating ? 'Creating' : 'Create shelf' }}</span>
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

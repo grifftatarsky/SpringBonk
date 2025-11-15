@@ -1,0 +1,11 @@
+:host {
+  display: contents;
+}
+
+.avatar-sprite {
+  background-image: url('/avatar/sprites.png');
+  background-size: 375%;
+  background-repeat: no-repeat;
+  background-color: rgba(15, 23, 42, 0.8);
+  display: inline-flex;
+}

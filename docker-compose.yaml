@@ -18,7 +18,7 @@ services:
     env_file:
       - .env
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -78,7 +78,7 @@ services:
     ports:
       - "7080:7080"
     volumes:
-      - ./angular-client/ng-bonk/dist/ng-bonk/browser:/usr/share/nginx/html:ro
+      - ./angular-client/akira-ng/dist/akira-ng/browser:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certs:/etc/ssl/certs:ro
       - ./logs:/var/log/nginx

@@ -1,5 +1,6 @@
 package com.gpt.springbonk.model.dto.response;
 
+import com.gpt.springbonk.constant.ProfileAvatar;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,7 +12,8 @@ import java.util.UUID;
  * @param exp      seconds from 1970-01-01T00:00:00Z UTC until the specified UTC date/time when the access token expires
  */
 public record UserInfoResponse(UUID id, String username, String email, List<String> roles,
-                               Long exp) {
+                               Long exp, ProfileAvatar avatar) {
   public static final UserInfoResponse ANONYMOUS =
-      new UserInfoResponse(new UUID(0L, 0L), "", "", List.of(), Long.MAX_VALUE);
+      new UserInfoResponse(new UUID(0L, 0L), "", "", List.of(), Long.MAX_VALUE,
+          ProfileAvatar.BONKLING_PLUM);
 }

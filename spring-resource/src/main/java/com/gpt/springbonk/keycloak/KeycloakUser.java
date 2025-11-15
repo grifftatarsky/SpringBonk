@@ -1,11 +1,14 @@
 package com.gpt.springbonk.keycloak;
 
+import com.gpt.springbonk.constant.ProfileAvatar;
 import com.gpt.springbonk.model.Election;
 import com.gpt.springbonk.model.Shelf;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -52,6 +55,10 @@ public class KeycloakUser {
   @Column
   private LocalDateTime lastAction;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private ProfileAvatar avatar = ProfileAvatar.BONKLING_PLUM;
+
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   @ToString.Exclude
   @EqualsAndHashCode.Exclude
@@ -70,7 +77,8 @@ public class KeycloakUser {
       List.of("ROLE_ANONYMOUS"),
       "anonymous@anonymous.com",
       LocalDateTime.now(),
-      LocalDateTime.now()
+      LocalDateTime.now(),
+      ProfileAvatar.BONKLING_PLUM
   );
 
   // Shelfless :)
@@ -82,7 +90,8 @@ public class KeycloakUser {
       List<String> roles,
       String email,
       LocalDateTime created,
-      LocalDateTime lastAction
+      LocalDateTime lastAction,
+      ProfileAvatar avatar
   ) {
     this.id = id;
     this.username = username;
@@ -92,5 +101,6 @@ public class KeycloakUser {
     this.email = email;
     this.created = created;
     this.lastAction = lastAction;
+    this.avatar = avatar;
   }
 }

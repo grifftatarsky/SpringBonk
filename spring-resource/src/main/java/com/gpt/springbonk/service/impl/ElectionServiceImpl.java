@@ -279,6 +279,7 @@ public class ElectionServiceImpl implements ElectionService {
     electionResultRepository.saveAndFlush(result);
 
     election.setStatus(Status.CLOSED);
+    election.setEndDateTime(ZonedDateTime.now());
     electionRepository.saveAndFlush(election);
   }
 

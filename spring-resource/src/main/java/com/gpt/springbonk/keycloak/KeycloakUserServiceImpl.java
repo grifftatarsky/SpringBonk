@@ -1,5 +1,6 @@
 package com.gpt.springbonk.keycloak;
 
+import com.gpt.springbonk.constant.ProfileAvatar;
 import com.gpt.springbonk.exception.ResourceNotFoundException;
 import com.gpt.springbonk.model.Shelf;
 import com.gpt.springbonk.model.dto.response.UserInfoResponse;
@@ -84,11 +85,21 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
             roles,
             email,
             now,
-            now
+            now,
+            ProfileAvatar.BONKLING_PLUM
         ));
       }
 
-      return new UserInfoResponse(userSubject, preferredUsername, email, roles, exp);
+      KeycloakUser syncedUser = getUserById(userSubject);
+
+      return new UserInfoResponse(
+          userSubject,
+          preferredUsername,
+          email,
+          roles,
+          exp,
+          syncedUser.getAvatar()
+      );
     }
     // MARK // NOTE: This returns an "anon" non-authenticated empty user.
     return UserInfoResponse.ANONYMOUS;
@@ -157,6 +168,13 @@ public class KeycloakUserServiceImpl implements KeycloakUserService {
     user.setLastAction(LocalDateTime.now());
 
     return keycloakUserRepository.save(user);
+  }
+
+  @Override
+  public void updateAvatar(@NotNull UUID userId, @NotNull ProfileAvatar avatar) {
+    KeycloakUser user = getUserById(userId);
+    user.setAvatar(avatar);
+    keycloakUserRepository.save(user);
   }
 
   // NOTE: This shouldn't be used outside of this class unless a special situation.

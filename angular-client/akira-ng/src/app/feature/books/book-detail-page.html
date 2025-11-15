@@ -1,0 +1,62 @@
+<section class="rounded-3xl border border-sky-400/30 bg-black/80 px-4 py-10 text-white shadow-[0_0_30px_rgba(56,189,248,0.25)] sm:px-8">
+  <a routerLink="/shelves" class="text-xs uppercase tracking-[0.4em] text-white/50 hover:text-white/80">← Shelves</a>
+  <ng-container *ngIf="vm() as state">
+    <div *ngIf="state.loading" class="mt-6 text-sm text-white/70">Loading book…</div>
+    <div *ngIf="state.error && !state.loading" class="mt-6 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+      {{ state.error }}
+    </div>
+    <ng-container *ngIf="state.book as book">
+      <div class="mt-6 flex flex-col gap-6 lg:flex-row">
+        <img
+          [src]="book.imageURL || 'https://placehold.co/400x600/111111/FFFFFF?text=No+Cover'"
+          [alt]="book.title + ' cover'"
+          class="w-full max-w-xs rounded-2xl border border-white/10 object-cover" />
+        <div class="flex-1">
+          <p class="text-xs font-semibold uppercase tracking-[0.5em] text-sky-300">Book</p>
+          <h1 class="mt-2 text-4xl font-semibold tracking-tight text-white">{{ book.title }}</h1>
+          <p class="mt-2 text-lg text-white/80">by {{ book.author || 'Unknown author' }}</p>
+          <p class="mt-6 text-sm text-white/70 whitespace-pre-line">{{ book.blurb || 'No pitch available yet.' }}</p>
+          <div class="mt-6 text-sm text-white/60">
+            <p>Open Library ID: <span class="font-mono text-white">{{ book.openLibraryId || 'n/a' }}</span></p>
+          </div>
+          <div class="mt-8">
+            <h2 class="text-xs font-semibold uppercase tracking-[0.4em] text-white/60">Shelves</h2>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span *ngFor="let shelf of book.shelves"
+                    class="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.3em] text-white/70">
+                {{ shelf.title }}
+              </span>
+            </div>
+          </div>
+          <div class="mt-8 rounded-3xl border border-white/10 bg-white/5 px-4 py-5">
+            <h2 class="text-xs font-semibold uppercase tracking-[0.4em] text-white/60">Edit pitch</h2>
+            <form class="mt-4 flex flex-col gap-3" [formGroup]="pitchForm" (ngSubmit)="savePitch()">
+              <textarea rows="4"
+                        formControlName="blurb"
+                        class="w-full rounded-2xl border border-white/15 bg-black/40 px-4 py-3 text-sm text-white focus:border-sky-400 focus:outline-none"
+                        placeholder="Why should the club read this?" ></textarea>
+              @if (pitchForm.controls.blurb.invalid && pitchForm.controls.blurb.touched) {
+                <p class="text-sm text-red-300">Pitch must be under 1000 characters.</p>
+              }
+              @if (vm().saveError) {
+                <p class="text-sm text-red-300">{{ vm().saveError }}</p>
+              }
+              <div class="flex flex-wrap gap-3">
+                <button type="button"
+                        class="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10"
+                        (click)="resetPitch()">
+                  Reset
+                </button>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 rounded-full border border-sky-400/60 bg-sky-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-sky-100 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                        [disabled]="pitchForm.invalid || vm().savingPitch">
+                  {{ vm().savingPitch ? 'Saving…' : 'Save pitch' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
+</section>
