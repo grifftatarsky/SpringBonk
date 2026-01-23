@@ -31,6 +31,14 @@ export class LoginPrompt implements OnInit {
       || this.route.snapshot.queryParams['returnURL']
       || '/';
 
+    // Subscribe to user changes to handle async auth state
+    this.userService.valueChanges.subscribe((user) => {
+      if (user.isAuthenticated && this.returnUrl !== '/') {
+        // User just authenticated, redirect to intended destination
+        this.router.navigateByUrl(this.returnUrl);
+      }
+    });
+
     // If user is already authenticated, redirect to returnUrl immediately
     if (this.userService.current.isAuthenticated) {
       this.router.navigateByUrl(this.returnUrl);
@@ -57,7 +65,7 @@ export class LoginPrompt implements OnInit {
   }
 
   login(loginUri: string): void {
-    // Append the return URL to the login URI so the BFF can redirect back after auth
+    // Pass the relative return path to Spring Addons
     const separator = loginUri.includes('?') ? '&' : '?';
     window.location.href = `${loginUri}${separator}post_login_success_uri=${encodeURIComponent(this.returnUrl)}`;
   }
