@@ -23,37 +23,43 @@
       </div>
 
       <!-- Loading State -->
-      <div *ngIf="loading()" class="mt-8 text-center">
-        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-sky-400/30 border-t-sky-400"></div>
-        <p class="mt-3 text-sm text-white/60">Loading login options…</p>
-      </div>
+      @if (loading()) {
+        <div class="mt-8 text-center">
+          <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-sky-400/30 border-t-sky-400"></div>
+          <p class="mt-3 text-sm text-white/60">Loading login options…</p>
+        </div>
+      }
 
       <!-- Error State -->
-      <div *ngIf="error() && !loading()"
-           class="mt-8 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-        {{ error() }}
-      </div>
+      @if (error() && !loading()) {
+        <div class="mt-8 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          {{ error() }}
+        </div>
+      }
 
       <!-- Login Options -->
-      <div *ngIf="!loading() && !error() && loginOptions().length" class="mt-8 flex flex-col gap-3">
-        <button
-          *ngFor="let option of loginOptions()"
-          type="button"
-          (click)="login(option.loginUri)"
-          class="group relative overflow-hidden rounded-2xl border border-sky-400/40 bg-sky-500/10 px-6 py-4 text-center font-semibold text-white shadow-[0_0_15px_rgba(56,189,248,0.2)] transition-all hover:scale-[1.02] hover:border-sky-400/60 hover:bg-sky-500/20 hover:shadow-[0_0_25px_rgba(56,189,248,0.4)]">
-          <span class="relative z-10 flex items-center justify-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                 stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-            </svg>
-            {{ option.label }}
-          </span>
-          <div
-            class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-full">
-          </div>
-        </button>
-      </div>
+      @if (!loading() && !error() && loginOptions().length) {
+        <div class="mt-8 flex flex-col gap-3">
+          @for (option of loginOptions(); track option.loginUri) {
+            <button
+              type="button"
+              (click)="login(option.loginUri)"
+              class="group relative overflow-hidden rounded-2xl border border-sky-400/40 bg-sky-500/10 px-6 py-4 text-center font-semibold text-white shadow-[0_0_15px_rgba(56,189,248,0.2)] transition-all hover:scale-[1.02] hover:border-sky-400/60 hover:bg-sky-500/20 hover:shadow-[0_0_25px_rgba(56,189,248,0.4)]">
+              <span class="relative z-10 flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                {{ option.label }}
+              </span>
+              <div
+                class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-full">
+              </div>
+            </button>
+          }
+        </div>
+      }
 
       <!-- Cancel/Back Button -->
       <div class="mt-6 text-center">

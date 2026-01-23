@@ -1,12 +1,16 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { UserHttpService } from '../../common/http/user-http.service';
-import { LoginOptionResponse } from '../../model/response/login-option-response.model';
-import { NgIf } from '@angular/common';
+
+interface LoginOption {
+  label: string;
+  loginUri: string;
+  isSameAuthority: boolean;
+}
 
 @Component({
   selector: 'app-login-prompt',
-  imports: [RouterLink, NgIf],
+  imports: [RouterLink],
   templateUrl: './login-prompt.html',
 })
 export class LoginPrompt implements OnInit {
@@ -16,7 +20,7 @@ export class LoginPrompt implements OnInit {
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly loginOptions = signal<LoginOptionResponse[]>([]);
+  protected readonly loginOptions = signal<LoginOption[]>([]);
   protected returnUrl = '/';
 
   ngOnInit(): void {
