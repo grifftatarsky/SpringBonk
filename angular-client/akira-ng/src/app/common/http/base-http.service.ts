@@ -21,11 +21,12 @@ export class BaseHttpService {
     url: string,
     params?: HttpParams | { [param: string]: string | number | boolean },
     headers?: HttpHeaders,
+    withCredentials: boolean = true,
   ): Observable<T> {
     return this.http.get<T>(url, {
       params: this.normalizeParams(params),
       headers: this.normalizeHeaders(headers),
-      withCredentials: true,
+      withCredentials,
     });
   }
 

@@ -31,7 +31,8 @@ export class BookHttpService extends BaseHttpService {
       params['sort'] = sort;
     }
 
-    return this.get<PagedOpenLibraryResponse>(this.openLibraryBaseUrl, params);
+    // Don't send credentials to third-party Open Library API (CORS wildcard incompatible)
+    return this.get<PagedOpenLibraryResponse>(this.openLibraryBaseUrl, params, undefined, false);
   }
 
   getOpenLibraryCoverImageUrl(coverId: number, size: 'S' | 'M' | 'L' = 'M'): string {
