@@ -375,6 +375,14 @@
           <p class="mt-2 text-sm text-amber-200" role="status">{{ searchState.validationMessage }}</p>
         }
       </div>
+      <div class="mt-4 shrink-0 px-6">
+        <label class="text-xs uppercase tracking-[0.4em] text-white/60">
+          Pitch (optional)
+          <textarea rows="3" [formControl]="searchPitchInput"
+                    class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-sm text-white focus:border-sky-400 focus:outline-none"
+                    placeholder="Why should this book win the election?"></textarea>
+        </label>
+      </div>
       <div class="mt-4 min-h-0 flex-1 overflow-y-auto px-6 pb-6">
         @if (searchState.loading) {
           <p class="text-sm text-white/70">Searching…</p>
