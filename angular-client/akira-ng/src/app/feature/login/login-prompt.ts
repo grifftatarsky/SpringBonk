@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { UserHttpService } from '../../common/http/user-http.service';
+import { UserService } from '../../auth/user.service';
 
 interface LoginOption {
   label: string;
@@ -15,6 +16,7 @@ interface LoginOption {
 })
 export class LoginPrompt implements OnInit {
   private readonly userHttp = inject(UserHttpService);
+  private readonly userService = inject(UserService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -24,7 +26,17 @@ export class LoginPrompt implements OnInit {
   protected returnUrl = '/';
 
   ngOnInit(): void {
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    // Check both returnUrl and returnURL (case insensitive from Keycloak)
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl']
+      || this.route.snapshot.queryParams['returnURL']
+      || '/';
+
+    // If user is already authenticated, redirect to returnUrl immediately
+    if (this.userService.current.isAuthenticated) {
+      this.router.navigateByUrl(this.returnUrl);
+      return;
+    }
+
     this.loadLoginOptions();
   }
 
