@@ -9,6 +9,9 @@ out/
 target/
 **/target/
 
+# Agent local settings
+.claude/
+
 # Ignore Eclipse files
 .apt_generated
 .classpath
