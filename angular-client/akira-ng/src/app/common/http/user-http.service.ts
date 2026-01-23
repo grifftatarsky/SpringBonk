@@ -20,15 +20,18 @@ export class UserHttpService extends BaseHttpService {
   }
 
   getLoginOptions(): Observable<LoginOptionResponse[]> {
-    return this.http.get<LoginOptionResponse[]>(`${reverseProxyUri}/login-options`);
+    return this.get<LoginOptionResponse[]>(`${reverseProxyUri}/login-options`);
   }
 
   logout(): Observable<any> {
+    // Uses this.http directly (not this.post) because we need observe: 'response'
+    // to read the Location header for Keycloak logout redirect
     return this.http.post(`${reverseProxyUri}/logout`, null, {
       headers: {
         'X-POST-LOGOUT-SUCCESS-URI': baseUri,
       },
       observe: 'response',
+      withCredentials: true,
     });
   }
 }

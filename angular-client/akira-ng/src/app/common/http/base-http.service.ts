@@ -25,6 +25,7 @@ export class BaseHttpService {
     return this.http.get<T>(url, {
       params: this.normalizeParams(params),
       headers: this.normalizeHeaders(headers),
+      withCredentials: true,
     });
   }
 
@@ -38,6 +39,7 @@ export class BaseHttpService {
   ): Observable<T> {
     return this.http.post<T>(url, body, {
       headers: this.normalizeHeaders(headers),
+      withCredentials: true,
     });
   }
 
@@ -51,6 +53,7 @@ export class BaseHttpService {
   ): Observable<T> {
     return this.http.put<T>(url, body, {
       headers: this.normalizeHeaders(headers),
+      withCredentials: true,
     });
   }
 
@@ -65,6 +68,7 @@ export class BaseHttpService {
     return this.http.delete<T>(url, {
       params: this.normalizeParams(params),
       headers: this.normalizeHeaders(headers),
+      withCredentials: true,
     });
   }
 

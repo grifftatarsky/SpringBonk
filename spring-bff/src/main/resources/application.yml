@@ -22,6 +22,12 @@ resource-prefix: ${PREFIX_RESOURCE:/api}
 # Application Properties ###########################################################################
 server:
   port: ${PORT_BFF:7081}
+  servlet:
+    session:
+      cookie:
+        secure: false     # Allow cookies over HTTP in development
+        http-only: true   # Always prevent JavaScript access
+        same-site: lax    # Safari compatibility while preventing CSRF
 # Security #########################################################################################
 spring:
   security:
