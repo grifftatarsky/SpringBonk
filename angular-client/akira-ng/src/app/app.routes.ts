@@ -7,15 +7,18 @@ import { ElectionsPage } from './feature/elections/elections-page';
 import { ElectionDetailPage } from './feature/elections/election-detail-page';
 import { BookDetailPage } from './feature/books/book-detail-page';
 import { DocsPage } from './feature/docs/docs-page';
+import { LoginPrompt } from './feature/login/login-prompt';
+import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: Home, data: { title: 'Home' } },
-  { path: 'dashboard', component: Dashboard, data: { title: 'Dashboard' } },
-  { path: 'shelves', component: ShelvesPage, data: { title: 'Shelves' } },
-  { path: 'shelves/:id', component: ShelfDetailPage, data: { title: 'Shelf Detail' } },
-  { path: 'elections', component: ElectionsPage, data: { title: 'Elections' } },
-  { path: 'elections/:id', component: ElectionDetailPage, data: { title: 'Election Detail' } },
-  { path: 'books/:id', component: BookDetailPage, data: { title: 'Book Detail' } },
+  { path: 'login', component: LoginPrompt, data: { title: 'Login' } },
+  { path: 'dashboard', component: Dashboard, canActivate: [authGuard], data: { title: 'Dashboard' } },
+  { path: 'shelves', component: ShelvesPage, canActivate: [authGuard], data: { title: 'Shelves' } },
+  { path: 'shelves/:id', component: ShelfDetailPage, canActivate: [authGuard], data: { title: 'Shelf Detail' } },
+  { path: 'elections', component: ElectionsPage, canActivate: [authGuard], data: { title: 'Elections' } },
+  { path: 'elections/:id', component: ElectionDetailPage, canActivate: [authGuard], data: { title: 'Election Detail' } },
+  { path: 'books/:id', component: BookDetailPage, canActivate: [authGuard], data: { title: 'Book Detail' } },
   { path: 'docs', component: DocsPage, data: { title: 'Docs' } },
   { path: '**', redirectTo: '/' },
 ];

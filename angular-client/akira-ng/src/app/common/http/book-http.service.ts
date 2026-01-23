@@ -17,7 +17,8 @@ export class BookHttpService extends BaseHttpService {
     query?: string,
     sort: string = 'relevance',
   ): Observable<PagedOpenLibraryResponse> {
-    if (!query) {
+    // Open Library requires minimum 3 characters for search query
+    if (!query || query.trim().length < 3) {
       return of({ start: 0, num_found: 0, docs: [] });
     }
 

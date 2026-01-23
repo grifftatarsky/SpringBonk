@@ -15,14 +15,21 @@ export class BookSearchStore {
   private readonly results = signal<OpenLibraryBookResponse[]>([]);
   private readonly total = signal(0);
 
-  readonly vm = computed(() => ({
-    query: this.query(),
-    loading: this.loading(),
-    error: this.error(),
-    results: this.results(),
-    total: this.total(),
-    canLoadMore: this.results().length < this.total(),
-  }));
+  readonly vm = computed(() => {
+    const query = this.query();
+    const queryTooShort = query.length > 0 && query.length < 3;
+
+    return {
+      query,
+      loading: this.loading(),
+      error: this.error(),
+      results: this.results(),
+      total: this.total(),
+      canLoadMore: this.results().length < this.total(),
+      queryTooShort,
+      validationMessage: queryTooShort ? 'Search requires at least 3 characters' : null,
+    };
+  });
 
   async search(term: string): Promise<void> {
     const normalized = term.trim();

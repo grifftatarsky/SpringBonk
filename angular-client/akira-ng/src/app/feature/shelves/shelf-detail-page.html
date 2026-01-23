@@ -100,9 +100,9 @@
     <div class="fixed inset-0 z-40 flex items-center justify-center px-4">
       <div class="absolute inset-0 bg-black/70" (click)="closeSearch()" aria-hidden="true"></div>
       <section
-        class="relative z-10 w-full max-w-3xl rounded-3xl border border-emerald-400/30 bg-gray-950 px-6 py-6 text-white shadow-[0_0_40px_rgba(16,185,129,0.35)]"
+        class="relative z-10 flex w-full max-w-3xl flex-col rounded-3xl border border-emerald-400/30 bg-gray-950 text-white shadow-[0_0_40px_rgba(16,185,129,0.35)] max-h-[85vh]"
         role="dialog" aria-modal="true">
-        <header class="flex items-center justify-between">
+        <header class="flex shrink-0 items-center justify-between px-6 pt-6">
           <div>
             <p class="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-300">Open
               Library</p>
@@ -112,11 +112,14 @@
                   (click)="closeSearch()">Close
           </button>
         </header>
-        <div class="mt-4">
-          <input type="search" [formControl]="searchInput" placeholder="Search title or author"
-                 class="w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-emerald-400 focus:outline-none" />
+        <div class="mt-4 shrink-0 px-6">
+          <input type="search" [formControl]="searchInput" placeholder="Search title or author (min 3 characters)"
+                 class="w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white placeholder:text-white/40 focus:border-emerald-400 focus:outline-none" />
+          @if (searchState.validationMessage) {
+            <p class="mt-2 text-sm text-amber-200" role="status">{{ searchState.validationMessage }}</p>
+          }
         </div>
-        <div class="mt-4">
+        <div class="mt-4 shrink-0 px-6">
           <label class="text-xs uppercase tracking-[0.4em] text-white/60">
             Pitch (optional)
             <textarea rows="3" [formControl]="searchPitchInput"
@@ -126,38 +129,40 @@
         </div>
         @if (searchActionError()) {
           <p
-            class="mt-2 rounded-2xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200"
+            class="mt-2 shrink-0 px-6 rounded-2xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200"
             role="alert">
             {{ searchActionError() }}
           </p>
         }
-        <div class="mt-4 max-h-[60vh] overflow-y-auto">
+        <div class="mt-4 min-h-0 flex-1 overflow-y-auto px-6 pb-6">
           @if (searchState.loading) {
             <p class="text-sm text-white/70">Searching…</p>
           }
-          @if (!searchState.loading && !searchState.results.length && searchState.query) {
+          @if (!searchState.loading && !searchState.results.length && searchState.query && !searchState.queryTooShort) {
             <p class="text-sm text-white/70">No results yet. Try another query.</p>
           }
-          <ul class="flex flex-col gap-3">
-            @for (result of searchState.results; track result.key) {
-              <li class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white">
-                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p class="text-lg font-semibold">{{ result.title }}</p>
-                    <p class="text-sm text-white/70">{{
-                        result.author_name?.[0] || 'Unknown author'
-                      }}</p>
+          @if (searchState.results.length) {
+            <ul class="flex flex-col gap-3">
+              @for (result of searchState.results; track result.key) {
+                <li class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white">
+                  <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-lg font-semibold">{{ result.title }}</p>
+                      <p class="text-sm text-white/70">{{
+                          result.author_name?.[0] || 'Unknown author'
+                        }}</p>
+                    </div>
+                    <button type="button"
+                            class="shrink-0 rounded-full border border-emerald-400/40 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200 hover:bg-emerald-500/10"
+                            [disabled]="searchActionBusy()"
+                            (click)="addFromOpenLibrary(result)">
+                      {{ searchActionBusy() ? 'Adding…' : 'Add' }}
+                    </button>
                   </div>
-                  <button type="button"
-                          class="rounded-full border border-emerald-400/40 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200 hover:bg-emerald-500/10"
-                          [disabled]="searchActionBusy()"
-                          (click)="addFromOpenLibrary(result)">
-                    {{ searchActionBusy() ? 'Adding…' : 'Add' }}
-                  </button>
-                </div>
-              </li>
-            }
-          </ul>
+                </li>
+              }
+            </ul>
+          }
           @if (searchState.canLoadMore) {
             <div class="mt-4 flex justify-center">
               <button type="button"
