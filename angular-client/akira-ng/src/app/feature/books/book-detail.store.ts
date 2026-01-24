@@ -57,7 +57,7 @@ export class BookDetailStore {
       title: book.title,
       author: book.author,
       imageURL: book.imageURL,
-      blurb,
+      pitch: blurb,
       openLibraryId: book.openLibraryId,
       shelfIds: book.shelves.map((shelf) => shelf.id),
     };

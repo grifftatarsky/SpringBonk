@@ -116,7 +116,7 @@ export class ShelfDetailStore {
         title: placeholder.title,
         author: placeholder.author,
         imageURL: placeholder.imageURL,
-        blurb: placeholder.blurb,
+        pitch: placeholder.blurb,
         openLibraryId: placeholder.openLibraryId,
         shelfIds: [shelfId],
       };

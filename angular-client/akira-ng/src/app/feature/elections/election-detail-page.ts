@@ -98,8 +98,8 @@ export class ElectionDetailPage {
   }
 
   protected addFromOpenLibrary(result: OpenLibraryBookResponse): void {
-    const pitch = this.searchPitchInput.value ?? '';
-    void this.store.nominateFromOpenLibrary(result, pitch).then(() => {
+    const pitch: string = this.searchPitchInput.value ?? '';
+    void this.store.nominateFromOpenLibrary(result, pitch).then((): void => {
       this.searchPitchInput.setValue('');
       this.closeSearch();
     });
