@@ -76,6 +76,7 @@ export class ElectionDetailPage {
     this.customOpen.set(false);
     this.searchInput.setValue('');
     this.searchPitchInput.setValue('');
+    console.log("DEBUGGING PITCH ERROR method[OpenSearch]: " + this.searchPitchInput)
     this.closeMenus();
   }
 
@@ -98,7 +99,8 @@ export class ElectionDetailPage {
   }
 
   protected addFromOpenLibrary(result: OpenLibraryBookResponse): void {
-    const pitch = this.searchPitchInput.value ?? '';
+    const pitch: string = this.searchPitchInput.value ?? '';
+    console.log("DEBUGGING PITCH ERROR method[addFromOpenLibrary]: " + this.searchPitchInput)
     void this.store.nominateFromOpenLibrary(result, pitch).then(() => {
       this.searchPitchInput.setValue('');
       this.closeSearch();
