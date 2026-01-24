@@ -196,7 +196,7 @@ export class ElectionDetailStore {
     const electionId = this.electionId();
     if (!electionId) return;
 
-    const normalizedPitch: string = pitch?.trim() ?? '';
+    const normalizedPitch = pitch?.trim() ?? '';
     const placeholderId = `tmp-${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
     const placeholder: CandidateResponse = {
       id: placeholderId,
@@ -222,7 +222,7 @@ export class ElectionDetailStore {
         title: placeholder.base.title,
         author: placeholder.base.author,
         imageURL: placeholder.base.imageURL,
-        pitch: normalizedPitch,
+        blurb: normalizedPitch,
         openLibraryId: placeholder.base.openLibraryId,
       };
       const createdBook = await firstValueFrom(this.bookHttp.createBook(request));
