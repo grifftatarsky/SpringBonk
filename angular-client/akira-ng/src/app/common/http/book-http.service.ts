@@ -45,6 +45,7 @@ export class BookHttpService extends BaseHttpService {
   }
 
   createBook(request: BookRequest): Observable<BookResponse> {
+    console.log("PRE SEND:" + request.blurb)
     return this.post<BookResponse>(this.baseUrl, request);
   }
 

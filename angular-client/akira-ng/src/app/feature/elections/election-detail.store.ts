@@ -230,7 +230,9 @@ export class ElectionDetailStore {
         blurb: normalizedPitch,
         openLibraryId: placeholder.base.openLibraryId,
       };
-      const createdBook = await firstValueFrom(this.bookHttp.createBook(request));
+
+      const createdBook: BookResponse = await firstValueFrom(this.bookHttp.createBook(request));
+      // NOTE: Lost pitch at this point.
       console.log("DEBUGGING PITCH ERROR method[OpenSearch].postCreate: " + createdBook.blurb)
       const candidate = await firstValueFrom(this.electionHttp.nominateCandidate(electionId, createdBook.id));
       console.log("DEBUGGING PITCH ERROR method[OpenSearch].postNominate: " + candidate.pitch)

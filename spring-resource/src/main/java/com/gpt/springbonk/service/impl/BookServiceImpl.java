@@ -13,6 +13,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -66,6 +67,7 @@ public class BookServiceImpl implements BookService {
       // Grab the IDs of the user's shelves.
       List<UUID> previousUserShelvesForBook =
           getShelfIdsByBookOpenLibraryId(book.getOpenLibraryId(), userId);
+
       // Slate!
       List<UUID> toRemove =
           previousUserShelvesForBook.stream().filter(id -> !shelfIds.contains(id)).toList();
@@ -82,6 +84,12 @@ public class BookServiceImpl implements BookService {
       shelvesToRemove.forEach(shelf -> shelf.removeBook(book));
 
       shelvesToAdd.forEach(shelf -> shelf.addBook(book));
+
+      // The fact I need this behavior means that I should have one method handling
+      // updates and I shouldn't be rewriting this...TODO.
+      if (!Objects.equals(bookRequest.getBlurb(), book.getBlurb())) {
+        book.setBlurb(bookRequest.getBlurb());
+      }
 
       return new BookResponse(bookRepository.save(book));
     }
