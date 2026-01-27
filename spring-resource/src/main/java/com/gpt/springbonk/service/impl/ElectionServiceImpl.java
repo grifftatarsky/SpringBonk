@@ -257,11 +257,6 @@ public class ElectionServiceImpl implements ElectionService {
 
     if (election.getStatus() == Status.CLOSED) return;
 
-    if (election.getStatus() == Status.INDEFINITE) {
-      throw new ElectionScheduleException("Attempted to close an indefinite Election.");
-    }
-
-    // TODO: This may not be my best code...
     ElectionResultRecord electionResultRecord;
     ElectionResult result;
 
