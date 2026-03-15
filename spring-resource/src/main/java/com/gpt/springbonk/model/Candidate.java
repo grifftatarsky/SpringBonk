@@ -10,8 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,12 @@ import org.hibernate.annotations.CreationTimestamp;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "candidates")
+@Table(
+    name = "candidates",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"book_id", "election_id"})
+    }
+)
 public class Candidate {
   @Id
   @GeneratedValue
@@ -42,7 +47,7 @@ public class Candidate {
   @JoinColumn(name = "election_id", nullable = false)
   private Election election;
 
-  @OneToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "book_id", nullable = false)
   private Book book;
 

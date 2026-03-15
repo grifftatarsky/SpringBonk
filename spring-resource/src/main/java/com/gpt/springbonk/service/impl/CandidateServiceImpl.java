@@ -50,9 +50,7 @@ public class CandidateServiceImpl implements CandidateService {
     KeycloakUser nominator = keycloakUserService.getUserById(userId);
     Book nomination = bookService.getBookById(bookId);
     // Make sure it's not nominated twice.
-    if (election.getCandidates()
-        .stream()
-        .anyMatch(candidate -> candidate.getBook().getId().equals(bookId))) {
+    if (candidateRepository.existsByBookIdAndElectionId(bookId, electionId)) {
       throw new DuplicateCandidateException(
           "This book has already been nominated in this election.");
     }
