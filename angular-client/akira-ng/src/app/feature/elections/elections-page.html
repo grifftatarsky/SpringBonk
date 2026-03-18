@@ -107,14 +107,14 @@
                     </a>
                     <div class="relative">
                       <button type="button"
-                              class="rounded-full border border-white/15 p-2 text-white hover:bg-white/10"
+                              class="rounded-full border border-white/15 p-2.5 text-white hover:bg-white/10"
                               aria-label="Election actions"
                               (click)="toggleMenu(election.id)">
                         ⋮
                       </button>
                       @if (isMenuOpen(election.id)) {
                         <div
-                          class="absolute right-0 max-sm:-right-16 top-4 z-20 mt-2 w-48 rounded-2xl border border-white/10 bg-gray-950 p-2 text-sm shadow-xl">
+                          class="absolute right-0 top-full z-20 mt-2 w-48 rounded-2xl border border-white/10 bg-gray-950 p-2 text-sm shadow-xl">
                           <button type="button"
                                   class="w-full rounded-xl px-3 py-2 text-left text-white hover:bg-white/10"
                                   (click)="openEditModal(election)">

@@ -37,7 +37,7 @@ export class BookSearchStore {
     this.pageIndex.set(0);
     this.results.set([]);
     this.total.set(0);
-    if (!normalized) {
+    if (!normalized || normalized.length < 3) {
       return;
     }
     await this.fetch();

@@ -193,13 +193,10 @@ export class ElectionDetailStore {
   }
 
   async nominateFromOpenLibrary(doc: OpenLibraryBookResponse, pitch: string): Promise<void> {
-    console.log("DEBUGGING PITCH ERROR method[OpenSearch].start: " + pitch)
-
     const electionId = this.electionId();
     if (!electionId) return;
 
     const normalizedPitch: string = pitch?.trim() ?? '';
-    console.log("DEBUGGING PITCH ERROR method[OpenSearch].postNormalize: " + normalizedPitch)
 
     const placeholderId = `tmp-${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
     const placeholder: CandidateResponse = {
@@ -220,7 +217,6 @@ export class ElectionDetailStore {
     };
 
     this.candidates.update((candidates) => [placeholder, ...candidates]);
-    console.log("DEBUGGING PITCH ERROR method[OpenSearch].postcandidates.update: " + normalizedPitch)
 
     try {
       const request: BookRequest = {
@@ -232,10 +228,7 @@ export class ElectionDetailStore {
       };
 
       const createdBook: BookResponse = await firstValueFrom(this.bookHttp.createBook(request));
-      // NOTE: Lost pitch at this point.
-      console.log("DEBUGGING PITCH ERROR method[OpenSearch].postCreate: " + createdBook.blurb)
       const candidate = await firstValueFrom(this.electionHttp.nominateCandidate(electionId, createdBook.id));
-      console.log("DEBUGGING PITCH ERROR method[OpenSearch].postNominate: " + candidate.pitch)
       this.replaceCandidate(placeholderId, candidate);
       this.notifications.success('Candidate nominated');
     } catch (error) {
@@ -619,7 +612,6 @@ export class ElectionDetailStore {
     this.candidates.update((candidates) =>
       candidates.map((current) => (current.id === tempId ? candidate : current)),
     );
-    console.log("DEBUGGING PITCH ERROR method[OpenSearch].postReplaceCandidate: " + candidate.pitch)
   }
 
   private upsertVote(vote: VoteResponse): void {

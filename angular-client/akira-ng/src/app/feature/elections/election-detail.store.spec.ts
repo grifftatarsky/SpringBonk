@@ -5,7 +5,7 @@ import { ElectionHttpService } from '../../common/http/election-http.service';
 import { BookHttpService } from '../../common/http/book-http.service';
 import { NotificationService } from '../../common/notification/notification.service';
 import { ShelfHttpService } from '../../common/http/shelf-http.service';
-import { of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { ElectionResponse } from '../../model/response/election-response.model';
 import { CandidateResponse } from '../../model/response/candidate-response.model';
 import { VotingHttpService } from '../../common/http/voting-http.service';
@@ -214,6 +214,150 @@ describe('ElectionDetailStore', () => {
     await store.closeElection();
 
     expect(electionHttp.closeElection).toHaveBeenCalledWith('e1');
+  });
+
+  describe('nominateFromOpenLibrary', () => {
+    const doc = {
+      key: '/works/OL123W',
+      title: 'The Test Book',
+      author_name: ['Test Author'],
+      cover_i: undefined,
+    };
+
+    it('creates the book with the provided pitch as blurb', async () => {
+      store.init('e1');
+      await wait();
+
+      await store.nominateFromOpenLibrary(doc, 'My pitch text');
+
+      expect(bookHttp.createBook).toHaveBeenCalledWith(
+        jasmine.objectContaining({ blurb: 'My pitch text' }),
+      );
+    });
+
+    it('trims whitespace from the pitch before sending', async () => {
+      store.init('e1');
+      await wait();
+
+      await store.nominateFromOpenLibrary(doc, '  padded pitch  ');
+
+      expect(bookHttp.createBook).toHaveBeenCalledWith(
+        jasmine.objectContaining({ blurb: 'padded pitch' }),
+      );
+    });
+
+    it('sends an empty blurb when no pitch is provided', async () => {
+      store.init('e1');
+      await wait();
+
+      await store.nominateFromOpenLibrary(doc, '');
+
+      expect(bookHttp.createBook).toHaveBeenCalledWith(
+        jasmine.objectContaining({ blurb: '' }),
+      );
+    });
+
+    it('adds a placeholder candidate optimistically before the request resolves', async () => {
+      let resolve!: () => void;
+      bookHttp.createBook.and.returnValue(
+        new Observable((subscriber) => {
+          resolve = () => {
+            subscriber.next({ id: 'b1', title: 'The Test Book', author: 'Test Author', imageURL: '', blurb: 'My pitch text', openLibraryId: '', shelves: [] });
+            subscriber.complete();
+          };
+        }),
+      );
+
+      store.init('e1');
+      await wait();
+      const before = store.candidatesVm().items.length;
+
+      const nomination = store.nominateFromOpenLibrary(doc, 'My pitch text');
+
+      // Placeholder should be present immediately (sync signal update)
+      await wait(0);
+      expect(store.candidatesVm().items.length)
+        .withContext('placeholder should appear before HTTP resolves')
+        .toBe(before + 1);
+
+      resolve();
+      await nomination;
+    });
+
+    it('removes the placeholder on failure and shows an error notification', async () => {
+      bookHttp.createBook.and.returnValue(throwError(() => new Error('network error')));
+
+      store.init('e1');
+      await wait();
+      const before = store.candidatesVm().items.length;
+
+      try {
+        await store.nominateFromOpenLibrary(doc, 'pitch');
+      } catch {
+        // expected
+      }
+
+      expect(store.candidatesVm().items.length)
+        .withContext('placeholder should be rolled back after failure')
+        .toBe(before);
+      expect(notifications.error).toHaveBeenCalled();
+    });
+
+    it('replaces the placeholder with the real candidate on success', async () => {
+      const realCandidate: CandidateResponse = {
+        id: 'c-real',
+        base: { id: 'b-real', title: 'The Test Book', author: 'Test Author', imageURL: '', blurb: 'My pitch text', openLibraryId: 'OL123W' },
+        pitch: 'My pitch text',
+        createdDate: new Date().toISOString(),
+        electionId: 'e1',
+        nominatorId: 'u1',
+        votes: [],
+      };
+      bookHttp.createBook.and.returnValue(of({ id: 'b-real', title: 'The Test Book', author: 'Test Author', imageURL: '', blurb: 'My pitch text', openLibraryId: 'OL123W', shelves: [] }));
+      electionHttp.nominateCandidate.and.returnValue(of(realCandidate));
+
+      store.init('e1');
+      await wait();
+
+      await store.nominateFromOpenLibrary(doc, 'My pitch text');
+
+      const ids = store.candidatesVm().items.map((c) => c.id);
+      expect(ids).toContain('c-real');
+      expect(ids.some((id) => id.startsWith('tmp-')))
+        .withContext('no placeholder IDs should remain')
+        .toBeFalse();
+    });
+
+    it('shows a success notification after nominating', async () => {
+      store.init('e1');
+      await wait();
+
+      await store.nominateFromOpenLibrary(doc, 'pitch');
+
+      expect(notifications.success).toHaveBeenCalledWith('Candidate nominated');
+    });
+
+    it('uses the open library key as the openLibraryId, stripping /works/ prefix', async () => {
+      store.init('e1');
+      await wait();
+
+      await store.nominateFromOpenLibrary({ ...doc, key: '/works/OL999W' }, '');
+
+      expect(bookHttp.createBook).toHaveBeenCalledWith(
+        jasmine.objectContaining({ openLibraryId: 'OL999W' }),
+      );
+    });
+
+    it('uses the key as-is when it has no /works/ prefix', async () => {
+      store.init('e1');
+      await wait();
+
+      await store.nominateFromOpenLibrary({ ...doc, key: 'RAWKEY' }, '');
+
+      expect(bookHttp.createBook).toHaveBeenCalledWith(
+        jasmine.objectContaining({ openLibraryId: 'RAWKEY' }),
+      );
+    });
   });
 });
 

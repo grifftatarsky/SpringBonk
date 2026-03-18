@@ -2,7 +2,7 @@ import { DatePipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { map } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ElectionDetailStore, CandidateListItem } from './election-detail.store';
@@ -35,6 +35,8 @@ export class ElectionDetailPage {
   protected readonly customOpen = signal(false);
   protected readonly searchInput = this.fb.control('');
   protected readonly searchPitchInput = this.fb.control('');
+  // Two-step search: null = searching, non-null = book selected, awaiting pitch/confirm
+  protected readonly selectedSearchResult = signal<OpenLibraryBookResponse | null>(null);
   protected readonly customForm = this.fb.group({
     title: ['', [Validators.required, Validators.maxLength(160)]],
     author: ['', [Validators.required, Validators.maxLength(120)]],
@@ -60,13 +62,9 @@ export class ElectionDetailPage {
       .subscribe((id) => this.store.init(id));
 
     this.searchInput.valueChanges
-      .pipe(takeUntilDestroyed())
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed())
       .subscribe((value) => {
         const query = (value || '').trim();
-        if (!query) {
-          void this.searchStore.search('');
-          return;
-        }
         void this.searchStore.search(query);
       });
   }
@@ -76,12 +74,25 @@ export class ElectionDetailPage {
     this.customOpen.set(false);
     this.searchInput.setValue('');
     this.searchPitchInput.setValue('');
-    console.log("DEBUGGING PITCH ERROR method[OpenSearch]: " + this.searchPitchInput)
+    this.selectedSearchResult.set(null);
+    void this.searchStore.search('');
     this.closeMenus();
   }
 
   protected closeSearch(): void {
     this.searchOpen.set(false);
+    this.selectedSearchResult.set(null);
+    this.searchPitchInput.setValue('');
+  }
+
+  protected selectSearchBook(result: OpenLibraryBookResponse): void {
+    this.selectedSearchResult.set(result);
+    this.searchPitchInput.setValue('');
+  }
+
+  protected clearSelectedSearchBook(): void {
+    this.selectedSearchResult.set(null);
+    this.searchPitchInput.setValue('');
   }
 
   protected openCustom(): void {
@@ -98,11 +109,11 @@ export class ElectionDetailPage {
     this.customError.set(null);
   }
 
-  protected addFromOpenLibrary(result: OpenLibraryBookResponse): void {
+  protected confirmSearchNomination(): void {
+    const result = this.selectedSearchResult();
+    if (!result) return;
     const pitch: string = this.searchPitchInput.value ?? '';
-    console.log("DEBUGGING PITCH ERROR method[addFromOpenLibrary]: " + this.searchPitchInput)
     void this.store.nominateFromOpenLibrary(result, pitch).then(() => {
-      this.searchPitchInput.setValue('');
       this.closeSearch();
     });
   }
