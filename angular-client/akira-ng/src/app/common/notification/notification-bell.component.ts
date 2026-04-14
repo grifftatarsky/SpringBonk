@@ -11,6 +11,7 @@ import { UserService } from '../../auth/user.service';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    @if (isAuthenticated()) {
     <div class="relative">
       <button
         type="button"
@@ -103,6 +104,7 @@ import { UserService } from '../../auth/user.service';
         </div>
       }
     </div>
+    }
   `,
 })
 export class NotificationBellComponent {
@@ -110,8 +112,9 @@ export class NotificationBellComponent {
   private readonly router = inject(Router);
   private readonly userService = inject(UserService);
 
-  /** Authenticated state as a signal, so we can auto-refresh on sign-in. */
-  private readonly isAuthenticated = toSignal(
+  /** Authenticated state as a signal — used both to gate rendering and
+   *  to auto-refresh on sign-in. */
+  protected readonly isAuthenticated = toSignal(
     this.userService.valueChanges.pipe(map((u) => u.isAuthenticated)),
     { initialValue: this.userService.current.isAuthenticated },
   );

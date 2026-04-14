@@ -109,7 +109,7 @@
     </div>
 
     <!-- CONTENT AREA -->
-    <div class="grid text-fg">
+    <div class="grid min-w-0 grid-cols-[minmax(0,1fr)] text-fg">
       <router-outlet class="contents"></router-outlet>
     </div>
 
@@ -216,9 +216,11 @@
          (click)="closeMobileMenu()" aria-hidden="true"></div>
     <div class="absolute inset-y-0 right-0 flex w-full">
       <div
-        class="flex size-full flex-col overflow-y-auto bg-bg px-4 sm:px-6"
+        class="flex size-full flex-col overflow-y-auto bg-bg"
         [attr.id]="mobileMenuId">
-        <div class="flex h-14 items-center justify-between border-b border-rule">
+        <!-- Header row: full-width border via the wrapper (no parent padding
+             means the rule bleeds edge to edge cleanly). -->
+        <div class="flex h-14 shrink-0 items-center justify-between border-b border-rule px-4 sm:px-6">
           <img ngSrc="small_wordmark-min.svg"
                alt=""
                width="32" height="32"
@@ -234,7 +236,7 @@
           </button>
         </div>
         <p class="sr-only" [attr.id]="mobileMenuId + '-title'">Main navigation</p>
-        <nav class="grid grid-cols-1 gap-1 px-1 pt-6 pb-3"
+        <nav class="grid grid-cols-1 gap-1 px-4 pt-6 pb-3 sm:px-6"
              aria-label="Mobile navigation">
           @for (link of navLinks; track link.href) {
             @if (link.external) {
@@ -254,7 +256,7 @@
         </nav>
 
         <!-- Theme toggle (mobile) -->
-        <div class="mt-auto border-t border-rule pt-6 pb-8">
+        <div class="mt-auto border-t border-rule px-4 pt-6 pb-8 sm:px-6">
           <p class="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Theme</p>
           <div class="inline-grid grid-cols-3 gap-1 rounded-md border border-rule bg-bg-subtle p-1"
                role="radiogroup"

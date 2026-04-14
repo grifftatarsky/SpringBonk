@@ -1,6 +1,6 @@
-<div class="grid gap-12 pb-24 text-fg">
+<div class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-12 pb-24 text-fg">
   <!-- HERO -->
-  <div class="px-2 max-sm:px-4 mt-4">
+  <div class="mt-4">
     <div aria-hidden="true"
          class="flex h-14 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-20">
       <span>Your overflowing "to read" pile, but tidier.</span>
@@ -30,18 +30,24 @@
       (pageChange)="onPage($event)"
       (pageSizeChange)="onPageSize($event)">
 
-      <div list-actions class="flex items-center gap-2 text-xs">
-        <label for="shelves-sort" class="text-fg-subtle">Sort</label>
-        <select id="shelves-sort"
-                class="rounded-md border border-rule bg-bg-subtle px-2 py-1 text-sm text-fg focus:border-accent-ring focus:outline-none"
-                (change)="updateSort($any($event.target).selectedIndex)"
-                aria-label="Sort shelves">
-          @for (option of state.sortOptions; track option.label; let i = $index) {
-            <option [selected]="option.field === state.sortField && option.direction === state.sortDirection">
-              {{ option.label }}
-            </option>
-          }
-        </select>
+      <div list-secondary
+           class="inline-flex items-center gap-2 rounded-md border border-rule bg-bg-subtle px-3 py-1.5 text-xs">
+        <label class="text-fg-subtle" for="shelves-sort">Sort</label>
+        <div class="relative inline-flex items-center">
+          <select id="shelves-sort"
+                  class="appearance-none bg-transparent pr-4 text-sm font-semibold text-fg focus:outline-none"
+                  (change)="updateSort($any($event.target).selectedIndex)"
+                  aria-label="Sort shelves">
+            @for (option of state.sortOptions; track option.label; let i = $index) {
+              <option [selected]="option.field === state.sortField && option.direction === state.sortDirection">
+                {{ option.label }}
+              </option>
+            }
+          </select>
+          <svg viewBox="0 0 12 12" class="pointer-events-none absolute right-0 size-3 text-fg-subtle" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M3 4.5L6 7.5L9 4.5"></path>
+          </svg>
+        </div>
       </div>
 
       <ul class="flex flex-col">
