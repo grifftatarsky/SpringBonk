@@ -16,6 +16,11 @@ databaseChangeLog:
   - changeSet:
       id: 001-keycloak-user-create
       author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: keycloak_user
       changes:
         - createTable:
             tableName: keycloak_user
@@ -56,6 +61,11 @@ databaseChangeLog:
   - changeSet:
       id: 001-keycloak-user-roles-create
       author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: keycloak_user_roles
       changes:
         - createTable:
             tableName: keycloak_user_roles
@@ -77,6 +87,11 @@ databaseChangeLog:
   - changeSet:
       id: 001-books-create
       author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: books
       changes:
         - createTable:
             tableName: books
@@ -118,6 +133,11 @@ databaseChangeLog:
   - changeSet:
       id: 001-shelves-create
       author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: shelves
       changes:
         - createTable:
             tableName: shelves
@@ -158,6 +178,11 @@ databaseChangeLog:
   - changeSet:
       id: 001-book-shelf-create
       author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: book_shelf
       changes:
         - createTable:
             tableName: book_shelf
@@ -187,6 +212,11 @@ databaseChangeLog:
   - changeSet:
       id: 001-elections-create
       author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: elections
       changes:
         - createTable:
             tableName: elections
@@ -230,6 +260,11 @@ databaseChangeLog:
   - changeSet:
       id: 001-candidates-create
       author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: candidates
       changes:
         - createTable:
             tableName: candidates
@@ -280,6 +315,11 @@ databaseChangeLog:
   - changeSet:
       id: 001-votes-create
       author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: votes
       changes:
         - createTable:
             tableName: votes
@@ -317,6 +357,11 @@ databaseChangeLog:
   - changeSet:
       id: 001-results-create
       author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: results
       changes:
         - createTable:
             tableName: results
@@ -356,6 +401,11 @@ databaseChangeLog:
   - changeSet:
       id: 001-results-flags-create
       author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: flags
       changes:
         - createTable:
             tableName: flags

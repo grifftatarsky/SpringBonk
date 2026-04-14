@@ -10,6 +10,11 @@ databaseChangeLog:
   - changeSet:
       id: 002-notifications-create
       author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: notifications
       changes:
         - createTable:
             tableName: notifications
