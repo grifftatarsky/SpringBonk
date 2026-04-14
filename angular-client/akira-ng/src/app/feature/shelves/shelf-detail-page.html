@@ -31,12 +31,40 @@
             </p>
           </div>
         </div>
-        <div class="flex flex-wrap gap-2">
+        <div class="flex items-center gap-2">
           <button type="button"
                   class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
                   (click)="openAddDialog('search')">
             + Add book
           </button>
+          <div class="relative">
+            <button type="button"
+                    class="rounded-md border border-rule p-1.5 text-fg-subtle transition hover:bg-bg-subtle hover:text-fg"
+                    aria-label="Shelf actions"
+                    aria-haspopup="true"
+                    [attr.aria-expanded]="shelfMenuOpen()"
+                    (click)="toggleShelfMenu()">
+              <svg viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                <path d="M8 2a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM8 6.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM9.5 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Z"></path>
+              </svg>
+            </button>
+            @if (shelfMenuOpen()) {
+              <div class="absolute right-0 top-full z-30 mt-1 w-48 overflow-hidden rounded-md border border-rule bg-bg shadow-lg"
+                   role="menu">
+                @if (!shelf.defaultShelf) {
+                  <button type="button"
+                          class="block w-full px-3 py-2 text-left text-sm text-danger transition-colors hover:bg-danger-subtle"
+                          (click)="askDeleteShelf()">
+                    Delete shelf
+                  </button>
+                } @else {
+                  <p class="px-3 py-2 text-xs text-fg-subtle">
+                    Default shelves can't be deleted.
+                  </p>
+                }
+              </div>
+            }
+          </div>
         </div>
       </div>
     </ng-container>
@@ -80,7 +108,7 @@
                   </a>
                   <button type="button"
                           class="rounded-md border border-rule px-3 py-1 text-xs font-semibold text-danger transition hover:bg-danger-subtle"
-                          (click)="removeBook(book.id)">
+                          (click)="askRemoveBook(book.id, book.title)">
                     Remove
                   </button>
                 </div>
@@ -290,6 +318,78 @@
           </form>
         </div>
       }
+    </section>
+  </div>
+}
+
+<!-- REMOVE BOOK CONFIRM MODAL ------------------------------------------------ -->
+@if (removeBookConfirmId()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-fg/40 backdrop-blur-sm"
+         (click)="cancelRemoveBook()"
+         aria-hidden="true"></div>
+    <section class="relative z-10 w-full max-w-md rounded-lg border border-rule bg-bg p-6 shadow-lg"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="remove-book-confirm-title">
+      <header class="mb-4">
+        <h2 id="remove-book-confirm-title" class="text-xl font-semibold tracking-tight">
+          Remove from shelf?
+        </h2>
+        <p class="mt-2 text-sm text-fg-muted">
+          "<span class="font-medium text-fg">{{ removeBookConfirmTitle() }}</span>" comes off this shelf.
+          If it isn't on any other shelf, it'll land in your <span class="font-medium text-fg">Unshelved</span> shelf — you can put it somewhere else later.
+        </p>
+      </header>
+      <div class="flex flex-wrap justify-end gap-2">
+        <button type="button"
+                class="rounded-md border border-rule px-4 py-2 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                (click)="cancelRemoveBook()">
+          Cancel
+        </button>
+        <button type="button"
+                class="rounded-md bg-danger px-4 py-2 text-sm font-semibold text-danger-fg transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                [disabled]="removeBookBusy()"
+                (click)="confirmRemoveBook()">
+          {{ removeBookBusy() ? 'Removing…' : 'Remove from shelf' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+<!-- DELETE SHELF CONFIRM MODAL ----------------------------------------------- -->
+@if (deleteShelfConfirmOpen()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-fg/40 backdrop-blur-sm"
+         (click)="cancelDeleteShelf()"
+         aria-hidden="true"></div>
+    <section class="relative z-10 w-full max-w-md rounded-lg border border-rule bg-bg p-6 shadow-lg"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="delete-shelf-confirm-title">
+      <header class="mb-4">
+        <h2 id="delete-shelf-confirm-title" class="text-xl font-semibold tracking-tight text-danger">
+          Delete this shelf?
+        </h2>
+        <p class="mt-2 text-sm text-fg-muted">
+          The shelf is gone, but the books stay in your library. Any book that lands off every
+          shelf will show up under <span class="font-medium text-fg">Unshelved</span>.
+        </p>
+      </header>
+      <div class="flex flex-wrap justify-end gap-2">
+        <button type="button"
+                class="rounded-md border border-rule px-4 py-2 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                (click)="cancelDeleteShelf()">
+          Cancel
+        </button>
+        <button type="button"
+                class="rounded-md bg-danger px-4 py-2 text-sm font-semibold text-danger-fg transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                [disabled]="deleteShelfBusy()"
+                (click)="confirmDeleteShelf()">
+          {{ deleteShelfBusy() ? 'Deleting…' : 'Delete shelf' }}
+        </button>
+      </div>
     </section>
   </div>
 }

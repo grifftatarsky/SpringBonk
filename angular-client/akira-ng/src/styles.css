@@ -92,6 +92,8 @@
  * --------------------------------------------------------------------------*/
 html {
   scroll-behavior: smooth;
+  /* Fragment jumps (#anchors) need to clear the fixed 56px header. */
+  scroll-padding-top: 4rem;
 }
 
 body {

@@ -1,8 +1,9 @@
 <section class="text-fg">
   <!-- HEADER ----------------------------------------------------------------- -->
   <header class="border-b border-rule pb-4">
-    <!-- Row 1: title + meta + inline actions (always on the right). -->
-    <div class="flex items-start justify-between gap-3">
+    <!-- Row 1: title + meta grouped on the left, actions slot vertically
+         centered against them on the right. -->
+    <div class="flex items-center justify-between gap-3">
       <div class="min-w-0">
         <h2 class="text-xl font-semibold tracking-tight">{{ title }}</h2>
         <p class="mt-1 text-xs text-fg-subtle">
@@ -14,36 +15,40 @@
       </div>
     </div>
 
-    <!-- Row 2: filter + per-page (secondary controls). -->
-    @if (showFilterControl || (showPageSize && showPageSizeControl)) {
-      <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
-        <ng-container *ngIf="showFilterControl">
-          <label class="sr-only" for="list-filter">{{ filterPlaceholder }}</label>
-          <div
-            class="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-rule bg-bg-subtle px-3 py-1.5 text-sm text-fg focus-within:border-accent-ring">
-            <span class="text-fg-subtle" aria-hidden="true">
-              <svg viewBox="0 0 24 24" class="size-4">
-                <path fill="currentColor"
-                      d="M15.5 14h-.79l-.28-.27A6 6 0 1 0 14 15.5l.27.28v.79l4.5 4.5L20 18.99l-4.5-4.49zM10 14a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z" />
-              </svg>
-            </span>
-            <input
-              id="list-filter"
-              type="search"
-              [value]="filterValue"
-              (input)="onFilterInput($event)"
-              [placeholder]="filterPlaceholder"
-              class="w-full border-none bg-transparent text-sm text-fg placeholder:text-fg-subtle focus:outline-none" />
-          </div>
-        </ng-container>
+    <!-- Row 2: filter input (the only boxed control). -->
+    @if (showFilterControl) {
+      <div class="mt-4">
+        <label class="sr-only" for="list-filter">{{ filterPlaceholder }}</label>
         <div
-          class="inline-flex shrink-0 items-center gap-2 rounded-md border border-rule bg-bg-subtle px-3 py-1.5 text-xs"
-          *ngIf="showPageSize && showPageSizeControl">
-          <label class="text-fg-subtle" for="list-page-size">Per page</label>
-          <div class="relative inline-flex items-center">
+          class="flex items-center gap-2 rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus-within:border-accent-ring">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75"
+               class="size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+            <circle cx="9" cy="9" r="6"></circle>
+            <path d="M13.5 13.5L17 17" stroke-linecap="round"></path>
+          </svg>
+          <input
+            id="list-filter"
+            type="text"
+            [value]="filterValue"
+            (input)="onFilterInput($event)"
+            [placeholder]="filterPlaceholder"
+            class="w-full border-none bg-transparent text-sm text-fg placeholder:text-fg-subtle focus:outline-none" />
+        </div>
+      </div>
+    }
+
+    <!-- Row 3: inline text controls (sort + per-page). No borders — they
+         read as sentence fragments with a bold selectable value. The
+         wrapper uses empty:hidden so it collapses when nothing's projected
+         AND per-page is disabled. -->
+    <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-fg-muted empty:hidden">
+      <ng-content select="[list-secondary]"></ng-content>
+      @if (showPageSize && showPageSizeControl) {
+        <label class="inline-flex items-center gap-1">
+          Showing
+          <span class="relative inline-flex items-center">
             <select
-              id="list-page-size"
-              class="appearance-none bg-transparent pr-4 text-sm font-semibold text-fg focus:outline-none"
+              class="appearance-none bg-transparent pr-4 font-semibold text-fg focus:outline-none"
               (change)="changePageSize($event)">
               @for (option of pageSizeOptions; track option) {
                 <option [value]="option" [selected]="option === page.size">
@@ -54,14 +59,10 @@
             <svg viewBox="0 0 12 12" class="pointer-events-none absolute right-0 size-3 text-fg-subtle" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
               <path d="M3 4.5L6 7.5L9 4.5"></path>
             </svg>
-          </div>
-        </div>
-      </div>
-    }
-
-    <!-- Optional: projected secondary actions below the controls (sort, etc). -->
-    <div class="mt-3 flex flex-wrap items-center gap-2 empty:hidden">
-      <ng-content select="[list-secondary]"></ng-content>
+          </span>
+          per page
+        </label>
+      }
     </div>
   </header>
 

@@ -186,6 +186,20 @@ export class ShelfDetailStore {
     }
   }
 
+  async deleteShelf(): Promise<boolean> {
+    const shelfId = this.shelfId();
+    if (!shelfId) return false;
+    try {
+      await firstValueFrom(this.shelfHttp.deleteShelf(shelfId));
+      this.notifications.success('Shelf deleted');
+      return true;
+    } catch (error) {
+      console.error('[ShelfDetailStore] Failed to delete shelf', error);
+      this.notifications.error('Unable to delete shelf right now.');
+      return false;
+    }
+  }
+
   refresh(): void {
     const id = this.shelfId();
     if (id) {

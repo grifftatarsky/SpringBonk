@@ -18,8 +18,17 @@
   <!-- FILTER + LIST -->
   <div class="px-2 max-sm:px-4">
 
+    <!-- NEW ELECTION -->
+    <div class="mb-4">
+      <button type="button"
+              class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
+              (click)="openCreateModal()">
+        + New election
+      </button>
+    </div>
+
     <!-- STATUS FILTER -->
-    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="mb-6">
       <div class="inline-flex rounded-md border border-rule bg-bg-subtle p-0.5">
         @for (filter of statusFilters; track filter.value) {
           <button type="button"
@@ -34,11 +43,6 @@
           </button>
         }
       </div>
-      <button type="button"
-              class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
-              (click)="openCreateModal()">
-        + New election
-      </button>
     </div>
 
     <app-paginated-list

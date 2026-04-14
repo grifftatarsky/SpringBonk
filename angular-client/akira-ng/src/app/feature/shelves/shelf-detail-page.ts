@@ -1,6 +1,6 @@
 import { DatePipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { map } from 'rxjs';
 import { PaginatedListComponent } from '../../common/ui/paginated-list/paginated-list.component';
@@ -22,6 +22,7 @@ type AddBookTab = 'search' | 'custom';
 })
 export class ShelfDetailPage {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   protected readonly store = inject(ShelfDetailStore);
   protected readonly searchStore = inject(BookSearchStore);
   private readonly fb = inject(NonNullableFormBuilder);
@@ -47,6 +48,16 @@ export class ShelfDetailPage {
   protected readonly customActionError = signal<string | null>(null);
   protected readonly searchActionBusy = signal(false);
   protected readonly customActionBusy = signal(false);
+
+  // Shelf management (⋮ menu + confirm modals).
+  protected readonly shelfMenuOpen = signal(false);
+  protected readonly deleteShelfConfirmOpen = signal(false);
+  protected readonly deleteShelfBusy = signal(false);
+
+  // Remove-book confirm modal (per-book).
+  protected readonly removeBookConfirmId = signal<string | null>(null);
+  protected readonly removeBookConfirmTitle = signal<string>('');
+  protected readonly removeBookBusy = signal(false);
 
   constructor() {
     this.route.paramMap
@@ -77,8 +88,59 @@ export class ShelfDetailPage {
     this.store.setPageSize(size);
   }
 
-  protected removeBook(bookId: string): void {
-    void this.store.removeBook(bookId);
+  protected askRemoveBook(bookId: string, bookTitle: string): void {
+    this.removeBookConfirmId.set(bookId);
+    this.removeBookConfirmTitle.set(bookTitle);
+    this.shelfMenuOpen.set(false);
+  }
+
+  protected cancelRemoveBook(): void {
+    this.removeBookConfirmId.set(null);
+    this.removeBookConfirmTitle.set('');
+  }
+
+  protected async confirmRemoveBook(): Promise<void> {
+    const id = this.removeBookConfirmId();
+    if (!id || this.removeBookBusy()) return;
+    this.removeBookBusy.set(true);
+    try {
+      await this.store.removeBook(id);
+      this.cancelRemoveBook();
+    } finally {
+      this.removeBookBusy.set(false);
+    }
+  }
+
+  // Shelf menu + delete flow.
+  protected toggleShelfMenu(): void {
+    this.shelfMenuOpen.update((open) => !open);
+  }
+
+  protected closeShelfMenu(): void {
+    this.shelfMenuOpen.set(false);
+  }
+
+  protected askDeleteShelf(): void {
+    this.deleteShelfConfirmOpen.set(true);
+    this.shelfMenuOpen.set(false);
+  }
+
+  protected cancelDeleteShelf(): void {
+    this.deleteShelfConfirmOpen.set(false);
+  }
+
+  protected async confirmDeleteShelf(): Promise<void> {
+    if (this.deleteShelfBusy()) return;
+    this.deleteShelfBusy.set(true);
+    try {
+      const ok = await this.store.deleteShelf();
+      this.deleteShelfConfirmOpen.set(false);
+      if (ok) {
+        await this.router.navigate(['/shelves']);
+      }
+    } finally {
+      this.deleteShelfBusy.set(false);
+    }
   }
 
   protected openAddDialog(tab: AddBookTab = 'search'): void {
@@ -140,6 +202,18 @@ export class ShelfDetailPage {
   protected handleEscape(): void {
     if (this.addDialogOpen()) {
       this.closeAddDialog();
+      return;
+    }
+    if (this.deleteShelfConfirmOpen()) {
+      this.cancelDeleteShelf();
+      return;
+    }
+    if (this.removeBookConfirmId()) {
+      this.cancelRemoveBook();
+      return;
+    }
+    if (this.shelfMenuOpen()) {
+      this.closeShelfMenu();
     }
   }
 }

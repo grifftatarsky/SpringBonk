@@ -16,6 +16,16 @@
   <!-- LIST -->
   <div class="px-2 max-sm:px-4">
     @let state = vm();
+
+    <!-- NEW SHELF -->
+    <div class="mb-4">
+      <button type="button"
+              class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
+              (click)="openCreate()">
+        + New shelf
+      </button>
+    </div>
+
     <app-paginated-list
       title="All shelves"
       [page]="state.page"
@@ -30,12 +40,11 @@
       (pageChange)="onPage($event)"
       (pageSizeChange)="onPageSize($event)">
 
-      <div list-secondary
-           class="inline-flex items-center gap-2 rounded-md border border-rule bg-bg-subtle px-3 py-1.5 text-xs">
-        <label class="text-fg-subtle" for="shelves-sort">Sort</label>
-        <div class="relative inline-flex items-center">
+      <label list-secondary class="inline-flex items-center gap-1">
+        Sorting by
+        <span class="relative inline-flex items-center">
           <select id="shelves-sort"
-                  class="appearance-none bg-transparent pr-4 text-sm font-semibold text-fg focus:outline-none"
+                  class="appearance-none bg-transparent pr-4 font-semibold text-fg focus:outline-none"
                   (change)="updateSort($any($event.target).selectedIndex)"
                   aria-label="Sort shelves">
             @for (option of state.sortOptions; track option.label; let i = $index) {
@@ -47,8 +56,8 @@
           <svg viewBox="0 0 12 12" class="pointer-events-none absolute right-0 size-3 text-fg-subtle" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
             <path d="M3 4.5L6 7.5L9 4.5"></path>
           </svg>
-        </div>
-      </div>
+        </span>
+      </label>
 
       <ul class="flex flex-col">
         @for (shelf of state.items; track shelf.id) {
@@ -82,3 +91,64 @@
     }
   </div>
 </div>
+
+<!-- CREATE SHELF MODAL ------------------------------------------------------- -->
+@if (createModalOpen()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center px-4" aria-live="polite">
+    <div class="absolute inset-0 bg-fg/40 backdrop-blur-sm"
+         (click)="closeCreate()"
+         aria-hidden="true"></div>
+    <section
+      class="relative z-10 w-full max-w-md rounded-lg border border-rule bg-bg p-6 shadow-lg"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="shelves-create-title">
+      <header class="mb-6 flex items-start justify-between">
+        <div>
+          <h2 id="shelves-create-title" class="text-xl font-semibold tracking-tight">New shelf</h2>
+          <p class="mt-1 text-sm text-fg-subtle">Short name. You can change it later.</p>
+        </div>
+        <button type="button"
+                class="rounded-md p-1 text-fg-subtle hover:text-fg hover:bg-bg-subtle transition-colors"
+                aria-label="Close"
+                (click)="closeCreate()">
+          <svg viewBox="0 0 16 16" fill="currentColor" class="size-4">
+            <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z"></path>
+          </svg>
+        </button>
+      </header>
+
+      <form class="space-y-5" (ngSubmit)="submitCreate()" [formGroup]="createForm" novalidate>
+        <div>
+          <label for="shelves-create-name"
+                 class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+            Shelf name
+          </label>
+          <input
+            id="shelves-create-name"
+            type="text"
+            formControlName="title"
+            autocomplete="off"
+            class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none"
+            [attr.aria-invalid]="!!titleError" />
+          @if (titleError) {
+            <p class="mt-1.5 text-sm text-danger" role="alert">{{ titleError }}</p>
+          }
+        </div>
+
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button"
+                  class="rounded-md border border-rule px-4 py-2 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                  (click)="closeCreate()">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  [disabled]="createForm.invalid || createState().creating">
+            {{ createState().creating ? 'Creating…' : 'Create shelf' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

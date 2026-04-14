@@ -48,8 +48,8 @@
   </div>
 
   <!-- BODY ------------------------------------------------------------------ -->
-  <div class="px-2 max-sm:px-4">
-    <div class="space-y-10">
+  <div class="min-w-0 px-2 max-sm:px-4">
+    <div class="flex min-w-0 flex-col gap-10">
       @let candidateState = candidatesVm();
       @let resultsState = resultsVm();
 
@@ -113,13 +113,13 @@
           } @else if (!resultsState.items.length) {
             <p class="mt-4 text-sm text-fg-subtle">No results recorded yet.</p>
           } @else {
-            <div class="mt-6 space-y-8">
+            <div class="mt-6 flex min-w-0 flex-col gap-8">
               @for (result of resultsState.items; track result.id) {
-                <article>
+                <article class="min-w-0">
                   <!-- Winner -->
-                  <div class="border-b border-rule pb-4">
+                  <div class="min-w-0 border-b border-rule pb-4">
                     <p class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Winner</p>
-                    <p class="mt-1 text-3xl font-semibold tracking-tight text-fg">{{ result.winnerName }}</p>
+                    <p class="mt-1 break-words text-3xl font-semibold tracking-tight text-fg">{{ result.winnerName }}</p>
                     <p class="mt-1 text-sm text-fg-muted">
                       {{ result.totalVotes }} vote{{ result.totalVotes === 1 ? '' : 's' }} ·
                       decided {{ result.closureTime | date: 'MMM d, y · h:mm a' }}
@@ -137,18 +137,18 @@
 
                   <!-- Rounds -->
                   @if (result.rounds.length) {
-                    <div class="mt-6">
+                    <div class="mt-6 min-w-0">
                       <p class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Round by round</p>
-                      <div class="mt-4 space-y-8">
+                      <div class="mt-4 flex flex-col gap-8">
                         @for (round of result.rounds; track round.roundNumber) {
-                          <div>
+                          <div class="min-w-0">
                             <div class="flex items-baseline justify-between gap-3">
                               <p class="text-sm font-semibold text-fg">Round {{ round.roundNumber }}</p>
                               <p class="text-xs text-fg-subtle">{{ round.totalVotes }} total</p>
                             </div>
-                            <ul class="mt-3 space-y-3">
+                            <ul class="mt-3 flex flex-col gap-3">
                               @for (row of round.rows; track row.candidateId) {
-                                <li class="grid gap-1"
+                                <li class="flex min-w-0 flex-col gap-1"
                                     [class.opacity-60]="row.eliminated">
                                   <div class="flex items-baseline justify-between gap-3 text-sm">
                                     <span class="flex min-w-0 items-center gap-2">
@@ -175,7 +175,7 @@
                                       {{ row.votes }}
                                     </span>
                                   </div>
-                                  <div class="relative h-1.5 overflow-hidden rounded-sm bg-bg-muted">
+                                  <div class="relative h-1.5 w-full overflow-hidden rounded-sm bg-bg-muted">
                                     <div class="h-full rounded-sm transition-[width] duration-500"
                                          [class.bg-accent]="row.isWinner"
                                          [class.bg-fg]="!row.isWinner && !row.eliminated"

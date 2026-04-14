@@ -3,8 +3,9 @@ import { ShelfHttpService, ShelfPageRequest } from '../../common/http/shelf-http
 import { ShelfResponse } from '../../model/response/shelf-response.model';
 import { PaginatedResult, SortDirection } from '../../model/type/pagination';
 import { createEmptyResult, mapSpringPagedResponse, paginateArray } from '../../common/util/pagination.util';
-import { catchError, debounceTime, map, of, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, firstValueFrom, map, of, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { NotificationService } from '../../common/notification/notification.service';
 
 interface ShelvesQuery extends ShelfPageRequest {
   filter: string;
@@ -25,6 +26,7 @@ const SORT_OPTIONS: readonly ShelvesSortOption[] = [
 @Injectable()
 export class ShelvesPageStore {
   private readonly http = inject(ShelfHttpService);
+  private readonly notifications = inject(NotificationService);
 
   private readonly pageIndex = signal(0);
   private readonly pageSize = signal(8);
@@ -35,6 +37,14 @@ export class ShelvesPageStore {
   private readonly busy = signal(false);
   private readonly error = signal<string | null>(null);
   private readonly result = signal<PaginatedResult<ShelfResponse>>(createEmptyResult<ShelfResponse>(8));
+
+  // Creation flow state.
+  private readonly creating = signal(false);
+  private readonly createError = signal<string | null>(null);
+  readonly createState = computed(() => ({
+    creating: this.creating(),
+    error: this.createError(),
+  }));
 
   private readonly params = computed<ShelvesQuery>(() => ({
     page: this.pageIndex(),
@@ -108,6 +118,31 @@ export class ShelvesPageStore {
     this.sortField.set(option.field);
     this.sortDirection.set(option.direction);
     this.pageIndex.set(0);
+  }
+
+  clearCreateError(): void {
+    this.createError.set(null);
+  }
+
+  async createShelf(title: string): Promise<void> {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    this.creating.set(true);
+    this.createError.set(null);
+    try {
+      await firstValueFrom(this.http.createShelf({ title: trimmed }));
+      this.notifications.success('Shelf created');
+      // Refresh by bumping the filter signal (triggers the query effect).
+      const current = this.filterTerm();
+      this.filterTerm.set('');
+      this.filterTerm.set(current);
+    } catch (err) {
+      console.error('[ShelvesPageStore] Failed to create shelf', err);
+      this.createError.set('Unable to create shelf right now.');
+      throw err;
+    } finally {
+      this.creating.set(false);
+    }
   }
 
   private loadShelves(state: ShelvesQuery) {

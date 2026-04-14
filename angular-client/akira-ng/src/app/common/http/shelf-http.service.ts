@@ -32,4 +32,8 @@ export class ShelfHttpService extends BaseHttpService {
   getShelf(id: string): Observable<ShelfResponse> {
     return this.get<ShelfResponse>(`${this.baseUrl}/${id}`);
   }
+
+  deleteShelf(id: string): Observable<void> {
+    return this.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }
