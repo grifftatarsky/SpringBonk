@@ -1,88 +1,78 @@
-<div class="grid pb-24 text-gray-950 dark:text-white">
+<div class="grid gap-12 pb-24 text-fg">
+  <!-- HERO -->
   <div class="px-2 max-sm:px-4 mt-4">
-
-    <section
-      class="rounded-3xl border border-emerald-400/20 bg-black/80 px-4 py-10 text-white shadow-[0_0_30px_rgba(16,185,129,0.2)] sm:px-8">
-      <p class="text-xs font-semibold uppercase tracking-[0.5em] text-emerald-300">Shelves</p>
-      <h1 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Shelf command center</h1>
-      <p class="mt-4 max-w-3xl text-sm text-white/70">
-        Browse every shelf in your library, jump into detail views, and keep track of which ones are
-        powering
-        nominations or club reads. Use the filters below to slice by name or creation date.
-      </p>
-    </section>
+    <div aria-hidden="true"
+         class="flex h-14 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-20">
+      <span>Your overflowing "to read" pile, but tidier.</span>
+    </div>
+    <div
+      class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
+      <h1 class="px-2 text-4xl tracking-tighter text-balance max-lg:font-medium max-sm:px-4 sm:text-5xl lg:text-6xl">
+        Shelves
+      </h1>
+    </div>
   </div>
-  <div class="px-2 max-sm:px-4 mt-4">
-    <div>
-      @let state = vm();
-      <app-paginated-list
-        title="All shelves"
-        [page]="state.page"
-        [filterValue]="state.filter"
-        filterPlaceholder="Filter by shelf name"
-        [busy]="state.busy"
-        [hasItems]="!!state.items.length"
-        [emptyMessage]="state.filter ? 'No shelves match your filter.' : 'Create a shelf from the dashboard to get started.'"
-        [showPageSize]="true"
-        [pageSizeOptions]="[4, 8, 12]"
-        (filterValueChange)="onFilterChange($event)"
-        (pageChange)="onPage($event)"
-        (pageSizeChange)="onPageSize($event)">
 
-        <div list-actions
-             class="flex w-full flex-col gap-3 text-white/80 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-          <label class="text-xs uppercase tracking-[0.4em] text-white/50">Sort</label>
-          <select class="rounded-full border border-white/10 bg-black/60 px-3 py-1 text-sm"
-                  (change)="updateSort($any($event.target).selectedIndex)"
-                  aria-label="Sort shelves">
-            @for (option of state.sortOptions; track option.label; let i = $index) {
-              <option
-                [selected]="option.field === state.sortField && option.direction === state.sortDirection">
-                {{ option.label }}
-              </option>
-            }
-          </select>
-        </div>
+  <!-- LIST -->
+  <div class="px-2 max-sm:px-4">
+    @let state = vm();
+    <app-paginated-list
+      title="All shelves"
+      [page]="state.page"
+      [filterValue]="state.filter"
+      filterPlaceholder="Filter by name"
+      [busy]="state.busy"
+      [hasItems]="!!state.items.length"
+      [emptyMessage]="state.filter ? 'Nothing matches that.' : 'No shelves yet — make one on the dashboard.'"
+      [showPageSize]="true"
+      [pageSizeOptions]="[4, 8, 12]"
+      (filterValueChange)="onFilterChange($event)"
+      (pageChange)="onPage($event)"
+      (pageSizeChange)="onPageSize($event)">
 
-        <ul class="flex flex-col gap-4">
-          @for (shelf of state.items; track shelf.id) {
-            <li>
-              <a [routerLink]="['/shelves', shelf.id]"
-                 class="group block rounded-3xl border border-white/10 bg-white/5 px-5 py-4 text-white transition hover:-translate-y-0.5 hover:border-emerald-300/60 hover:bg-emerald-500/10">
-                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p class="text-xl font-semibold tracking-tight">
-                      {{ shelf.title }}
-                      <span *ngIf="shelf.defaultShelf"
-                            class="ml-2 rounded-full border border-emerald-300/30 px-2 py-0.5 text-[0.6rem] uppercase tracking-[0.2em] text-emerald-200/90">
+      <div list-actions class="flex items-center gap-2 text-xs">
+        <label for="shelves-sort" class="text-fg-subtle">Sort</label>
+        <select id="shelves-sort"
+                class="rounded-md border border-rule bg-bg-subtle px-2 py-1 text-sm text-fg focus:border-accent-ring focus:outline-none"
+                (change)="updateSort($any($event.target).selectedIndex)"
+                aria-label="Sort shelves">
+          @for (option of state.sortOptions; track option.label; let i = $index) {
+            <option [selected]="option.field === state.sortField && option.direction === state.sortDirection">
+              {{ option.label }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <ul class="flex flex-col">
+        @for (shelf of state.items; track shelf.id) {
+          <li class="border-t border-rule first:border-t-0">
+            <a [routerLink]="['/shelves', shelf.id]"
+               class="group flex items-start justify-between gap-4 py-4 text-fg transition-colors hover:bg-bg-subtle">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <p class="truncate text-lg font-semibold tracking-tight">{{ shelf.title }}</p>
+                  <span *ngIf="shelf.defaultShelf"
+                        class="shrink-0 rounded border border-rule px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-fg-subtle">
                     Default
                   </span>
-                    </p>
-                    <p class="text-sm text-white/60">
-                      Created {{ shelf.createdDate | date: 'mediumDate' }}</p>
-                  </div>
-                  <div
-                    class="flex items-center gap-3 text-xs uppercase tracking-[0.4em] text-white/60">
-                    <span>{{ shelf.bookCount }} books</span>
-                    <span
-                      class="inline-flex items-center justify-center rounded-full border border-white/15 px-3 py-1 text-white/80">
-                  Details →
-                </span>
-                  </div>
                 </div>
-              </a>
-            </li>
-          }
-        </ul>
-      </app-paginated-list>
+                <p class="mt-1 text-sm text-fg-subtle">
+                  {{ shelf.bookCount }} {{ shelf.bookCount === 1 ? 'book' : 'books' }} ·
+                  created {{ shelf.createdDate | date: 'mediumDate' }}
+                </p>
+              </div>
+              <span class="shrink-0 text-fg-subtle transition-colors group-hover:text-accent">→</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </app-paginated-list>
 
-      @if (state.error) {
-        <p
-          class="mt-3 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200"
-          role="status">
-          {{ state.error }}
-        </p>
-      }
-    </div>
+    @if (state.error) {
+      <p class="mt-3 rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger" role="status">
+        {{ state.error }}
+      </p>
+    }
   </div>
 </div>

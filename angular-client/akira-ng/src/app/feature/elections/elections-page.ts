@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ElectionsPageStore, ElectionStatusFilter, ElectionListItem } from './elections-page.store';
 import { PaginatedListComponent } from '../../common/ui/paginated-list/paginated-list.component';
-import { DatePipe, NgClass } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ReactiveFormsModule, NonNullableFormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ElectionStatus } from '../../model/response/election-response.model';
@@ -9,7 +9,7 @@ import { ElectionStatus } from '../../model/response/election-response.model';
 @Component({
   selector: 'app-elections-page',
   standalone: true,
-  imports: [PaginatedListComponent, DatePipe, ReactiveFormsModule, RouterLink, NgClass],
+  imports: [PaginatedListComponent, DatePipe, ReactiveFormsModule, RouterLink],
   templateUrl: './elections-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ElectionsPageStore],

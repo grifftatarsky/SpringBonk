@@ -44,12 +44,28 @@ export class ElectionHttpService extends BaseHttpService {
     return this.get<CandidateResponse[]>(`${this.baseUrl}/${electionId}/candidates/all`);
   }
 
-  nominateCandidate(electionId: string, bookId: string): Observable<CandidateResponse> {
-    return this.post<CandidateResponse>(`${this.baseUrl}/${electionId}/nominate/${bookId}`, {});
+  nominateCandidate(
+    electionId: string,
+    bookId: string,
+    pitch?: string,
+  ): Observable<CandidateResponse> {
+    const body = pitch && pitch.trim() ? { pitch: pitch.trim() } : {};
+    return this.post<CandidateResponse>(`${this.baseUrl}/${electionId}/nominate/${bookId}`, body);
   }
 
   deleteCandidate(electionId: string, candidateId: string): Observable<void> {
     return this.delete<void>(`${this.baseUrl}/${electionId}/candidate/${candidateId}`);
+  }
+
+  updateCandidatePitch(
+    electionId: string,
+    candidateId: string,
+    pitch: string,
+  ): Observable<CandidateResponse> {
+    return this.patch<CandidateResponse>(
+      `${this.baseUrl}/${electionId}/candidate/${candidateId}/pitch`,
+      { pitch },
+    );
   }
 
   getElectionResults(electionId: string): Observable<ElectionResultResponse[]> {

@@ -1,5 +1,5 @@
 import { DatePipe, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { map } from 'rxjs';
@@ -8,6 +8,8 @@ import { ShelfDetailStore } from './shelf-detail.store';
 import { BookSearchStore } from './book-search.store';
 import { OpenLibraryBookResponse } from '../../model/response/open-library-book-response.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+type AddBookTab = 'search' | 'custom';
 
 @Component({
   selector: 'app-shelf-detail-page',
@@ -35,14 +37,16 @@ export class ShelfDetailPage {
     blurb: [''],
   });
 
-  protected readonly searchOpen = signal(false);
-  protected readonly customOpen = signal(false);
+  // Single unified add-book dialog with two tabs: search Open Library OR custom entry.
+  protected readonly addDialogOpen = signal(false);
+  protected readonly addDialogTab = signal<AddBookTab>('search');
+
   protected readonly searchInput = this.fb.control('');
+  protected readonly searchPitchInput = this.fb.control('');
   protected readonly searchActionError = signal<string | null>(null);
   protected readonly customActionError = signal<string | null>(null);
   protected readonly searchActionBusy = signal(false);
   protected readonly customActionBusy = signal(false);
-  protected readonly searchPitchInput = this.fb.control('');
 
   constructor() {
     this.route.paramMap
@@ -77,27 +81,22 @@ export class ShelfDetailPage {
     void this.store.removeBook(bookId);
   }
 
-  protected openSearch(): void {
-    this.searchOpen.set(true);
-    this.customOpen.set(false);
+  protected openAddDialog(tab: AddBookTab = 'search'): void {
+    this.addDialogTab.set(tab);
+    this.addDialogOpen.set(true);
     this.searchInput.setValue('');
     this.searchPitchInput.setValue('');
-    this.searchActionError.set(null);
-  }
-
-  protected closeSearch(): void {
-    this.searchOpen.set(false);
-  }
-
-  protected openCustom(): void {
-    this.customOpen.set(true);
-    this.searchOpen.set(false);
     this.customForm.reset({ title: '', author: '', imageURL: '', blurb: '' });
+    this.searchActionError.set(null);
     this.customActionError.set(null);
   }
 
-  protected closeCustom(): void {
-    this.customOpen.set(false);
+  protected closeAddDialog(): void {
+    this.addDialogOpen.set(false);
+  }
+
+  protected setAddDialogTab(tab: AddBookTab): void {
+    this.addDialogTab.set(tab);
   }
 
   protected async addFromOpenLibrary(book: OpenLibraryBookResponse): Promise<void> {
@@ -106,7 +105,7 @@ export class ShelfDetailPage {
     try {
       await this.store.addBookFromOpenLibrary(book, this.searchPitchInput.value ?? '');
       this.searchPitchInput.setValue('');
-      this.closeSearch();
+      this.closeAddDialog();
     } catch (error) {
       console.error(error);
       this.searchActionError.set('Unable to add this book right now.');
@@ -124,7 +123,7 @@ export class ShelfDetailPage {
     this.customActionBusy.set(true);
     try {
       await this.store.addCustomBook(this.customForm.getRawValue());
-      this.closeCustom();
+      this.closeAddDialog();
     } catch (error) {
       console.error(error);
       this.customActionError.set('Unable to add this book right now.');
@@ -135,5 +134,12 @@ export class ShelfDetailPage {
 
   protected loadMoreSearch(): void {
     void this.searchStore.loadMore();
+  }
+
+  @HostListener('document:keydown.escape')
+  protected handleEscape(): void {
+    if (this.addDialogOpen()) {
+      this.closeAddDialog();
+    }
   }
 }

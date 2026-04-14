@@ -9,12 +9,15 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { DOCUMENT, NgOptimizedImage } from '@angular/common';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import { Auth } from './auth/auth';
 import { UserService } from './auth/user.service';
-import { map, Observable } from 'rxjs';
+import { filter, map, Observable } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { User } from './auth/user.model';
 import { ToastContainerComponent } from './common/notification/toast-container.component';
+import { NotificationBellComponent } from './common/notification/notification-bell.component';
 
 type NavLink = Readonly<{
   label: string;
@@ -34,6 +37,7 @@ type ThemePreference = 'system' | 'light' | 'dark';
     RouterOutlet,
     Auth,
     ToastContainerComponent,
+    NotificationBellComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -45,6 +49,9 @@ export class App {
   private readonly userService: UserService = inject(UserService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly titleService = inject(Title);
   private readonly mediaQuery: MediaQueryList | null =
     typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)') : null;
   private readonly handleSystemPreferenceChange = (event: MediaQueryListEvent): void => {
@@ -61,8 +68,6 @@ export class App {
     { label: 'Dark', value: 'dark' },
   ];
 
-  // What do I do with this again...?
-  protected readonly title: WritableSignal<string> = signal('Akira');
   readonly isAuthenticated$: Observable<boolean>;
 
   constructor() {
@@ -73,6 +78,28 @@ export class App {
     effect(() => {
       this.applyTheme(this.themePreference(), this.systemPrefersDark());
     });
+    this.wireRouteTitles();
+  }
+
+  /**
+   * Walks the activated route tree on every NavigationEnd and sets
+   * `document.title` from the deepest route with a `data.title` entry.
+   * All titles are suffixed with " · Akira".
+   */
+  private wireRouteTitles(): void {
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        let route = this.activatedRoute;
+        while (route.firstChild) {
+          route = route.firstChild;
+        }
+        const title = route.snapshot.data['title'] as string | undefined;
+        this.titleService.setTitle(title ? `${title} · Akira` : 'Akira');
+      });
   }
 
   protected setThemePreference(preference: ThemePreference): void {

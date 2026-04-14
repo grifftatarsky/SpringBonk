@@ -24,7 +24,6 @@ For logs, please use format: `[CLASS] Content of log`.
 #### Backend
 
 1. Upgrade to latest Java
-2. Add liquibase (Priority)
 
 #### Frontend
 

@@ -36,7 +36,7 @@ public class Candidate {
   @GeneratedValue
   private UUID id;
 
-  @Column
+  @Column(columnDefinition = "TEXT")
   private String pitch;
 
   @CreationTimestamp

@@ -37,6 +37,13 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
+    <!--Schema migration: Liquibase owns all DDL. Hibernate ddl-auto is set
+        to validate so it can verify entities match the Liquibase-managed
+        schema on startup.-->
+    <dependency>
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>

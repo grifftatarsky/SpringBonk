@@ -1,5 +1,7 @@
 package com.gpt.springbonk.controller;
 
+import com.gpt.springbonk.model.dto.request.CandidateNominationRequest;
+import com.gpt.springbonk.model.dto.request.CandidatePitchRequest;
 import com.gpt.springbonk.model.dto.request.ElectionReopenRequest;
 import com.gpt.springbonk.model.dto.request.ElectionRequest;
 import com.gpt.springbonk.model.dto.response.CandidateResponse;
@@ -26,6 +28,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -174,10 +177,12 @@ public class ElectionController {
   public ResponseEntity<CandidateResponse> nominateCandidate(
       @PathVariable UUID id,
       @PathVariable UUID bookId,
+      @RequestBody(required = false) CandidateNominationRequest request,
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
-    CandidateResponse nominatedCandidate = candidateService.nominateCandidate(bookId, userId, id);
+    String pitch = request == null ? null : request.pitch();
+    CandidateResponse nominatedCandidate = candidateService.nominateCandidate(bookId, userId, id, pitch);
     return ResponseEntity.ok(nominatedCandidate);
   }
 
@@ -191,6 +196,19 @@ public class ElectionController {
     UUID userId = UUID.fromString(jwt.getSubject());
     candidateService.deleteCandidate(id, candidateId, userId);
     return ResponseEntity.noContent().build();
+  }
+
+  @PatchMapping("/{id}/candidate/{candidateId}/pitch")
+  @Operation(summary = "Update a candidate's per-election pitch")
+  public ResponseEntity<CandidateResponse> updateCandidatePitch(
+      @PathVariable UUID id,
+      @PathVariable UUID candidateId,
+      @Valid @RequestBody CandidatePitchRequest request,
+      @AuthenticationPrincipal Jwt jwt
+  ) {
+    UUID userId = UUID.fromString(jwt.getSubject());
+    CandidateResponse updated = candidateService.updatePitch(id, candidateId, userId, request.pitch());
+    return ResponseEntity.ok(updated);
   }
 
   @PostMapping("/vote/{candidateId}/{rank}")

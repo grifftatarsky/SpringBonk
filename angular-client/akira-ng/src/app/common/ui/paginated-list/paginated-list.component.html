@@ -1,14 +1,19 @@
-<section class="rounded-3xl border border-emerald-400/20 bg-gray-950/80 text-white shadow-[0_0_30px_rgba(16,185,129,0.1)]">
-  <header class="flex flex-col gap-4 border-b border-white/5 px-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+<section class="text-fg">
+  <!-- HEADER ----------------------------------------------------------------- -->
+  <header
+    class="flex flex-col gap-4 border-b border-rule pb-4 sm:flex-row sm:items-end sm:justify-between">
     <div>
-      <p class="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-300">{{ title }}</p>
-      <p class="text-sm text-white/60">Page {{ page.number + 1 }} of {{ page.totalPages }}</p>
+      <h2 class="text-xl font-semibold tracking-tight">{{ title }}</h2>
+      <p class="mt-1 text-xs text-fg-subtle">
+        Page {{ page.number + 1 }} of {{ page.totalPages || 1 }} · {{ page.totalElements }} total
+      </p>
     </div>
-    <div class="flex w-full flex-col gap-3 sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+    <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
       <ng-container *ngIf="showFilterControl">
         <label class="sr-only" for="list-filter">{{ filterPlaceholder }}</label>
-        <div class="flex min-w-[220px] flex-1 items-center gap-3 rounded-full border border-white/10 bg-black/60 px-4 py-2 text-sm text-white focus-within:border-emerald-400">
-          <span class="text-emerald-300" aria-hidden="true">
+        <div
+          class="flex min-w-[220px] flex-1 items-center gap-2 rounded-md border border-rule bg-bg-subtle px-3 py-1.5 text-sm text-fg focus-within:border-accent-ring">
+          <span class="text-fg-subtle" aria-hidden="true">
             <svg viewBox="0 0 24 24" class="size-4">
               <path fill="currentColor"
                     d="M15.5 14h-.79l-.28-.27A6 6 0 1 0 14 15.5l.27.28v.79l4.5 4.5L20 18.99l-4.5-4.49zM10 14a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z" />
@@ -20,13 +25,14 @@
             [value]="filterValue"
             (input)="onFilterInput($event)"
             [placeholder]="filterPlaceholder"
-            class="w-full border-none bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none" />
+            class="w-full border-none bg-transparent text-sm text-fg placeholder:text-fg-subtle focus:outline-none" />
         </div>
       </ng-container>
-      <div class="flex items-center gap-3 sm:flex-none" *ngIf="showPageSize && showPageSizeControl">
-        <label class="text-xs uppercase tracking-[0.4em] text-white/50">Size</label>
-        <select class="rounded-full border border-white/10 bg-black/60 px-3 py-1 text-sm"
-                (change)="changePageSize($event)">
+      <div class="flex items-center gap-2" *ngIf="showPageSize && showPageSizeControl">
+        <label class="text-xs text-fg-subtle">Per page</label>
+        <select
+          class="rounded-md border border-rule bg-bg-subtle px-2 py-1 text-sm text-fg focus:border-accent-ring focus:outline-none"
+          (change)="changePageSize($event)">
           @for (option of pageSizeOptions; track option) {
             <option [value]="option" [selected]="option === page.size">
               {{ option }}
@@ -34,46 +40,50 @@
           }
         </select>
       </div>
-      <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+      <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
         <ng-content select="[list-actions]"></ng-content>
       </div>
     </div>
   </header>
 
-  <div class="px-3 py-6 sm:px-6">
-    <div *ngIf="busy" class="flex items-center gap-3 rounded-2xl border border-white/5 bg-black/40 px-4 py-3 text-sm">
-      <span class="relative flex size-3">
-        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400"></span>
-        <span class="relative inline-flex size-3 rounded-full bg-emerald-300"></span>
+  <!-- BODY ------------------------------------------------------------------- -->
+  <div class="py-6">
+    <div *ngIf="busy"
+         class="flex items-center gap-3 py-3 text-sm text-fg-muted">
+      <span class="relative flex size-2">
+        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60"></span>
+        <span class="relative inline-flex size-2 rounded-full bg-accent"></span>
       </span>
-      Loading data…
+      Loading…
     </div>
 
     <div *ngIf="!busy && hasItems">
       <ng-content></ng-content>
     </div>
 
-    <p *ngIf="!busy && !hasItems" class="rounded-2xl border border-white/5 bg-black/40 px-4 py-5 text-center text-sm text-white/50">
+    <p *ngIf="!busy && !hasItems"
+       class="py-8 text-center text-sm text-fg-subtle">
       {{ emptyMessage }}
     </p>
 
     <ng-content select="[list-footer]"></ng-content>
   </div>
 
-  <footer class="flex items-center justify-between gap-4 border-t border-white/5 px-3 py-4 text-xs uppercase tracking-[0.3em] text-white/60 sm:px-6">
+  <!-- PAGINATION ------------------------------------------------------------- -->
+  <footer class="flex items-center justify-between gap-4 border-t border-rule pt-4 text-xs text-fg-subtle">
     <span>{{ page.totalElements }} total</span>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-1">
       <button type="button"
               (click)="goPrevious()"
               [disabled]="!canGoPrevious"
-              class="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30">
-        Prev
+              class="rounded-md border border-rule px-3 py-1 font-medium text-fg transition hover:bg-bg-subtle disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent">
+        ← Prev
       </button>
       <button type="button"
               (click)="goNext()"
               [disabled]="!canGoNext"
-              class="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30">
-        Next
+              class="rounded-md border border-rule px-3 py-1 font-medium text-fg transition hover:bg-bg-subtle disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent">
+        Next →
       </button>
     </div>
   </footer>

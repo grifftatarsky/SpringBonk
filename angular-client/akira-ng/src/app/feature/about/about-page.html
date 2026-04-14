@@ -1,0 +1,116 @@
+<div class="grid gap-16 pb-24 text-fg">
+  <!-- HERO -->
+  <div class="px-2 max-sm:px-4 mt-4">
+    <div aria-hidden="true"
+         class="flex h-14 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-20">
+      <span>You came here expecting self-importance, didn't you.</span>
+    </div>
+    <div
+      class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
+      <h1 class="px-2 text-4xl tracking-tighter text-balance max-lg:font-medium max-sm:px-4 sm:text-5xl lg:text-6xl">
+        About
+      </h1>
+    </div>
+  </div>
+
+  <!-- WHAT IT IS -->
+  <section class="px-2 max-sm:px-4">
+    <h2 class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">What it is</h2>
+    <p class="mt-3 max-w-(--breakpoint-md) text-base/7 text-fg-muted">
+      Akira is a small web app for running ranked-choice votes on books. You make shelves, put books
+      on them, start an election, nominate a few candidates, and everyone orders their picks. An
+      instant-runoff count tells you what wins. No spreadsheets. No "wait, who voted?" No group-chat
+      doom loop at 11pm on a Wednesday.
+    </p>
+  </section>
+
+  <!-- WHY IT EXISTS -->
+  <section class="px-2 max-sm:px-4">
+    <h2 class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Why it exists</h2>
+    <p class="mt-3 max-w-(--breakpoint-md) text-base/7 text-fg-muted">
+      I run a book club called <span class="font-medium text-fg">Bonk!</span> and we couldn't agree
+      on what to read. Picking a book by "loudest person wins" is annoying. Picking by simple
+      majority throws away everybody's second choices. Ranked-choice keeps everybody's opinions in
+      the count, and the answer feels earned. So I built the thing.
+    </p>
+    <p class="mt-3 max-w-(--breakpoint-md) text-base/7 text-fg-muted">
+      Bonk! is the book club. Akira is what the book club runs on. You can use Akira for your own
+      book club, or any other thing you'd vote on in a group where the answer matters more than the
+      process. (I'm not going to pretend it generalizes to neighborhood elections. It's a book-club
+      app.)
+    </p>
+  </section>
+
+  <!-- WHAT'S HERE -->
+  <section class="px-2 max-sm:px-4">
+    <h2 class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">What's here right now</h2>
+    <ul class="mt-4 flex flex-col">
+      <li class="border-t border-rule py-3 first:border-t-0 first:pt-0 text-sm/6 text-fg-muted">
+        <span class="font-medium text-fg">Shelves.</span> Named lists of books. You can have as
+        many as you want. Books come from Open Library or you type them in.
+      </li>
+      <li class="border-t border-rule py-3 text-sm/6 text-fg-muted">
+        <span class="font-medium text-fg">Elections.</span> Make one, give it a title, optionally
+        an end date. Status is Open, Closed, or Indefinite.
+      </li>
+      <li class="border-t border-rule py-3 text-sm/6 text-fg-muted">
+        <span class="font-medium text-fg">Nominations.</span> Pull books from a shelf, search Open
+        Library, or type one in. Any member can nominate.
+      </li>
+      <li class="border-t border-rule py-3 text-sm/6 text-fg-muted">
+        <span class="font-medium text-fg">Ranked ballots.</span> Drag or arrow-button your way to a
+        preference order. Auto-saved as you go.
+      </li>
+      <li class="border-t border-rule py-3 text-sm/6 text-fg-muted">
+        <span class="font-medium text-fg">Results.</span> When the election closes, you see the
+        winner and the round-by-round count that got you there.
+      </li>
+    </ul>
+  </section>
+
+  <!-- WHAT'S NOT HERE -->
+  <section class="px-2 max-sm:px-4">
+    <h2 class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">What's not here (yet)</h2>
+    <ul class="mt-4 flex flex-col">
+      <li class="border-t border-rule py-3 first:border-t-0 first:pt-0 text-sm/6 text-fg-muted">
+        Notifications (coming).
+      </li>
+      <li class="border-t border-rule py-3 text-sm/6 text-fg-muted">
+        Groups / multi-club scoping. Right now it's one-club-per-instance by convention.
+      </li>
+      <li class="border-t border-rule py-3 text-sm/6 text-fg-muted">
+        Non-plurality tabulation methods. Only instant-runoff today.
+      </li>
+      <li class="border-t border-rule py-3 text-sm/6 text-fg-muted">
+        Generalizing past books. The models say "Book" everywhere for now.
+      </li>
+    </ul>
+  </section>
+
+  <!-- HOW IT'S BUILT -->
+  <section class="px-2 max-sm:px-4">
+    <h2 class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">How it's built</h2>
+    <p class="mt-3 max-w-(--breakpoint-md) text-base/7 text-fg-muted">
+      Angular on the front, Spring Boot on the back, Keycloak for auth, NGINX in between, Postgres
+      underneath, Docker wrapping it all. Deploy on a laptop, a VPS, or a cluster — nothing fancy.
+      Source is on
+      <a class="text-accent hover:underline" href="https://github.com/grifftatarsky/SpringBonk"
+         target="_blank" rel="noreferrer">GitHub</a>.
+    </p>
+  </section>
+
+  <!-- CTAS -->
+  <section class="px-2 max-sm:px-4">
+    <div class="flex flex-wrap gap-2">
+      <a routerLink="/docs"
+         class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover">
+        Read the docs
+      </a>
+      <a href="https://github.com/grifftatarsky/SpringBonk"
+         target="_blank" rel="noreferrer"
+         class="inline-flex items-center gap-1.5 rounded-md border border-rule px-3 py-1.5 text-sm font-semibold text-fg transition hover:bg-bg-subtle">
+        GitHub ↗
+      </a>
+    </div>
+  </section>
+</div>

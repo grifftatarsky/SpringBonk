@@ -34,9 +34,15 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      # Liquibase owns schema migrations; Hibernate only validates that the
+      # JPA entities match the Liquibase-managed schema at startup.
+      ddl-auto: validate
     show-sql: false
     open-in-view: false
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    default-schema: public
   doc:
     swagger-ui:
       # MARK # TODO: Swagger requires a functional OAUTH implementation.

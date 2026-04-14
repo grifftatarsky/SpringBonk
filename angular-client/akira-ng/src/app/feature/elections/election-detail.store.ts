@@ -1,4 +1,6 @@
-import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal, Signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { ElectionHttpService } from '../../common/http/election-http.service';
 import { ElectionResponse, ElectionStatus } from '../../model/response/election-response.model';
 import { CandidateResponse } from '../../model/response/candidate-response.model';
@@ -15,6 +17,7 @@ import { VotingHttpService } from '../../common/http/voting-http.service';
 import { VoteResponse } from '../../model/response/vote-response.model';
 import { ElectionResultResponse } from '../../model/response/election-result-response.model';
 import { ElectionReopenRequest } from '../../model/request/election-reopen-request.model';
+import { UserService } from '../../auth/user.service';
 
 export interface CandidateListItem {
   id: string;
@@ -26,12 +29,37 @@ export interface CandidateListItem {
   bookId: string;
   userRank: number | null;
   voteBusy: boolean;
+  nominatorId: string;
+  mine: boolean;
+}
+
+export interface MyNominationItem {
+  id: string;
+  title: string;
+  author: string;
+  cover: string;
+  blurb: string;
+  /** Per-election pitch. Independent of book blurb. */
+  pitch: string;
+  bookId: string;
+  pitchBusy: boolean;
+}
+
+interface RoundResultRow {
+  candidateId: string;
+  candidateName: string;
+  votes: number;
+  eliminated: boolean;
+  isWinner: boolean;
+  widthPct: number;
 }
 
 interface RoundResultView {
   roundNumber: number;
-  rows: Array<{ candidateId: string; candidateName: string; votes: number; eliminated: boolean }>;
+  rows: RoundResultRow[];
   eliminationMessage: string | null;
+  maxVotes: number;
+  totalVotes: number;
 }
 
 interface ElectionResultView {
@@ -51,6 +79,13 @@ export class ElectionDetailStore {
   private readonly shelfHttp = inject(ShelfHttpService);
   private readonly votingHttp = inject(VotingHttpService);
   private readonly notifications = inject(NotificationService);
+  private readonly userService = inject(UserService);
+
+  /** Current user's ID as a signal, driven by UserService's BehaviorSubject. */
+  private readonly currentUserId: Signal<string> = toSignal(
+    this.userService.valueChanges.pipe(map((u) => u.id)),
+    { initialValue: this.userService.current.id },
+  );
 
   private readonly electionId = signal('');
   private readonly election = signal<ElectionResponse | null>(null);
@@ -60,6 +95,9 @@ export class ElectionDetailStore {
   private readonly candidates = signal<CandidateResponse[]>([]);
   private readonly candidateLoading = signal(false);
   private readonly candidateError = signal<string | null>(null);
+
+  /** Per-candidate pitch-edit busy flags, keyed by candidate id. */
+  private readonly pitchBusyMap = signal<Record<string, boolean>>({});
 
   private readonly shelfOptions = signal<ShelfResponse[]>([]);
   private readonly shelfOptionsLoading = signal(false);
@@ -120,6 +158,7 @@ export class ElectionDetailStore {
       return acc;
     }, {});
     const busyMap = this.voteBusyMap();
+    const userId = this.currentUserId();
     const items: CandidateListItem[] = this.candidates().map((candidate) => ({
       id: candidate.id,
       title: candidate.base.title,
@@ -130,6 +169,8 @@ export class ElectionDetailStore {
       bookId: candidate.base.id,
       userRank: voteMap[candidate.id] ?? null,
       voteBusy: busyMap[candidate.id] ?? false,
+      nominatorId: candidate.nominatorId,
+      mine: !!userId && candidate.nominatorId === userId,
     }));
     const rankedItems = [...items]
       .filter((item) => item.userRank !== null)
@@ -148,26 +189,74 @@ export class ElectionDetailStore {
     };
   });
 
+  /** "My nominations" view — candidates nominated by the current user. */
+  readonly myNominationsVm = computed(() => {
+    const userId = this.currentUserId();
+    const busyMap = this.pitchBusyMap();
+    const items: MyNominationItem[] = !userId
+      ? []
+      : this.candidates()
+          .filter((c) => c.nominatorId === userId)
+          .map((c) => ({
+            id: c.id,
+            title: c.base.title,
+            author: c.base.author,
+            cover: c.base.imageURL,
+            blurb: c.base.blurb || '',
+            pitch: c.pitch || '',
+            bookId: c.base.id,
+            pitchBusy: busyMap[c.id] ?? false,
+          }));
+    return {
+      items,
+      count: items.length,
+      hasAny: items.length > 0,
+    };
+  });
+
   readonly resultsVm = computed(() => {
     const candidateMap = new Map(this.candidates().map((candidate) => [candidate.id, candidate.base.title]));
-    const items: ElectionResultView[] = this.results().map((result) => ({
-      id: result.id,
-      winnerId: result.winnerId,
-      winnerName: result.winnerId ? candidateMap.get(result.winnerId) ?? 'Unknown candidate' : 'Pending',
-      totalVotes: result.totalVotes,
-      closureTime: result.closureTime,
-      flags: result.flags,
-      rounds: (result.rounds ?? []).map((round) => (({
-        roundNumber: round.roundNumber,
-        eliminationMessage: round.eliminationMessage ?? null,
-        rows: Object.entries(round.votes ?? {}).map(([candidateId, votes]) => ({
+    const items: ElectionResultView[] = this.results().map((result) => {
+      const winnerId = result.winnerId;
+      const rounds: RoundResultView[] = (result.rounds ?? []).map((round) => {
+        const rawRows = Object.entries(round.votes ?? {}).map(([candidateId, votes]) => ({
           candidateId,
-          candidateName: candidateMap.get(candidateId) ?? 'Candidate',
           votes,
           eliminated: round.eliminatedCandidateIds?.includes(candidateId) ?? false,
-        })),
-      }) as RoundResultView)),
-    }));
+        }));
+        const maxVotes = rawRows.reduce((m, r) => (r.votes > m ? r.votes : m), 0);
+        const totalVotes = rawRows.reduce((sum, r) => sum + r.votes, 0);
+        // Sort rows: winners/leaders at top, eliminated at bottom.
+        const sortedRows = [...rawRows].sort((a, b) => {
+          if (a.eliminated !== b.eliminated) return a.eliminated ? 1 : -1;
+          return b.votes - a.votes;
+        });
+        const rows: RoundResultRow[] = sortedRows.map((r) => ({
+          candidateId: r.candidateId,
+          candidateName: candidateMap.get(r.candidateId) ?? 'Candidate',
+          votes: r.votes,
+          eliminated: r.eliminated,
+          isWinner: !!winnerId && r.candidateId === winnerId,
+          widthPct: maxVotes > 0 ? Math.round((r.votes / maxVotes) * 100) : 0,
+        }));
+        return {
+          roundNumber: round.roundNumber,
+          eliminationMessage: round.eliminationMessage ?? null,
+          rows,
+          maxVotes,
+          totalVotes,
+        };
+      });
+      return {
+        id: result.id,
+        winnerId,
+        winnerName: winnerId ? candidateMap.get(winnerId) ?? 'Unknown candidate' : 'Pending',
+        totalVotes: result.totalVotes,
+        closureTime: result.closureTime,
+        flags: result.flags,
+        rounds,
+      };
+    });
 
     return {
       items,
@@ -206,13 +295,15 @@ export class ElectionDetailStore {
         title: doc.title || 'Untitled',
         author: doc.author_name?.[0] || 'Unknown author',
         imageURL: doc.cover_i ? this.bookHttp.getOpenLibraryCoverImageUrl(doc.cover_i, 'M') : '',
-        blurb: normalizedPitch,
+        // Book blurb stays empty — Open Library's search response doesn't
+        // include a description, and the user's argument is a pitch, not a blurb.
+        blurb: '',
         openLibraryId: doc.key?.replace('/works/', '') || doc.key || '',
       },
-      pitch: '',
+      pitch: normalizedPitch,
       createdDate: new Date().toISOString(),
       electionId,
-      nominatorId: '',
+      nominatorId: this.currentUserId(),
       votes: [],
     };
 
@@ -223,12 +314,14 @@ export class ElectionDetailStore {
         title: placeholder.base.title,
         author: placeholder.base.author,
         imageURL: placeholder.base.imageURL,
-        blurb: normalizedPitch,
+        blurb: '',
         openLibraryId: placeholder.base.openLibraryId,
       };
 
       const createdBook: BookResponse = await firstValueFrom(this.bookHttp.createBook(request));
-      const candidate = await firstValueFrom(this.electionHttp.nominateCandidate(electionId, createdBook.id));
+      const candidate = await firstValueFrom(
+        this.electionHttp.nominateCandidate(electionId, createdBook.id, normalizedPitch),
+      );
       this.replaceCandidate(placeholderId, candidate);
       this.notifications.success('Candidate nominated');
     } catch (error) {
@@ -239,10 +332,22 @@ export class ElectionDetailStore {
     }
   }
 
-  async nominateCustomBook(form: { title: string; author: string; imageURL: string; blurb: string }): Promise<void> {
+  /**
+   * Nominate a book the user types in by hand.
+   * `form.blurb` is the real book blurb (description). `form.pitch` is the
+   * per-election pitch. Either can be empty.
+   */
+  async nominateCustomBook(form: {
+    title: string;
+    author: string;
+    imageURL: string;
+    blurb: string;
+    pitch: string;
+  }): Promise<void> {
     const electionId = this.electionId();
     if (!electionId) return;
 
+    const normalizedPitch: string = form.pitch?.trim() ?? '';
     const customOpenLibraryId = `custom-${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
     const placeholderId = `tmp-${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
     const placeholder: CandidateResponse = {
@@ -255,19 +360,27 @@ export class ElectionDetailStore {
         blurb: form.blurb,
         openLibraryId: customOpenLibraryId,
       },
-      pitch: '',
+      pitch: normalizedPitch,
       createdDate: new Date().toISOString(),
       electionId,
-      nominatorId: '',
+      nominatorId: this.currentUserId(),
       votes: [],
     };
 
     this.candidates.update((candidates) => [placeholder, ...candidates]);
 
     try {
-      const request: BookRequest = { ...form, openLibraryId: customOpenLibraryId };
+      const request: BookRequest = {
+        title: form.title,
+        author: form.author,
+        imageURL: form.imageURL,
+        blurb: form.blurb,
+        openLibraryId: customOpenLibraryId,
+      };
       const createdBook = await firstValueFrom(this.bookHttp.createBook(request));
-      const candidate = await firstValueFrom(this.electionHttp.nominateCandidate(electionId, createdBook.id));
+      const candidate = await firstValueFrom(
+        this.electionHttp.nominateCandidate(electionId, createdBook.id, normalizedPitch),
+      );
       this.replaceCandidate(placeholderId, candidate);
       this.notifications.success('Candidate nominated');
     } catch (error) {
@@ -278,25 +391,28 @@ export class ElectionDetailStore {
     }
   }
 
-  async nominateExistingBook(bookId: string): Promise<void> {
+  async nominateExistingBook(bookId: string, pitch: string = ''): Promise<void> {
     const electionId = this.electionId();
     if (!electionId) return;
 
+    const normalizedPitch: string = pitch?.trim() ?? '';
     const placeholderId = `tmp-${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
     const placeholder: CandidateResponse = {
       id: placeholderId,
       base: { id: bookId, title: 'Loading…', author: '', imageURL: '', blurb: '', openLibraryId: '' },
-      pitch: '',
+      pitch: normalizedPitch,
       createdDate: new Date().toISOString(),
       electionId,
-      nominatorId: '',
+      nominatorId: this.currentUserId(),
       votes: [],
     };
 
     this.candidates.update((candidates) => [placeholder, ...candidates]);
 
     try {
-      const candidate = await firstValueFrom(this.electionHttp.nominateCandidate(electionId, bookId));
+      const candidate = await firstValueFrom(
+        this.electionHttp.nominateCandidate(electionId, bookId, normalizedPitch),
+      );
       this.replaceCandidate(placeholderId, candidate);
       this.notifications.success('Candidate nominated');
     } catch (error) {
@@ -316,12 +432,50 @@ export class ElectionDetailStore {
 
     try {
       await firstValueFrom(this.electionHttp.deleteCandidate(electionId, candidateId));
-      this.notifications.success('Candidate removed');
+      this.notifications.success('Nomination removed');
     } catch (error) {
       console.error('[ElectionDetailStore] Failed to remove candidate', error);
       this.candidates.set(snapshot);
       this.notifications.error('Unable to remove candidate right now.');
       throw error;
+    }
+  }
+
+  /**
+   * Update a candidate's per-election pitch. Writes directly to the
+   * Candidate entity's pitch column — does NOT touch the book's blurb.
+   * A book can have different pitches in different elections.
+   */
+  async updateCandidatePitch(candidateId: string, pitch: string): Promise<void> {
+    const electionId = this.electionId();
+    const candidate = this.candidates().find((c) => c.id === candidateId);
+    if (!electionId || !candidate) {
+      return;
+    }
+    const trimmed = (pitch ?? '').trim();
+    if (trimmed === (candidate.pitch ?? '').trim()) {
+      return; // no-op
+    }
+
+    this.pitchBusyMap.update((map) => ({ ...map, [candidateId]: true }));
+
+    try {
+      const updated: CandidateResponse = await firstValueFrom(
+        this.electionHttp.updateCandidatePitch(electionId, candidateId, trimmed),
+      );
+      this.candidates.update((list) =>
+        list.map((c) => (c.id === candidateId ? updated : c)),
+      );
+      this.notifications.success('Pitch updated');
+    } catch (error) {
+      console.error('[ElectionDetailStore] Failed to update pitch', error);
+      this.notifications.error('Unable to save the pitch right now.');
+      throw error;
+    } finally {
+      this.pitchBusyMap.update((map) => {
+        const { [candidateId]: _dropped, ...rest } = map;
+        return rest;
+      });
     }
   }
 

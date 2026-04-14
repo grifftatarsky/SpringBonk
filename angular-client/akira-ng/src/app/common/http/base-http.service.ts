@@ -59,6 +59,20 @@ export class BaseHttpService {
   }
 
   /**
+   * Perform a PATCH request
+   */
+  protected patch<T>(
+    url: string,
+    body: unknown,
+    headers?: HttpHeaders,
+  ): Observable<T> {
+    return this.http.patch<T>(url, body, {
+      headers: this.normalizeHeaders(headers),
+      withCredentials: true,
+    });
+  }
+
+  /**
    * Perform a DELETE request
    */
   protected delete<T>(

@@ -1,0 +1,12 @@
+databaseChangeLog:
+  # Master changelog. Individual changesets live in db/changelog/changes/
+  # and are included here in deterministic order. Each change file should
+  # contain one or more <changeSet> entries with stable ids, and should
+  # NEVER be modified after being applied to a shared environment — new
+  # schema work goes into new files.
+  - include:
+      file: db/changelog/changes/001-initial-schema.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/002-notifications.yaml
+      relativeToChangelogFile: false

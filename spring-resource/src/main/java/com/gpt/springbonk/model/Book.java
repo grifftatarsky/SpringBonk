@@ -38,7 +38,7 @@ public class Book {
   @Column(nullable = false)
   private String author;
 
-  @Column(name = "image_url")
+  @Column(name = "image_url", length = 2048)
   private String imageURL;
 
   @Column(columnDefinition = "TEXT")

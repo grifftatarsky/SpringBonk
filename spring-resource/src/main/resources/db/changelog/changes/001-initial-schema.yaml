@@ -1,0 +1,374 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 001 — Initial schema for Akira.
+  #
+  # Before this changelog existed, schema was managed by Hibernate ddl-auto.
+  # These changesets baseline the schema as of 2026-04-14 so Liquibase can
+  # take over. Tables, columns, FKs, uniques, and indexes here mirror the
+  # JPA entities.
+  #
+  # Never edit this file after it's been applied to a shared environment.
+  # ==========================================================================
+
+  # --------------------------------------------------------------------------
+  # keycloak_user — users synced from Keycloak. ID is supplied, not generated.
+  # --------------------------------------------------------------------------
+  - changeSet:
+      id: 001-keycloak-user-create
+      author: akira
+      changes:
+        - createTable:
+            tableName: keycloak_user
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(255)
+              - column:
+                  name: first_name
+                  type: VARCHAR(255)
+              - column:
+                  name: last_name
+                  type: VARCHAR(255)
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+              - column:
+                  name: created
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: last_action
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: avatar
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+  # keycloak_user.roles is an @ElementCollection<String>. Hibernate default
+  # naming: table "keycloak_user_roles" with a FK column named after the
+  # owner entity and a value column named after the field ("roles").
+  - changeSet:
+      id: 001-keycloak-user-roles-create
+      author: akira
+      changes:
+        - createTable:
+            tableName: keycloak_user_roles
+            columns:
+              - column:
+                  name: keycloak_user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_keycloak_user_roles_user
+                    references: keycloak_user(id)
+              - column:
+                  name: roles
+                  type: VARCHAR(255)
+
+  # --------------------------------------------------------------------------
+  # books — title/author/cover/blurb.
+  # --------------------------------------------------------------------------
+  - changeSet:
+      id: 001-books-create
+      author: akira
+      changes:
+        - createTable:
+            tableName: books
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: open_library_id
+                  type: VARCHAR(255)
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: author
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: image_url
+                  type: VARCHAR(2048)
+              - column:
+                  name: blurb
+                  type: TEXT
+              - column:
+                  name: created_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+
+  # --------------------------------------------------------------------------
+  # shelves — user-owned collections of books.
+  # --------------------------------------------------------------------------
+  - changeSet:
+      id: 001-shelves-create
+      author: akira
+      changes:
+        - createTable:
+            tableName: shelves
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_shelves_user
+                    references: keycloak_user(id)
+              - column:
+                  name: default_shelf
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+  # --------------------------------------------------------------------------
+  # book_shelf — many-to-many join table (Book.shelves / Shelf.books).
+  # --------------------------------------------------------------------------
+  - changeSet:
+      id: 001-book-shelf-create
+      author: akira
+      changes:
+        - createTable:
+            tableName: book_shelf
+            columns:
+              - column:
+                  name: book_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_book_shelf_book
+                    references: books(id)
+              - column:
+                  name: shelf_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_book_shelf_shelf
+                    references: shelves(id)
+        - addPrimaryKey:
+            tableName: book_shelf
+            columnNames: book_id, shelf_id
+            constraintName: pk_book_shelf
+
+  # --------------------------------------------------------------------------
+  # elections — ranked-choice vote campaigns.
+  # --------------------------------------------------------------------------
+  - changeSet:
+      id: 001-elections-create
+      author: akira
+      changes:
+        - createTable:
+            tableName: elections
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_date
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_elections_creator
+                    references: keycloak_user(id)
+              - column:
+                  name: created_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+  # --------------------------------------------------------------------------
+  # candidates — a Book nominated in a specific Election. "pitch" is the
+  # per-election argument for the candidate; distinct from the book blurb.
+  # --------------------------------------------------------------------------
+  - changeSet:
+      id: 001-candidates-create
+      author: akira
+      changes:
+        - createTable:
+            tableName: candidates
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: pitch
+                  type: TEXT
+              - column:
+                  name: created_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: election_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_candidates_election
+                    references: elections(id)
+              - column:
+                  name: book_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_candidates_book
+                    references: books(id)
+              - column:
+                  name: nominator_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_candidates_nominator
+                    references: keycloak_user(id)
+        - addUniqueConstraint:
+            tableName: candidates
+            columnNames: book_id, election_id
+            constraintName: uk_candidates_book_election
+
+  # --------------------------------------------------------------------------
+  # votes — one row per (user, candidate) ballot entry with a rank.
+  # --------------------------------------------------------------------------
+  - changeSet:
+      id: 001-votes-create
+      author: akira
+      changes:
+        - createTable:
+            tableName: votes
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: voter_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_votes_voter
+                    references: keycloak_user(id)
+              - column:
+                  name: candidate_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_votes_candidate
+                    references: candidates(id)
+              - column:
+                  name: rank
+                  type: INT
+                  constraints:
+                    nullable: false
+
+  # --------------------------------------------------------------------------
+  # results — historical record of a closed election and its tabulation.
+  # "rounds" is a JSONB column holding the full round-by-round breakdown.
+  # --------------------------------------------------------------------------
+  - changeSet:
+      id: 001-results-create
+      author: akira
+      changes:
+        - createTable:
+            tableName: results
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: winner_id
+                  type: UUID
+              - column:
+                  name: rounds
+                  type: JSONB
+              - column:
+                  name: election_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_results_election
+                    references: elections(id)
+              - column:
+                  name: total_votes
+                  type: INT
+              - column:
+                  name: closure_time
+                  type: TIMESTAMP WITH TIME ZONE
+        - addUniqueConstraint:
+            tableName: results
+            columnNames: election_id, closure_time
+            constraintName: uk_results_election_closure
+
+  # results.flags is an @ElementCollection with an explicit @CollectionTable
+  # name "flags" and an explicit @JoinColumn name "id" pointing at results.id.
+  - changeSet:
+      id: 001-results-flags-create
+      author: akira
+      changes:
+        - createTable:
+            tableName: flags
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_flags_result
+                    references: results(id)
+              - column:
+                  name: flags
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false

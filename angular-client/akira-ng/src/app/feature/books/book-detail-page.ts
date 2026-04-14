@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
@@ -9,7 +9,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   selector: 'app-book-detail-page',
   standalone: true,
-  imports: [NgIf, NgFor, RouterLink, ReactiveFormsModule],
+  imports: [NgIf, RouterLink, ReactiveFormsModule],
   providers: [BookDetailStore],
   templateUrl: './book-detail-page.html',
   styleUrl: './book-detail-page.css',

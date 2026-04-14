@@ -1,0 +1,79 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 002 — Notifications inbox.
+  #
+  # Adds a per-user notification feed surfaced by the header bell component.
+  # Fan-out happens on election lifecycle events (opened, closed, winner
+  # announced). Mirrors the `Notification` JPA entity.
+  # ==========================================================================
+
+  - changeSet:
+      id: 002-notifications-create
+      author: akira
+      changes:
+        - createTable:
+            tableName: notifications
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: recipient_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_notifications_recipient
+                    references: keycloak_user(id)
+              - column:
+                  name: message
+                  type: VARCHAR(1000)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: href
+                  type: VARCHAR(500)
+              - column:
+                  name: type
+                  type: VARCHAR(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: read_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+
+  # Dedicated indexes for the two hot queries — fetch a user's feed newest-
+  # first, and count a user's unread notifications.
+  - changeSet:
+      id: 002-notifications-recipient-created-index
+      author: akira
+      changes:
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notification_recipient_created
+            columns:
+              - column:
+                  name: recipient_id
+              - column:
+                  name: created_at
+                  descending: true
+
+  - changeSet:
+      id: 002-notifications-recipient-unread-index
+      author: akira
+      changes:
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notification_recipient_unread
+            columns:
+              - column:
+                  name: recipient_id
+              - column:
+                  name: read_at

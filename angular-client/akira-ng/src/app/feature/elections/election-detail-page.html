@@ -1,427 +1,947 @@
-<div class="grid pb-24 text-gray-950 dark:text-white">
-@if (anyOverlayActive) {
-  <div class="fixed inset-0 z-20 bg-black/10" (click)="closeMenus()" aria-hidden="true"></div>
-}
-<div class="px-3 sm:px-2 mt-4">
-<section class="rounded-3xl border border-sky-400/30 bg-black/80 px-4 py-8 text-white shadow-[0_0_30px_rgba(56,189,248,0.25)] sm:px-8">
-  <a routerLink="/elections" class="text-xs uppercase tracking-[0.4em] text-white/50 hover:text-white/80">← Elections</a>
-  @let electionState = electionVm();
-  <div *ngIf="electionState.loading" class="mt-6 text-sm text-white/70">Loading election…</div>
-  <div *ngIf="electionState.error && !electionState.loading" class="mt-6 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-    {{ electionState.error }}
-  </div>
-  <ng-container *ngIf="electionState.election as election">
-    <div class="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-      <div>
-        <p class="text-xs font-semibold uppercase tracking-[0.5em] text-sky-300">Election</p>
-        <h1 class="mt-2 text-3xl font-semibold text-white sm:text-4xl">{{ election.title }}</h1>
-        <p class="mt-2 text-sm text-white/70">
-          Status:
-          <span class="rounded-full border px-3 py-1 text-xs uppercase tracking-[0.4em]"
-                [class.border-emerald-400/40]="electionState.badgeTone === 'emerald'"
-                [class.border-amber-400/40]="electionState.badgeTone === 'amber'"
-                [class.border-sky-400/40]="electionState.badgeTone === 'sky'">
+<div class="grid gap-10 pb-24 text-fg">
+
+  <!-- Backdrop for open menus -->
+  @if (anyOverlayActive) {
+    <div class="fixed inset-0 z-20" (click)="closeMenus()" aria-hidden="true"></div>
+  }
+
+  <!-- HERO ------------------------------------------------------------------ -->
+  <div class="px-2 max-sm:px-4 mt-4">
+    <a routerLink="/elections"
+       class="inline-flex items-center gap-1 text-xs text-fg-subtle hover:text-fg transition-colors">
+      ← Elections
+    </a>
+
+    @let electionState = electionVm();
+
+    @if (electionState.loading) {
+      <p class="mt-6 text-sm text-fg-muted">Loading election…</p>
+    }
+    @if (electionState.error && !electionState.loading) {
+      <p class="mt-6 rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger">
+        {{ electionState.error }}
+      </p>
+    }
+
+    <ng-container *ngIf="electionState.election as election">
+      <div class="mt-4 flex flex-col gap-3 border-b border-rule pb-8">
+        <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">{{ election.title }}</h1>
+        <div class="flex flex-wrap items-center gap-3 text-sm text-fg-muted">
+          <span class="rounded border border-rule px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider"
+                [class.text-success]="electionState.badgeTone === 'emerald'"
+                [class.text-warn]="electionState.badgeTone === 'amber'"
+                [class.text-accent]="electionState.badgeTone === 'sky'">
             {{ electionState.statusLabel }}
           </span>
-        </p>
-        <p class="mt-2 text-sm text-white/60">
-          @if (election.status === 'OPEN' && election.endDateTime) {
-            Ends {{ election.endDateTime | date: 'medium' }}
-          } @else if (election.status === 'CLOSED' && election.endDateTime) {
-            Closed {{ election.endDateTime | date: 'medium' }}
-          } @else {
-            Created {{ election.createDate | date: 'medium' }}
-          }
-        </p>
-      </div>
-    </div>
-  </ng-container>
-</section>
-</div>
-<div class="px-3 sm:px-2 mt-4">
-<div class="space-y-6">
-  @let candidateState = candidatesVm();
-  @let resultsState = resultsVm();
-  @if (showClosedState(electionState.election?.status)) {
-    <section class="rounded-3xl border border-amber-400/20 bg-white/5 px-4 py-5 text-white shadow-[0_0_20px_rgba(251,191,36,0.10)]">
-      <!-- Header -->
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.4em] text-amber-300">Election closed</p>
-          <h2 class="mt-2 text-2xl font-semibold">Results</h2>
-          @if (electionState.election?.endDateTime) {
-            <p class="mt-1 text-sm text-white/60">
-              Closed on {{ electionState.election!.endDateTime | date: 'MMMM d, y, h:mm a' }}
-            </p>
-          }
+          <span>
+            @if (election.status === 'OPEN' && election.endDateTime) {
+              Ends {{ election.endDateTime | date: 'medium' }}
+            } @else if (election.status === 'CLOSED' && election.endDateTime) {
+              Closed {{ election.endDateTime | date: 'medium' }}
+            } @else {
+              Created {{ election.createDate | date: 'medium' }}
+            }
+          </span>
         </div>
-        <div class="relative flex shrink-0 items-center gap-2">
-          <button type="button" class="rounded-full border border-white/20 p-2 text-white hover:bg-white/10" aria-label="Refresh results" (click)="showResultsRefresh()">
-            <svg viewBox="0 0 20 20" class="size-4" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M4 4.5v4h4" stroke-linecap="round" stroke-linejoin="round"></path>
-              <path d="M16 15.5v-4h-4" stroke-linecap="round" stroke-linejoin="round"></path>
-              <path d="M5.5 14.5A6 6 0 0 0 16 9" stroke-linecap="round"></path>
-              <path d="M14.5 5.5A6 6 0 0 0 4 11" stroke-linecap="round"></path>
-            </svg>
-          </button>
-          <button type="button" class="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10" (click)="toggleCommandMenu()">
-            Manage
-            <svg aria-hidden="true" class="size-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M3 4.5L6 7.5L9 4.5"></path>
-            </svg>
-          </button>
-          @if (commandMenuOpen()) {
-            <div class="absolute right-0 top-full z-30 mt-2 w-52 rounded-2xl border border-white/10 bg-gray-950/95 p-2 text-left shadow-xl">
-              <button type="button" class="w-full rounded-xl px-3 py-2 text-left text-sm text-white hover:bg-white/10" (click)="openReopenModal()">
-                Reopen election
-              </button>
-              <button type="button" class="mt-1 w-full rounded-xl px-3 py-2 text-left text-sm text-red-200 hover:bg-red-500/10" (click)="openDeleteConfirm()">
-                Delete election
-              </button>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- BODY ------------------------------------------------------------------ -->
+  <div class="px-2 max-sm:px-4">
+    <div class="space-y-10">
+      @let candidateState = candidatesVm();
+      @let resultsState = resultsVm();
+
+      @if (showClosedState(electionState.election?.status)) {
+        <!-- =========================================================================
+             CLOSED: RESULTS
+             ========================================================================= -->
+        <section>
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Results</h2>
+              @if (electionState.election?.endDateTime) {
+                <p class="mt-1 text-sm text-fg-muted">
+                  Closed on {{ electionState.election!.endDateTime | date: 'MMMM d, y, h:mm a' }}
+                </p>
+              }
             </div>
-          }
-        </div>
-      </div>
-      <!-- Results body -->
-      @if (resultsState.loading) {
-        <p class="mt-4 text-sm text-white/70">Loading results…</p>
-      } @else if (resultsState.error) {
-        <p class="mt-4 rounded-2xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200" role="alert">
-          {{ resultsState.error }}
-        </p>
-      } @else if (!resultsState.items.length) {
-        <p class="mt-4 text-sm text-white/50">No results recorded yet.</p>
-      } @else {
-        <div class="mt-6 space-y-6">
-          @for (result of resultsState.items; track result.id) {
-            <article class="rounded-3xl border border-white/10 bg-black/60 px-4 py-5">
-              <!-- Result header: winner + closure time -->
-              <div class="flex flex-col gap-1 border-b border-white/10 pb-4">
-                <p class="text-xs font-semibold uppercase tracking-[0.4em] text-amber-300">Winner</p>
-                <p class="mt-1 text-xl font-semibold">{{ result.winnerName }}</p>
-                <div class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/50">
-                  <span>{{ result.totalVotes }} vote{{ result.totalVotes === 1 ? '' : 's' }} total</span>
-                  <span>Decided {{ result.closureTime | date: 'MMM d, y · h:mm a' }}</span>
+            <div class="relative flex shrink-0 items-center gap-2">
+              <button type="button"
+                      class="rounded-md border border-rule p-1.5 text-fg-subtle transition hover:bg-bg-subtle hover:text-fg"
+                      aria-label="Refresh results"
+                      (click)="showResultsRefresh()">
+                <svg viewBox="0 0 20 20" class="size-4" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M4 4.5v4h4" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M16 15.5v-4h-4" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M5.5 14.5A6 6 0 0 0 16 9" stroke-linecap="round"></path>
+                  <path d="M14.5 5.5A6 6 0 0 0 4 11" stroke-linecap="round"></path>
+                </svg>
+              </button>
+              <button type="button"
+                      class="inline-flex items-center gap-1.5 rounded-md border border-rule px-3 py-1.5 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                      (click)="toggleCommandMenu()">
+                Manage
+                <svg aria-hidden="true" class="size-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M3 4.5L6 7.5L9 4.5"></path>
+                </svg>
+              </button>
+              @if (commandMenuOpen()) {
+                <div class="absolute right-0 top-full z-30 mt-1 w-52 overflow-hidden rounded-md border border-rule bg-bg shadow-lg">
+                  <button type="button"
+                          class="block w-full px-3 py-2 text-left text-sm text-fg transition-colors hover:bg-bg-subtle"
+                          (click)="openReopenModal()">
+                    Reopen election
+                  </button>
+                  <button type="button"
+                          class="block w-full border-t border-rule px-3 py-2 text-left text-sm text-danger transition-colors hover:bg-danger-subtle"
+                          (click)="openDeleteConfirm()">
+                    Delete election
+                  </button>
                 </div>
-                @if (result.flags.length) {
-                  <div class="mt-2 flex flex-wrap gap-2">
-                    @for (flag of result.flags; track flag) {
-                      <span class="rounded-full border border-amber-300/40 px-2.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-amber-200">{{ flag }}</span>
-                    }
-                  </div>
-                }
-              </div>
-              <!-- Rounds -->
-              @if (result.rounds.length) {
-                <div class="mt-4">
-                  <p class="mb-3 text-xs font-semibold uppercase tracking-[0.4em] text-white/40">Round-by-round breakdown</p>
-                  <div class="space-y-3">
-                    @for (round of result.rounds; track round.roundNumber) {
-                      <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                        <p class="text-xs font-semibold uppercase tracking-[0.4em] text-sky-300/80">Round {{ round.roundNumber }}</p>
-                        <ul class="mt-3 space-y-2">
-                          @for (row of round.rows; track row.candidateId) {
-                            <li class="flex items-center justify-between gap-3 text-sm"
-                                [class.opacity-40]="row.eliminated">
-                              <span class="flex items-center gap-2 min-w-0">
-                                <span class="truncate" [class.line-through]="row.eliminated">{{ row.candidateName }}</span>
-                                @if (row.eliminated) {
-                                  <span class="shrink-0 rounded-full border border-red-400/30 bg-red-500/10 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-red-300">Eliminated</span>
-                                }
-                              </span>
-                              <span class="shrink-0 font-semibold tabular-nums text-white/80">{{ row.votes }}</span>
-                            </li>
-                          }
-                        </ul>
-                        @if (round.eliminationMessage) {
-                          <p class="mt-3 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/50">{{ round.eliminationMessage }}</p>
+              }
+            </div>
+          </div>
+
+          @if (resultsState.loading) {
+            <p class="mt-4 text-sm text-fg-muted">Loading results…</p>
+          } @else if (resultsState.error) {
+            <p class="mt-4 rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger" role="alert">
+              {{ resultsState.error }}
+            </p>
+          } @else if (!resultsState.items.length) {
+            <p class="mt-4 text-sm text-fg-subtle">No results recorded yet.</p>
+          } @else {
+            <div class="mt-6 space-y-8">
+              @for (result of resultsState.items; track result.id) {
+                <article>
+                  <!-- Winner -->
+                  <div class="border-b border-rule pb-4">
+                    <p class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Winner</p>
+                    <p class="mt-1 text-3xl font-semibold tracking-tight text-fg">{{ result.winnerName }}</p>
+                    <p class="mt-1 text-sm text-fg-muted">
+                      {{ result.totalVotes }} vote{{ result.totalVotes === 1 ? '' : 's' }} ·
+                      decided {{ result.closureTime | date: 'MMM d, y · h:mm a' }}
+                    </p>
+                    @if (result.flags.length) {
+                      <div class="mt-2 flex flex-wrap gap-1.5">
+                        @for (flag of result.flags; track flag) {
+                          <span class="rounded border border-rule px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-warn">
+                            {{ flag }}
+                          </span>
                         }
                       </div>
                     }
                   </div>
-                </div>
+
+                  <!-- Rounds -->
+                  @if (result.rounds.length) {
+                    <div class="mt-6">
+                      <p class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Round by round</p>
+                      <div class="mt-4 space-y-8">
+                        @for (round of result.rounds; track round.roundNumber) {
+                          <div>
+                            <div class="flex items-baseline justify-between gap-3">
+                              <p class="text-sm font-semibold text-fg">Round {{ round.roundNumber }}</p>
+                              <p class="text-xs text-fg-subtle">{{ round.totalVotes }} total</p>
+                            </div>
+                            <ul class="mt-3 space-y-3">
+                              @for (row of round.rows; track row.candidateId) {
+                                <li class="grid gap-1"
+                                    [class.opacity-60]="row.eliminated">
+                                  <div class="flex items-baseline justify-between gap-3 text-sm">
+                                    <span class="flex min-w-0 items-center gap-2">
+                                      <span class="truncate"
+                                            [class.text-fg]="!row.eliminated"
+                                            [class.text-fg-muted]="row.eliminated"
+                                            [class.font-semibold]="row.isWinner"
+                                            [class.line-through]="row.eliminated">
+                                        {{ row.candidateName }}
+                                      </span>
+                                      @if (row.isWinner) {
+                                        <span class="shrink-0 text-[0.65rem] font-semibold uppercase tracking-wider text-accent">
+                                          Winner
+                                        </span>
+                                      }
+                                      @if (row.eliminated) {
+                                        <span class="shrink-0 text-[0.65rem] font-semibold uppercase tracking-wider text-danger">
+                                          Eliminated
+                                        </span>
+                                      }
+                                    </span>
+                                    <span class="shrink-0 font-mono text-sm text-fg tabular-nums"
+                                          [class.font-semibold]="row.isWinner">
+                                      {{ row.votes }}
+                                    </span>
+                                  </div>
+                                  <div class="relative h-1.5 overflow-hidden rounded-sm bg-bg-muted">
+                                    <div class="h-full rounded-sm transition-[width] duration-500"
+                                         [class.bg-accent]="row.isWinner"
+                                         [class.bg-fg]="!row.isWinner && !row.eliminated"
+                                         [class.bg-danger]="row.eliminated"
+                                         [style.width.%]="row.widthPct"
+                                         aria-hidden="true"></div>
+                                  </div>
+                                </li>
+                              }
+                            </ul>
+                            @if (round.eliminationMessage) {
+                              <p class="mt-3 text-xs text-fg-subtle italic">{{ round.eliminationMessage }}</p>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </article>
               }
-            </article>
-          }
-        </div>
-      }
-    </section>
-  } @else {
-    <section class="rounded-3xl border border-white/10 bg-white/5 px-4 py-5 text-white shadow-[0_0_20px_rgba(125,211,252,0.12)]">
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.4em] text-sky-300">Ranking</p>
-          <h2 class="mt-2 text-2xl font-semibold">Arrange your ballot</h2>
-          <p class="mt-2 text-sm text-white/70">
-            Drag cards, tap the arrow buttons, or pull candidates in from the pool. Lower numbers win in the instant runoff.
-          </p>
-        </div>
-        <div class="relative flex shrink-0 items-center gap-2">
-          <button type="button" class="rounded-full border border-white/20 p-2.5 text-white hover:bg-white/10" aria-label="Refresh candidates" (click)="refreshCandidates()">
-            <svg viewBox="0 0 20 20" class="size-4" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M4 4.5v4h4" stroke-linecap="round" stroke-linejoin="round"></path>
-              <path d="M16 15.5v-4h-4" stroke-linecap="round" stroke-linejoin="round"></path>
-              <path d="M5.5 14.5A6 6 0 0 0 16 9" stroke-linecap="round"></path>
-              <path d="M14.5 5.5A6 6 0 0 0 4 11" stroke-linecap="round"></path>
-            </svg>
-          </button>
-          <button type="button" class="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10" (click)="toggleCommandMenu()">
-            Menu
-            <svg aria-hidden="true" class="size-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M3 4.5L6 7.5L9 4.5"></path>
-            </svg>
-          </button>
-          @if (commandMenuOpen()) {
-            <div class="absolute right-0 top-full z-30 mt-2 w-60 rounded-2xl border border-white/10 bg-gray-950/95 p-2 text-left shadow-xl">
-              <button type="button" class="w-full rounded-xl px-3 py-2.5 text-left text-sm text-white hover:bg-white/10" (click)="openAction('open-library')">
-                Nominate via Open Library
-              </button>
-              <button type="button" class="mt-1 w-full rounded-xl px-3 py-2.5 text-left text-sm text-white hover:bg-white/10" (click)="openAction('custom')">
-                Nominate custom book
-              </button>
-              <button type="button" class="mt-1 w-full rounded-xl px-3 py-2.5 text-left text-sm text-white hover:bg-white/10" (click)="openAction('shelf')">
-                Nominate from shelf
-              </button>
-              <button type="button" class="mt-1 w-full rounded-xl px-3 py-2.5 text-left text-sm text-white hover:bg-white/10" (click)="refreshCandidates()">
-                Refresh candidates
-              </button>
-              <div class="my-1 border-t border-white/10"></div>
-              <button type="button" class="mt-1 w-full rounded-xl px-3 py-2.5 text-left text-sm text-amber-200 hover:bg-amber-500/10" (click)="closeElectionNow()">
-                Close election
-              </button>
-              <button type="button" class="mt-1 w-full rounded-xl px-3 py-2.5 text-left text-sm text-white hover:bg-white/10" (click)="clearBallot()">
-                Clear ballot
-              </button>
-              <button type="button" class="mt-1 w-full rounded-xl px-3 py-2.5 text-left text-sm text-red-200 hover:bg-red-500/10" (click)="openDeleteConfirm()">
-                Delete election
-              </button>
             </div>
           }
-        </div>
-      </div>
-      @if (candidateState.votesError) {
-        <p class="mt-4 rounded-2xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200" role="alert">
-          {{ candidateState.votesError }}
-        </p>
-      }
-    </section>
+        </section>
+      } @else {
+        <!-- =========================================================================
+             OPEN: BALLOT WIZARD
+             ========================================================================= -->
+        <section>
+          @let steps = stepProgress();
 
-    @if (candidateState.loading) {
-      <p class="rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-white/70">Loading candidates…</p>
-    }
-    @if (candidateState.error) {
-      <p class="rounded-3xl border border-red-400/40 bg-red-500/10 px-4 py-4 text-sm text-red-200">{{ candidateState.error }}</p>
-    }
+          <!-- PROGRESS STRIP -->
+          <nav class="flex flex-col gap-2"
+               aria-label="Voting progress">
+            <ol class="grid grid-cols-3 gap-1 sm:gap-2">
+              <li>
+                <button type="button"
+                        class="group flex w-full flex-col gap-1 rounded-md border border-rule px-3 py-3 text-left transition-colors"
+                        [class.bg-bg]="steps.nominate.active"
+                        [class.shadow-sm]="steps.nominate.active"
+                        [class.border-accent]="steps.nominate.active"
+                        [class.bg-bg-subtle]="!steps.nominate.active"
+                        [class.hover:bg-bg]="!steps.nominate.active"
+                        [attr.aria-current]="steps.nominate.active ? 'step' : null"
+                        (click)="setVoteStage('nominate')">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-[0.65rem] font-mono tracking-wider"
+                          [class.text-accent]="steps.nominate.active"
+                          [class.text-fg-subtle]="!steps.nominate.active">
+                      01
+                    </span>
+                    @if (steps.nominate.complete) {
+                      <span class="text-xs text-success" aria-label="Has candidates">✓</span>
+                    }
+                  </div>
+                  <p class="text-sm font-semibold tracking-tight"
+                     [class.text-fg]="steps.nominate.active"
+                     [class.text-fg-muted]="!steps.nominate.active">
+                    Nominate
+                  </p>
+                  @if (steps.nominate.countLabel) {
+                    <p class="text-[0.65rem] text-fg-subtle">{{ steps.nominate.countLabel }}</p>
+                  }
+                </button>
+              </li>
+              <li>
+                <button type="button"
+                        class="group flex w-full flex-col gap-1 rounded-md border border-rule px-3 py-3 text-left transition-colors"
+                        [class.bg-bg]="steps.rank.active"
+                        [class.shadow-sm]="steps.rank.active"
+                        [class.border-accent]="steps.rank.active"
+                        [class.bg-bg-subtle]="!steps.rank.active"
+                        [class.hover:bg-bg]="!steps.rank.active"
+                        [attr.aria-current]="steps.rank.active ? 'step' : null"
+                        (click)="setVoteStage('rank')">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-[0.65rem] font-mono tracking-wider"
+                          [class.text-accent]="steps.rank.active"
+                          [class.text-fg-subtle]="!steps.rank.active">
+                      02
+                    </span>
+                    @if (steps.rank.complete) {
+                      <span class="text-xs text-success" aria-label="Has rankings">✓</span>
+                    }
+                  </div>
+                  <p class="text-sm font-semibold tracking-tight"
+                     [class.text-fg]="steps.rank.active"
+                     [class.text-fg-muted]="!steps.rank.active">
+                    Rank
+                  </p>
+                  @if (steps.rank.countLabel) {
+                    <p class="text-[0.65rem] text-fg-subtle">{{ steps.rank.countLabel }} ranked</p>
+                  }
+                </button>
+              </li>
+              <li>
+                <button type="button"
+                        class="group flex w-full flex-col gap-1 rounded-md border border-rule px-3 py-3 text-left transition-colors"
+                        [class.bg-bg]="steps.review.active"
+                        [class.shadow-sm]="steps.review.active"
+                        [class.border-accent]="steps.review.active"
+                        [class.bg-bg-subtle]="!steps.review.active"
+                        [class.hover:bg-bg]="!steps.review.active"
+                        [attr.aria-current]="steps.review.active ? 'step' : null"
+                        (click)="setVoteStage('review')">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-[0.65rem] font-mono tracking-wider"
+                          [class.text-accent]="steps.review.active"
+                          [class.text-fg-subtle]="!steps.review.active">
+                      03
+                    </span>
+                    @if (steps.review.complete) {
+                      <span class="text-xs text-success" aria-label="Ballot saved">✓</span>
+                    }
+                  </div>
+                  <p class="text-sm font-semibold tracking-tight"
+                     [class.text-fg]="steps.review.active"
+                     [class.text-fg-muted]="!steps.review.active">
+                    Review
+                  </p>
+                  @if (steps.review.countLabel) {
+                    <p class="text-[0.65rem] text-fg-subtle">auto-saved</p>
+                  }
+                </button>
+              </li>
+            </ol>
+          </nav>
 
-    <div class="grid gap-6 lg:grid-cols-2">
-      <section class="rounded-3xl border border-sky-400/40 bg-black/60 px-4 py-5 text-white shadow-[0_0_30px_rgba(56,189,248,0.18)]"
-               cdkDropList
-               id="ranked-list"
-               [cdkDropListData]="candidateState.rankedItems"
-               [cdkDropListConnectedTo]="['pool-list']"
-               [cdkDropListDisabled]="candidateState.reorderBusy || candidateState.votesLoading"
-               (cdkDropListDropped)="handleBallotDrop($event)">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.4em] text-sky-300">Ballot</p>
-            <h3 class="text-xl font-semibold">Your order ({{ candidateState.rankedItems.length }})</h3>
-          </div>
-          @if (candidateState.reorderBusy) {
-            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-sky-200">Saving…</p>
-          }
-        </div>
-        @if (!candidateState.rankedItems.length && !candidateState.loading) {
-          <p class="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-center text-sm text-white/70">
-            No ranked candidates yet. Drag from the pool or use the menu above to add favorites.
-          </p>
-        }
-        <div class="mt-4 flex flex-col gap-4">
-          @for (candidate of candidateState.rankedItems; track candidate.id) {
-            <article cdkDrag [cdkDragData]="candidate" class="relative rounded-3xl border border-white/15 bg-white/5 px-4 py-4 shadow-[0_0_20px_rgba(125,211,252,0.15)]" [cdkDragDisabled]="candidateState.reorderBusy || candidateState.votesLoading">
-              <div class="flex flex-col gap-3">
-                <div class="flex items-start justify-between gap-3">
-                  <div>
-                    <p class="text-xs uppercase tracking-[0.4em] text-sky-300">Rank #{{ candidate.userRank }}</p>
-                    <p class="text-lg font-semibold tracking-tight">{{ candidate.title }}</p>
-                    <p class="text-sm text-white/70">{{ candidate.author }}</p>
-                    <p class="text-xs text-white/50">{{ candidate.votes }} recorded votes</p>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <button type="button" class="rounded-full border border-white/15 p-2 text-white/70 hover:bg-white/10" (click)="toggleCandidateDetailsArrow(candidate.id)" aria-label="Toggle details for {{ candidate.title }}">
-                      <svg viewBox="0 0 12 12" class="size-3" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M3 4.5L6 7.5L9 4.5" [attr.transform]="isCandidateExpanded(candidate.id) ? 'rotate(180 6 6)' : undefined"></path>
-                      </svg>
-                    </button>
-                    <div class="relative">
-                      <button type="button" class="rounded-full border border-white/15 p-2 text-white/70 hover:bg-white/10" aria-label="More actions" (click)="toggleCandidateMenu(candidate.id)">
-                        ⋮
-                      </button>
-                      @if (candidateMenuIsOpen(candidate.id)) {
-                        <div class="absolute right-0 top-full z-30 mt-2 w-48 rounded-2xl border border-white/10 bg-gray-950/95 p-2 text-left shadow-xl">
-                          <button type="button" class="w-full rounded-xl px-3 py-2.5 text-left text-sm text-white hover:bg-white/10" (click)="removeFromBallot(candidate.id)">
-                            Remove from ballot
-                          </button>
-                          <button type="button" class="mt-1 w-full rounded-xl px-3 py-2.5 text-left text-sm text-red-200 hover:bg-red-500/10" (click)="removeCandidate(candidate.id)">
-                            Remove nomination
-                          </button>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                </div>
-                <div class="flex flex-wrap gap-2">
+          <!-- COMMAND MENU (election management) -->
+          <div class="mt-6 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <button type="button"
+                      class="rounded-md border border-rule p-1.5 text-fg-subtle transition hover:bg-bg-subtle hover:text-fg"
+                      aria-label="Refresh candidates"
+                      (click)="refreshCandidates()">
+                <svg viewBox="0 0 20 20" class="size-4" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M4 4.5v4h4" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M16 15.5v-4h-4" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M5.5 14.5A6 6 0 0 0 16 9" stroke-linecap="round"></path>
+                  <path d="M14.5 5.5A6 6 0 0 0 4 11" stroke-linecap="round"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="relative">
+              <button type="button"
+                      class="inline-flex items-center gap-1.5 rounded-md border border-rule px-3 py-1.5 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                      (click)="toggleCommandMenu()">
+                Manage
+                <svg aria-hidden="true" class="size-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M3 4.5L6 7.5L9 4.5"></path>
+                </svg>
+              </button>
+              @if (commandMenuOpen()) {
+                <div class="absolute right-0 top-full z-30 mt-1 w-52 overflow-hidden rounded-md border border-rule bg-bg shadow-lg">
                   <button type="button"
-                          class="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
-                          (click)="nudgeRank(candidate.id, 'up')"
-                          [disabled]="candidateState.reorderBusy || candidateState.votesLoading || candidate.userRank === 1">
-                    ↑ Move up
+                          class="block w-full px-3 py-2 text-left text-sm text-fg transition-colors hover:bg-bg-subtle"
+                          (click)="clearBallot()">
+                    Clear my rankings
                   </button>
                   <button type="button"
-                          class="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
-                          (click)="nudgeRank(candidate.id, 'down')"
-                          [disabled]="candidateState.reorderBusy || candidateState.votesLoading || candidate.userRank === candidateState.rankedItems.length">
-                    ↓ Move down
+                          class="block w-full px-3 py-2 text-left text-sm text-warn transition-colors hover:bg-warn-subtle"
+                          (click)="closeElectionNow()">
+                    Close election
                   </button>
-                </div>
-              </div>
-              @if (isCandidateExpanded(candidate.id)) {
-                <div class="mt-4 rounded-2xl border border-white/10 bg-black/40 px-4 py-4 text-sm text-white/70">
-                  <p>{{ candidate.blurb || 'No pitch yet.' }}</p>
-                  <a [routerLink]="['/books', candidate.bookId]" class="mt-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-sky-200 hover:text-sky-100">
-                    View book detail →
-                  </a>
+                  <button type="button"
+                          class="block w-full border-t border-rule px-3 py-2 text-left text-sm text-danger transition-colors hover:bg-danger-subtle"
+                          (click)="openDeleteConfirm()">
+                    Delete election
+                  </button>
                 </div>
               }
-            </article>
-          }
-        </div>
-      </section>
-
-      <section class="rounded-3xl border border-white/10 bg-white/5 px-4 py-5 text-white shadow-[0_0_20px_rgba(56,189,248,0.15)]"
-               cdkDropList
-               id="pool-list"
-               [cdkDropListData]="candidateState.unrankedItems"
-               [cdkDropListConnectedTo]="['ranked-list']"
-               [cdkDropListDisabled]="candidateState.reorderBusy || candidateState.votesLoading"
-               (cdkDropListDropped)="handleBallotDrop($event)">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.4em] text-white/60">Candidate pool</p>
-            <h3 class="text-xl font-semibold">Unranked ({{ candidateState.unrankedItems.length }})</h3>
+            </div>
           </div>
-        </div>
-        @if (!candidateState.unrankedItems.length && !candidateState.loading) {
-          <p class="mt-4 rounded-2xl border border-white/10 bg-white/10 px-4 py-4 text-center text-sm text-white/70">
-            Every candidate is on your ballot.
-          </p>
-        }
-        <div class="mt-4 flex flex-col gap-4">
-          @for (candidate of candidateState.unrankedItems; track candidate.id) {
-            <article cdkDrag [cdkDragData]="candidate" class="relative rounded-3xl border border-white/10 bg-black/40 px-4 py-4" [cdkDragDisabled]="candidateState.reorderBusy || candidateState.votesLoading">
-              <div class="flex items-start justify-between gap-3">
+
+          @if (candidateState.votesError) {
+            <p class="mt-4 rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger" role="alert">
+              {{ candidateState.votesError }}
+            </p>
+          }
+
+          @if (candidateState.loading) {
+            <p class="mt-4 text-sm text-fg-muted">Loading candidates…</p>
+          }
+          @if (candidateState.error) {
+            <p class="mt-4 rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger">
+              {{ candidateState.error }}
+            </p>
+          }
+
+          <!-- ===========================================================================
+               STEP 01: NOMINATE
+               =========================================================================== -->
+          @if (voteStage() === 'nominate') {
+            <div class="mt-10">
+              <div class="flex items-start justify-between gap-3 border-b border-rule pb-3">
                 <div>
-                  <p class="text-lg font-semibold tracking-tight">{{ candidate.title }}</p>
-                  <p class="text-sm text-white/70">{{ candidate.author }}</p>
-                  <p class="text-xs text-white/50">{{ candidate.votes }} recorded votes</p>
+                  <h2 class="text-lg font-semibold tracking-tight text-fg">Nominate candidates</h2>
+                  <p class="mt-1 max-w-md text-sm text-fg-muted">
+                    Anyone can nominate. Pull from a shelf, search Open Library, or type one in.
+                  </p>
                 </div>
-                <div class="flex items-center gap-2">
-                  <button type="button" class="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-sky-100 hover:bg-sky-500/20" (click)="addCandidateToBallot(candidate.id)" [disabled]="candidateState.reorderBusy || candidateState.votesLoading">
-                    Add
-                  </button>
-                  <button type="button" class="rounded-full border border-white/15 p-2 text-white/70 hover:bg-white/10" aria-label="Toggle details" (click)="toggleCandidateDetailsArrow(candidate.id)">
-                    <svg viewBox="0 0 12 12" class="size-3" fill="none" stroke="currentColor" stroke-width="1.5">
-                      <path d="M3 4.5L6 7.5L9 4.5" [attr.transform]="isCandidateExpanded(candidate.id) ? 'rotate(180 6 6)' : undefined"></path>
+                <div class="relative shrink-0">
+                  <button type="button"
+                          class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
+                          (click)="toggleNominateMenu()">
+                    + Add book
+                    <svg aria-hidden="true" class="size-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M3 4.5L6 7.5L9 4.5"></path>
                     </svg>
                   </button>
-                  <div class="relative">
-                    <button type="button" class="rounded-full border border-white/15 p-2 text-white/70 hover:bg-white/10" aria-label="More actions" (click)="toggleCandidateMenu(candidate.id)">
-                      ⋮
-                    </button>
-                    @if (candidateMenuIsOpen(candidate.id)) {
-                      <div class="absolute right-0 top-full z-30 mt-2 w-48 rounded-2xl border border-white/10 bg-gray-950/95 p-2 text-left shadow-xl">
-                        <button type="button" class="w-full rounded-xl px-3 py-2.5 text-left text-sm text-white hover:bg-white/10" (click)="addCandidateToBallot(candidate.id)">
-                          Add to ballot
+                  @if (nominateMenuOpen()) {
+                    <div class="absolute right-0 top-full z-30 mt-1 w-56 overflow-hidden rounded-md border border-rule bg-bg shadow-lg">
+                      <button type="button"
+                              class="block w-full px-3 py-2 text-left text-sm text-fg transition-colors hover:bg-bg-subtle"
+                              (click)="openAction('open-library')">
+                        From Open Library
+                      </button>
+                      <button type="button"
+                              class="block w-full px-3 py-2 text-left text-sm text-fg transition-colors hover:bg-bg-subtle"
+                              (click)="openAction('custom')">
+                        Custom entry
+                      </button>
+                      <button type="button"
+                              class="block w-full px-3 py-2 text-left text-sm text-fg transition-colors hover:bg-bg-subtle"
+                              (click)="openAction('shelf')">
+                        From a shelf
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              @if (candidateState.items.length === 0 && !candidateState.loading) {
+                <p class="mt-8 py-8 text-center text-sm text-fg-subtle">
+                  No candidates yet. Add the first one above.
+                </p>
+              } @else {
+                <ul class="mt-4 flex flex-col">
+                  @for (candidate of candidateState.items; track candidate.id) {
+                    <li class="border-t border-rule first:border-t-0 py-4">
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                          <div class="flex items-center gap-2">
+                            <p class="truncate text-base font-semibold tracking-tight text-fg">{{ candidate.title }}</p>
+                            @if (candidate.userRank !== null) {
+                              <span class="shrink-0 rounded border border-accent px-1.5 py-0.5 text-[0.65rem] font-semibold text-accent">
+                                #{{ candidate.userRank }}
+                              </span>
+                            }
+                            @if (candidate.mine) {
+                              <span class="shrink-0 rounded border border-rule px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-fg-subtle">
+                                Yours
+                              </span>
+                            }
+                          </div>
+                          <p class="mt-0.5 truncate text-sm text-fg-muted">{{ candidate.author }}</p>
+                          <p class="mt-1 text-xs text-fg-subtle">
+                            {{ candidate.votes }} vote{{ candidate.votes === 1 ? '' : 's' }} total
+                          </p>
+                        </div>
+                        <div class="flex shrink-0 items-center gap-1">
+                          <button type="button"
+                                  class="rounded-md p-1 text-fg-subtle transition hover:bg-bg-subtle hover:text-fg"
+                                  (click)="toggleCandidateDetailsArrow(candidate.id)"
+                                  [attr.aria-label]="'Toggle details for ' + candidate.title">
+                            <svg viewBox="0 0 12 12" class="size-3" fill="none" stroke="currentColor" stroke-width="1.5">
+                              <path d="M3 4.5L6 7.5L9 4.5" [attr.transform]="isCandidateExpanded(candidate.id) ? 'rotate(180 6 6)' : undefined"></path>
+                            </svg>
+                          </button>
+                          @if (candidate.userRank === null) {
+                            <button type="button"
+                                    class="rounded-md bg-accent px-2.5 py-1 text-xs font-semibold text-accent-fg transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                                    [disabled]="candidateState.reorderBusy || candidateState.votesLoading"
+                                    (click)="addCandidateToBallot(candidate.id)">
+                              Rank
+                            </button>
+                          } @else {
+                            <button type="button"
+                                    class="rounded-md border border-rule px-2 py-0.5 text-xs font-semibold text-fg-muted transition hover:bg-bg-subtle hover:text-fg"
+                                    (click)="removeFromBallot(candidate.id)">
+                              Unrank
+                            </button>
+                          }
+                        </div>
+                      </div>
+                      @if (isCandidateExpanded(candidate.id)) {
+                        <div class="mt-3 border-l-2 border-rule pl-3 text-sm text-fg-muted">
+                          <p>{{ candidate.blurb || 'No pitch yet.' }}</p>
+                          <a [routerLink]="['/books', candidate.bookId]"
+                             class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-accent hover:underline">
+                            View book details →
+                          </a>
+                        </div>
+                      }
+                    </li>
+                  }
+                </ul>
+              }
+
+              <!-- Step footer nav -->
+              <div class="mt-8 flex items-center justify-end gap-2 border-t border-rule pt-4">
+                <button type="button"
+                        class="inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
+                        (click)="advanceVoteStage()">
+                  Next: Rank →
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- ===========================================================================
+               STEP 02: RANK
+               =========================================================================== -->
+          @if (voteStage() === 'rank') {
+            <div class="mt-10">
+              <div class="flex items-start justify-between gap-3 border-b border-rule pb-3">
+                <div>
+                  <h2 class="text-lg font-semibold tracking-tight text-fg">Rank your ballot</h2>
+                  <p class="mt-1 max-w-md text-sm text-fg-muted">
+                    Drag to reorder, or use the arrows. Lower numbers win. Only rank the ones you have an opinion on.
+                  </p>
+                </div>
+                <!-- Persistent auto-saved indicator -->
+                <div class="shrink-0">
+                  @if (candidateState.reorderBusy || candidateState.votesLoading) {
+                    <p class="inline-flex items-center gap-1.5 text-xs text-accent">
+                      <span class="relative flex size-1.5">
+                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60"></span>
+                        <span class="relative inline-flex size-1.5 rounded-full bg-accent"></span>
+                      </span>
+                      Saving…
+                    </p>
+                  } @else if (candidateState.rankedItems.length === 0) {
+                    <p class="text-xs text-fg-subtle">No ballot yet</p>
+                  } @else {
+                    <p class="inline-flex items-center gap-1 text-xs text-fg-muted">
+                      <span class="text-success" aria-hidden="true">✓</span>
+                      Auto-saved
+                    </p>
+                  }
+                </div>
+              </div>
+
+              <!-- Two columns: ranked + pool -->
+              <div class="mt-6 grid gap-10 lg:grid-cols-2">
+
+                <!-- RANKED COLUMN -->
+                <div cdkDropList
+                     id="ranked-list"
+                     [cdkDropListData]="candidateState.rankedItems"
+                     [cdkDropListConnectedTo]="['pool-list']"
+                     [cdkDropListDisabled]="candidateState.reorderBusy || candidateState.votesLoading"
+                     (cdkDropListDropped)="handleBallotDrop($event)">
+                  <p class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+                    Your ballot ({{ candidateState.rankedItems.length }})
+                  </p>
+
+              @if (!candidateState.rankedItems.length && !candidateState.loading) {
+                <p class="mt-4 py-4 text-center text-sm text-fg-subtle">
+                  No ranked candidates yet. Drag from the pool →
+                </p>
+              }
+
+              <div class="flex flex-col">
+                @for (candidate of candidateState.rankedItems; track candidate.id) {
+                  <article cdkDrag
+                           [cdkDragData]="candidate"
+                           class="group relative border-b border-rule py-4"
+                           [cdkDragDisabled]="candidateState.reorderBusy || candidateState.votesLoading">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-baseline gap-2">
+                          <span class="font-mono text-sm text-accent tabular-nums">#{{ candidate.userRank }}</span>
+                          <p class="truncate text-base font-semibold tracking-tight text-fg">{{ candidate.title }}</p>
+                        </div>
+                        <p class="mt-0.5 truncate text-sm text-fg-muted">{{ candidate.author }}</p>
+                        <p class="mt-1 text-xs text-fg-subtle">{{ candidate.votes }} vote{{ candidate.votes === 1 ? '' : 's' }} total</p>
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <button type="button"
+                                class="rounded-md p-1 text-fg-subtle transition hover:bg-bg-subtle hover:text-fg"
+                                (click)="toggleCandidateDetailsArrow(candidate.id)"
+                                [attr.aria-label]="'Toggle details for ' + candidate.title">
+                          <svg viewBox="0 0 12 12" class="size-3" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M3 4.5L6 7.5L9 4.5" [attr.transform]="isCandidateExpanded(candidate.id) ? 'rotate(180 6 6)' : undefined"></path>
+                          </svg>
                         </button>
-                        <button type="button" class="mt-1 w-full rounded-xl px-3 py-2.5 text-left text-sm text-red-200 hover:bg-red-500/10" (click)="removeCandidate(candidate.id)">
-                          Remove nomination
+                        <button type="button"
+                                class="rounded-md border border-rule px-2 py-0.5 text-xs font-semibold text-fg-muted transition hover:bg-bg-subtle hover:text-fg"
+                                [title]="'Remove ' + candidate.title + ' from your ballot'"
+                                (click)="removeFromBallot(candidate.id)">
+                          Unrank
                         </button>
                       </div>
+                    </div>
+
+                    <div class="mt-2 flex flex-wrap gap-1">
+                      <button type="button"
+                              class="rounded-md border border-rule px-2 py-0.5 text-xs font-semibold text-fg-muted transition hover:bg-bg-subtle hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
+                              (click)="nudgeRank(candidate.id, 'up')"
+                              [disabled]="candidateState.reorderBusy || candidateState.votesLoading || candidate.userRank === 1">
+                        ↑
+                      </button>
+                      <button type="button"
+                              class="rounded-md border border-rule px-2 py-0.5 text-xs font-semibold text-fg-muted transition hover:bg-bg-subtle hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
+                              (click)="nudgeRank(candidate.id, 'down')"
+                              [disabled]="candidateState.reorderBusy || candidateState.votesLoading || candidate.userRank === candidateState.rankedItems.length">
+                        ↓
+                      </button>
+                    </div>
+
+                    @if (isCandidateExpanded(candidate.id)) {
+                      <div class="mt-3 border-l-2 border-rule pl-3 text-sm text-fg-muted">
+                        <p>{{ candidate.blurb || 'No pitch yet.' }}</p>
+                        <a [routerLink]="['/books', candidate.bookId]"
+                           class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-accent hover:underline">
+                          View book details →
+                        </a>
+                      </div>
+                    }
+                  </article>
+                }
+              </div>
+            </div>
+
+                <!-- POOL COLUMN -->
+                <div cdkDropList
+                     id="pool-list"
+                     [cdkDropListData]="candidateState.unrankedItems"
+                     [cdkDropListConnectedTo]="['ranked-list']"
+                     [cdkDropListDisabled]="candidateState.reorderBusy || candidateState.votesLoading"
+                     (cdkDropListDropped)="handleBallotDrop($event)">
+                  <p class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+                    Unranked ({{ candidateState.unrankedItems.length }})
+                  </p>
+
+                  @if (!candidateState.unrankedItems.length && !candidateState.loading) {
+                    <p class="mt-4 py-4 text-center text-sm text-fg-subtle">
+                      Every candidate is on your ballot.
+                    </p>
+                  }
+
+                  <div class="flex flex-col">
+                    @for (candidate of candidateState.unrankedItems; track candidate.id) {
+                      <article cdkDrag
+                               [cdkDragData]="candidate"
+                               class="group relative border-b border-rule py-4"
+                               [cdkDragDisabled]="candidateState.reorderBusy || candidateState.votesLoading">
+                        <div class="flex items-start justify-between gap-3">
+                          <div class="min-w-0 flex-1">
+                            <p class="truncate text-base font-semibold tracking-tight text-fg">{{ candidate.title }}</p>
+                            <p class="mt-0.5 truncate text-sm text-fg-muted">{{ candidate.author }}</p>
+                            <p class="mt-1 text-xs text-fg-subtle">{{ candidate.votes }} vote{{ candidate.votes === 1 ? '' : 's' }} total</p>
+                          </div>
+                          <div class="flex items-center gap-1">
+                            <button type="button"
+                                    class="rounded-md bg-accent px-2.5 py-1 text-xs font-semibold text-accent-fg transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                                    (click)="addCandidateToBallot(candidate.id)"
+                                    [disabled]="candidateState.reorderBusy || candidateState.votesLoading">
+                              Rank
+                            </button>
+                            <button type="button"
+                                    class="rounded-md p-1 text-fg-subtle transition hover:bg-bg-subtle hover:text-fg"
+                                    aria-label="Toggle details"
+                                    (click)="toggleCandidateDetailsArrow(candidate.id)">
+                              <svg viewBox="0 0 12 12" class="size-3" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M3 4.5L6 7.5L9 4.5" [attr.transform]="isCandidateExpanded(candidate.id) ? 'rotate(180 6 6)' : undefined"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        @if (isCandidateExpanded(candidate.id)) {
+                          <div class="mt-3 border-l-2 border-rule pl-3 text-sm text-fg-muted">
+                            {{ candidate.blurb || 'No pitch yet.' }}
+                          </div>
+                        }
+                      </article>
                     }
                   </div>
                 </div>
               </div>
-              @if (isCandidateExpanded(candidate.id)) {
-                <div class="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-white/70">
-                  {{ candidate.blurb || 'No pitch yet.' }}
-                </div>
-              }
-            </article>
-          }
-        </div>
-      </section>
-    </div>
 
-    @if (!candidateState.items.length && !candidateState.loading) {
-      <p class="rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-center text-sm text-white/60">No candidates yet. Add one via the menu above.</p>
-    }
-  }
+              <!-- Rank step footer nav -->
+              <div class="mt-8 flex items-center justify-between gap-2 border-t border-rule pt-4">
+                <button type="button"
+                        class="rounded-md border border-rule px-3 py-1.5 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                        (click)="retreatVoteStage()">
+                  ← Back to Nominate
+                </button>
+                <button type="button"
+                        class="inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
+                        (click)="advanceVoteStage()">
+                  Next: Review →
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- ===========================================================================
+               STEP 03: REVIEW
+               =========================================================================== -->
+          @if (voteStage() === 'review') {
+            <div class="mt-10">
+              <div class="flex items-start justify-between gap-3 border-b border-rule pb-3">
+                <div>
+                  <h2 class="text-lg font-semibold tracking-tight text-fg">Review</h2>
+                  <p class="mt-1 max-w-md text-sm text-fg-muted">
+                    Your ballot stays locked in as it is. Come back any time to change it.
+                  </p>
+                </div>
+                <div class="shrink-0">
+                  @if (candidateState.reorderBusy || candidateState.votesLoading) {
+                    <p class="inline-flex items-center gap-1.5 text-xs text-accent">
+                      <span class="relative flex size-1.5">
+                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60"></span>
+                        <span class="relative inline-flex size-1.5 rounded-full bg-accent"></span>
+                      </span>
+                      Saving…
+                    </p>
+                  } @else if (candidateState.rankedItems.length > 0) {
+                    <p class="inline-flex items-center gap-1 text-xs text-fg-muted">
+                      <span class="text-success" aria-hidden="true">✓</span>
+                      Auto-saved
+                    </p>
+                  }
+                </div>
+              </div>
+
+              @if (candidateState.rankedItems.length === 0) {
+                <div class="mt-6 py-6 text-center">
+                  <p class="text-sm text-fg-muted">You haven't ranked anything yet.</p>
+                  <button type="button"
+                          class="mt-3 inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
+                          (click)="setVoteStage('rank')">
+                    Go rank your ballot
+                  </button>
+                </div>
+              } @else {
+                <ol class="mt-4 flex flex-col">
+                  @for (candidate of candidateState.rankedItems; track candidate.id) {
+                    <li class="flex items-baseline gap-4 border-t border-rule py-3 first:border-t-0 first:pt-0">
+                      <span class="shrink-0 font-mono text-sm text-accent tabular-nums">#{{ candidate.userRank }}</span>
+                      <div class="min-w-0 flex-1">
+                        <p class="truncate text-base font-semibold text-fg">{{ candidate.title }}</p>
+                        <p class="truncate text-sm text-fg-muted">{{ candidate.author }}</p>
+                      </div>
+                    </li>
+                  }
+                </ol>
+
+                @if (candidateState.unrankedItems.length > 0) {
+                  <p class="mt-6 text-xs text-fg-subtle">
+                    {{ candidateState.unrankedItems.length }} unranked candidate{{ candidateState.unrankedItems.length === 1 ? '' : 's' }} not counted toward your ballot.
+                  </p>
+                }
+
+                <p class="mt-6 text-sm text-fg-muted">
+                  @if (electionState.election?.endDateTime && electionState.election?.status === 'OPEN') {
+                    Voting closes {{ electionState.election!.endDateTime | date: 'medium' }}.
+                  } @else if (electionState.election?.status === 'INDEFINITE') {
+                    Voting stays open until the organizer closes it manually.
+                  } @else {
+                    Your ballot is locked in.
+                  }
+                </p>
+              }
+
+              <!-- Review step footer nav -->
+              <div class="mt-8 flex items-center justify-between gap-2 border-t border-rule pt-4">
+                <button type="button"
+                        class="rounded-md border border-rule px-3 py-1.5 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                        (click)="retreatVoteStage()">
+                  ← Back to Rank
+                </button>
+                <a [routerLink]="['/elections']"
+                   class="inline-flex items-center gap-1.5 rounded-md border border-rule px-3 py-1.5 text-sm font-semibold text-fg transition hover:bg-bg-subtle">
+                  All elections →
+                </a>
+              </div>
+            </div>
+          }
+        </section>
+
+        <!-- ===========================================================================
+             MY NOMINATIONS — manage candidates the current user nominated
+             =========================================================================== -->
+        @let myNoms = myNominationsVm();
+        @if (myNoms.hasAny) {
+          <section class="mt-12 border-t border-rule pt-8">
+            <button type="button"
+                    class="flex w-full items-center justify-between gap-3 text-left"
+                    [attr.aria-expanded]="myNominationsOpen()"
+                    (click)="toggleMyNominations()">
+              <div>
+                <h2 class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">My nominations</h2>
+                <p class="mt-1 text-sm text-fg-muted">
+                  Edit the pitch or pull a nomination. Only you can touch these.
+                </p>
+              </div>
+              <div class="flex shrink-0 items-center gap-2">
+                <span class="rounded border border-rule px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-fg-muted">
+                  {{ myNoms.count }}
+                </span>
+                <svg viewBox="0 0 12 12" class="size-3 text-fg-subtle transition-transform"
+                     [class.rotate-180]="myNominationsOpen()"
+                     fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M3 4.5L6 7.5L9 4.5"></path>
+                </svg>
+              </div>
+            </button>
+
+            @if (myNominationsOpen()) {
+              <div class="mt-6 flex flex-col">
+                @for (nom of myNoms.items; track nom.id) {
+                  <article class="border-t border-rule py-5 first:border-t-0 first:pt-0">
+                    <div class="flex flex-col gap-4 sm:flex-row">
+                      <img
+                        [src]="nom.cover || 'https://placehold.co/100x150/eeeeee/aaaaaa?text=No+cover'"
+                        [alt]="nom.title + ' cover'"
+                        class="h-24 w-16 shrink-0 rounded-sm border border-rule object-cover" />
+                      <div class="min-w-0 flex-1">
+                        <p class="text-base font-semibold tracking-tight text-fg">{{ nom.title }}</p>
+                        <p class="text-sm text-fg-muted">{{ nom.author || 'Unknown author' }}</p>
+
+                        <!-- Pitch: read mode -->
+                        @if (!isEditingPitch(nom.id)) {
+                          <div class="mt-3">
+                            <p class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Your pitch</p>
+                            @if (nom.pitch) {
+                              <p class="mt-1 text-sm text-fg-muted whitespace-pre-line">{{ nom.pitch }}</p>
+                            } @else {
+                              <p class="mt-1 text-sm text-fg-subtle italic">No pitch yet. The book's blurb will show instead.</p>
+                            }
+                            @if (nom.blurb) {
+                              <details class="mt-2 text-xs text-fg-subtle">
+                                <summary class="cursor-pointer hover:text-fg">Book blurb</summary>
+                                <p class="mt-1 whitespace-pre-line">{{ nom.blurb }}</p>
+                              </details>
+                            }
+                          </div>
+                          <div class="mt-3 flex flex-wrap gap-2">
+                            <button type="button"
+                                    class="rounded-md border border-rule px-3 py-1 text-xs font-semibold text-fg transition hover:bg-bg-subtle"
+                                    (click)="startEditPitch(nom.id, nom.pitch)">
+                              {{ nom.pitch ? 'Edit pitch' : 'Add pitch' }}
+                            </button>
+                            <button type="button"
+                                    class="rounded-md border border-rule px-3 py-1 text-xs font-semibold text-danger transition hover:bg-danger-subtle"
+                                    (click)="confirmRemoveMyNomination(nom.id)">
+                              Remove nomination
+                            </button>
+                          </div>
+                        }
+
+                        <!-- Pitch: edit mode -->
+                        @if (isEditingPitch(nom.id)) {
+                          <div class="mt-3">
+                            <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+                              Your pitch
+                            </label>
+                            <textarea rows="3"
+                                      [value]="pitchDraftFor(nom.id)"
+                                      (input)="updatePitchDraft(nom.id, $any($event.target).value)"
+                                      placeholder="Why should this one win?"
+                                      class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none"></textarea>
+                            <p class="mt-1 text-xs text-fg-subtle">
+                              Only shown in this election. The book's blurb stays the same.
+                            </p>
+                          </div>
+                          <div class="mt-3 flex flex-wrap gap-2">
+                            <button type="button"
+                                    class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1 text-xs font-semibold text-accent-fg transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                                    [disabled]="nom.pitchBusy"
+                                    (click)="savePitch(nom.id)">
+                              {{ nom.pitchBusy ? 'Saving…' : 'Save pitch' }}
+                            </button>
+                            <button type="button"
+                                    class="rounded-md border border-rule px-3 py-1 text-xs font-semibold text-fg transition hover:bg-bg-subtle"
+                                    (click)="cancelEditPitch(nom.id)">
+                              Cancel
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </article>
+                }
+              </div>
+            }
+          </section>
+        }
+      }
+    </div>
+  </div>
 </div>
-</div>
-<!-- Search modal -->
+
+<!-- SEARCH MODAL (Open Library) --------------------------------------------- -->
 @if (searchOpen()) {
   @let searchState = searchVm();
   @let selected = selectedSearchResult();
   <div class="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto px-4 py-8">
-    <div class="absolute inset-0 bg-black/70" (click)="closeSearch()" aria-hidden="true"></div>
-    <section class="relative z-10 w-full max-w-2xl rounded-3xl border border-sky-400/30 bg-gray-950 text-white shadow-[0_0_40px_rgba(56,189,248,0.35)]" role="dialog" aria-modal="true">
-      <header class="flex shrink-0 items-center justify-between px-6 pt-6 pb-4 border-b border-white/10">
+    <div class="absolute inset-0 bg-fg/40 backdrop-blur-sm" (click)="closeSearch()" aria-hidden="true"></div>
+    <section class="relative z-10 w-full max-w-2xl rounded-lg border border-rule bg-bg shadow-lg"
+             role="dialog"
+             aria-modal="true">
+      <header class="flex items-start justify-between border-b border-rule px-6 py-4">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.4em] text-sky-300">Open Library</p>
-          <h2 class="mt-1 text-2xl font-semibold">
-            @if (selected) { Nominate book } @else { Search books }
+          <h2 class="text-xl font-semibold tracking-tight">
+            @if (selected) { Nominate book } @else { Search Open Library }
           </h2>
+          <p class="mt-0.5 text-sm text-fg-subtle">
+            @if (selected) { Optional pitch, then confirm. } @else { Find a book by title or author. }
+          </p>
         </div>
-        <button type="button" class="rounded-full border border-white/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-white/70 hover:text-white hover:bg-white/10" (click)="closeSearch()">Close</button>
+        <button type="button"
+                class="rounded-md p-1 text-fg-subtle transition-colors hover:bg-bg-subtle hover:text-fg"
+                aria-label="Close"
+                (click)="closeSearch()">
+          <svg viewBox="0 0 16 16" fill="currentColor" class="size-4">
+            <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z"></path>
+          </svg>
+        </button>
       </header>
 
       <!-- Step 1: Search -->
       @if (!selected) {
         <div class="px-6 pt-5">
-          <input type="search" [formControl]="searchInput" placeholder="Search title or author…" autocomplete="off"
-                 class="w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white placeholder:text-white/40 focus:border-sky-400 focus:outline-none" />
+          <input type="search"
+                 [formControl]="searchInput"
+                 placeholder="Title or author…"
+                 autocomplete="off"
+                 class="w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none" />
           @if (searchState.validationMessage) {
-            <p class="mt-2 text-sm text-amber-200" role="status">{{ searchState.validationMessage }}</p>
+            <p class="mt-1.5 text-xs text-warn" role="status">{{ searchState.validationMessage }}</p>
           }
         </div>
-        <div class="mt-4 px-6 pb-6 min-h-[200px]">
+        <div class="min-h-[200px] px-6 pb-6 pt-4">
           @if (searchState.loading) {
-            <div class="flex items-center gap-3 py-6 text-sm text-white/60">
-              <span class="relative flex size-3 shrink-0">
-                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-300 opacity-75"></span>
-                <span class="relative inline-flex size-3 rounded-full bg-sky-400"></span>
-              </span>
-              Searching…
-            </div>
+            <p class="text-sm text-fg-muted">Searching…</p>
           } @else if (!searchState.results.length && searchState.query && !searchState.queryTooShort) {
-            <p class="py-6 text-sm text-white/60">No results found. Try a different title or author.</p>
+            <p class="text-sm text-fg-muted">No results. Try another query.</p>
           } @else if (!searchState.query) {
-            <p class="py-6 text-sm text-white/40">Start typing to search the Open Library catalogue.</p>
+            <p class="text-sm text-fg-subtle">Start typing to search.</p>
           } @else {
-            <ul class="flex flex-col gap-2">
+            <ul class="flex flex-col">
               @for (result of searchState.results; track result.key) {
-                <li>
+                <li class="border-t border-rule first:border-t-0">
                   <button type="button"
-                          class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left hover:border-sky-400/40 hover:bg-sky-500/10 transition-colors"
+                          class="flex w-full items-start justify-between gap-3 py-3 text-left transition-colors hover:bg-bg-subtle"
                           (click)="selectSearchBook(result)">
-                    <p class="font-semibold leading-snug">{{ result.title }}</p>
-                    <p class="mt-0.5 text-sm text-white/60">{{ result.author_name?.[0] || 'Unknown author' }}</p>
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-sm font-semibold text-fg">{{ result.title }}</p>
+                      <p class="truncate text-xs text-fg-subtle">{{ result.author_name?.[0] || 'Unknown author' }}</p>
+                    </div>
+                    <span class="shrink-0 text-fg-subtle">→</span>
                   </button>
                 </li>
               }
             </ul>
             @if (searchState.canLoadMore) {
               <div class="mt-4 flex justify-center">
-                <button type="button" class="rounded-full border border-white/15 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10" (click)="loadMoreSearch()">Load more</button>
+                <button type="button"
+                        class="rounded-md border border-rule px-3 py-1.5 text-xs font-semibold text-fg transition hover:bg-bg-subtle"
+                        (click)="loadMoreSearch()">
+                  Load more
+                </button>
               </div>
             }
           }
@@ -430,29 +950,29 @@
 
       <!-- Step 2: Pitch + confirm -->
       @if (selected) {
-        <div class="px-6 pt-5 pb-6 flex flex-col gap-5">
-          <!-- Selected book summary -->
-          <div class="rounded-2xl border border-sky-400/30 bg-sky-500/10 px-4 py-3">
-            <p class="text-xs font-semibold uppercase tracking-[0.4em] text-sky-300">Selected</p>
-            <p class="mt-1 font-semibold leading-snug">{{ selected.title }}</p>
-            <p class="text-sm text-white/60">{{ selected.author_name?.[0] || 'Unknown author' }}</p>
+        <div class="flex flex-col gap-4 px-6 py-5">
+          <div class="rounded-md border border-accent bg-accent-subtle px-3 py-2">
+            <p class="text-xs font-semibold uppercase tracking-[0.15em] text-accent">Selected</p>
+            <p class="mt-1 font-semibold text-fg">{{ selected.title }}</p>
+            <p class="text-sm text-fg-muted">{{ selected.author_name?.[0] || 'Unknown author' }}</p>
           </div>
-          <!-- Pitch input -->
-          <label class="flex flex-col gap-2 text-xs font-semibold uppercase tracking-[0.4em] text-white/60">
-            Pitch (optional)
-            <textarea rows="3" [formControl]="searchPitchInput"
-                      class="w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-sm font-normal normal-case tracking-normal text-white placeholder:text-white/40 focus:border-sky-400 focus:outline-none"
-                      placeholder="Why should this book win the election?"></textarea>
-          </label>
-          <!-- Actions -->
-          <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+              Pitch <span class="normal-case tracking-normal text-fg-subtle/70">(optional)</span>
+            </label>
+            <textarea rows="3"
+                      [formControl]="searchPitchInput"
+                      placeholder="Why should this one win?"
+                      class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none"></textarea>
+          </div>
+          <div class="flex items-center justify-between gap-2">
             <button type="button"
-                    class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70 hover:bg-white/10 hover:text-white"
+                    class="rounded-md border border-rule px-3 py-1.5 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
                     (click)="clearSelectedSearchBook()">
               ← Back
             </button>
             <button type="button"
-                    class="inline-flex items-center gap-2 rounded-full border border-sky-400/60 bg-sky-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-sky-100 hover:bg-sky-500/20"
+                    class="inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
                     (click)="confirmSearchNomination()">
               Nominate
             </button>
@@ -463,58 +983,91 @@
   </div>
 }
 
-<!-- Custom nomination modal -->
+<!-- CUSTOM NOMINATION MODAL -------------------------------------------------- -->
 @if (customOpen()) {
-  <div class="fixed inset-0 z-40 flex items-center justify-center px-4">
-    <div class="absolute inset-0 bg-black/70" (click)="closeCustom()" aria-hidden="true"></div>
-    <section class="relative z-10 w-full max-w-xl rounded-3xl border border-sky-400/30 bg-gray-950 px-6 py-6 text-white shadow-[0_0_40px_rgba(56,189,248,0.35)]" role="dialog" aria-modal="true">
-      <header class="flex items-center justify-between">
-        <h2 class="text-2xl font-semibold">Nominate custom book</h2>
-        <button type="button" class="text-sm text-white/70 hover:text-white" (click)="closeCustom()">Close</button>
+  <div class="fixed inset-0 z-40 flex items-center justify-center px-4 py-6">
+    <div class="absolute inset-0 bg-fg/40 backdrop-blur-sm" (click)="closeCustom()" aria-hidden="true"></div>
+    <section class="relative z-10 w-full max-w-lg rounded-lg border border-rule bg-bg p-6 shadow-lg"
+             role="dialog"
+             aria-modal="true">
+      <header class="mb-6 flex items-start justify-between">
+        <div>
+          <h2 class="text-xl font-semibold tracking-tight">Nominate custom book</h2>
+          <p class="mt-0.5 text-sm text-fg-subtle">For books not on Open Library.</p>
+        </div>
+        <button type="button"
+                class="rounded-md p-1 text-fg-subtle transition-colors hover:bg-bg-subtle hover:text-fg"
+                aria-label="Close"
+                (click)="closeCustom()">
+          <svg viewBox="0 0 16 16" fill="currentColor" class="size-4">
+            <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z"></path>
+          </svg>
+        </button>
       </header>
-      <form class="mt-6 flex flex-col gap-4" [formGroup]="customForm" (ngSubmit)="addCustomBook()">
-        <label class="text-xs uppercase tracking-[0.4em] text-white/60">
-          Title
-          <input type="text" formControlName="title" class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-sky-400 focus:outline-none" />
-        </label>
-        @let titleError = customFieldError('title');
-        @if (titleError) {
-          <p class="text-sm text-red-300" role="alert">{{ titleError }}</p>
-        }
-        <label class="text-xs uppercase tracking-[0.4em] text-white/60">
-          Author
-          <input type="text" formControlName="author" class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-sky-400 focus:outline-none" />
-        </label>
-        @let authorError = customFieldError('author');
-        @if (authorError) {
-          <p class="text-sm text-red-300" role="alert">{{ authorError }}</p>
-        }
-        <label class="text-xs uppercase tracking-[0.4em] text-white/60">
-          Cover image URL
-          <input type="url" formControlName="imageURL" class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-sky-400 focus:outline-none" />
-        </label>
-        <label class="text-xs uppercase tracking-[0.4em] text-white/60">
-          Blurb
-          <textarea rows="4" formControlName="blurb" class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-sky-400 focus:outline-none"></textarea>
-        </label>
+
+      <form class="space-y-4" [formGroup]="customForm" (ngSubmit)="addCustomBook()" novalidate>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Title</label>
+          <input type="text"
+                 formControlName="title"
+                 class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none" />
+          @let titleError = customFieldError('title');
+          @if (titleError) {
+            <p class="mt-1 text-xs text-danger" role="alert">{{ titleError }}</p>
+          }
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Author</label>
+          <input type="text"
+                 formControlName="author"
+                 class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none" />
+          @let authorError = customFieldError('author');
+          @if (authorError) {
+            <p class="mt-1 text-xs text-danger" role="alert">{{ authorError }}</p>
+          }
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+            Cover URL <span class="normal-case tracking-normal text-fg-subtle/70">(optional)</span>
+          </label>
+          <input type="url"
+                 formControlName="imageURL"
+                 class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+            Book description <span class="normal-case tracking-normal text-fg-subtle/70">(optional)</span>
+          </label>
+          <textarea rows="3"
+                    formControlName="blurb"
+                    placeholder="A sentence or two about the book itself."
+                    class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+            Your pitch <span class="normal-case tracking-normal text-fg-subtle/70">(optional)</span>
+          </label>
+          <textarea rows="3"
+                    formControlName="pitch"
+                    placeholder="Why should the club pick this one?"
+                    class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none"></textarea>
+          <p class="mt-1 text-xs text-fg-subtle">Specific to this election. The book's description stays the same.</p>
+        </div>
         @if (customError()) {
-          <p class="rounded-2xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200" role="alert">
+          <p class="rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger" role="alert">
             {{ customError() }}
           </p>
         }
-        <div class="flex justify-end gap-3">
-          <button type="button" class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10" (click)="closeCustom()">Cancel</button>
-          <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-full border border-sky-400/60 bg-sky-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-sky-100 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button"
+                  class="rounded-md border border-rule px-4 py-2 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                  (click)="closeCustom()">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="inline-flex items-center justify-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                   [disabled]="customForm.invalid || customBusy()">
-            @if (customBusy()) {
-              <span class="relative flex size-3">
-                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-300"></span>
-                <span class="relative inline-flex size-3 rounded-full bg-sky-100"></span>
-              </span>
-              <span>Saving…</span>
-            } @else {
-              <span>Nominate</span>
-            }
+            {{ customBusy() ? 'Saving…' : 'Nominate' }}
           </button>
         </div>
       </form>
@@ -522,71 +1075,129 @@
   </div>
 }
 
-<!-- Shelf nomination modal -->
+<!-- SHELF NOMINATION MODAL --------------------------------------------------- -->
 @if (shelfModalOpen()) {
   @let shelfState = shelfVm();
-  <div class="fixed inset-0 z-40 flex items-center justify-center px-4">
-    <div class="absolute inset-0 bg-black/70" (click)="closeShelfModal()" aria-hidden="true"></div>
-    <section class="relative z-10 w-full max-w-3xl rounded-3xl border border-emerald-400/30 bg-gray-950 px-6 py-6 text-white shadow-[0_0_40px_rgba(16,185,129,0.35)]" role="dialog" aria-modal="true">
-      <header class="flex items-center justify-between">
+  <div class="fixed inset-0 z-40 flex items-center justify-center px-4 py-6">
+    <div class="absolute inset-0 bg-fg/40 backdrop-blur-sm" (click)="closeShelfModal()" aria-hidden="true"></div>
+    <section class="relative z-10 flex w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-rule bg-bg shadow-lg"
+             style="max-height: min(85vh, 720px);"
+             role="dialog"
+             aria-modal="true">
+      <header class="flex items-start justify-between border-b border-rule px-6 py-4">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-300">Shelves</p>
-          <h2 class="text-2xl font-semibold">Nominate from shelf</h2>
+          <h2 class="text-xl font-semibold tracking-tight">Nominate from a shelf</h2>
+          <p class="mt-0.5 text-sm text-fg-subtle">Pick a shelf, then a book.</p>
         </div>
-        <button type="button" class="text-sm text-white/70 hover:text-white" (click)="closeShelfModal()">Close</button>
+        <button type="button"
+                class="rounded-md p-1 text-fg-subtle transition-colors hover:bg-bg-subtle hover:text-fg"
+                aria-label="Close"
+                (click)="closeShelfModal()">
+          <svg viewBox="0 0 16 16" fill="currentColor" class="size-4">
+            <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z"></path>
+          </svg>
+        </button>
       </header>
-      <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label class="text-xs uppercase tracking-[0.4em] text-white/60 w-full">
-          Shelf
-          <select class="mt-2 w-full rounded-2xl border border-white/15 bg-black/40 px-4 py-2 text-white"
-                  (change)="selectShelf($event)"
-                  [disabled]="shelfState.loading">
-            <option value="">Select a shelf</option>
-            @for (shelf of shelfState.shelves; track shelf.id) {
-              <option [value]="shelf.id" [selected]="shelf.id === shelfState.selectedShelfId">{{ shelf.title }}</option>
-            }
-          </select>
-        </label>
+
+      <div class="px-6 pt-5">
+        <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Shelf</label>
+        <select class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none"
+                (change)="selectShelf($event)"
+                [disabled]="shelfState.loading">
+          <option value="">Select a shelf</option>
+          @for (shelf of shelfState.shelves; track shelf.id) {
+            <option [value]="shelf.id" [selected]="shelf.id === shelfState.selectedShelfId">{{ shelf.title }}</option>
+          }
+        </select>
       </div>
-      @if (shelfState.booksLoading) {
-        <p class="mt-4 text-sm text-white/70">Loading books…</p>
-      }
-      @if (shelfState.booksError) {
-        <p class="mt-4 rounded-2xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">{{ shelfState.booksError }}</p>
-      }
-      <div class="mt-4 grid gap-3 sm:grid-cols-2">
-        @for (book of shelfState.books; track book.id) {
-          <article class="rounded-2xl border border-white/10 bg-black/40 px-4 py-3">
-            <p class="text-sm font-semibold">{{ book.title }}</p>
-            <p class="text-xs text-white/60">{{ book.author }}</p>
-            <button type="button" class="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-400/40 px-3 py-1 text-xs uppercase tracking-[0.3em] text-emerald-200 hover:bg-emerald-500/10" (click)="nominateExisting(book.id)">
-              Nominate
-            </button>
-          </article>
+
+      <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-4">
+        @if (shelfState.booksLoading) {
+          <p class="text-sm text-fg-muted">Loading books…</p>
+        }
+        @if (shelfState.booksError) {
+          <p class="rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger">{{ shelfState.booksError }}</p>
+        }
+        @if (shelfState.books.length) {
+          <ul class="flex flex-col">
+            @for (book of shelfState.books; track book.id) {
+              <li class="border-t border-rule first:border-t-0">
+                <div class="flex items-center justify-between gap-3 py-3">
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-semibold text-fg">{{ book.title }}</p>
+                    <p class="truncate text-xs text-fg-subtle">{{ book.author }}</p>
+                  </div>
+                  <button type="button"
+                          class="shrink-0 rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-accent-fg transition hover:bg-accent-hover"
+                          (click)="nominateExisting(book.id)">
+                    Nominate
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+        @if (!shelfState.books.length && !shelfState.booksLoading && shelfState.selectedShelfId) {
+          <p class="text-sm text-fg-subtle">This shelf has no books yet.</p>
+        }
+        @if (!shelfState.selectedShelfId) {
+          <p class="text-sm text-fg-subtle">Choose a shelf to load its books.</p>
         }
       </div>
-      @if (!shelfState.books.length && !shelfState.booksLoading && shelfState.selectedShelfId) {
-        <p class="mt-3 text-sm text-white/60">This shelf has no books yet.</p>
-      }
-      @if (!shelfState.selectedShelfId) {
-        <p class="mt-4 text-sm text-white/60">Choose a shelf to load its books.</p>
-      }
     </section>
   </div>
 }
 
-<!-- Delete election modal -->
+<!-- REMOVE NOMINATION CONFIRM MODAL ------------------------------------------ -->
+@if (removeNominationConfirmId()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-fg/40 backdrop-blur-sm" (click)="cancelRemoveMyNomination()" aria-hidden="true"></div>
+    <section class="relative z-10 w-full max-w-md rounded-lg border border-rule bg-bg p-6 shadow-lg"
+             role="dialog"
+             aria-modal="true">
+      <header class="mb-4">
+        <h2 class="text-xl font-semibold tracking-tight text-danger">Remove nomination?</h2>
+        <p class="mt-1 text-sm text-fg-muted">
+          The candidate won't be on the ballot anymore. Votes already cast for them will be dropped.
+          You can re-nominate later.
+        </p>
+      </header>
+      <div class="flex flex-wrap justify-end gap-2">
+        <button type="button"
+                class="rounded-md border border-rule px-4 py-2 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                (click)="cancelRemoveMyNomination()">
+          Cancel
+        </button>
+        <button type="button"
+                class="rounded-md bg-danger px-4 py-2 text-sm font-semibold text-danger-fg transition hover:opacity-90"
+                (click)="confirmedRemoveMyNomination()">
+          Remove nomination
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+<!-- DELETE CONFIRM MODAL ----------------------------------------------------- -->
 @if (deleteConfirmOpen()) {
   <div class="fixed inset-0 z-40 flex items-center justify-center px-4">
-    <div class="absolute inset-0 bg-black/70" (click)="closeDeleteConfirm()" aria-hidden="true"></div>
-    <section class="relative z-10 w-full max-w-md rounded-3xl border border-red-400/40 bg-gray-950 px-6 py-6 text-white shadow-[0_0_40px_rgba(248,113,113,0.35)]" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 bg-fg/40 backdrop-blur-sm" (click)="closeDeleteConfirm()" aria-hidden="true"></div>
+    <section class="relative z-10 w-full max-w-md rounded-lg border border-rule bg-bg p-6 shadow-lg"
+             role="dialog"
+             aria-modal="true">
       <header class="mb-4">
-        <h2 class="text-2xl font-semibold text-red-200">Delete election</h2>
-        <p class="mt-2 text-sm text-white/70">This action cannot be undone.</p>
+        <h2 class="text-xl font-semibold tracking-tight text-danger">Delete election?</h2>
+        <p class="mt-1 text-sm text-fg-muted">This can't be undone.</p>
       </header>
-      <div class="flex flex-wrap justify-end gap-3">
-        <button type="button" class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10" (click)="closeDeleteConfirm()">Cancel</button>
-        <button type="button" class="rounded-full border border-red-400/60 bg-red-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-red-100 hover:bg-red-500/20" (click)="deleteElection()">
+      <div class="flex flex-wrap justify-end gap-2">
+        <button type="button"
+                class="rounded-md border border-rule px-4 py-2 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                (click)="closeDeleteConfirm()">
+          Cancel
+        </button>
+        <button type="button"
+                class="rounded-md bg-danger px-4 py-2 text-sm font-semibold text-danger-fg transition hover:opacity-90"
+                (click)="deleteElection()">
           Delete
         </button>
       </div>
@@ -594,26 +1205,38 @@
   </div>
 }
 
-<!-- Reopen election modal -->
+<!-- REOPEN MODAL ------------------------------------------------------------- -->
 @if (reopenModalOpen()) {
   <div class="fixed inset-0 z-40 flex items-center justify-center px-4">
-    <div class="absolute inset-0 bg-black/70" (click)="closeReopenModal()" aria-hidden="true"></div>
-    <section class="relative z-10 w-full max-w-md rounded-3xl border border-sky-400/40 bg-gray-950 px-6 py-6 text-white shadow-[0_0_40px_rgba(56,189,248,0.35)]" role="dialog" aria-modal="true">
-      <header class="mb-4">
-        <h2 class="text-2xl font-semibold">Reopen election</h2>
-        <p class="mt-2 text-sm text-white/70">Optionally set a new closing time.</p>
+    <div class="absolute inset-0 bg-fg/40 backdrop-blur-sm" (click)="closeReopenModal()" aria-hidden="true"></div>
+    <section class="relative z-10 w-full max-w-md rounded-lg border border-rule bg-bg p-6 shadow-lg"
+             role="dialog"
+             aria-modal="true">
+      <header class="mb-6">
+        <h2 class="text-xl font-semibold tracking-tight">Reopen election</h2>
+        <p class="mt-1 text-sm text-fg-muted">Optionally set a new closing time.</p>
       </header>
-      <form class="flex flex-col gap-4" [formGroup]="reopenForm" (ngSubmit)="submitReopen()">
-        <label class="text-xs uppercase tracking-[0.4em] text-white/60">
-          End date (optional)
-          <input type="datetime-local" class="mt-2 w-full rounded-2xl border border-white/15 bg-black/40 px-4 py-2 text-white focus:border-sky-400 focus:outline-none" formControlName="endDateTime" />
-        </label>
-        <div class="flex flex-wrap justify-end gap-3">
-          <button type="button" class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10" (click)="closeReopenModal()">Cancel</button>
-          <button type="submit" class="rounded-full border border-sky-400/60 bg-sky-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-sky-100 hover:bg-sky-500/20">Reopen</button>
+      <form class="space-y-4" [formGroup]="reopenForm" (ngSubmit)="submitReopen()">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+            End date <span class="normal-case tracking-normal text-fg-subtle/70">(optional)</span>
+          </label>
+          <input type="datetime-local"
+                 formControlName="endDateTime"
+                 class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none" />
+        </div>
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button"
+                  class="rounded-md border border-rule px-4 py-2 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                  (click)="closeReopenModal()">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover">
+            Reopen
+          </button>
         </div>
       </form>
     </section>
   </div>
 }
-</div>

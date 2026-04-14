@@ -7,6 +7,7 @@ import { ElectionsPage } from './feature/elections/elections-page';
 import { ElectionDetailPage } from './feature/elections/election-detail-page';
 import { BookDetailPage } from './feature/books/book-detail-page';
 import { DocsPage } from './feature/docs/docs-page';
+import { AboutPage } from './feature/about/about-page';
 import { LoginPrompt } from './feature/login/login-prompt';
 import { authGuard } from './auth/auth.guard';
 
@@ -20,5 +21,6 @@ export const routes: Routes = [
   { path: 'elections/:id', component: ElectionDetailPage, canActivate: [authGuard], data: { title: 'Election Detail' } },
   { path: 'books/:id', component: BookDetailPage, canActivate: [authGuard], data: { title: 'Book Detail' } },
   { path: 'docs', component: DocsPage, data: { title: 'Docs' } },
+  { path: 'about', component: AboutPage, data: { title: 'About' } },
   { path: '**', redirectTo: '/' },
 ];

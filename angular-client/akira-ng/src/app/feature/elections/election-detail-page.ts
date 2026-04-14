@@ -1,5 +1,5 @@
 import { DatePipe, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, HostListener, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs';
@@ -30,6 +30,7 @@ export class ElectionDetailPage {
   protected readonly searchVm = this.searchStore.vm;
   protected readonly shelfVm = this.store.shelfOptionsVm;
   protected readonly resultsVm = this.store.resultsVm;
+  protected readonly myNominationsVm = this.store.myNominationsVm;
 
   protected readonly searchOpen = signal(false);
   protected readonly customOpen = signal(false);
@@ -42,18 +43,86 @@ export class ElectionDetailPage {
     author: ['', [Validators.required, Validators.maxLength(120)]],
     imageURL: [''],
     blurb: [''],
+    pitch: [''],
   });
   protected readonly customBusy = signal(false);
   protected readonly customError = signal<string | null>(null);
   protected readonly expandedCandidates = signal<Set<string>>(new Set());
   protected readonly commandMenuOpen = signal(false);
-  protected readonly candidateMenuOpen = signal<string | null>(null);
+  protected readonly nominateMenuOpen = signal(false);
   protected readonly shelfModalOpen = signal(false);
   protected readonly deleteConfirmOpen = signal(false);
   protected readonly reopenModalOpen = signal(false);
   protected readonly shelfSearch = signal('');
   protected readonly reopenForm = this.fb.group({
     endDateTime: [''],
+  });
+
+  /**
+   * My nominations section state.
+   * - `myNominationsOpen`: whether the collapsible section is expanded
+   * - `pitchDrafts`: per-candidate draft text while editing
+   * - `pitchEditingId`: which candidate's pitch is currently being edited (null = none)
+   */
+  protected readonly myNominationsOpen = signal(true);
+  protected readonly pitchDrafts = signal<Record<string, string>>({});
+  protected readonly pitchEditingId = signal<string | null>(null);
+  protected readonly removeNominationConfirmId = signal<string | null>(null);
+
+  /**
+   * Voting wizard stage.
+   *
+   * The page is structured as three sequential-but-non-gated steps:
+   *   nominate → rank → review
+   *
+   * `voteStageOverride` is set when the user explicitly clicks a pill or
+   * a Next/Back button. When null, `voteStage` auto-derives from state:
+   * if no candidates exist, land on nominate; if nothing is ranked yet,
+   * land on rank; otherwise review.
+   */
+  private readonly voteStageOverride = signal<'nominate' | 'rank' | 'review' | null>(null);
+
+  protected readonly voteStage = computed<'nominate' | 'rank' | 'review'>(() => {
+    const override = this.voteStageOverride();
+    if (override) return override;
+    const state = this.candidatesVm();
+    if (state.items.length === 0) return 'nominate';
+    if (state.rankedItems.length === 0) return 'rank';
+    return 'review';
+  });
+
+  /**
+   * Per-step progress metadata for the progress strip.
+   * `active` = current step. `complete` = step has something showing
+   * real progress (not blocking — users can navigate freely).
+   */
+  protected readonly stepProgress = computed(() => {
+    const state = this.candidatesVm();
+    const mine = this.myNominationsVm();
+    const stage = this.voteStage();
+    const rankedCount = state.rankedItems.length;
+    const totalCandidates = state.items.length;
+    return {
+      nominate: {
+        active: stage === 'nominate',
+        complete: totalCandidates > 0,
+        countLabel: totalCandidates === 0
+          ? null
+          : (mine.count > 0 ? `${totalCandidates} (${mine.count} yours)` : `${totalCandidates}`),
+      },
+      rank: {
+        active: stage === 'rank',
+        complete: rankedCount > 0,
+        countLabel: totalCandidates === 0
+          ? null
+          : `${rankedCount}/${totalCandidates}`,
+      },
+      review: {
+        active: stage === 'review',
+        complete: rankedCount > 0,
+        countLabel: rankedCount > 0 ? 'saved' : null,
+      },
+    };
   });
 
   constructor() {
@@ -98,7 +167,7 @@ export class ElectionDetailPage {
   protected openCustom(): void {
     this.customOpen.set(true);
     this.searchOpen.set(false);
-    this.customForm.reset({ title: '', author: '', imageURL: '', blurb: '' });
+    this.customForm.reset({ title: '', author: '', imageURL: '', blurb: '', pitch: '' });
     this.customError.set(null);
     this.closeMenus();
   }
@@ -129,6 +198,7 @@ export class ElectionDetailPage {
       author: rawValue.author.trim(),
       imageURL: rawValue.imageURL.trim(),
       blurb: rawValue.blurb.trim(),
+      pitch: rawValue.pitch.trim(),
     };
     try {
       await this.store.nominateCustomBook(payload);
@@ -273,20 +343,20 @@ export class ElectionDetailPage {
   protected toggleCommandMenu(): void {
     this.commandMenuOpen.update((open) => !open);
     if (this.commandMenuOpen()) {
-      this.candidateMenuOpen.set(null);
+      this.nominateMenuOpen.set(false);
     }
   }
 
-  protected toggleCandidateMenu(candidateId: string): void {
-    this.candidateMenuOpen.update((current) => (current === candidateId ? null : candidateId));
-    if (this.candidateMenuOpen()) {
+  protected toggleNominateMenu(): void {
+    this.nominateMenuOpen.update((open) => !open);
+    if (this.nominateMenuOpen()) {
       this.commandMenuOpen.set(false);
     }
   }
 
   protected closeMenus(): void {
     this.commandMenuOpen.set(false);
-    this.candidateMenuOpen.set(null);
+    this.nominateMenuOpen.set(false);
   }
 
   protected openShelfModal(): void {
@@ -354,12 +424,8 @@ export class ElectionDetailPage {
     this.toggleCandidateDetails(candidateId);
   }
 
-  protected candidateMenuIsOpen(candidateId: string): boolean {
-    return this.candidateMenuOpen() === candidateId;
-  }
-
   protected get anyOverlayActive(): boolean {
-    return Boolean(this.commandMenuOpen() || this.candidateMenuOpen());
+    return this.commandMenuOpen() || this.nominateMenuOpen();
   }
 
   protected showClosedState(electionStatus: string | undefined): boolean {
@@ -388,6 +454,94 @@ export class ElectionDetailPage {
     }
   }
 
+  // region Vote stage navigation
+
+  protected setVoteStage(stage: 'nominate' | 'rank' | 'review'): void {
+    this.voteStageOverride.set(stage);
+    // Scroll to the top of the ballot block after a nav — honor reduced-motion.
+    if (typeof window !== 'undefined') {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    }
+  }
+
+  protected advanceVoteStage(): void {
+    const current = this.voteStage();
+    if (current === 'nominate') this.setVoteStage('rank');
+    else if (current === 'rank') this.setVoteStage('review');
+  }
+
+  protected retreatVoteStage(): void {
+    const current = this.voteStage();
+    if (current === 'review') this.setVoteStage('rank');
+    else if (current === 'rank') this.setVoteStage('nominate');
+  }
+
+  // endregion
+
+  // region My nominations
+
+  protected toggleMyNominations(): void {
+    this.myNominationsOpen.update((open) => !open);
+  }
+
+  protected startEditPitch(candidateId: string, currentBlurb: string): void {
+    this.pitchDrafts.update((drafts) => ({ ...drafts, [candidateId]: currentBlurb ?? '' }));
+    this.pitchEditingId.set(candidateId);
+  }
+
+  protected cancelEditPitch(candidateId: string): void {
+    this.pitchDrafts.update((drafts) => {
+      const { [candidateId]: _dropped, ...rest } = drafts;
+      return rest;
+    });
+    if (this.pitchEditingId() === candidateId) {
+      this.pitchEditingId.set(null);
+    }
+  }
+
+  protected updatePitchDraft(candidateId: string, value: string): void {
+    this.pitchDrafts.update((drafts) => ({ ...drafts, [candidateId]: value }));
+  }
+
+  protected pitchDraftFor(candidateId: string): string {
+    return this.pitchDrafts()[candidateId] ?? '';
+  }
+
+  protected isEditingPitch(candidateId: string): boolean {
+    return this.pitchEditingId() === candidateId;
+  }
+
+  protected async savePitch(candidateId: string): Promise<void> {
+    const draft = this.pitchDrafts()[candidateId] ?? '';
+    try {
+      await this.store.updateCandidatePitch(candidateId, draft);
+      this.cancelEditPitch(candidateId);
+    } catch {
+      // notification handled in store
+    }
+  }
+
+  protected confirmRemoveMyNomination(candidateId: string): void {
+    this.removeNominationConfirmId.set(candidateId);
+  }
+
+  protected cancelRemoveMyNomination(): void {
+    this.removeNominationConfirmId.set(null);
+  }
+
+  protected async confirmedRemoveMyNomination(): Promise<void> {
+    const id = this.removeNominationConfirmId();
+    if (!id) return;
+    try {
+      await this.store.removeCandidate(id);
+    } finally {
+      this.removeNominationConfirmId.set(null);
+    }
+  }
+
+  // endregion
+
   @HostListener('document:keydown.escape')
   protected handleEscape(): void {
     this.closeMenus();
@@ -396,5 +550,11 @@ export class ElectionDetailPage {
     this.closeShelfModal();
     this.closeDeleteConfirm();
     this.closeReopenModal();
+    if (this.pitchEditingId()) {
+      this.cancelEditPitch(this.pitchEditingId()!);
+    }
+    if (this.removeNominationConfirmId()) {
+      this.cancelRemoveMyNomination();
+    }
   }
 }

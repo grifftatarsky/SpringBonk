@@ -5,11 +5,10 @@ import { ElectionWidgetComponent } from './widgets/election-widget.component';
 import { AVATAR_OPTIONS, AvatarOption, findAvatarOption } from './avatar-options';
 import { ProfileAvatarId } from '../../model/type/profile-avatar-id';
 import { NotificationService } from '../../common/notification/notification.service';
-import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [ShelfWidgetComponent, ElectionWidgetComponent, RouterLink],
+  imports: [ShelfWidgetComponent, ElectionWidgetComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

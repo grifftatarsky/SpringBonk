@@ -17,146 +17,150 @@
     (pageChange)="onPage($event)"
     (pageSizeChange)="onPageSize($event)">
 
-    <div list-actions
-         class="flex flex-wrap items-center gap-2 text-xs text-white/70 sm:justify-end">
+    <div list-actions class="flex items-center gap-2">
       <button type="button"
-              class="relative inline-grid size-7 place-items-center rounded-md text-gray-950 hover:bg-gray-950/5 dark:text-white dark:hover:bg-white/10"
-              aria-label="Navigation" aria-haspopup="true"
-              (click)="toggleControls()"><span
-        class="absolute top-1/2 left-1/2 size-11 -translate-1/2 pointer-fine:hidden"></span>
+              class="rounded-md p-1.5 text-fg-subtle transition-colors hover:bg-bg-subtle hover:text-fg"
+              aria-label="Toggle filter and sort"
+              aria-haspopup="true"
+              (click)="toggleControls()">
         <svg viewBox="0 0 16 16" fill="currentColor" class="size-4">
-          <path
-            d="M8 2a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM8 6.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM9.5 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Z"></path>
+          <path d="M8 2a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM8 6.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM9.5 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Z"></path>
         </svg>
       </button>
-
     </div>
 
     @if (controlsOpen()) {
-      <div list-actions
-           class="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-white/80 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-1 items-center gap-2">
-          <label class="text-xs uppercase tracking-[0.3em] text-white/50"
-                 for="election-sort">Sort</label>
-          <select
-            id="election-sort"
-            class="flex-1 rounded-full border border-white/15 bg-black/40 px-3 py-1 text-sm"
-            (change)="updateSort(sortOptions[$any($event.target).selectedIndex])"
-            aria-label="Sort elections">
-            @for (option of sortOptions; track option.label) {
-              <option
-                [selected]="option.field === state.sortField && option.direction === state.sortDirection">
-                {{ option.label }}
-              </option>
-            }
-          </select>
-        </div>
+      <div list-actions class="flex items-center gap-2 text-xs">
+        <label for="election-sort" class="text-fg-subtle">Sort</label>
+        <select
+          id="election-sort"
+          class="rounded-md border border-rule bg-bg-subtle px-2 py-1 text-sm text-fg focus:border-accent-ring focus:outline-none"
+          (change)="updateSort(sortOptions[$any($event.target).selectedIndex])"
+          aria-label="Sort elections">
+          @for (option of sortOptions; track option.label) {
+            <option [selected]="option.field === state.sortField && option.direction === state.sortDirection">
+              {{ option.label }}
+            </option>
+          }
+        </select>
       </div>
     }
 
-    <ul class="flex flex-col gap-3">
+    <ul class="flex flex-col">
       @for (election of state.items; track election.id) {
-        <li>
+        <li class="border-t border-rule first:border-t-0">
           <a [routerLink]="['/elections', election.id]"
-             class="group block rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-white transition hover:-translate-y-0.5 hover:border-sky-300/60 hover:bg-sky-500/10">
-            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p class="text-lg font-semibold tracking-tight">
-                  {{ election.title }}
-                  <span class="status-pill" [class.emerald]="election.badgeTone === 'emerald'"
-                        [class.amber]="election.badgeTone === 'amber'"
-                        [class.sky]="election.badgeTone === 'sky'">
-                    {{ election.statusLabel }}
-                  </span>
-                </p>
-                <p class="text-sm text-white/60">
-                  {{ election.metaLabel }}
-                  @if (election.metaDate) {
-                    <span>
-                      {{ election.metaDate | date: 'mediumDate' }}
-                    </span>
-                  }
-                </p>
+             class="group flex items-center justify-between gap-4 py-3 text-fg transition-colors hover:bg-bg-subtle">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <p class="truncate text-base font-semibold tracking-tight">{{ election.title }}</p>
+                <span class="shrink-0 rounded border border-rule px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider"
+                      [class.text-success]="election.badgeTone === 'emerald'"
+                      [class.text-warn]="election.badgeTone === 'amber'"
+                      [class.text-accent]="election.badgeTone === 'sky'">
+                  {{ election.statusLabel }}
+                </span>
               </div>
-              <div class="flex items-center gap-2 text-xs uppercase tracking-[0.4em] text-white/50">
-                Details
-                <svg viewBox="0 0 10 10" class="size-2.5 text-sky-300" aria-hidden="true">
-                  <path fill="currentColor"
-                        d="M4.85355 0.146423L9.70711 4.99998L4.85355 9.85353L4.14645 9.14642L7.79289 5.49998H0V4.49998H7.79289L4.14645 0.85353L4.85355 0.146423Z"></path>
-                </svg>
-              </div>
+              <p class="mt-0.5 truncate text-xs text-fg-subtle">
+                {{ election.metaLabel }}
+                @if (election.metaDate) {
+                  <span>· {{ election.metaDate | date: 'mediumDate' }}</span>
+                }
+              </p>
             </div>
+            <span class="shrink-0 text-fg-subtle transition-colors group-hover:text-accent">→</span>
           </a>
         </li>
       }
     </ul>
 
-    <div list-footer
-         class="mt-6 rounded-2xl border border-white/5 bg-black/40 px-4 py-3 text-white/70 sm:flex sm:items-center sm:justify-between">
+    <div list-footer class="mt-4 flex items-center justify-between gap-3">
       <a routerLink="/elections"
-         class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:text-sky-200">
-        Elections →
+         class="inline-flex items-center gap-1 text-sm font-semibold text-fg hover:text-accent transition-colors">
+        All elections →
       </a>
       <button type="button"
-              class="mt-3 inline-flex size-11 items-center justify-center rounded-full border border-sky-400/40 text-lg text-sky-200 transition hover:bg-sky-500/10 sm:mt-0"
+              class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-accent-fg transition hover:bg-accent-hover"
               aria-label="Create election"
               (click)="openCreate()">
-        ＋
+        + New
       </button>
     </div>
   </app-paginated-list>
 
   @if (state.error) {
-    <p
-      class="mt-3 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200"
-      role="status">
+    <p class="mt-3 rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger" role="status">
       {{ state.error }}
     </p>
   }
 </div>
 
+<!-- CREATE ELECTION MODAL -->
 @if (createOpen()) {
   <div class="fixed inset-0 z-40 flex items-center justify-center px-4">
-    <div class="absolute inset-0 bg-black/70" (click)="closeCreate()" aria-hidden="true"></div>
+    <div class="absolute inset-0 bg-fg/40 backdrop-blur-sm"
+         (click)="closeCreate()"
+         aria-hidden="true"></div>
     <section
-      class="relative z-10 w-full max-w-xl rounded-3xl border border-sky-400/30 bg-gray-950 px-6 py-6 text-white shadow-[0_0_40px_rgba(56,189,248,0.35)]"
-      role="dialog" aria-modal="true">
-      <header class="flex items-center justify-between">
+      class="relative z-10 w-full max-w-md rounded-lg border border-rule bg-bg p-6 shadow-lg"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-election-title">
+      <header class="mb-6 flex items-start justify-between">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.4em] text-sky-300">Elections</p>
-          <h2 class="text-2xl font-semibold">Create election</h2>
+          <h2 id="create-election-title" class="text-xl font-semibold tracking-tight">New election</h2>
+          <p class="mt-1 text-sm text-fg-subtle">Title now, end date later if you want.</p>
         </div>
-        <button type="button" class="text-sm text-white/70 hover:text-white"
-                (click)="closeCreate()">Close
+        <button type="button"
+                class="rounded-md p-1 text-fg-subtle hover:text-fg hover:bg-bg-subtle transition-colors"
+                aria-label="Close"
+                (click)="closeCreate()">
+          <svg viewBox="0 0 16 16" fill="currentColor" class="size-4">
+            <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z"></path>
+          </svg>
         </button>
       </header>
-      <form class="mt-6 flex flex-col gap-4" [formGroup]="createForm" (ngSubmit)="submitCreate()">
-        <label class="text-xs uppercase tracking-[0.4em] text-white/60">
-          Title
-          <input type="text" formControlName="title"
-                 class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-sky-400 focus:outline-none" />
-        </label>
-        <label class="text-xs uppercase tracking-[0.4em] text-white/60">
-          End date (optional)
-          <input type="datetime-local" formControlName="endDateTime"
-                 class="mt-2 w-full rounded-2xl border border-white/15 bg-black/50 px-4 py-3 text-white focus:border-sky-400 focus:outline-none" />
-        </label>
+
+      <form class="space-y-5" [formGroup]="createForm" (ngSubmit)="submitCreate()" novalidate>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle"
+                 for="create-election-title-input">
+            Title
+          </label>
+          <input id="create-election-title-input"
+                 type="text"
+                 formControlName="title"
+                 autocomplete="off"
+                 class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle"
+                 for="create-election-end-input">
+            Ends
+            <span class="normal-case tracking-normal text-fg-subtle/70">(optional)</span>
+          </label>
+          <input id="create-election-end-input"
+                 type="datetime-local"
+                 formControlName="endDateTime"
+                 class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none" />
+        </div>
+
         @if (createState().error) {
-          <p
-            class="rounded-2xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200"
-            role="alert">
+          <p class="rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger" role="alert">
             {{ createState().error }}
           </p>
         }
-        <div class="flex justify-end gap-3">
+
+        <div class="flex justify-end gap-2 pt-1">
           <button type="button"
-                  class="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10"
-                  (click)="closeCreate()">Cancel
+                  class="rounded-md border border-rule px-4 py-2 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                  (click)="closeCreate()">
+            Cancel
           </button>
           <button type="submit"
-                  class="rounded-full border border-sky-400/60 bg-sky-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-sky-100 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                   [disabled]="createState().creating || createForm.invalid">
-            {{ createState().creating ? 'Creating…' : 'Create election' }}
+            {{ createState().creating ? 'Creating…' : 'Create' }}
           </button>
         </div>
       </form>

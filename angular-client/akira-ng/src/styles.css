@@ -1,10 +1,137 @@
 @import "tailwindcss";
 
+/* Dark mode via a class on <html>. Set from app.ts based on user/system preference. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ----------------------------------------------------------------------------
+ * Semantic design tokens
+ *
+ * Tailwind v4 picks these up from @theme and emits them as both CSS custom
+ * properties AND utility classes. So `--color-bg` becomes `bg-bg`, `text-bg`,
+ * `border-bg`, etc. The dark overrides live in a `.dark {}` block below and
+ * cascade to any utility that reads `var(--color-*)`.
+ *
+ * The accent is the one and only product accent — a civic/ballot blue that
+ * reads as "interactive". Don't introduce new accents per feature.
+ * --------------------------------------------------------------------------*/
 @theme {
-  --font-sans: InterVariable, sans-serif;
+  --font-sans: InterVariable, ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-sans--font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Surfaces (light defaults) */
+  --color-bg: #ffffff;
+  --color-bg-subtle: #fafaf9;
+  --color-bg-muted: #f4f4f2;
+  --color-bg-sunk: #efefed;
+
+  /* Text */
+  --color-fg: #0b0b0c;
+  --color-fg-muted: #52525b;
+  --color-fg-subtle: #8a8a8f;
+  --color-fg-whisper: #b5b5ba;
+
+  /* Hairlines */
+  --color-rule: #e7e7e4;
+  --color-rule-strong: #d4d4d0;
+
+  /* Accent — democratic blue */
+  --color-accent: #2563eb;         /* blue-600 */
+  --color-accent-hover: #1d4ed8;   /* blue-700 */
+  --color-accent-fg: #ffffff;
+  --color-accent-subtle: #eff6ff;  /* blue-50 */
+  --color-accent-ring: #3b82f6;    /* blue-500 */
+
+  /* Status (reserved, used sparingly) */
+  --color-danger: #b91c1c;
+  --color-danger-fg: #ffffff;
+  --color-danger-subtle: #fef2f2;
+  --color-warn: #a16207;
+  --color-warn-subtle: #fefce8;
+  --color-success: #15803d;
+  --color-success-subtle: #f0fdf4;
+
+  /* Focus outline */
+  --color-focus: #3b82f6;
 }
 
+/* Dark mode — override the same tokens; every utility that reads them flips. */
+.dark {
+  --color-bg: #0a0a0b;
+  --color-bg-subtle: #111113;
+  --color-bg-muted: #18181b;
+  --color-bg-sunk: #05050a;
+
+  --color-fg: #f4f4f5;
+  --color-fg-muted: #a1a1aa;
+  --color-fg-subtle: #71717a;
+  --color-fg-whisper: #3f3f46;
+
+  --color-rule: #1f1f23;
+  --color-rule-strong: #2a2a2f;
+
+  --color-accent: #60a5fa;         /* blue-400 reads better on dark */
+  --color-accent-hover: #93c5fd;   /* blue-300 */
+  --color-accent-fg: #0a0a0b;
+  --color-accent-subtle: #0c1a33;
+  --color-accent-ring: #60a5fa;
+
+  --color-danger: #f87171;
+  --color-danger-fg: #0a0a0b;
+  --color-danger-subtle: #2a0a0a;
+  --color-warn: #fbbf24;
+  --color-warn-subtle: #2a1a03;
+  --color-success: #4ade80;
+  --color-success-subtle: #052e16;
+
+  --color-focus: #60a5fa;
+}
+
+/* ----------------------------------------------------------------------------
+ * Base
+ * --------------------------------------------------------------------------*/
 html {
   scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-feature-settings: var(--font-sans--font-feature-settings);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+ * Pattern fill for the decorative gutters from the home/shell layout.
+ * Previously inlined on every page; now a single utility-friendly class.
+ * --------------------------------------------------------------------------*/
+.bg-gutter-pattern {
+  background-image: repeating-linear-gradient(
+    315deg,
+    var(--color-rule) 0,
+    var(--color-rule) 1px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 10px 10px;
+  background-attachment: fixed;
 }

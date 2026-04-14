@@ -1,8 +1,10 @@
 package com.gpt.springbonk.keycloak;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
@@ -13,4 +15,7 @@ public interface KeycloakUserRepository extends JpaRepository<KeycloakUser, UUID
   Optional<KeycloakUser> findByUsername(String username);
 
   boolean existsByUsername(String username);
+
+  @Query("SELECT u.id FROM KeycloakUser u")
+  List<UUID> findAllUserIds();
 }

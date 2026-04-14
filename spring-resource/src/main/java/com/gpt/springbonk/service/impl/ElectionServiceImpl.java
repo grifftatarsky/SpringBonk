@@ -18,7 +18,9 @@ import com.gpt.springbonk.repository.VoteRepository;
 import com.gpt.springbonk.service.ElectionService;
 import com.gpt.springbonk.service.SingleWinnerMethodDistributionService;
 import com.gpt.springbonk.service.event.ElectionChangedEvent;
+import com.gpt.springbonk.service.event.ElectionClosedEvent;
 import com.gpt.springbonk.service.event.ElectionDeletedEvent;
+import com.gpt.springbonk.service.event.ElectionOpenedEvent;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -69,6 +71,7 @@ public class ElectionServiceImpl implements ElectionService {
     Election saved = electionRepository.saveAndFlush(election);
 
     publisher.publishEvent(new ElectionChangedEvent(saved.getId()));
+    publisher.publishEvent(new ElectionOpenedEvent(saved.getId(), saved.getTitle()));
 
     return new ElectionResponse(saved);
   }
@@ -170,6 +173,7 @@ public class ElectionServiceImpl implements ElectionService {
     Election saved = electionRepository.saveAndFlush(election);
 
     publisher.publishEvent(new ElectionChangedEvent(saved.getId()));
+    publisher.publishEvent(new ElectionOpenedEvent(saved.getId(), saved.getTitle()));
 
     return new ElectionResponse(saved);
   }
@@ -276,6 +280,32 @@ public class ElectionServiceImpl implements ElectionService {
     election.setStatus(Status.CLOSED);
     election.setEndDateTime(ZonedDateTime.now());
     electionRepository.saveAndFlush(election);
+
+    // Announce to the electorate.
+    String winnerTitle = lookupWinnerTitle(election, result.getWinnerId());
+    publisher.publishEvent(new ElectionChangedEvent(election.getId()));
+    publisher.publishEvent(new ElectionClosedEvent(
+        election.getId(),
+        election.getTitle(),
+        winnerTitle
+    ));
+  }
+
+  /**
+   * Resolve a winner candidate UUID back to its book title. Returns null
+   * when there's no winner (errors, ties, empty results) — listeners should
+   * treat null as "no winner announced".
+   */
+  private String lookupWinnerTitle(Election election, UUID winnerId) {
+    if (winnerId == null) {
+      return null;
+    }
+    return election.getCandidates().stream()
+        .filter(c -> winnerId.equals(c.getId()))
+        .map(c -> c.getBook() != null ? c.getBook().getTitle() : null)
+        .filter(Objects::nonNull)
+        .findFirst()
+        .orElse(null);
   }
 
   @Override

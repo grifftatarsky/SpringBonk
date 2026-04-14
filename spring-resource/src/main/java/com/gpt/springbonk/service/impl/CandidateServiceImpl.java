@@ -43,7 +43,8 @@ public class CandidateServiceImpl implements CandidateService {
   public CandidateResponse nominateCandidate(
       @NotNull UUID bookId,
       @NotNull UUID userId,
-      @NotNull UUID electionId
+      @NotNull UUID electionId,
+      String pitch
   ) {
     // Validate the requisite parts.
     Election election = electionService.getElection(electionId);
@@ -66,6 +67,9 @@ public class CandidateServiceImpl implements CandidateService {
         nomination,
         nominator
     );
+    if (pitch != null && !pitch.isBlank()) {
+      candidate.setPitch(pitch.trim());
+    }
     bookService.addBookToShelf(bookId, shelfService.getNominatedShelf(userId).getId(), userId);
 
     return new CandidateResponse(candidateRepository.saveAndFlush(candidate));
@@ -89,6 +93,26 @@ public class CandidateServiceImpl implements CandidateService {
       throw new AccessDeniedException("User not permitted to remove this nomination.");
     }
     candidateRepository.delete(candidate);
+  }
+
+  @Override
+  public CandidateResponse updatePitch(
+      @NotNull UUID electionId,
+      @NotNull UUID candidateId,
+      @NotNull UUID userId,
+      String pitch
+  ) {
+    Candidate candidate = getCandidate(candidateId);
+    if (!candidate.getElection().getId().equals(electionId)) {
+      throw new ResourceNotFoundException("Candidate does not belong to this election.");
+    }
+    UUID nominatorId = candidate.getNominator().getId();
+    UUID creatorId = candidate.getElection().getCreator().getId();
+    if (!nominatorId.equals(userId) && !creatorId.equals(userId)) {
+      throw new AccessDeniedException("User not permitted to edit this pitch.");
+    }
+    candidate.setPitch(pitch == null ? "" : pitch.trim());
+    return new CandidateResponse(candidateRepository.saveAndFlush(candidate));
   }
 
   @Override
