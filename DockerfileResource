@@ -10,7 +10,7 @@ COPY ./spring-resource/src ./src
 
 RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:24-jre
+FROM eclipse-temurin:23-jre
 
 RUN groupadd -r bonk-docker && useradd -r -g bonk-docker veto
 
