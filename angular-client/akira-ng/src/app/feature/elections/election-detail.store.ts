@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { computed, effect, inject, Injectable, signal, Signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
@@ -91,6 +92,13 @@ export class ElectionDetailStore {
   private readonly election = signal<ElectionResponse | null>(null);
   private readonly electionLoading = signal(false);
   private readonly electionError = signal<string | null>(null);
+  /**
+   * True when the backend returns a 404 for this election. Notifications can
+   * outlive their election (we never clean them up on delete), so hitting a
+   * dead link is a real user-facing case — the template shows a "couldn't
+   * locate this election" card instead of a generic error.
+   */
+  private readonly electionNotFound = signal(false);
 
   private readonly candidates = signal<CandidateResponse[]>([]);
   private readonly candidateLoading = signal(false);
@@ -121,9 +129,10 @@ export class ElectionDetailStore {
       if (!id) {
         return;
       }
-      this.fetchElection(id);
-      this.fetchCandidates(id);
-      this.fetchVotes(id);
+      // Sequence the fetches so we can skip the downstream ones when the
+      // election itself 404s. Otherwise the dependent calls hit errors for
+      // an election the user already knows is gone.
+      void this.loadAll(id);
     });
 
     this.loadShelfOptions();
@@ -148,6 +157,7 @@ export class ElectionDetailStore {
     election: this.election(),
     loading: this.electionLoading(),
     error: this.electionError(),
+    notFound: this.electionNotFound(),
     badgeTone: this.getBadgeTone(this.election()?.status ?? 'OPEN'),
     statusLabel: this.getStatusLabel(this.election()?.status ?? 'OPEN'),
   }));
@@ -277,6 +287,8 @@ export class ElectionDetailStore {
 
   init(id: string): void {
     if (id && id !== this.electionId()) {
+      this.electionNotFound.set(false);
+      this.electionError.set(null);
       this.electionId.set(id);
     }
   }
@@ -663,13 +675,40 @@ export class ElectionDetailStore {
     }
   }
 
+  private async loadAll(id: string): Promise<void> {
+    await this.fetchElection(id);
+    if (this.electionNotFound()) {
+      return;
+    }
+    // Fire the rest in parallel once we know the election exists.
+    await Promise.all([
+      this.fetchCandidates(id),
+      this.fetchVotes(id),
+    ]);
+  }
+
   private async fetchElection(id: string): Promise<void> {
     this.electionLoading.set(true);
     this.electionError.set(null);
+    this.electionNotFound.set(false);
     try {
       const election = await firstValueFrom(this.electionHttp.getElection(id));
       this.election.set(election);
     } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404) {
+        // The election is gone — a stale notification link, a hand-typed
+        // URL, etc. Surface a dedicated "not found" state instead of a
+        // generic error card.
+        this.election.set(null);
+        this.electionNotFound.set(true);
+        this.candidates.set([]);
+        this.candidateError.set(null);
+        this.votes.set([]);
+        this.votesError.set(null);
+        this.results.set([]);
+        this.resultsError.set(null);
+        return;
+      }
       console.error('[ElectionDetailStore] Failed to load election', error);
       this.electionError.set('Unable to load election.');
       this.election.set(null);

@@ -17,13 +17,26 @@
     @if (electionState.loading) {
       <p class="mt-6 text-sm text-fg-muted">Loading election…</p>
     }
-    @if (electionState.error && !electionState.loading) {
+    @if (electionState.notFound && !electionState.loading) {
+      <section class="mt-6 rounded-lg border border-rule bg-bg-subtle px-6 py-8 text-center">
+        <h1 class="text-2xl font-semibold tracking-tight text-fg">Couldn't locate this election</h1>
+        <p class="mx-auto mt-2 max-w-md text-sm text-fg-muted">
+          It may have been deleted. Notifications that pointed to it will stop working,
+          but everything else in the club is fine.
+        </p>
+        <a routerLink="/elections"
+           class="mt-6 inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover">
+          Back to elections
+        </a>
+      </section>
+    }
+    @if (electionState.error && !electionState.loading && !electionState.notFound) {
       <p class="mt-6 rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger">
         {{ electionState.error }}
       </p>
     }
 
-    <ng-container *ngIf="electionState.election as election">
+    <ng-container *ngIf="!electionState.notFound && electionState.election as election">
       <div class="mt-4 flex flex-col gap-3 border-b border-rule pb-8">
         <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">{{ election.title }}</h1>
         <div class="flex flex-wrap items-center gap-3 text-sm text-fg-muted">
@@ -48,6 +61,7 @@
   </div>
 
   <!-- BODY ------------------------------------------------------------------ -->
+  @if (!electionState.notFound) {
   <div class="min-w-0 px-2 max-sm:px-4">
     <div class="flex min-w-0 flex-col gap-10">
       @let candidateState = candidatesVm();
@@ -870,6 +884,7 @@
       }
     </div>
   </div>
+  }
 </div>
 
 <!-- SEARCH MODAL (Open Library) --------------------------------------------- -->

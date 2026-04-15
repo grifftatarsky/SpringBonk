@@ -35,12 +35,18 @@ public class NotificationServiceImpl implements NotificationService {
 
   private static final int DEFAULT_LIMIT = 50;
   private static final int MAX_LIMIT = 200;
+  /**
+   * How long a read notification stays in the inbox after it's been read.
+   * Unread notifications are always visible; read ones drop off after this.
+   */
+  private static final int READ_RETENTION_DAYS = 7;
 
   @Override
   public List<NotificationResponse> getMyNotifications(@NotNull UUID userId, int limit) {
     int effectiveLimit = limit <= 0 ? DEFAULT_LIMIT : Math.min(limit, MAX_LIMIT);
+    LocalDateTime readCutoff = LocalDateTime.now().minusDays(READ_RETENTION_DAYS);
     return notificationRepository
-        .findByRecipientIdOrderByCreatedAtDesc(userId, PageRequest.of(0, effectiveLimit))
+        .findActiveByRecipientId(userId, readCutoff, PageRequest.of(0, effectiveLimit))
         .stream()
         .map(NotificationResponse::new)
         .toList();
