@@ -27,13 +27,13 @@ export class DocsPage {
       n: '01',
       title: 'Make a shelf',
       body:
-        'Shelves are your book piles. "To read," "read," "could read," whatever. They hold books you might want to vote on later.',
+        'Shelves are your book piles. "Spooky," "Cozy," "Someday I\'ll Read This," whatever. They hold books, and you might want to vote on them later.',
     },
     {
       n: '02',
       title: 'Put books on it',
       body:
-        'Search Open Library, or type one in by hand if it\'s not there. Give it a pitch if you feel strongly.',
+        'Search Open Library, or type one in by hand if it\'s not there.',
     },
     {
       n: '03',
@@ -45,7 +45,7 @@ export class DocsPage {
       n: '04',
       title: 'Nominate candidates',
       body:
-        'Pull from a shelf, search Open Library, or type one in. Anyone in your club can nominate.',
+        'Pull from a shelf, search Open Library, or type one in. Anyone in your club can nominate. Add a pitch!',
     },
     {
       n: '05',
@@ -63,9 +63,9 @@ export class DocsPage {
 
   protected readonly stack: ReadonlyArray<Link> = [
     { label: 'Angular 20 (frontend)', href: 'https://angular.dev', external: true },
-    { label: 'Spring Boot 3 + Java 24 (resource server)', href: 'https://spring.io/projects/spring-boot', external: true },
-    { label: 'NGINX BFF with OAuth 2', href: 'https://docs.spring.io/spring-boot/docs/current/reference/html/web.html', external: true },
-    { label: 'Keycloak (auth)', href: 'https://www.keycloak.org/', external: true },
+    { label: 'Spring Boot 3 + Java 23 (resource and bff servers)', href: 'https://spring.io/projects/spring-boot', external: true },
+    { label: 'NGINX (gateway)', href: 'https://docs.spring.io/spring-boot/docs/current/reference/html/web.html', external: true },
+    { label: 'Keycloak (auth with OAuth 2)', href: 'https://www.keycloak.org/', external: true },
     { label: 'PostgreSQL (storage)', href: 'https://www.postgresql.org/', external: true },
     { label: 'Tailwind CSS v4', href: 'https://tailwindcss.com/', external: true },
     { label: 'Source on GitHub', href: 'https://github.com/grifftatarsky/SpringBonk', external: true },
