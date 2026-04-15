@@ -1,0 +1,190 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 004 — Reviews, comments, and likes.
+  #
+  # A user can write one review per book (enforced in the service layer,
+  # NOT by a DB unique constraint — easier to relax later). Comments and
+  # likes cascade when a review is deleted.
+  # ==========================================================================
+
+  - changeSet:
+      id: 004-reviews-create
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: reviews
+      changes:
+        - createTable:
+            tableName: reviews
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: author_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_reviews_author
+                    references: keycloak_user(id)
+              - column:
+                  name: book_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_reviews_book
+                    references: books(id)
+              - column:
+                  name: rating
+                  type: INT
+              - column:
+                  name: body
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 004-reviews-indexes
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          indexExists:
+            indexName: idx_reviews_book_created
+      changes:
+        - createIndex:
+            tableName: reviews
+            indexName: idx_reviews_book_created
+            columns:
+              - column:
+                  name: book_id
+              - column:
+                  name: created_date
+                  descending: true
+        - createIndex:
+            tableName: reviews
+            indexName: idx_reviews_author_created
+            columns:
+              - column:
+                  name: author_id
+              - column:
+                  name: created_date
+                  descending: true
+
+  - changeSet:
+      id: 004-review-comments-create
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: review_comments
+      changes:
+        - createTable:
+            tableName: review_comments
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: review_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_review_comments_review
+                    references: reviews(id)
+              - column:
+                  name: author_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_review_comments_author
+                    references: keycloak_user(id)
+              - column:
+                  name: body
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 004-review-comments-index
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          indexExists:
+            indexName: idx_review_comments_review_created
+      changes:
+        - createIndex:
+            tableName: review_comments
+            indexName: idx_review_comments_review_created
+            columns:
+              - column:
+                  name: review_id
+              - column:
+                  name: created_date
+
+  - changeSet:
+      id: 004-review-likes-create
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: review_likes
+      changes:
+        - createTable:
+            tableName: review_likes
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: review_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_review_likes_review
+                    references: reviews(id)
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_review_likes_user
+                    references: keycloak_user(id)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: review_likes
+            columnNames: review_id, user_id
+            constraintName: uk_review_likes_review_user

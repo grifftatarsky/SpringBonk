@@ -1,5 +1,5 @@
 <div class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-10 pb-24 text-fg">
-  <div class="px-2 max-sm:px-4 mt-4">
+  <div class="min-w-0 px-2 max-sm:px-4 mt-4">
     <a routerLink="/shelves"
        class="inline-flex items-center gap-1 text-xs text-fg-subtle hover:text-fg transition-colors">
       ← Shelves
@@ -17,22 +17,74 @@
 
       <ng-container *ngIf="state.book as book">
         <!-- HEADER: cover + metadata --------------------------------------- -->
-        <div class="mt-6 flex flex-col gap-8 border-b border-rule pb-10 lg:flex-row">
+        <div class="mt-6 flex min-w-0 flex-col gap-8 border-b border-rule pb-10 lg:flex-row">
           <img
             [src]="book.imageURL || 'https://placehold.co/400x600/eeeeee/aaaaaa?text=No+cover'"
             [alt]="book.title + ' cover'"
             class="h-auto w-full max-w-[220px] shrink-0 rounded-sm border border-rule object-cover" />
 
           <div class="min-w-0 flex-1">
-            <h1 class="text-4xl font-semibold tracking-tight text-fg sm:text-5xl">
+            <h1 class="break-words text-4xl font-semibold tracking-tight text-fg sm:text-5xl">
               {{ book.title }}
             </h1>
             <p class="mt-2 text-lg text-fg-muted">by {{ book.author || 'Unknown author' }}</p>
 
+            <!-- Status row -->
+            @let st = statusVm();
+            <div class="mt-6 flex flex-wrap items-center gap-2">
+              <button type="button"
+                      class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
+                      (click)="openWizard()">
+                I have read it
+              </button>
+              <div class="inline-flex rounded-md border border-rule bg-bg-subtle p-0.5">
+                <button type="button"
+                        class="rounded px-3 py-1 text-xs font-semibold transition-colors"
+                        [class.bg-bg]="st.statusValue === 'READING'"
+                        [class.text-fg]="st.statusValue === 'READING'"
+                        [class.shadow-sm]="st.statusValue === 'READING'"
+                        [class.text-fg-muted]="st.statusValue !== 'READING'"
+                        [disabled]="st.busy"
+                        (click)="quickSetStatus('READING')">
+                  Reading
+                </button>
+                <button type="button"
+                        class="rounded px-3 py-1 text-xs font-semibold transition-colors"
+                        [class.bg-bg]="st.statusValue === 'READ'"
+                        [class.text-fg]="st.statusValue === 'READ'"
+                        [class.shadow-sm]="st.statusValue === 'READ'"
+                        [class.text-fg-muted]="st.statusValue !== 'READ'"
+                        [disabled]="st.busy"
+                        (click)="quickSetStatus('READ')">
+                  Read
+                </button>
+                <button type="button"
+                        class="rounded px-3 py-1 text-xs font-semibold transition-colors"
+                        [class.bg-bg]="st.statusValue === 'ABANDONED'"
+                        [class.text-fg]="st.statusValue === 'ABANDONED'"
+                        [class.shadow-sm]="st.statusValue === 'ABANDONED'"
+                        [class.text-fg-muted]="st.statusValue !== 'ABANDONED'"
+                        [disabled]="st.busy"
+                        (click)="quickSetStatus('ABANDONED')">
+                  Abandoned
+                </button>
+              </div>
+            </div>
+
+            @if (st.status?.finishedAt) {
+              <p class="mt-2 text-xs text-fg-subtle">
+                Finished {{ st.status?.finishedAt | date: 'mediumDate' }}
+              </p>
+            } @else if (st.status?.startedAt && st.statusValue === 'READING') {
+              <p class="mt-2 text-xs text-fg-subtle">
+                Started {{ st.status?.startedAt | date: 'mediumDate' }}
+              </p>
+            }
+
             @if (book.blurb) {
-              <p class="mt-6 text-base text-fg-muted whitespace-pre-line">{{ book.blurb }}</p>
+              <p class="mt-6 whitespace-pre-line text-base text-fg-muted">{{ book.blurb }}</p>
             } @else {
-              <p class="mt-6 text-sm text-fg-subtle italic">No pitch yet.</p>
+              <p class="mt-6 text-sm italic text-fg-subtle">{{ blurbFallback() }}</p>
             }
 
             @if (book.shelves.length) {
@@ -56,35 +108,427 @@
           </div>
         </div>
 
-        <!-- EDIT PITCH ----------------------------------------------------- -->
+        <!-- REVIEWS SECTION ------------------------------------------------ -->
         <section class="mt-10">
-          <h2 class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Edit pitch</h2>
-          <form class="mt-3 flex flex-col gap-3" [formGroup]="pitchForm" (ngSubmit)="savePitch()">
-            <textarea rows="5"
-                      formControlName="blurb"
-                      placeholder="Why should the club read this?"
-                      class="w-full rounded-md border border-rule bg-bg-subtle px-3 py-2.5 text-sm text-fg focus:border-accent-ring focus:outline-none"></textarea>
-            @if (pitchForm.controls.blurb.invalid && pitchForm.controls.blurb.touched) {
-              <p class="text-sm text-danger">Pitch must be under 1000 characters.</p>
-            }
-            @if (vm().saveError) {
-              <p class="text-sm text-danger">{{ vm().saveError }}</p>
-            }
-            <div class="flex flex-wrap gap-2">
-              <button type="button"
-                      class="rounded-md border border-rule px-3 py-1.5 text-xs font-semibold text-fg transition hover:bg-bg-subtle"
-                      (click)="resetPitch()">
-                Reset
-              </button>
-              <button type="submit"
-                      class="inline-flex items-center gap-2 rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-accent-fg transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
-                      [disabled]="pitchForm.invalid || vm().savingPitch">
-                {{ vm().savingPitch ? 'Saving…' : 'Save pitch' }}
-              </button>
+          <div class="flex items-end justify-between gap-2 border-b border-rule pb-3">
+            <div>
+              <h2 class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Reviews</h2>
+              <p class="mt-1 text-sm text-fg-muted">What people thought about it.</p>
             </div>
-          </form>
+            @if (!myReview()) {
+              <button type="button"
+                      class="shrink-0 rounded-md border border-rule px-3 py-1.5 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                      (click)="openReviewComposer()">
+                + Write a review
+              </button>
+            } @else {
+              <button type="button"
+                      class="shrink-0 rounded-md border border-rule px-3 py-1.5 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                      (click)="openReviewComposer(myReview()!.id)">
+                Edit my review
+              </button>
+            }
+          </div>
+
+          @let rv = reviewsVm();
+          @if (rv.loading) {
+            <p class="mt-6 text-sm text-fg-muted">Loading reviews…</p>
+          }
+          @if (rv.error) {
+            <p class="mt-4 rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger">
+              {{ rv.error }}
+            </p>
+          }
+
+          @if (!rv.loading && !rv.items.length) {
+            <p class="mt-6 py-6 text-center text-sm text-fg-subtle">No reviews yet. Be the first.</p>
+          }
+
+          @let cv = commentsVm();
+          <ul class="mt-4 flex min-w-0 flex-col">
+            @for (review of rv.items; track review.id) {
+              <li class="min-w-0 border-t border-rule py-6 first:border-t-0 first:pt-0">
+                <article class="min-w-0">
+                  <header class="flex flex-wrap items-baseline justify-between gap-2">
+                    <div class="min-w-0">
+                      <p class="text-sm font-semibold text-fg">{{ review.authorName }}</p>
+                      <p class="text-xs text-fg-subtle">
+                        {{ review.createdDate | date: 'mediumDate' }}
+                        @if (review.updatedDate && review.updatedDate !== review.createdDate) {
+                          · edited
+                        }
+                      </p>
+                    </div>
+                    @if (review.rating) {
+                      <p class="shrink-0 text-sm text-fg">
+                        <span class="font-semibold">{{ review.rating }}</span><span class="text-fg-subtle">/5</span>
+                      </p>
+                    }
+                  </header>
+                  <p class="mt-3 whitespace-pre-line text-sm text-fg-muted">{{ review.body }}</p>
+
+                  <div class="mt-4 flex flex-wrap items-center gap-3 text-xs">
+                    @if (isMine(review.authorId)) {
+                      <!-- Your own review — no self-likes, ever. Show the
+                           count as a non-interactive tag. -->
+                      <span class="inline-flex items-center gap-1 rounded-md border border-rule px-2 py-1 font-semibold text-fg-muted">
+                        <span aria-hidden="true">♥</span>
+                        {{ review.likeCount }}
+                      </span>
+                    } @else {
+                      <button type="button"
+                              class="inline-flex items-center gap-1 rounded-md border px-2 py-1 font-semibold transition-colors"
+                              [class.border-accent]="review.likedByMe"
+                              [class.text-accent]="review.likedByMe"
+                              [class.border-rule]="!review.likedByMe"
+                              [class.text-fg-muted]="!review.likedByMe"
+                              [class.hover:bg-bg-subtle]="!review.likedByMe"
+                              (click)="toggleLike(review.id)">
+                        <span aria-hidden="true">♥</span>
+                        {{ review.likeCount }}
+                      </button>
+                    }
+                    <button type="button"
+                            class="inline-flex items-center gap-1 rounded-md border border-rule px-2 py-1 font-semibold text-fg-muted transition hover:bg-bg-subtle"
+                            (click)="toggleComments(review.id)">
+                      💬 {{ review.commentCount }}
+                      {{ isCommentsOpen(review.id) ? '▾' : '▸' }}
+                    </button>
+                    @if (isMine(review.authorId)) {
+                      <button type="button"
+                              class="text-xs text-fg-subtle hover:text-fg"
+                              (click)="openReviewComposer(review.id)">
+                        Edit
+                      </button>
+                      <button type="button"
+                              class="text-xs text-danger hover:underline"
+                              (click)="deleteReview(review.id)">
+                        Delete
+                      </button>
+                    }
+                  </div>
+
+                  @if (isCommentsOpen(review.id)) {
+                    <div class="mt-4 min-w-0 border-l-2 border-rule pl-4">
+                      @if (cv.loadingByReview[review.id]) {
+                        <p class="text-xs text-fg-muted">Loading comments…</p>
+                      }
+                      @let comments = cv.byReview[review.id] || [];
+                      <ul class="flex flex-col gap-3">
+                        @for (comment of comments; track comment.id) {
+                          <li class="min-w-0">
+                            <p class="text-xs text-fg-subtle">
+                              <span class="font-semibold text-fg">{{ comment.authorName }}</span>
+                              · {{ comment.createdDate | date: 'mediumDate' }}
+                              @if (isMine(comment.authorId)) {
+                                · <button type="button"
+                                          class="text-danger hover:underline"
+                                          (click)="removeComment(review.id, comment.id)">Delete</button>
+                              }
+                            </p>
+                            <p class="mt-1 whitespace-pre-line text-sm text-fg-muted">{{ comment.body }}</p>
+                          </li>
+                        }
+                        @if (!comments.length && !cv.loadingByReview[review.id]) {
+                          <li class="text-xs text-fg-subtle">No comments yet.</li>
+                        }
+                      </ul>
+
+                      <!-- Comment composer -->
+                      <div class="mt-3 flex items-start gap-2">
+                        <textarea rows="2"
+                                  placeholder="Add a comment…"
+                                  [value]="commentDraft(review.id)"
+                                  (input)="setCommentDraft(review.id, $any($event.target).value)"
+                                  class="min-w-0 flex-1 rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none"></textarea>
+                        <button type="button"
+                                class="shrink-0 rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-accent-fg transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                                [disabled]="!commentDraft(review.id).trim()"
+                                (click)="submitComment(review.id)">
+                          Post
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </article>
+              </li>
+            }
+          </ul>
         </section>
+
+        <!-- EDIT BOOK DESCRIPTION (custom books only) ---------------------- -->
+        @if (isCustomBook()) {
+          <section class="mt-10">
+            <h2 class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Edit description</h2>
+            <p class="mt-1 text-xs text-fg-subtle">
+              Custom books are editable. For Open Library books, descriptions come from upstream.
+            </p>
+            <form class="mt-3 flex flex-col gap-3" [formGroup]="pitchForm" (ngSubmit)="savePitch()">
+              <textarea rows="5"
+                        formControlName="blurb"
+                        placeholder="A short description — what is this book about?"
+                        class="w-full rounded-md border border-rule bg-bg-subtle px-3 py-2.5 text-sm text-fg focus:border-accent-ring focus:outline-none"></textarea>
+              @if (pitchForm.controls.blurb.invalid && pitchForm.controls.blurb.touched) {
+                <p class="text-sm text-danger">Description must be under 1000 characters.</p>
+              }
+              @if (vm().saveError) {
+                <p class="text-sm text-danger">{{ vm().saveError }}</p>
+              }
+              <div class="flex flex-wrap gap-2">
+                <button type="button"
+                        class="rounded-md border border-rule px-3 py-1.5 text-xs font-semibold text-fg transition hover:bg-bg-subtle"
+                        (click)="resetPitch()">
+                  Reset
+                </button>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-accent-fg transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                        [disabled]="pitchForm.invalid || vm().savingPitch">
+                  {{ vm().savingPitch ? 'Saving…' : 'Save description' }}
+                </button>
+              </div>
+            </form>
+          </section>
+        }
       </ng-container>
     </ng-container>
   </div>
 </div>
+
+<!-- "I HAVE READ IT" WIZARD --------------------------------------------------- -->
+@if (wizardOpen()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center px-4 py-6">
+    <div class="absolute inset-0 bg-fg/40 backdrop-blur-sm"
+         (click)="closeWizard()"
+         aria-hidden="true"></div>
+    <section class="relative z-10 flex w-full max-w-lg flex-col overflow-hidden rounded-lg border border-rule bg-bg shadow-lg"
+             style="max-height: min(85vh, 720px);"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="wizard-title">
+      <header class="flex items-start justify-between border-b border-rule px-6 py-4">
+        <div>
+          <h2 id="wizard-title" class="text-xl font-semibold tracking-tight">
+            @switch (wizardStep()) {
+              @case ('intent') { I've read it? }
+              @case ('details') { When'd you finish? }
+              @case ('review') { Got thoughts? }
+              @case ('done') { Saved. }
+            }
+          </h2>
+          <p class="mt-0.5 text-xs text-fg-subtle">Step {{ wizardStep() === 'intent' ? '1' : wizardStep() === 'details' ? '2' : wizardStep() === 'review' ? '3' : '✓' }} of 3</p>
+        </div>
+        <button type="button"
+                class="rounded-md p-1 text-fg-subtle transition-colors hover:bg-bg-subtle hover:text-fg"
+                aria-label="Close"
+                (click)="closeWizard()">
+          <svg viewBox="0 0 16 16" fill="currentColor" class="size-4">
+            <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z"></path>
+          </svg>
+        </button>
+      </header>
+
+      <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+        <!-- Step 1: Intent -->
+        @if (wizardStep() === 'intent') {
+          <p class="text-sm text-fg-muted">Pick one:</p>
+          <div class="mt-4 flex flex-col gap-2">
+            <button type="button"
+                    class="flex items-start gap-3 rounded-md border border-rule px-4 py-3 text-left transition hover:border-accent hover:bg-bg-subtle"
+                    (click)="chooseWizardIntent('finished')">
+              <span class="text-xl">✓</span>
+              <span class="min-w-0">
+                <span class="block text-sm font-semibold text-fg">I finished it</span>
+                <span class="block text-xs text-fg-muted">Mark as read. Optional review next.</span>
+              </span>
+            </button>
+            <button type="button"
+                    class="flex items-start gap-3 rounded-md border border-rule px-4 py-3 text-left transition hover:border-accent hover:bg-bg-subtle"
+                    (click)="chooseWizardIntent('reading')">
+              <span class="text-xl">📖</span>
+              <span class="min-w-0">
+                <span class="block text-sm font-semibold text-fg">I'm reading it now</span>
+                <span class="block text-xs text-fg-muted">Mark as currently reading.</span>
+              </span>
+            </button>
+            <button type="button"
+                    class="flex items-start gap-3 rounded-md border border-rule px-4 py-3 text-left transition hover:border-accent hover:bg-bg-subtle"
+                    (click)="chooseWizardIntent('abandoned')">
+              <span class="text-xl">🫳</span>
+              <span class="min-w-0">
+                <span class="block text-sm font-semibold text-fg">Gave up</span>
+                <span class="block text-xs text-fg-muted">Mark as abandoned. No shame.</span>
+              </span>
+            </button>
+          </div>
+        }
+
+        <!-- Step 2: Details -->
+        @if (wizardStep() === 'details') {
+          <form class="flex flex-col gap-5" [formGroup]="wizardForm" (ngSubmit)="submitWizardDetails()">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+                When did you finish? <span class="normal-case tracking-normal text-fg-subtle/70">(optional)</span>
+              </label>
+              <input type="datetime-local"
+                     formControlName="finishedAt"
+                     class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none" />
+              <p class="mt-1 text-xs text-fg-subtle">Leave blank and we'll use right now.</p>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+                Rating <span class="normal-case tracking-normal text-fg-subtle/70">(optional)</span>
+              </label>
+              <div class="mt-2 flex items-center gap-1">
+                @for (n of [1, 2, 3, 4, 5]; track n) {
+                  <button type="button"
+                          class="rounded-md border px-3 py-1 text-sm font-semibold transition-colors"
+                          [class.border-accent]="wizardForm.controls.rating.value === n"
+                          [class.bg-accent-subtle]="wizardForm.controls.rating.value === n"
+                          [class.text-accent]="wizardForm.controls.rating.value === n"
+                          [class.border-rule]="wizardForm.controls.rating.value !== n"
+                          [class.text-fg-muted]="wizardForm.controls.rating.value !== n"
+                          (click)="wizardForm.controls.rating.setValue(wizardForm.controls.rating.value === n ? null : n)">
+                    {{ n }}
+                  </button>
+                }
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+                Quick review <span class="normal-case tracking-normal text-fg-subtle/70">(optional)</span>
+              </label>
+              <textarea rows="4"
+                        formControlName="reviewBody"
+                        placeholder="A few sentences. What stuck with you?"
+                        class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none"></textarea>
+            </div>
+            <div class="flex justify-end gap-2">
+              <button type="button"
+                      class="rounded-md border border-rule px-4 py-2 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                      (click)="wizardStep.set('intent')">
+                ← Back
+              </button>
+              <button type="submit"
+                      class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover">
+                Next →
+              </button>
+            </div>
+          </form>
+        }
+
+        <!-- Step 3: Confirm review -->
+        @if (wizardStep() === 'review') {
+          <p class="text-sm text-fg-muted">
+            Post this as a review on <span class="font-semibold text-fg">{{ vm().book?.title }}</span>?
+          </p>
+          <div class="mt-4 rounded-md border border-rule bg-bg-subtle px-3 py-3 text-sm text-fg whitespace-pre-line">
+            {{ wizardForm.controls.reviewBody.value }}
+          </div>
+          <div class="mt-6 flex justify-end gap-2">
+            <button type="button"
+                    class="rounded-md border border-rule px-4 py-2 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                    (click)="skipWizardReview()">
+              Skip — don't post
+            </button>
+            <button type="button"
+                    class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover"
+                    (click)="submitWizardReview()">
+              Post review
+            </button>
+          </div>
+        }
+
+        <!-- Step 4: Done -->
+        @if (wizardStep() === 'done') {
+          <div class="py-8 text-center">
+            <p class="text-5xl">✓</p>
+            <p class="mt-4 text-sm text-fg-muted">
+              @switch (wizardIntent()) {
+                @case ('finished') { Logged. Nice one. }
+                @case ('reading') { Got it — mid-read. }
+                @case ('abandoned') { No shame. Moving on. }
+                @default { Saved. }
+              }
+            </p>
+            <button type="button"
+                    class="mt-6 inline-flex rounded-md border border-rule px-4 py-2 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                    (click)="closeWizard()">
+              Close
+            </button>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+}
+
+<!-- STANDALONE REVIEW COMPOSER ------------------------------------------------ -->
+@if (reviewComposerOpen()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center px-4 py-6">
+    <div class="absolute inset-0 bg-fg/40 backdrop-blur-sm"
+         (click)="closeReviewComposer()"
+         aria-hidden="true"></div>
+    <section class="relative z-10 w-full max-w-lg rounded-lg border border-rule bg-bg p-6 shadow-lg"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="review-composer-title">
+      <header class="mb-6 flex items-start justify-between">
+        <div>
+          <h2 id="review-composer-title" class="text-xl font-semibold tracking-tight">
+            {{ reviewEditingId() ? 'Edit review' : 'Write a review' }}
+          </h2>
+          <p class="mt-1 text-sm text-fg-subtle">One review per book per person.</p>
+        </div>
+        <button type="button"
+                class="rounded-md p-1 text-fg-subtle transition-colors hover:bg-bg-subtle hover:text-fg"
+                aria-label="Close"
+                (click)="closeReviewComposer()">
+          <svg viewBox="0 0 16 16" fill="currentColor" class="size-4">
+            <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z"></path>
+          </svg>
+        </button>
+      </header>
+
+      <form class="space-y-5" [formGroup]="reviewForm" (ngSubmit)="submitReview()" novalidate>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+            Rating <span class="normal-case tracking-normal text-fg-subtle/70">(optional)</span>
+          </label>
+          <div class="mt-2 flex items-center gap-1">
+            @for (n of [1, 2, 3, 4, 5]; track n) {
+              <button type="button"
+                      class="rounded-md border px-3 py-1 text-sm font-semibold transition-colors"
+                      [class.border-accent]="reviewForm.controls.rating.value === n"
+                      [class.bg-accent-subtle]="reviewForm.controls.rating.value === n"
+                      [class.text-accent]="reviewForm.controls.rating.value === n"
+                      [class.border-rule]="reviewForm.controls.rating.value !== n"
+                      [class.text-fg-muted]="reviewForm.controls.rating.value !== n"
+                      (click)="reviewForm.controls.rating.setValue(reviewForm.controls.rating.value === n ? null : n)">
+                {{ n }}
+              </button>
+            }
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Body</label>
+          <textarea rows="6"
+                    formControlName="body"
+                    placeholder="What did you think?"
+                    class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none"></textarea>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button type="button"
+                  class="rounded-md border border-rule px-4 py-2 text-sm font-semibold text-fg transition hover:bg-bg-subtle"
+                  (click)="closeReviewComposer()">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  [disabled]="reviewForm.invalid || reviewsVm().saving">
+            {{ reviewsVm().saving ? 'Posting…' : (reviewEditingId() ? 'Save changes' : 'Post review') }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

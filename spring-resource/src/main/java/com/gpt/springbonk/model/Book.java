@@ -8,6 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,13 +24,21 @@ import org.hibernate.annotations.CreationTimestamp;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "books")
+@Table(
+    name = "books",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uk_books_open_library_id",
+            columnNames = "open_library_id"
+        )
+    }
+)
 public class Book {
   @Id
   @GeneratedValue
   private UUID id;
 
-  @Column
+  @Column(name = "open_library_id")
   private String openLibraryId;
 
   @Column(nullable = false)

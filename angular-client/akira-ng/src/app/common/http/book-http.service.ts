@@ -22,17 +22,23 @@ export class BookHttpService extends BaseHttpService {
       return of({ start: 0, num_found: 0, docs: [] });
     }
 
+    // Only request the fields we actually render. The search index doesn't
+    // carry `description` — that lives on the Work and is hydrated by the
+    // backend at book-creation time via the Works API.
     const params: Record<string, string | number> = {
       q: query,
       page: page + 1,
       limit: size,
+      fields: 'key,title,author_name,cover_i,first_publish_year,first_sentence',
     };
 
     if (sort && sort !== 'relevance') {
       params['sort'] = sort;
     }
 
-    // Don't send credentials to third-party Open Library API (CORS wildcard incompatible)
+    // Don't send credentials to third-party Open Library API (CORS wildcard incompatible).
+    // Browsers forbid JS from setting a User-Agent header; the backend
+    // identifies itself when it fetches descriptions.
     return this.get<PagedOpenLibraryResponse>(this.openLibraryBaseUrl, params, undefined, false);
   }
 

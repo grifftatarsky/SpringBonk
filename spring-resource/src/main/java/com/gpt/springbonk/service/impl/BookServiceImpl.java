@@ -8,6 +8,7 @@ import com.gpt.springbonk.model.dto.response.BookResponse;
 import com.gpt.springbonk.repository.BookRepository;
 import com.gpt.springbonk.repository.ShelfRepository;
 import com.gpt.springbonk.service.BookService;
+import com.gpt.springbonk.service.openlibrary.OpenLibraryClient;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -32,8 +33,11 @@ import static com.gpt.springbonk.constant.ShelfConstants.UNSHELVED;
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
 
+  private static final String CUSTOM_ID_PREFIX = "custom-";
+
   private final BookRepository bookRepository;
   private final ShelfRepository shelfRepository;
+  private final OpenLibraryClient openLibraryClient;
 
   @Override
   public BookResponse createBook(
@@ -42,67 +46,79 @@ public class BookServiceImpl implements BookService {
   ) {
     Set<UUID> shelfIds = resolveShelfIds(bookRequest.getShelfIds(), userId);
 
-    Book book;
-
-    Optional<Book> optionalExistingBook =
-        bookRepository.findByOpenLibraryId(bookRequest.getOpenLibraryId());
+    Optional<Book> optionalExistingBook = Optional.empty();
+    if (bookRequest.getOpenLibraryId() != null && !bookRequest.getOpenLibraryId().isBlank()) {
+      optionalExistingBook = bookRepository.findByOpenLibraryId(bookRequest.getOpenLibraryId());
+    }
 
     if (optionalExistingBook.isEmpty()) {
       // CASE NEW BOOK!
-      // Create the book.
-      book = new Book(
+      // Blurb rules:
+      //   - Custom book (no OL id, or id starts with "custom-"): use the
+      //     user-provided blurb as-is. Custom books are user-editable.
+      //   - Open Library book: ignore whatever the client sent and
+      //     hydrate the blurb from Open Library's Works API. If OL has
+      //     no description, store null and let the read path display a
+      //     friendly fallback message.
+      String blurb;
+      if (isCustomBook(bookRequest.getOpenLibraryId())) {
+        blurb = bookRequest.getBlurb();
+      } else {
+        blurb = openLibraryClient
+            .fetchWorkDescription(bookRequest.getOpenLibraryId())
+            .orElse(null);
+      }
+
+      Book book = new Book(
           bookRequest.getTitle(),
           bookRequest.getAuthor(),
           bookRequest.getImageURL(),
-          bookRequest.getBlurb(),
+          blurb,
           bookRequest.getOpenLibraryId()
       );
-      // Update the shelves.
       shelfIds.forEach(shelfId -> addBookToShelf(book, shelfId, userId));
-      // Return the new book.
       return new BookResponse(bookRepository.saveAndFlush(book));
-    } else {
-      // CASE BOOK ALREADY IN SYSTEM!
-      book = optionalExistingBook.get();
-      // Grab the IDs of the user's shelves.
-      List<UUID> previousUserShelvesForBook =
-          getShelfIdsByBookOpenLibraryId(book.getOpenLibraryId(), userId);
-
-      // Slate!
-      List<UUID> toRemove =
-          previousUserShelvesForBook.stream().filter(id -> !shelfIds.contains(id)).toList();
-
-      // IDs to add - in new request but didn't exist before
-      List<UUID> toAdd =
-          shelfIds.stream().filter(id -> !previousUserShelvesForBook.contains(id)).toList();
-
-      List<Shelf> shelvesToAdd = toAdd.stream().map(shelfRepository::getReferenceById).toList();
-
-      List<Shelf> shelvesToRemove =
-          toRemove.stream().map(shelfRepository::getReferenceById).toList();
-
-      shelvesToRemove.forEach(shelf -> shelf.removeBook(book));
-
-      shelvesToAdd.forEach(shelf -> shelf.addBook(book));
-
-      // The fact I need this behavior means that I should have one method handling
-      // updates and I shouldn't be rewriting this...TODO.
-      if (!Objects.equals(bookRequest.getBlurb(), book.getBlurb())) {
-        book.setBlurb(bookRequest.getBlurb());
-      }
-
-      return new BookResponse(bookRepository.save(book));
     }
+
+    // CASE BOOK ALREADY IN SYSTEM — reconcile the caller's shelf picks.
+    Book book = optionalExistingBook.get();
+    List<UUID> previousUserShelvesForBook =
+        getShelfIdsByBookOpenLibraryId(book.getOpenLibraryId(), userId);
+
+    List<UUID> toRemove =
+        previousUserShelvesForBook.stream().filter(id -> !shelfIds.contains(id)).toList();
+
+    List<UUID> toAdd =
+        shelfIds.stream().filter(id -> !previousUserShelvesForBook.contains(id)).toList();
+
+    List<Shelf> shelvesToAdd = toAdd.stream().map(shelfRepository::getReferenceById).toList();
+
+    List<Shelf> shelvesToRemove =
+        toRemove.stream().map(shelfRepository::getReferenceById).toList();
+
+    shelvesToRemove.forEach(shelf -> shelf.removeBook(book));
+    shelvesToAdd.forEach(shelf -> shelf.addBook(book));
+
+    // Custom books: honor a blurb update from the client (users own them).
+    // Open Library books: do NOT let the client rewrite the blurb via this
+    // path. Blurb stays whatever was hydrated from OL on original create.
+    if (isCustomBook(book.getOpenLibraryId())
+        && !Objects.equals(bookRequest.getBlurb(), book.getBlurb())) {
+      book.setBlurb(bookRequest.getBlurb());
+    }
+
+    return new BookResponse(bookRepository.save(book));
   }
 
-  // Cache? IDK what use we have for this.
-  // Google Books handles the main search...but this is all the ones we've saved.
-  @Override
-  public List<BookResponse> getAllBooks() {
-    List<Book> books = bookRepository.findAll();
-    return books.stream()
-        .map(BookResponse::new)
-        .toList();
+  /**
+   * A book is "custom" (user-owned, freely editable) when it has no
+   * Open Library id, a blank one, or a synthetic {@code custom-*} id we
+   * minted at nomination time. Anything else is a real Open Library work.
+   */
+  private boolean isCustomBook(String openLibraryId) {
+    return openLibraryId == null
+        || openLibraryId.isBlank()
+        || openLibraryId.startsWith(CUSTOM_ID_PREFIX);
   }
 
   @Override
@@ -129,6 +145,36 @@ public class BookServiceImpl implements BookService {
   ) {
     Book book = getBookById(id);
 
+    // Open Library books are read-only metadata. Authoritative data lives
+    // upstream at Open Library; editing title/author/blurb locally would
+    // fork the record from the catalog and confuse other users sharing
+    // the same Book entity. Shelf assignment is still legal — that's a
+    // per-user relationship, not book-wide metadata.
+    if (!isCustomBook(book.getOpenLibraryId())) {
+      // Any field mismatch from the current book indicates an edit attempt.
+      boolean metadataEdit =
+          notEqualIgnoringNull(bookUpdateRequest.getTitle(), book.getTitle())
+              || notEqualIgnoringNull(bookUpdateRequest.getAuthor(), book.getAuthor())
+              || notEqualIgnoringNull(bookUpdateRequest.getImageURL(), book.getImageURL())
+              || notEqualIgnoringNull(bookUpdateRequest.getBlurb(), book.getBlurb());
+      if (metadataEdit) {
+        throw new AccessDeniedException(
+            "Open Library books can't be edited locally. Only custom books are editable.");
+      }
+      // Shelves-only change path — reconcile and save.
+      Set<UUID> shelfIds = resolveShelfIds(bookUpdateRequest.getShelfIds(), userId);
+      shelfIds.forEach(shelfId -> addBookToShelf(book, shelfId, userId));
+      return new BookResponse(bookRepository.saveAndFlush(book));
+    }
+
+    // Custom book — must own at least one shelf it lives on to edit.
+    boolean ownsShelfForBook = book.getShelves().stream()
+        .anyMatch(shelf -> shelf.getUser().getId().equals(userId));
+    if (!ownsShelfForBook) {
+      throw new AccessDeniedException(
+          "You can only edit custom books on your own shelves.");
+    }
+
     book.setTitle(bookUpdateRequest.getTitle());
     book.setAuthor(bookUpdateRequest.getAuthor());
     book.setImageURL(bookUpdateRequest.getImageURL());
@@ -137,6 +183,12 @@ public class BookServiceImpl implements BookService {
     shelfIds.forEach(shelfId -> addBookToShelf(book, shelfId, userId));
 
     return new BookResponse(bookRepository.saveAndFlush(book));
+  }
+
+  /** Treats a null request field as "don't change" — no edit detected. */
+  private boolean notEqualIgnoringNull(String requested, String current) {
+    if (requested == null) return false;
+    return !Objects.equals(requested, current);
   }
 
   private Set<UUID> resolveShelfIds(Set<UUID> shelfIds, UUID userId) {

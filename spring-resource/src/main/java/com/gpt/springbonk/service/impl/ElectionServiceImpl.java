@@ -120,6 +120,18 @@ public class ElectionServiceImpl implements ElectionService {
       dirty = true;
     }
 
+    // Nomination caps — null on the request means "clear the cap".
+    if (!Objects.equals(electionRequest.getMaxNominationsPerUser(),
+        election.getMaxNominationsPerUser())) {
+      election.setMaxNominationsPerUser(electionRequest.getMaxNominationsPerUser());
+      dirty = true;
+    }
+    if (!Objects.equals(electionRequest.getMaxNominationsTotal(),
+        election.getMaxNominationsTotal())) {
+      election.setMaxNominationsTotal(electionRequest.getMaxNominationsTotal());
+      dirty = true;
+    }
+
     if (!dirty) {
       return new ElectionResponse(election);
     }
@@ -138,8 +150,12 @@ public class ElectionServiceImpl implements ElectionService {
       @NotNull UUID electionId,
       @NotNull UUID userId
   ) {
-    // TODO TEST: Make sure this cascades and all that.
-
+    // Cascade chain:
+    //   Election.candidates (ALL + orphanRemoval) → Candidate.votes (ALL + orphanRemoval)
+    //   Election.results    (ALL + orphanRemoval) → result.flags ElementCollection
+    // Notification.href is a free text field, not an FK — dead links after
+    // deletion are fine and intentional (the toast tells the user what
+    // happened).
     Election election = getElection(electionId);
 
     validateElectionCreator(election, userId);
@@ -256,6 +272,13 @@ public class ElectionServiceImpl implements ElectionService {
   }
 
   @Override
+  public void closeElectionAsUser(@NotNull UUID electionId, @NotNull UUID userId) {
+    Election election = getElection(electionId);
+    validateElectionCreator(election, userId);
+    closeElection(electionId);
+  }
+
+  @Override
   public void closeElection(UUID electionId) {
     Election election = getElection(electionId);
 
@@ -319,6 +342,8 @@ public class ElectionServiceImpl implements ElectionService {
     final Election election = new Election(request.getTitle(), endDateTime);
     final Status status = (endDateTime == null) ? Status.INDEFINITE : Status.OPEN;
     election.setStatus(status);
+    election.setMaxNominationsPerUser(request.getMaxNominationsPerUser());
+    election.setMaxNominationsTotal(request.getMaxNominationsTotal());
     return election;
   }
 

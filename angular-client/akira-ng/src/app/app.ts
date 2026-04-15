@@ -145,6 +145,7 @@ export class App {
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Shelves', href: '/shelves' },
     { label: 'Elections', href: '/elections' },
+    { label: 'Activity', href: '/activity' },
     {
       label: 'GitHub',
       href: 'https://github.com/grifftatarsky/SpringBonk',

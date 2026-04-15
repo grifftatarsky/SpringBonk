@@ -84,6 +84,16 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
   }
 
+  @ExceptionHandler(SelfLikeException.class)
+  public ResponseEntity<ErrorResponse> handleSelfLikeException(SelfLikeException ex) {
+    ErrorResponse error = new ErrorResponse(
+        HttpStatus.BAD_REQUEST.value(),
+        ex.getMessage(),
+        LocalDateTime.now()
+    );
+    return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+  }
+
   public record ErrorResponse(int status, String message, LocalDateTime timestamp) {
   }
 }

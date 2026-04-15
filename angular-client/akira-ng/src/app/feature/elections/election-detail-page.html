@@ -903,22 +903,31 @@
       <!-- Step 1: Search -->
       @if (!selected) {
         <div class="px-6 pt-5">
-          <input type="search"
-                 [formControl]="searchInput"
-                 placeholder="Title or author…"
-                 autocomplete="off"
-                 class="w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none" />
+          <div class="relative">
+            <input type="search"
+                   [formControl]="searchInput"
+                   placeholder="Title or author (min 3 characters)"
+                   autocomplete="off"
+                   class="w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 pr-20 text-sm text-fg focus:border-accent-ring focus:outline-none" />
+            @if (searchState.statusLabel) {
+              <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-fg-subtle"
+                    role="status"
+                    aria-live="polite">
+                {{ searchState.statusLabel }}
+              </span>
+            }
+          </div>
           @if (searchState.validationMessage) {
             <p class="mt-1.5 text-xs text-warn" role="status">{{ searchState.validationMessage }}</p>
           }
         </div>
         <div class="min-h-[200px] px-6 pb-6 pt-4">
-          @if (searchState.loading) {
-            <p class="text-sm text-fg-muted">Searching…</p>
-          } @else if (!searchState.results.length && searchState.query && !searchState.queryTooShort) {
-            <p class="text-sm text-fg-muted">No results. Try another query.</p>
-          } @else if (!searchState.query) {
+          @if (!searchState.query && !searchState.pending) {
             <p class="text-sm text-fg-subtle">Start typing to search.</p>
+          } @else if (searchState.pending && !searchState.results.length) {
+            <p class="text-sm text-fg-muted">{{ searchState.statusLabel }}</p>
+          } @else if (!searchState.pending && !searchState.results.length && searchState.query && !searchState.queryTooShort) {
+            <p class="text-sm text-fg-muted">No results. Try another query.</p>
           } @else {
             <ul class="flex flex-col">
               @for (result of searchState.results; track result.key) {

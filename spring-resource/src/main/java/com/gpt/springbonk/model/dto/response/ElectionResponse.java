@@ -14,6 +14,8 @@ public class ElectionResponse {
   private ZonedDateTime endDateTime;
   private LocalDateTime createDate;
   private Status status;
+  private Integer maxNominationsPerUser;
+  private Integer maxNominationsTotal;
 
   public ElectionResponse(Election election) {
     this.id = election.getId();
@@ -21,5 +23,7 @@ public class ElectionResponse {
     this.endDateTime = election.getEndDateTime();
     this.createDate = election.getCreatedDate();
     this.status = election.getStatus();
+    this.maxNominationsPerUser = election.getMaxNominationsPerUser();
+    this.maxNominationsTotal = election.getMaxNominationsTotal();
   }
 }

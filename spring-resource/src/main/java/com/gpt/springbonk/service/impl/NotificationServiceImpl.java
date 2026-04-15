@@ -10,6 +10,8 @@ import com.gpt.springbonk.repository.NotificationRepository;
 import com.gpt.springbonk.service.NotificationService;
 import com.gpt.springbonk.service.event.ElectionClosedEvent;
 import com.gpt.springbonk.service.event.ElectionOpenedEvent;
+import com.gpt.springbonk.service.event.ReviewCommentedEvent;
+import com.gpt.springbonk.service.event.ReviewLikedEvent;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -82,6 +84,17 @@ public class NotificationServiceImpl implements NotificationService {
     notificationRepository.saveAll(batch);
   }
 
+  @Override
+  public void notifyUser(
+      @NotNull UUID recipientId,
+      String message,
+      String href,
+      NotificationType type
+  ) {
+    KeycloakUser recipient = keycloakUserRepository.getReferenceById(recipientId);
+    notificationRepository.save(new Notification(recipient, message, href, type));
+  }
+
   // region Event listeners
 
   @EventListener
@@ -106,6 +119,33 @@ public class NotificationServiceImpl implements NotificationService {
     }
     String href = "/elections/" + event.electionId();
     notifyAllUsers(message, href, type);
+  }
+
+  @EventListener
+  public void onReviewLiked(ReviewLikedEvent event) {
+    // Don't notify yourself when you like your own review.
+    if (event.likerUserId().equals(event.reviewAuthorId())) {
+      return;
+    }
+    String message = (event.likerName() == null ? "Someone" : event.likerName())
+        + " liked your review of "
+        + (event.bookTitle() == null ? "a book" : event.bookTitle())
+        + ".";
+    String href = "/books/" + event.bookId();
+    notifyUser(event.reviewAuthorId(), message, href, NotificationType.REVIEW_LIKED);
+  }
+
+  @EventListener
+  public void onReviewCommented(ReviewCommentedEvent event) {
+    if (event.commenterUserId().equals(event.reviewAuthorId())) {
+      return;
+    }
+    String message = (event.commenterName() == null ? "Someone" : event.commenterName())
+        + " commented on your review of "
+        + (event.bookTitle() == null ? "a book" : event.bookTitle())
+        + ".";
+    String href = "/books/" + event.bookId();
+    notifyUser(event.reviewAuthorId(), message, href, NotificationType.REVIEW_COMMENTED);
   }
 
   // endregion

@@ -38,11 +38,15 @@ export class ElectionsPage {
   protected readonly createForm = this.fb.group({
     title: ['', [Validators.required, Validators.maxLength(160)]],
     endDateTime: [''],
+    maxNominationsPerUser: this.fb.control<number | null>(null, [Validators.min(1)]),
+    maxNominationsTotal: this.fb.control<number | null>(null, [Validators.min(1)]),
   });
 
   protected readonly editForm = this.fb.group({
     title: ['', [Validators.required, Validators.maxLength(160)]],
     endDateTime: [''],
+    maxNominationsPerUser: this.fb.control<number | null>(null, [Validators.min(1)]),
+    maxNominationsTotal: this.fb.control<number | null>(null, [Validators.min(1)]),
   });
 
   protected setFilter(value: string): void {
@@ -54,7 +58,12 @@ export class ElectionsPage {
   }
 
   protected openCreateModal(): void {
-    this.createForm.reset({ title: '', endDateTime: '' });
+    this.createForm.reset({
+      title: '',
+      endDateTime: '',
+      maxNominationsPerUser: null,
+      maxNominationsTotal: null,
+    });
     this.createModalOpen.set(true);
   }
 
@@ -68,9 +77,19 @@ export class ElectionsPage {
     const value = this.createForm.getRawValue();
     const endDate = value.endDateTime ? new Date(value.endDateTime).toISOString() : null;
     try {
-      await this.store.createElection({ title: value.title, endDateTime: endDate });
+      await this.store.createElection({
+        title: value.title,
+        endDateTime: endDate,
+        maxNominationsPerUser: this.normalizeCap(value.maxNominationsPerUser),
+        maxNominationsTotal: this.normalizeCap(value.maxNominationsTotal),
+      });
       this.createModalOpen.set(false);
-      this.createForm.reset({ title: '', endDateTime: '' });
+      this.createForm.reset({
+        title: '',
+        endDateTime: '',
+        maxNominationsPerUser: null,
+        maxNominationsTotal: null,
+      });
     } catch {
       // error handled in store
     }
@@ -82,6 +101,8 @@ export class ElectionsPage {
     this.editForm.reset({
       title: election.title,
       endDateTime: this.toDateTimeInputValue(election.endDateTime),
+      maxNominationsPerUser: election.maxNominationsPerUser ?? null,
+      maxNominationsTotal: election.maxNominationsTotal ?? null,
     });
     this.editModalOpen.set(true);
   }
@@ -101,7 +122,12 @@ export class ElectionsPage {
     const endDate = value.endDateTime ? new Date(value.endDateTime).toISOString() : null;
     try {
       if (this.editMode() === 'update') {
-        await this.store.updateElection(election.id, { title: value.title, endDateTime: endDate });
+        await this.store.updateElection(election.id, {
+          title: value.title,
+          endDateTime: endDate,
+          maxNominationsPerUser: this.normalizeCap(value.maxNominationsPerUser),
+          maxNominationsTotal: this.normalizeCap(value.maxNominationsTotal),
+        });
       } else {
         await this.store.reopenElection(election.id, endDate);
       }
@@ -110,6 +136,14 @@ export class ElectionsPage {
     } catch {
       // handled in store
     }
+  }
+
+  /** Treats 0, empty, or non-finite as "unlimited" (null). */
+  private normalizeCap(value: number | null): number | null {
+    if (value === null || value === undefined) return null;
+    if (!Number.isFinite(value)) return null;
+    if (value <= 0) return null;
+    return Math.floor(value);
   }
 
   protected toggleMenu(id: string): void {

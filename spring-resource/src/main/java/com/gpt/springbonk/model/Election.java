@@ -64,6 +64,19 @@ public class Election {
   @Column(name = "status", nullable = false)
   private Status status = Status.INDEFINITE;
 
+  /**
+   * Max nominations a single user can make in this election. Null = no cap.
+   */
+  @Column(name = "max_nominations_per_user")
+  private Integer maxNominationsPerUser;
+
+  /**
+   * Max total nominations (across all users) this election will accept.
+   * Null = no cap.
+   */
+  @Column(name = "max_nominations_total")
+  private Integer maxNominationsTotal;
+
   public Election(String title, ZonedDateTime endDateTime) {
     this.title = title;
     this.endDateTime = endDateTime;

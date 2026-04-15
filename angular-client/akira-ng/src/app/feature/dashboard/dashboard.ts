@@ -2,13 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { DashboardStore } from './dashboard.store';
 import { ShelfWidgetComponent } from './widgets/shelf-widget.component';
 import { ElectionWidgetComponent } from './widgets/election-widget.component';
+import { ActivityWidgetComponent } from './widgets/activity-widget.component';
 import { AVATAR_OPTIONS, AvatarOption, findAvatarOption } from './avatar-options';
 import { ProfileAvatarId } from '../../model/type/profile-avatar-id';
 import { NotificationService } from '../../common/notification/notification.service';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [ShelfWidgetComponent, ElectionWidgetComponent],
+  imports: [ShelfWidgetComponent, ElectionWidgetComponent, ActivityWidgetComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

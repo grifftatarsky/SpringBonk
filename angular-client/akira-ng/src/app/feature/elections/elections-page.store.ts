@@ -15,6 +15,8 @@ export interface ElectionListItem {
   status: ElectionStatus;
   createDate: string;
   endDateTime: string | null;
+  maxNominationsPerUser: number | null;
+  maxNominationsTotal: number | null;
   badgeTone: 'emerald' | 'amber' | 'sky';
   metaLabel: string;
   metaDate: string | null;
@@ -88,6 +90,8 @@ export class ElectionsPageStore {
       status: election.status,
       createDate: election.createDate,
       endDateTime: election.endDateTime,
+      maxNominationsPerUser: election.maxNominationsPerUser,
+      maxNominationsTotal: election.maxNominationsTotal,
       badgeTone: this.getBadgeTone(election.status),
       metaLabel: this.getMetaLabel(election),
       metaDate: this.getMetaDate(election),
@@ -129,7 +133,12 @@ export class ElectionsPageStore {
     this.pageIndex.set(0);
   }
 
-  async createElection(form: { title: string; endDateTime: string | null }): Promise<void> {
+  async createElection(form: {
+    title: string;
+    endDateTime: string | null;
+    maxNominationsPerUser: number | null;
+    maxNominationsTotal: number | null;
+  }): Promise<void> {
     const normalizedTitle = form.title.trim();
     if (!normalizedTitle) {
       this.createError.set('Title is required.');
@@ -142,7 +151,12 @@ export class ElectionsPageStore {
 
     try {
       await firstValueFrom(
-        this.http.createElection({ title: normalizedTitle, endDateTime: form.endDateTime }),
+        this.http.createElection({
+          title: normalizedTitle,
+          endDateTime: form.endDateTime,
+          maxNominationsPerUser: form.maxNominationsPerUser,
+          maxNominationsTotal: form.maxNominationsTotal,
+        }),
       );
       this.notifications.success('Election created');
       this.resetAndReload();
@@ -155,7 +169,15 @@ export class ElectionsPageStore {
     }
   }
 
-  async updateElection(id: string, form: { title: string; endDateTime: string | null }): Promise<void> {
+  async updateElection(
+    id: string,
+    form: {
+      title: string;
+      endDateTime: string | null;
+      maxNominationsPerUser: number | null;
+      maxNominationsTotal: number | null;
+    },
+  ): Promise<void> {
     const normalizedTitle = form.title.trim();
     if (!normalizedTitle) {
       this.editError.set('Title is required.');
@@ -168,7 +190,12 @@ export class ElectionsPageStore {
 
     try {
       await firstValueFrom(
-        this.http.updateElection(id, { title: normalizedTitle, endDateTime: form.endDateTime }),
+        this.http.updateElection(id, {
+          title: normalizedTitle,
+          endDateTime: form.endDateTime,
+          maxNominationsPerUser: form.maxNominationsPerUser,
+          maxNominationsTotal: form.maxNominationsTotal,
+        }),
       );
       this.notifications.success('Election updated');
       this.resetAndReload();

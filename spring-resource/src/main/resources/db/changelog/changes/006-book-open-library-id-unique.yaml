@@ -1,0 +1,27 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 006 — Enforce uniqueness on books.open_library_id.
+  #
+  # The Book entity is a globally shared catalog: one row per work keyed
+  # by its Open Library id. The service layer already dedupes on create,
+  # but the DB didn't enforce uniqueness. This changeset adds the
+  # constraint so two concurrent imports of the same work can't race.
+  #
+  # Custom books get a synthetic id like `custom-<uuid>` so they don't
+  # collide. PostgreSQL allows multiple NULLs under a unique constraint
+  # so the few legacy rows with null ids (if any) stay valid.
+  # ==========================================================================
+
+  - changeSet:
+      id: 006-books-open-library-id-unique
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          - indexExists:
+              indexName: uk_books_open_library_id
+      changes:
+        - addUniqueConstraint:
+            tableName: books
+            columnNames: open_library_id
+            constraintName: uk_books_open_library_id

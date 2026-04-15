@@ -1,6 +1,8 @@
 package com.gpt.springbonk.service.impl;
 
+import com.gpt.springbonk.constant.enumeration.election.Status;
 import com.gpt.springbonk.exception.DuplicateCandidateException;
+import com.gpt.springbonk.exception.ElectionScheduleException;
 import com.gpt.springbonk.exception.ResourceNotFoundException;
 import com.gpt.springbonk.keycloak.KeycloakUser;
 import com.gpt.springbonk.keycloak.KeycloakUserService;
@@ -48,6 +50,11 @@ public class CandidateServiceImpl implements CandidateService {
   ) {
     // Validate the requisite parts.
     Election election = electionService.getElection(electionId);
+    // Closed elections reject nominations. OPEN and INDEFINITE both accept.
+    if (election.getStatus() == Status.CLOSED) {
+      throw new ElectionScheduleException(
+          "You can't nominate candidates in a closed election.");
+    }
     KeycloakUser nominator = keycloakUserService.getUserById(userId);
     Book nomination = bookService.getBookById(bookId);
     // Make sure it's not nominated twice.
@@ -56,11 +63,21 @@ public class CandidateServiceImpl implements CandidateService {
           "This book has already been nominated in this election.");
     }
 
-    // Nominate?
-    // Right now all users are in the elections, so we don't need to validate that yet.
-    // We would also want to validate that the number of candidates doesn't exceed the number of users if we
-    // stick with 1:1.
-    // TODO: Add an election setting specifying the number of nominations per candidate.
+    // Enforce per-user and total nomination caps when the election defines them.
+    if (election.getMaxNominationsTotal() != null
+        && election.getCandidates().size() >= election.getMaxNominationsTotal()) {
+      throw new ElectionScheduleException(
+          "This election has reached its total nominations cap.");
+    }
+    if (election.getMaxNominationsPerUser() != null) {
+      long mine = election.getCandidates().stream()
+          .filter(c -> c.getNominator() != null && c.getNominator().getId().equals(userId))
+          .count();
+      if (mine >= election.getMaxNominationsPerUser()) {
+        throw new ElectionScheduleException(
+            "You've hit your personal nomination cap for this election.");
+      }
+    }
 
     Candidate candidate = new Candidate(
         election,

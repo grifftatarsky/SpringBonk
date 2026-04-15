@@ -29,4 +29,10 @@ public interface NotificationService {
    * listeners when a global event (election opened, closed) happens.
    */
   void notifyAllUsers(String message, String href, NotificationType type);
+
+  /**
+   * Send a single notification to a specific user. Used for targeted
+   * events like "someone liked your review".
+   */
+  void notifyUser(UUID recipientId, String message, String href, NotificationType type);
 }

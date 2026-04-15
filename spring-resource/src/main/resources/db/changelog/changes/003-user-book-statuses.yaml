@@ -1,0 +1,94 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 003 — Per-user book reading status.
+  #
+  # One row per (user, book) pair. Absence of a row implies UNREAD.
+  # Columns startedAt / finishedAt / abandonedAt get set on transitions
+  # so the activity feed can pivot off "this user started/finished/
+  # abandoned this book on date X" without a separate history table.
+  # ==========================================================================
+
+  - changeSet:
+      id: 003-user-book-statuses-create
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: user_book_statuses
+      changes:
+        - createTable:
+            tableName: user_book_statuses
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_book_statuses_user
+                    references: keycloak_user(id)
+              - column:
+                  name: book_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_book_statuses_book
+                    references: books(id)
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: started_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: finished_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: abandoned_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: user_book_statuses
+            columnNames: user_id, book_id
+            constraintName: uk_user_book_status_user_book
+
+  - changeSet:
+      id: 003-user-book-statuses-activity-index
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          indexExists:
+            indexName: idx_user_book_statuses_finished
+      changes:
+        - createIndex:
+            tableName: user_book_statuses
+            indexName: idx_user_book_statuses_finished
+            columns:
+              - column:
+                  name: finished_at
+                  descending: true
+        - createIndex:
+            tableName: user_book_statuses
+            indexName: idx_user_book_statuses_started
+            columns:
+              - column:
+                  name: started_at
+                  descending: true

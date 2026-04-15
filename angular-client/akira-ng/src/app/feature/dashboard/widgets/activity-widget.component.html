@@ -1,0 +1,71 @@
+@let state = vm();
+
+<div class="w-full px-2 sm:px-0">
+  <section class="text-fg">
+    <header class="flex items-center justify-between gap-3 border-b border-rule pb-4">
+      <div class="min-w-0">
+        <h2 class="text-xl font-semibold tracking-tight">Activity</h2>
+        <p class="mt-1 text-xs text-fg-subtle">What everyone's reading.</p>
+      </div>
+      <button type="button"
+              class="rounded-md p-1.5 text-fg-subtle transition-colors hover:bg-bg-subtle hover:text-fg disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Refresh activity"
+              [disabled]="state.loading"
+              (click)="refresh()">
+        <svg viewBox="0 0 20 20" class="size-4" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M4 4.5v4h4" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M16 15.5v-4h-4" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M5.5 14.5A6 6 0 0 0 16 9" stroke-linecap="round"></path>
+          <path d="M14.5 5.5A6 6 0 0 0 4 11" stroke-linecap="round"></path>
+        </svg>
+      </button>
+    </header>
+
+    <div class="py-4">
+      @if (state.loading) {
+        <p class="text-sm text-fg-muted">Loading…</p>
+      }
+
+      @if (state.error) {
+        <p class="rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger">
+          {{ state.error }}
+        </p>
+      }
+
+      @if (state.isEmpty) {
+        <p class="py-4 text-center text-sm text-fg-subtle">Quiet so far.</p>
+      }
+
+      @if (state.items.length) {
+        <ul class="flex min-w-0 flex-col">
+          @for (item of state.items; track $index) {
+            <li class="border-t border-rule first:border-t-0">
+              <a [routerLink]="['/books', item.bookId]"
+                 class="group flex min-w-0 items-start gap-3 py-3 transition-colors hover:bg-bg-subtle">
+                <img
+                  [src]="item.bookImageUrl || 'https://placehold.co/100x150/eeeeee/aaaaaa?text=No+cover'"
+                  [alt]="''"
+                  class="h-12 w-8 shrink-0 rounded-sm border border-rule object-cover" />
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm text-fg-muted">
+                    <span class="font-semibold text-fg">{{ item.actorName }}</span>
+                    <span class="text-fg-subtle"> {{ verb(item.type) }} </span>
+                    <span class="font-semibold text-fg group-hover:text-accent">{{ item.bookTitle }}</span>
+                  </p>
+                  <p class="mt-0.5 text-xs text-fg-subtle">{{ relativeTime(item.occurredAt) }}</p>
+                </div>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <footer class="flex items-center justify-between gap-3 border-t border-rule pt-4">
+      <a routerLink="/activity"
+         class="inline-flex items-center gap-1 text-sm font-semibold text-fg hover:text-accent transition-colors">
+        All activity →
+      </a>
+    </footer>
+  </section>
+</div>

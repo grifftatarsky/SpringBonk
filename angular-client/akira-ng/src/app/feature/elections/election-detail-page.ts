@@ -2,7 +2,7 @@ import { DatePipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, HostListener, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs';
+import { map } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ElectionDetailStore, CandidateListItem } from './election-detail.store';
@@ -130,11 +130,11 @@ export class ElectionDetailPage {
       .pipe(map((params) => params.get('id') ?? ''), takeUntilDestroyed())
       .subscribe((id) => this.store.init(id));
 
+    // The store debounces internally; component just forwards keystrokes.
     this.searchInput.valueChanges
-      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed())
+      .pipe(takeUntilDestroyed())
       .subscribe((value) => {
-        const query = (value || '').trim();
-        void this.searchStore.search(query);
+        this.searchStore.setQuery(value || '');
       });
   }
 

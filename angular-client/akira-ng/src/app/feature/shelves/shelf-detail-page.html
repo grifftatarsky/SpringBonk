@@ -192,12 +192,21 @@
                      for="shelf-search-query">
                 Search
               </label>
-              <input id="shelf-search-query"
-                     type="search"
-                     [formControl]="searchInput"
-                     placeholder="Title or author (min 3 characters)"
-                     autocomplete="off"
-                     class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus:border-accent-ring focus:outline-none" />
+              <div class="relative mt-2">
+                <input id="shelf-search-query"
+                       type="search"
+                       [formControl]="searchInput"
+                       placeholder="Title or author (min 3 characters)"
+                       autocomplete="off"
+                       class="w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 pr-20 text-sm text-fg focus:border-accent-ring focus:outline-none" />
+                @if (searchState.statusLabel) {
+                  <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-fg-subtle"
+                        role="status"
+                        aria-live="polite">
+                    {{ searchState.statusLabel }}
+                  </span>
+                }
+              </div>
               @if (searchState.validationMessage) {
                 <p class="mt-1.5 text-xs text-warn" role="status">{{ searchState.validationMessage }}</p>
               }
@@ -221,14 +230,14 @@
           </div>
 
           <div class="mt-4 min-h-0 flex-1 overflow-y-auto border-t border-rule px-6 py-4">
-            @if (searchState.loading) {
-              <p class="text-sm text-fg-muted">Searching…</p>
-            }
-            @if (!searchState.loading && !searchState.results.length && searchState.query && !searchState.queryTooShort) {
-              <p class="text-sm text-fg-muted">No results. Try another query.</p>
-            }
-            @if (!searchState.query && !searchState.loading) {
+            @if (!searchState.query && !searchState.pending) {
               <p class="text-sm text-fg-subtle">Start typing to search Open Library.</p>
+            }
+            @if (searchState.pending && !searchState.results.length) {
+              <p class="text-sm text-fg-muted">{{ searchState.statusLabel }}</p>
+            }
+            @if (!searchState.pending && !searchState.results.length && searchState.query && !searchState.queryTooShort) {
+              <p class="text-sm text-fg-muted">No results. Try another query.</p>
             }
             @if (searchState.results.length) {
               <ul class="flex flex-col">

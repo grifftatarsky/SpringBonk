@@ -1,8 +1,13 @@
 package com.gpt.springbonk.controller;
 
 import com.gpt.springbonk.model.dto.request.BookRequest;
+import com.gpt.springbonk.model.dto.request.UserBookStatusRequest;
 import com.gpt.springbonk.model.dto.response.BookResponse;
+import com.gpt.springbonk.model.dto.response.UserBookStatusResponse;
 import com.gpt.springbonk.service.BookService;
+import com.gpt.springbonk.service.UserBookStatusService;
+import jakarta.validation.Valid;
+import java.util.Optional;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
@@ -33,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class BookController {
 
   private final BookService bookService;
+  private final UserBookStatusService userBookStatusService;
 
   @PostMapping
   @Operation(summary = "Create a new book")
@@ -43,13 +49,6 @@ public class BookController {
     UUID userId = UUID.fromString(jwt.getSubject());
     BookResponse createdBook = bookService.createBook(bookRequest, userId);
     return ResponseEntity.ok(createdBook);
-  }
-
-  @GetMapping("/all")
-  @Operation(summary = "Get all available books (unpaged)")
-  public ResponseEntity<List<BookResponse>> getAllBooks() {
-    List<BookResponse> books = bookService.getAllBooks();
-    return ResponseEntity.ok(books);
   }
 
   @GetMapping("/{id}")
@@ -140,4 +139,49 @@ public class BookController {
     List<UUID> shelfIds = bookService.getShelfIdsByBookOpenLibraryId(openLibraryId, userId);
     return ResponseEntity.ok(shelfIds);
   }
+
+  // region Per-user reading status --------------------------------------------
+
+  @GetMapping("/{id}/my-status")
+  @Operation(summary = "Get the current user's reading status for a book")
+  public ResponseEntity<UserBookStatusResponse> getMyBookStatus(
+      @PathVariable UUID id,
+      @AuthenticationPrincipal Jwt jwt
+  ) {
+    UUID userId = UUID.fromString(jwt.getSubject());
+    Optional<UserBookStatusResponse> status = userBookStatusService.getMyStatus(userId, id);
+    return status.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
+  }
+
+  @PutMapping("/{id}/my-status")
+  @Operation(summary = "Set or update the current user's reading status for a book")
+  public ResponseEntity<UserBookStatusResponse> setMyBookStatus(
+      @PathVariable UUID id,
+      @Valid @RequestBody UserBookStatusRequest request,
+      @AuthenticationPrincipal Jwt jwt
+  ) {
+    UUID userId = UUID.fromString(jwt.getSubject());
+    UserBookStatusResponse saved = userBookStatusService.setStatus(
+        userId,
+        id,
+        request.status(),
+        request.startedAt(),
+        request.finishedAt(),
+        request.abandonedAt()
+    );
+    return ResponseEntity.ok(saved);
+  }
+
+  @DeleteMapping("/{id}/my-status")
+  @Operation(summary = "Clear the current user's reading status for a book")
+  public ResponseEntity<Void> clearMyBookStatus(
+      @PathVariable UUID id,
+      @AuthenticationPrincipal Jwt jwt
+  ) {
+    UUID userId = UUID.fromString(jwt.getSubject());
+    userBookStatusService.clearStatus(userId, id);
+    return ResponseEntity.noContent().build();
+  }
+
+  // endregion
 }

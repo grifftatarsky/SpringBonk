@@ -64,15 +64,12 @@ export class ShelfDetailPage {
       .pipe(map((params) => params.get('id') ?? ''), takeUntilDestroyed())
       .subscribe((id) => this.store.init(id));
 
+    // The store debounces internally (500ms), so we can push every
+    // keystroke without hammering Open Library.
     this.searchInput.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe((value) => {
-        const query = (value || '').trim();
-        if (!query) {
-          this.searchStore.search('');
-          return;
-        }
-        void this.searchStore.search(query);
+        this.searchStore.setQuery(value || '');
       });
   }
 

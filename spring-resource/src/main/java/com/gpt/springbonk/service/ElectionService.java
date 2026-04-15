@@ -37,7 +37,17 @@ public interface ElectionService {
 
   List<VoteResponse> getVotesByUser(UUID electionId, UUID userId);
 
+  /**
+   * System-level close — used by the scheduler. No authz check.
+   * Idempotent: closing an already-closed election is a no-op.
+   */
   void closeElection(UUID electionId);
+
+  /**
+   * User-facing close. Validates that the caller is the election creator
+   * before delegating to {@link #closeElection(UUID)}.
+   */
+  void closeElectionAsUser(UUID electionId, UUID userId);
 
   Election createElectionAndHandleStatus(ElectionRequest request);
 }

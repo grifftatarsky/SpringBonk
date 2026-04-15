@@ -11,8 +11,6 @@ import org.springframework.data.domain.Pageable;
 public interface BookService {
   BookResponse createBook(BookRequest bookRequest, UUID userId);
 
-  List<BookResponse> getAllBooks();
-
   BookResponse getOneBook(UUID id);
 
   Book getBookById(UUID id);

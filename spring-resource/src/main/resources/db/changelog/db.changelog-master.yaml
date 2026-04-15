@@ -10,3 +10,15 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/002-notifications.yaml
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/003-user-book-statuses.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/004-reviews.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/005-election-nomination-caps.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/006-book-open-library-id-unique.yaml
+      relativeToChangelogFile: false

@@ -1,0 +1,44 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 005 — Election nomination caps.
+  #
+  # Two optional integer columns on elections:
+  #   - max_nominations_per_user: cap per nominator (null = unlimited)
+  #   - max_nominations_total:    cap across all users (null = unlimited)
+  #
+  # Both default to null. Enforcement lives in CandidateServiceImpl.
+  # ==========================================================================
+
+  - changeSet:
+      id: 005-elections-max-nominations-per-user
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: elections
+            columnName: max_nominations_per_user
+      changes:
+        - addColumn:
+            tableName: elections
+            columns:
+              - column:
+                  name: max_nominations_per_user
+                  type: INT
+
+  - changeSet:
+      id: 005-elections-max-nominations-total
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: elections
+            columnName: max_nominations_total
+      changes:
+        - addColumn:
+            tableName: elections
+            columns:
+              - column:
+                  name: max_nominations_total
+                  type: INT

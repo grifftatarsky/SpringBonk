@@ -1,0 +1,108 @@
+<div class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-10 pb-24 text-fg">
+  <!-- HERO -->
+  <div class="mt-4">
+    <div aria-hidden="true"
+         class="flex h-14 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-20">
+      <span>Everyone else's hot takes, in one place.</span>
+    </div>
+    <div
+      class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
+      <h1 class="px-2 text-4xl tracking-tighter text-balance max-lg:font-medium max-sm:px-4 sm:text-5xl lg:text-6xl">
+        Activity
+      </h1>
+    </div>
+  </div>
+
+  <!-- FEED -->
+  <div class="min-w-0 px-2 max-sm:px-4">
+    @let state = vm();
+
+    <div class="mb-4 flex items-center justify-between gap-2">
+      <p class="text-sm text-fg-muted">Reviews, reading updates, and the occasional DNF.</p>
+      <button type="button"
+              class="inline-flex items-center gap-1.5 rounded-md border border-rule px-3 py-1.5 text-xs font-semibold text-fg transition hover:bg-bg-subtle disabled:cursor-not-allowed disabled:opacity-50"
+              [disabled]="state.loading || state.loadingMore"
+              (click)="refresh()">
+        ↻ Refresh
+      </button>
+    </div>
+
+    @if (state.loading) {
+      <p class="py-8 text-center text-sm text-fg-muted">Loading feed…</p>
+    }
+
+    @if (state.error) {
+      <p class="mt-3 rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger" role="alert">
+        {{ state.error }}
+      </p>
+    }
+
+    @if (state.isEmpty) {
+      <div class="py-12 text-center">
+        <p class="font-mono text-xs text-fg-whisper">Quiet in here.</p>
+        <p class="mt-2 text-sm text-fg-muted">
+          No activity yet. Read a book, write a review, or just keep scrolling back later.
+        </p>
+      </div>
+    }
+
+    @if (state.items.length) {
+      <ul class="flex min-w-0 flex-col">
+        @for (item of state.items; track $index) {
+          <li class="min-w-0 border-t border-rule py-5 first:border-t-0 first:pt-0">
+            <article class="flex min-w-0 gap-4">
+              <a [routerLink]="['/books', item.bookId]"
+                 class="shrink-0"
+                 [attr.aria-label]="item.bookTitle + ' cover'">
+                <img
+                  [src]="item.bookImageUrl || 'https://placehold.co/100x150/eeeeee/aaaaaa?text=No+cover'"
+                  [alt]="item.bookTitle + ' cover'"
+                  class="h-24 w-16 rounded-sm border border-rule object-cover" />
+              </a>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm text-fg-muted">
+                  <span class="font-semibold text-fg">{{ item.actorName }}</span>
+                  <span class="text-fg-subtle"> {{ verb(item.type) }} </span>
+                  <a [routerLink]="['/books', item.bookId]"
+                     class="font-semibold text-fg hover:text-accent">{{ item.bookTitle }}</a>
+                  @if (item.bookAuthor) {
+                    <span class="text-fg-subtle"> by {{ item.bookAuthor }}</span>
+                  }
+                </p>
+                <p class="mt-0.5 text-xs text-fg-subtle">{{ relativeTime(item.occurredAt) }}</p>
+
+                @if (item.type === 'REVIEW_POSTED' && item.reviewExcerpt) {
+                  <div class="mt-3 min-w-0 border-l-2 border-rule pl-3">
+                    @if (item.reviewRating) {
+                      <p class="text-xs text-fg-subtle">
+                        <span class="font-semibold text-fg">{{ item.reviewRating }}</span>/5
+                      </p>
+                    }
+                    <p class="mt-1 whitespace-pre-line text-sm text-fg-muted">{{ item.reviewExcerpt }}</p>
+                    <a [routerLink]="['/books', item.bookId]"
+                       class="mt-2 inline-flex text-xs font-semibold text-accent hover:underline">
+                      Read the full review →
+                    </a>
+                  </div>
+                }
+              </div>
+            </article>
+          </li>
+        }
+      </ul>
+
+      @if (state.hasMore) {
+        <div class="mt-6 flex justify-center">
+          <button type="button"
+                  class="rounded-md border border-rule px-4 py-2 text-sm font-semibold text-fg transition hover:bg-bg-subtle disabled:cursor-not-allowed disabled:opacity-50"
+                  [disabled]="state.loadingMore"
+                  (click)="loadMore()">
+            {{ state.loadingMore ? 'Loading…' : 'Load more' }}
+          </button>
+        </div>
+      } @else if (state.items.length > 0) {
+        <p class="mt-6 py-4 text-center text-xs text-fg-subtle">You've reached the bottom.</p>
+      }
+    }
+  </div>
+</div>

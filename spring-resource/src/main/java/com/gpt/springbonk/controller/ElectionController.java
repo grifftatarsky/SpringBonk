@@ -97,11 +97,13 @@ public class ElectionController {
   }
 
   @PostMapping("/{id}/close")
-  @Operation(summary = "Close an open election and record results immediately")
+  @Operation(summary = "Close an open election and record results immediately (creator only)")
   public ResponseEntity<Void> closeElection(
-      @PathVariable UUID id
+      @PathVariable UUID id,
+      @AuthenticationPrincipal Jwt jwt
   ) {
-    electionService.closeElection(id);
+    UUID userId = UUID.fromString(jwt.getSubject());
+    electionService.closeElectionAsUser(id, userId);
     return ResponseEntity.ok().build();
   }
 
