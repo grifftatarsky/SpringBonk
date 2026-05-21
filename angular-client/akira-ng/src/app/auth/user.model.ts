@@ -16,6 +16,10 @@ export class User {
     return !!this.id && !User.isZeroUuid(this.id);
   }
 
+  hasAuthority(authority: string): boolean {
+    return this.roles.includes(authority);
+  }
+
   static isZeroUuid(id: string | null | undefined): boolean {
     return (id || '').toLowerCase() === '00000000-0000-0000-0000-000000000000';
   }

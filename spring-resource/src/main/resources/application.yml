@@ -65,6 +65,12 @@ com:
             - /v3/api-docs*/**
             - /actuator/health/readiness
             - /actuator/health/liveness
+            # Blog reads are public; writes are still gated by @PreAuthorize
+            # on PostService — anonymous requests there hit a 403.
+            - /post
+            - /post/**
+            - /tag
+            - /tag/**
 # Log Levels #######################################################################################
 logging:
   level:

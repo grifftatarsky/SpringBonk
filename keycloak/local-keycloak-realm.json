@@ -93,6 +93,15 @@
         "clientRole": false,
         "containerId": "d7cfb752-7e07-4e88-a655-704b68b934cd",
         "attributes": {}
+      },
+      {
+        "id": "f0b1c2d3-e4f5-6789-abcd-ef0123456789",
+        "name": "POST_ADMIN",
+        "description": "Can create, edit, and delete blog posts.",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "d7cfb752-7e07-4e88-a655-704b68b934cd",
+        "attributes": {}
       }
     ],
     "client": {

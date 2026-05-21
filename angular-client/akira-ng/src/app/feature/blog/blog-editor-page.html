@@ -1,0 +1,81 @@
+<div class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-10 pb-24 text-fg">
+  <!-- HERO -->
+  <div class="mt-4">
+    <div aria-hidden="true"
+         class="flex h-14 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-20">
+      <span>{{ mode() === 'edit' ? 'Revising the record.' : 'A blank page. Terrifying.' }}</span>
+    </div>
+    <div
+      class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
+      <h1 class="px-2 text-4xl tracking-tighter text-balance max-lg:font-medium max-sm:px-4 sm:text-5xl lg:text-6xl">
+        {{ mode() === 'edit' ? 'Edit post' : 'New post' }}
+      </h1>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p class="px-2 py-8 text-center text-sm text-fg-muted max-sm:px-4">Loading…</p>
+  } @else {
+    <form class="grid min-w-0 grid-cols-1 gap-6 px-2 max-sm:px-4" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      @if (error()) {
+        <p class="rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger" role="alert">
+          {{ error() }}
+        </p>
+      }
+
+      <!-- TITLE -->
+      <div>
+        <label for="post-title"
+               class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+          Title
+        </label>
+        <input
+          id="post-title"
+          type="text"
+          formControlName="title"
+          autocomplete="off"
+          class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-base text-fg placeholder:text-fg-whisper focus:border-accent-ring focus:outline-none"
+          placeholder="A clear, specific title"
+          maxlength="255" />
+      </div>
+
+      <!-- TAGS -->
+      <div>
+        <label for="post-tags"
+               class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">
+          Tags
+        </label>
+        <input
+          id="post-tags"
+          type="text"
+          formControlName="tagsInput"
+          autocomplete="off"
+          class="mt-2 w-full rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg placeholder:text-fg-whisper focus:border-accent-ring focus:outline-none"
+          placeholder="comma, separated, tags" />
+        <p class="mt-1.5 text-xs text-fg-subtle">Separate with commas. New labels become new tags.</p>
+      </div>
+
+      <!-- BODY -->
+      <div>
+        <span class="block text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Body</span>
+        <div class="mt-2">
+          <app-markdown-editor formControlName="body"/>
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="flex flex-wrap items-center justify-end gap-2 border-t border-rule pt-6">
+        <a routerLink="/blog"
+           class="inline-flex items-center gap-1.5 rounded-md border border-rule px-3 py-1.5 text-sm font-semibold text-fg transition hover:bg-bg-subtle">
+          Cancel
+        </a>
+        <button
+          type="submit"
+          class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+          [disabled]="saving() || form.invalid">
+          {{ saving() ? 'Saving…' : (mode() === 'edit' ? 'Update post' : 'Publish post') }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

@@ -9,8 +9,12 @@ import { BookDetailPage } from './feature/books/book-detail-page';
 import { DocsPage } from './feature/docs/docs-page';
 import { AboutPage } from './feature/about/about-page';
 import { ActivityFeedPage } from './feature/activity/activity-feed-page';
+import { BlogListPage } from './feature/blog/blog-list-page';
+import { BlogDetailPage } from './feature/blog/blog-detail-page';
+import { BlogEditorPage } from './feature/blog/blog-editor-page';
 import { LoginPrompt } from './feature/login/login-prompt';
 import { authGuard } from './auth/auth.guard';
+import { postAdminGuard } from './auth/post-admin.guard';
 
 export const routes: Routes = [
   { path: '', component: Home, data: { title: 'Home' } },
@@ -22,6 +26,10 @@ export const routes: Routes = [
   { path: 'elections/:id', component: ElectionDetailPage, canActivate: [authGuard], data: { title: 'Election Detail' } },
   { path: 'books/:id', component: BookDetailPage, canActivate: [authGuard], data: { title: 'Book Detail' } },
   { path: 'activity', component: ActivityFeedPage, canActivate: [authGuard], data: { title: 'Activity' } },
+  { path: 'blog', component: BlogListPage, data: { title: 'Blog' } },
+  { path: 'blog/new', component: BlogEditorPage, canActivate: [authGuard, postAdminGuard], data: { title: 'New post' } },
+  { path: 'blog/:id', component: BlogDetailPage, data: { title: 'Post' } },
+  { path: 'blog/:id/edit', component: BlogEditorPage, canActivate: [authGuard, postAdminGuard], data: { title: 'Edit post' } },
   { path: 'docs', component: DocsPage, data: { title: 'Docs' } },
   { path: 'about', component: AboutPage, data: { title: 'About' } },
   { path: '**', redirectTo: '/' },

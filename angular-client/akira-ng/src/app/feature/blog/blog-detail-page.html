@@ -1,0 +1,74 @@
+<div class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-10 pb-24 text-fg">
+  @if (loading()) {
+    <p class="mt-12 px-2 py-8 text-center text-sm text-fg-muted max-sm:px-4">Loading…</p>
+  }
+
+  @if (notFound()) {
+    <div class="mt-12 px-2 py-12 text-center max-sm:px-4">
+      <p class="font-mono text-xs text-fg-whisper">404</p>
+      <p class="mt-2 text-sm text-fg-muted">That post doesn't exist (or was deleted).</p>
+      <a routerLink="/blog"
+         class="mt-4 inline-flex items-center gap-1.5 rounded-md border border-rule px-3 py-1.5 text-sm font-semibold text-fg transition hover:bg-bg-subtle">
+        ← Back to blog
+      </a>
+    </div>
+  }
+
+  @let p = post();
+  @if (p) {
+    <!-- HERO -->
+    <div class="mt-4">
+      <div aria-hidden="true"
+           class="flex h-14 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-20">
+        <span>{{ p.authorName }} · {{ formatDate(p.createdDate) }}</span>
+      </div>
+      <div
+        class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
+        <h1 class="px-2 text-4xl tracking-tighter text-balance max-lg:font-medium max-sm:px-4 sm:text-5xl lg:text-6xl">
+          {{ p.title }}
+        </h1>
+      </div>
+    </div>
+
+    <!-- META + ADMIN ACTIONS -->
+    <div class="px-2 max-sm:px-4">
+      <div class="flex flex-wrap items-center gap-2">
+        @for (tag of p.tags; track tag.id) {
+          <a [routerLink]="['/blog']" [queryParams]="{ tag: tag.slug }"
+             class="rounded-full border border-rule px-3 py-1 text-xs font-medium text-fg-muted transition hover:bg-bg-subtle">
+            {{ tag.label }}
+          </a>
+        }
+        @if (canEdit()) {
+          <div class="ml-auto flex items-center gap-2">
+            <a [routerLink]="['/blog', p.id, 'edit']"
+               class="inline-flex items-center gap-1.5 rounded-md border border-rule px-3 py-1.5 text-xs font-semibold text-fg transition hover:bg-bg-subtle">
+              Edit
+            </a>
+            <button type="button"
+                    class="inline-flex items-center gap-1.5 rounded-md border border-danger px-3 py-1.5 text-xs font-semibold text-danger transition hover:bg-danger-subtle disabled:cursor-not-allowed disabled:opacity-50"
+                    [disabled]="deleting()"
+                    (click)="confirmDelete()">
+              {{ deleting() ? 'Deleting…' : 'Delete' }}
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <article class="min-w-0 px-2 max-sm:px-4">
+      <div class="max-w-(--breakpoint-md)">
+        <app-markdown-view [source]="p.body"/>
+      </div>
+    </article>
+
+    <!-- FOOTER NAV -->
+    <div class="px-2 max-sm:px-4">
+      <a routerLink="/blog"
+         class="inline-flex items-center gap-1.5 text-xs font-semibold text-fg-muted hover:text-fg">
+        ← Back to blog
+      </a>
+    </div>
+  }
+</div>

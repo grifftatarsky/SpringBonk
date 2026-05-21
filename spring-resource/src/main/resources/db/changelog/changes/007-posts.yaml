@@ -1,0 +1,144 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 007 — Blog: posts + tags + post_tags join.
+  #
+  # Read endpoints are public; writes are gated by the POST_ADMIN role and its
+  # CREATE_POST / EDIT_POST / DELETE_POST permissions in the service layer.
+  # Tags are deduplicated by slug.
+  # ==========================================================================
+
+  - changeSet:
+      id: 007-posts-create
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: posts
+      changes:
+        - createTable:
+            tableName: posts
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: author_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_posts_author
+                    references: keycloak_user(id)
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: body
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 007-posts-index
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          indexExists:
+            indexName: idx_posts_created
+      changes:
+        - createIndex:
+            tableName: posts
+            indexName: idx_posts_created
+            columns:
+              - column:
+                  name: created_date
+                  descending: true
+
+  - changeSet:
+      id: 007-tags-create
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: tags
+      changes:
+        - createTable:
+            tableName: tags
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: label
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: slug
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_tags_slug
+              - column:
+                  name: created_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 007-post-tags-create
+      author: akira
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: post_tags
+      changes:
+        - createTable:
+            tableName: post_tags
+            columns:
+              - column:
+                  name: post_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_post_tags_post
+                    references: posts(id)
+              - column:
+                  name: tag_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_post_tags_tag
+                    references: tags(id)
+        - addPrimaryKey:
+            tableName: post_tags
+            columnNames: post_id, tag_id
+            constraintName: pk_post_tags
+        - createIndex:
+            tableName: post_tags
+            indexName: idx_post_tags_tag
+            columns:
+              - column:
+                  name: tag_id
