@@ -1,4 +1,4 @@
-FROM maven:3.9.9-eclipse-temurin-23-alpine AS build
+FROM maven:3.9.15-eclipse-temurin-26-alpine AS build
 
 WORKDIR /app
 
@@ -10,9 +10,9 @@ COPY ./spring-bff/src ./src
 
 RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:23-jre
+FROM eclipse-temurin:26-jre-alpine
 
-RUN groupadd -r bonk-docker && useradd -r -g bonk-docker veto
+RUN addgroup -S bonk-docker && adduser -S -G bonk-docker veto
 
 WORKDIR /app
 
