@@ -1,0 +1,7 @@
+# Test-only overrides, layered on top of application.yml via @ActiveProfiles("test").
+
+BFF_CLIENT_ID: test-client
+BFF_CLIENT_SECRET: test-secret
+SCHEME_REVERSE_PROXY: https
+CONTAINER_NAME_REVERSE_PROXY: localhost
+PORT_REVERSE_PROXY: 7080

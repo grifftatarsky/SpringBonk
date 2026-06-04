@@ -46,16 +46,18 @@ spring:
   # Gateway Routes ###################################################################################
   cloud:
     gateway:
-      routes:
-        - id: bff
-          uri: ${resource-scheme}://${resource-container-name}:${resource-port}
-          predicates:
-            - Path=${resource-prefix}/**
-          filters:
-            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-            - TokenRelay=
-            - SaveSession
-            - StripPrefix=1
+      server:
+        webflux:
+          routes:
+            - id: bff
+              uri: ${resource-scheme}://${resource-container-name}:${resource-port}
+              predicates:
+                - Path=${resource-prefix}/**
+              filters:
+                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+                - TokenRelay=
+                - SaveSession
+                - StripPrefix=1
 # Addons ###########################################################################################
 com:
   c4-soft:

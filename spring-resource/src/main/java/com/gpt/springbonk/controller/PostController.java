@@ -11,8 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedModel;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -38,11 +37,10 @@ public class PostController {
   @Operation(summary = "List posts (newest first), optionally filtered by tag slug. Public.")
   public ResponseEntity<PagedModel<PostResponse>> listPosts(
       @RequestParam(required = false) String tag,
-      Pageable pageable,
-      PagedResourcesAssembler assembler
+      Pageable pageable
   ) {
     Page<PostResponse> page = postService.listPosts(tag, pageable);
-    return ResponseEntity.ok(assembler.toModel(page));
+    return ResponseEntity.ok(new PagedModel<>(page));
   }
 
   @GetMapping("/{id}")

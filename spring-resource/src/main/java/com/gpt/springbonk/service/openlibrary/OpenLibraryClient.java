@@ -1,8 +1,6 @@
 package com.gpt.springbonk.service.openlibrary;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +9,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Thin client for Open Library's Works API. Used to hydrate the blurb
@@ -40,7 +40,7 @@ public class OpenLibraryClient {
 
   private static final String WORKS_BASE = "https://openlibrary.org/works/";
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final JsonMapper objectMapper = JsonMapper.builder().build();
   private RestClient restClient;
 
   @PostConstruct
@@ -82,14 +82,14 @@ public class OpenLibraryClient {
         return Optional.empty();
       }
       // Plain string.
-      if (description.isTextual()) {
-        String value = description.asText();
+      if (description.isString()) {
+        String value = description.asString();
         return value.isBlank() ? Optional.empty() : Optional.of(value);
       }
       // Object form: {"type": "/type/text", "value": "..."}
       JsonNode value = description.get("value");
-      if (value != null && value.isTextual()) {
-        String text = value.asText();
+      if (value != null && value.isString()) {
+        String text = value.asString();
         return text.isBlank() ? Optional.empty() : Optional.of(text);
       }
       return Optional.empty();

@@ -21,8 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedModel;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -104,7 +103,7 @@ public class ElectionController {
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
     electionService.closeElectionAsUser(id, userId);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.noContent().build();
   }
 
   // GETS
@@ -119,11 +118,10 @@ public class ElectionController {
   @GetMapping
   @Operation(summary = "Get elections (paged)")
   public ResponseEntity<PagedModel<ElectionResponse>> getPagedElections(
-      Pageable pageable,
-      PagedResourcesAssembler assembler
+      Pageable pageable
   ) {
     Page<ElectionResponse> elections = electionService.getPagedElections(pageable);
-    return ResponseEntity.ok(assembler.toModel(elections));
+    return ResponseEntity.ok(new PagedModel<>(elections));
   }
 
   @GetMapping("/{id}")
