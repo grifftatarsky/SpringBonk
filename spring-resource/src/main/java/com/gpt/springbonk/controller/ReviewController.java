@@ -15,8 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedModel;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -94,12 +93,11 @@ public class ReviewController {
   public ResponseEntity<PagedModel<ReviewResponse>> getReviewsForBook(
       @PathVariable UUID bookId,
       Pageable pageable,
-      PagedResourcesAssembler assembler,
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
     Page<ReviewResponse> page = reviewService.getReviewsForBook(bookId, userId, pageable);
-    return ResponseEntity.ok(assembler.toModel(page));
+    return ResponseEntity.ok(new PagedModel<>(page));
   }
 
   @GetMapping("/author/{authorId}")
@@ -107,12 +105,11 @@ public class ReviewController {
   public ResponseEntity<PagedModel<ReviewResponse>> getReviewsByAuthor(
       @PathVariable UUID authorId,
       Pageable pageable,
-      PagedResourcesAssembler assembler,
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
     Page<ReviewResponse> page = reviewService.getReviewsByAuthor(authorId, userId, pageable);
-    return ResponseEntity.ok(assembler.toModel(page));
+    return ResponseEntity.ok(new PagedModel<>(page));
   }
 
   // endregion

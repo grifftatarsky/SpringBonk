@@ -44,7 +44,7 @@ export class Login {
       `${baseUri}${this.router.url}`,
     );
 
-    url.searchParams.append('post_login_failure_uri', `${baseUri}login-error`);
+    url.searchParams.append('post_login_failure_uri', `${baseUri}/login-error`);
     window.location.href = url.toString();
   }
 }

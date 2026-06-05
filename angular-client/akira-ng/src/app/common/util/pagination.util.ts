@@ -2,10 +2,12 @@ import { PaginatedResult, PageMetadata, PaginationQuery } from '../../model/type
 import { SpringPagedResponse } from '../../model/response/spring-paged-response.model';
 
 export function mapSpringPagedResponse<T>(response: SpringPagedResponse<T>): PaginatedResult<T> {
-  const embeddedLists: T[][] = response._embedded ? Object.values(response._embedded) : [];
-  const firstList: T[] = embeddedLists[0] ?? [];
+  const embeddedFirst: T[] | undefined = response._embedded
+    ? Object.values(response._embedded)[0]
+    : undefined;
+  const items: T[] = response.content ?? embeddedFirst ?? [];
   return {
-    items: firstList,
+    items,
     page: normalizePageMetadata(response.page),
   };
 }

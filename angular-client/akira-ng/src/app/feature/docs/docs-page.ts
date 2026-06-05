@@ -63,7 +63,7 @@ export class DocsPage {
 
   protected readonly stack: ReadonlyArray<Link> = [
     { label: 'Angular 20 (frontend)', href: 'https://angular.dev', external: true },
-    { label: 'Spring Boot 3 + Java 23 (resource and bff servers)', href: 'https://spring.io/projects/spring-boot', external: true },
+    { label: 'Spring Boot 4 + Java 26 (resource and bff servers)', href: 'https://spring.io/projects/spring-boot', external: true },
     { label: 'NGINX (gateway)', href: 'https://docs.spring.io/spring-boot/docs/current/reference/html/web.html', external: true },
     { label: 'Keycloak (auth with OAuth 2)', href: 'https://www.keycloak.org/', external: true },
     { label: 'PostgreSQL (storage)', href: 'https://www.postgresql.org/', external: true },

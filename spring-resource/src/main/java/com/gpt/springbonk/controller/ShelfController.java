@@ -11,8 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedModel;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -49,12 +48,11 @@ public class ShelfController {
   @Operation(summary = "Get shelves (paged)")
   public ResponseEntity<PagedModel<ShelfResponse>> getPagedShelves(
       Pageable pageable,
-      PagedResourcesAssembler assembler,
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
     Page<ShelfResponse> shelves = shelfService.getPagedShelves(pageable, userId);
-    return ResponseEntity.ok(assembler.toModel(shelves));
+    return ResponseEntity.ok(new PagedModel<>(shelves));
   }
 
   @GetMapping("/all")

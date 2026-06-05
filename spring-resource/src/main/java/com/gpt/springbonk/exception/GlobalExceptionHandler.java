@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleElectionCannotBeCompletedException(
       ElectionCannotBeCompletedException ex) {
     ErrorResponse error = new ErrorResponse(
-        HttpStatus.NO_CONTENT.value(),
+        HttpStatus.BAD_REQUEST.value(),
         ex.getMessage(),
         LocalDateTime.now()
     );
@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleElectionScheduleException(
       ElectionScheduleException ex) {
     ErrorResponse error = new ErrorResponse(
-        HttpStatus.NO_CONTENT.value(),
+        HttpStatus.BAD_REQUEST.value(),
         ex.getMessage(),
         LocalDateTime.now()
     );

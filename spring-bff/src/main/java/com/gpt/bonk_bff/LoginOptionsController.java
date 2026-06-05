@@ -6,7 +6,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientProperties;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,9 +21,11 @@ public class LoginOptionsController {
       OAuth2ClientProperties clientProps,
       SpringAddonsOidcProperties addonsProperties
   ) {
-    final var clientAuthority = addonsProperties.getClient()
+    final var clientUri = addonsProperties.getClient()
         .getClientUri()
-        .getAuthority();
+        .orElseThrow(() -> new IllegalStateException(
+            "com.c4-soft.springaddons.oidc.client.client-uri must be configured"));
+    final var clientAuthority = clientUri.getAuthority();
 
     this.loginOptions = clientProps.getRegistration()
         .entrySet()
@@ -33,8 +35,7 @@ public class LoginOptionsController {
         .map(e -> {
           final var label = e.getValue()
               .getProvider();
-          final var loginUri = "%s/oauth2/authorization/%s".formatted(addonsProperties.getClient()
-              .getClientUri(), e.getKey());
+          final var loginUri = "%s/oauth2/authorization/%s".formatted(clientUri, e.getKey());
           final var providerId = clientProps.getRegistration()
               .get(e.getKey())
               .getProvider();

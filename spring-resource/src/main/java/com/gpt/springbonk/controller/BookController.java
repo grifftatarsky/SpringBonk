@@ -16,8 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedModel;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -97,12 +96,11 @@ public class BookController {
   public ResponseEntity<PagedModel<BookResponse>> getPagedBooksByShelfId(
       @PathVariable UUID shelfId,
       Pageable pageable,
-      PagedResourcesAssembler assembler,
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
     Page<BookResponse> page = bookService.getPagedBooksByShelfId(shelfId, userId, pageable);
-    return ResponseEntity.ok(assembler.toModel(page));
+    return ResponseEntity.ok(new PagedModel<>(page));
   }
 
   @PutMapping("/{bookId}/shelf/{shelfId}")

@@ -57,6 +57,57 @@
     </div>
   </section>
 
+  <!-- ARCHITECTURE -->
+  <section id="architecture" class="px-2 max-sm:px-4">
+    <h2 class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Architecture</h2>
+    <p class="mt-3 max-w-(--breakpoint-md) text-sm/6 text-fg-muted">
+      One request, front to back.
+    </p>
+
+    <div class="mt-6 flex flex-col items-center gap-0 font-mono text-xs text-fg">
+      <div class="w-full max-w-xs rounded-md border border-rule bg-bg-subtle px-4 py-3 text-center">
+        <div class="font-semibold">Browser</div>
+        <div class="mt-0.5 text-fg-subtle">Angular SPA</div>
+      </div>
+      <span class="py-1 text-fg-whisper" aria-hidden="true">↓</span>
+
+      <div class="w-full max-w-xs rounded-md border border-rule bg-bg-subtle px-4 py-3 text-center">
+        <div class="font-semibold">NGINX</div>
+        <div class="mt-0.5 text-fg-subtle">reverse proxy</div>
+      </div>
+      <span class="py-1 text-fg-whisper" aria-hidden="true">↓</span>
+
+      <div class="flex w-full flex-wrap items-center justify-center gap-2">
+        <div class="w-full max-w-xs rounded-md border border-rule bg-bg-subtle px-4 py-3 text-center">
+          <div class="font-semibold">BFF</div>
+          <div class="mt-0.5 text-fg-subtle">Spring Cloud Gateway · login · token relay</div>
+        </div>
+        <span class="text-fg-whisper" aria-hidden="true">↔</span>
+        <div class="rounded-md border border-rule bg-bg-subtle px-4 py-3 text-center">
+          <div class="font-semibold">Keycloak</div>
+          <div class="mt-0.5 text-fg-subtle">OAuth 2 / OIDC</div>
+        </div>
+      </div>
+      <span class="py-1 text-fg-whisper" aria-hidden="true">↓</span>
+
+      <div class="w-full max-w-xs rounded-md border border-rule bg-bg-subtle px-4 py-3 text-center">
+        <div class="font-semibold">Resource server</div>
+        <div class="mt-0.5 text-fg-subtle">Spring Boot · JWT-secured · JPA</div>
+      </div>
+      <span class="py-1 text-fg-whisper" aria-hidden="true">↓</span>
+
+      <div class="w-full max-w-xs rounded-md border border-rule bg-bg-subtle px-4 py-3 text-center">
+        <div class="font-semibold">PostgreSQL</div>
+        <div class="mt-0.5 text-fg-subtle">storage · Liquibase</div>
+      </div>
+    </div>
+
+    <p class="mt-6 max-w-(--breakpoint-md) text-sm/6 text-fg-muted">
+      The BFF keeps the session and relays a token inward, so the resource server only ever sees a
+      signed JWT.
+    </p>
+  </section>
+
   <!-- STACK -->
   <section id="tech" class="px-2 max-sm:px-4">
     <h2 class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Stack</h2>
