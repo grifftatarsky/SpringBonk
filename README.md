@@ -33,15 +33,16 @@ A multi-service containerized application for running a ranked-choice book club.
 
 # Oozengine
 
-A D&D Dungeon Master toolset and combat balancer/simulator, integrated as an additional microservice in the SpringBonk ecosystem. Spring Boot, Redis, JPA, Apache Pulsar.
+A D&D Dungeon Master toolset and combat balancer/simulator, integrated as an additional microservice in the SpringBonk ecosystem. Spring Boot, PostgreSQL, JPA/Hibernate, Liquibase — secured as an OAuth 2.0 resource server behind the BFF and built downstream of the SpringBonk parent POM.
 
 ### Patterns & Approach
 
-- **Redis caching** — reference data (skills, feats, equipment) is cached in Redis to keep reads fast and reduce database load. Cache invalidation is event-driven.
-- **Pulsar for system events** — services communicate via Apache Pulsar topics. Game state changes propagate asynchronously, decoupling producers from consumers.
-- **JPA over JDBC** — migrated from raw JDBC to JPA/Hibernate for cleaner entity mapping and relationship management. JDBC and Redis repositories disabled in favor of unified JPA access.
-- **Virtual threading ready** — service design favors non-blocking patterns and stateless request handling to support Java virtual threads as the concurrency model matures.
+- **Module of the SpringBonk reactor** — builds from the shared parent POM (Spring Boot 4 / Java 26), inheriting dependency and plugin management rather than a standalone Spring Boot parent.
+- **Secured resource server behind the BFF** — validates Keycloak-issued JWTs via spring-addons; the BFF routes `/ooz/**` with token relay, so the Angular client never handles tokens directly. Method-level security is enabled for write paths.
+- **Database-per-service** — owns a dedicated `ooz-db` Postgres database. Liquibase owns all DDL; Hibernate runs with `ddl-auto: validate` to confirm entities match the migrated schema at startup.
+- **Virtual threading** — request handling runs on Java virtual threads (`spring.threads.virtual.enabled`).
 - **Configurable simulation** — combat balancing is designed around pluggable rulesets, so encounter parameters (action economy, terrain modifiers, CR calculations) can be swapped without rewriting core logic.
+- **Event-driven messaging (planned)** — Apache Pulsar for cross-service game events is on the roadmap; the starters were deferred until there are producers and consumers to wire.
 
 ### Data Progress
 
@@ -74,10 +75,12 @@ A D&D Dungeon Master toolset and combat balancer/simulator, integrated as an add
 
 | Category | Status |
 |---|---|
-| Redis cache | ✓ |
-| JPA (JDBC eliminated) | ✓ |
-| Pulsar system stream | ✓ |
-| Pulsar applied to all services | in progress |
+| Module under SpringBonk parent POM | ✓ |
+| Secured resource server behind BFF | ✓ |
+| Database-per-service (ooz-db) | ✓ |
+| JPA + Liquibase (validate) | ✓ |
+| Pulsar system stream | planned |
+| Pulsar applied to all services | planned |
 | Actions | planned |
 | Terrain & geography | planned |
 | Game feeds via Pulsar | planned |

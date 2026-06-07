@@ -1,0 +1,51 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 003 — species. Mirrors the Species JPA entity (extends BaseEntity).
+  # ==========================================================================
+  - changeSet:
+      id: 003-species-create
+      author: oozengine
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: species
+      changes:
+        - createTable:
+            tableName: species
+            columns:
+              # BaseEntity columns
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              # Basic info
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: species
+            indexName: idx_species_name
+            columns:
+              - column:
+                  name: name

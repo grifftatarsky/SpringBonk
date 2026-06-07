@@ -25,6 +25,7 @@
     "node": "^22.22.3 || ^24.15.0 || ^26.0.0"
   },
   "dependencies": {
+    "@angular-architects/native-federation": "^22.0.0",
     "@angular/cdk": "^22.0.0",
     "@angular/common": "^22.0.0",
     "@angular/compiler": "^22.0.0",
@@ -33,6 +34,7 @@
     "@angular/platform-browser": "^22.0.0",
     "@angular/router": "^22.0.0",
     "@tailwindcss/postcss": "^4.1.13",
+    "es-module-shims": "^2.8.0",
     "marked": "^18.0.4",
     "postcss": "^8.5.6",
     "rxjs": "~7.8.0",
@@ -43,6 +45,7 @@
     "@angular/build": "^22.0.0",
     "@angular/cli": "^22.0.0",
     "@angular/compiler-cli": "^22.0.0",
+    "@softarc/native-federation-orchestrator": "^4.2.2",
     "baseline-browser-mapping": "^2.10.34",
     "jsdom": "^29.1.1",
     "typescript": "~6.0.3",

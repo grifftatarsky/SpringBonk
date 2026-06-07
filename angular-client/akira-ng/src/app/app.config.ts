@@ -1,5 +1,7 @@
 import {
   ApplicationConfig,
+  inject,
+  provideAppInitializer,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
@@ -10,6 +12,7 @@ import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/ht
 import { httpErrorInterceptor } from './common/http/http-error.interceptor';
 import { environment } from '../environments/environment';
 import { API_BASE_URL } from './app.tokens';
+import { OozeShellBridge } from './shell/ooze-shell-bridge';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -21,6 +24,11 @@ export const appConfig: ApplicationConfig = {
       provide: API_BASE_URL,
       useValue: `${environment.apiBaseUrl}${environment.bffPath}/api`,
     },
+    // Eagerly construct the federation bridge so the shell auth API is on
+    // globalThis before the ooze remote ever loads.
+    provideAppInitializer((): void => {
+      inject(OozeShellBridge);
+    }),
   ],
 };
 

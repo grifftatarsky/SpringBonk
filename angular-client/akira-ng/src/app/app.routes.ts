@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { loadRemoteModule } from '@angular-architects/native-federation';
 import { Home } from './feature/home/home';
 import { Dashboard } from './feature/dashboard/dashboard';
 import { ShelvesPage } from './feature/shelves/shelves-page';
@@ -32,5 +33,13 @@ export const routes: Routes = [
   { path: 'blog/:id/edit', component: BlogEditorPage, canActivate: [authGuard, postAdminGuard], data: { title: 'Edit post' } },
   { path: 'docs', component: DocsPage, data: { title: 'Docs' } },
   { path: 'about', component: AboutPage, data: { title: 'About' } },
+  // Federated micro-frontend: the ooze DM tool is its own independently-built
+  // Angular app (Native Federation remote), loaded at runtime into this shell.
+  {
+    path: 'ooze',
+    loadChildren: () =>
+      loadRemoteModule('ooze', './routes').then(m => m.OOZE_ROUTES),
+    data: { title: 'Ooze' },
+  },
   { path: '**', redirectTo: '/' },
 ];
