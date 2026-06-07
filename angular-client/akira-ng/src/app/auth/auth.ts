@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { User } from './user.model';
 import { Login } from './login/login';
@@ -9,6 +9,7 @@ import { AsyncPipe } from '@angular/common';
 @Component({
   selector: 'app-auth',
   imports: [Login, Logout, AsyncPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './auth.html',
 })
 export class Auth {

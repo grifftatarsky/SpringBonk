@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { NgIf } from '@angular/common';
+
 import { PageMetadata } from '../../../model/type/pagination';
 
 @Component({
   selector: 'app-paginated-list',
   standalone: true,
-  imports: [NgIf],
+  imports: [],
   templateUrl: './paginated-list.component.html',
   styleUrl: './paginated-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -34,12 +34,12 @@ class ElectionWidgetStoreStub {
   readonly sortOptions = this.vm().sortOptions;
   readonly createState = signal({ creating: false, error: null });
 
-  readonly setFilter = jasmine.createSpy('setFilter');
-  readonly setPage = jasmine.createSpy('setPage');
-  readonly setPageSize = jasmine.createSpy('setPageSize');
-  readonly setSort = jasmine.createSpy('setSort');
-  readonly createElection = jasmine.createSpy('createElection').and.resolveTo(true);
-  readonly clearCreateError = jasmine.createSpy('clearCreateError');
+  readonly setFilter = vi.fn();
+  readonly setPage = vi.fn();
+  readonly setPageSize = vi.fn();
+  readonly setSort = vi.fn();
+  readonly createElection = vi.fn().mockResolvedValue(true);
+  readonly clearCreateError = vi.fn();
 }
 
 describe('ElectionWidgetComponent', () => {

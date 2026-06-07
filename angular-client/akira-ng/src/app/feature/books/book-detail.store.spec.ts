@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { createSpyObj, type SpyObj } from '../../testing/mock';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { BookDetailStore } from './book-detail.store';
 import { BookHttpService } from '../../common/http/book-http.service';
@@ -7,7 +8,7 @@ import { BookResponse } from '../../model/response/book-response.model';
 
 describe('BookDetailStore', () => {
   let store: BookDetailStore;
-  let http: jasmine.SpyObj<BookHttpService>;
+  let http: SpyObj<BookHttpService>;
 
   const book: BookResponse = {
     id: '1',
@@ -20,8 +21,8 @@ describe('BookDetailStore', () => {
   };
 
   beforeEach(() => {
-    http = jasmine.createSpyObj<BookHttpService>('BookHttpService', ['getBookById']);
-    http.getBookById.and.returnValue(of(book));
+    http = createSpyObj<BookHttpService>(['getBookById']);
+    http.getBookById.mockReturnValue(of(book));
 
     TestBed.configureTestingModule({
       providers: [BookDetailStore, { provide: BookHttpService, useValue: http }, provideZonelessChangeDetection()],

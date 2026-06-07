@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { createSpyObj, type SpyObj } from '../../../testing/mock';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ElectionWidgetStore } from './election-widget.store';
 import { ElectionHttpService } from '../../../common/http/election-http.service';
@@ -11,21 +12,23 @@ const baseElection: ElectionResponse = {
   endDateTime: '2025-11-20T00:00:00Z',
   createDate: '2025-11-01T00:00:00Z',
   status: 'OPEN',
+  maxNominationsPerUser: null,
+  maxNominationsTotal: null,
 };
 
 describe('ElectionWidgetStore', () => {
   let store: ElectionWidgetStore;
-  let http: jasmine.SpyObj<ElectionHttpService>;
+  let http: SpyObj<ElectionHttpService>;
 
   beforeEach(() => {
-    http = jasmine.createSpyObj<ElectionHttpService>('ElectionHttpService', ['getElectionsPage', 'getAllElections']);
-    http.getElectionsPage.and.returnValue(
+    http = createSpyObj<ElectionHttpService>(['getElectionsPage', 'getAllElections']);
+    http.getElectionsPage.mockReturnValue(
       of({
         _embedded: { electionResponseList: [baseElection] },
         page: { number: 0, size: 5, totalElements: 1, totalPages: 1 },
       }),
     );
-    http.getAllElections.and.returnValue(of([baseElection]));
+    http.getAllElections.mockReturnValue(of([baseElection]));
 
     TestBed.configureTestingModule({
       providers: [
@@ -36,7 +39,7 @@ describe('ElectionWidgetStore', () => {
     });
 
     store = TestBed.inject(ElectionWidgetStore);
-    spyOn(console, 'error');
+    vi.spyOn(console, 'error');
   });
 
   it('exposes election data with status labels', async () => {
@@ -47,7 +50,7 @@ describe('ElectionWidgetStore', () => {
   });
 
   it('filters elections by title', async () => {
-    http.getAllElections.and.returnValue(
+    http.getAllElections.mockReturnValue(
       of([
         baseElection,
         { ...baseElection, id: '2', title: 'Sci-Fi Finals', status: 'INDEFINITE' },
@@ -63,7 +66,7 @@ describe('ElectionWidgetStore', () => {
   });
 
   it('handles load errors gracefully', async () => {
-    http.getElectionsPage.and.returnValue(throwError(() => new Error('boom')));
+    http.getElectionsPage.mockReturnValue(throwError(() => new Error('boom')));
     store.setPageSize(10); // trigger reload
     await wait(150);
     expect(store.vm().error).toContain('Unable');

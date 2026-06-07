@@ -50,13 +50,16 @@ public class CandidateServiceImpl implements CandidateService {
   ) {
     // Validate the requisite parts.
     Election election = electionService.getElection(electionId);
+
     // Closed elections reject nominations. OPEN and INDEFINITE both accept.
     if (election.getStatus() == Status.CLOSED) {
       throw new ElectionScheduleException(
           "You can't nominate candidates in a closed election.");
     }
+
     KeycloakUser nominator = keycloakUserService.getUserById(userId);
     Book nomination = bookService.getBookById(bookId);
+
     // Make sure it's not nominated twice.
     if (candidateRepository.existsByBookIdAndElectionId(bookId, electionId)) {
       throw new DuplicateCandidateException(
@@ -69,6 +72,7 @@ public class CandidateServiceImpl implements CandidateService {
       throw new ElectionScheduleException(
           "This election has reached its total nominations cap.");
     }
+
     if (election.getMaxNominationsPerUser() != null) {
       long mine = election.getCandidates().stream()
           .filter(c -> c.getNominator() != null && c.getNominator().getId().equals(userId))
@@ -84,9 +88,11 @@ public class CandidateServiceImpl implements CandidateService {
         nomination,
         nominator
     );
+
     if (pitch != null && !pitch.isBlank()) {
       candidate.setPitch(pitch.trim());
     }
+
     bookService.addBookToShelf(bookId, shelfService.getNominatedShelf(userId).getId(), userId);
 
     return new CandidateResponse(candidateRepository.saveAndFlush(candidate));
@@ -99,16 +105,20 @@ public class CandidateServiceImpl implements CandidateService {
       @NotNull UUID userId
   ) {
     Candidate candidate = getCandidate(candidateId);
+
     // Ensure the candidate belongs to the election
     if (!candidate.getElection().getId().equals(electionId)) {
       throw new ResourceNotFoundException("Candidate does not belong to this election.");
     }
+
     // Only the nominator or the election creator can remove a nomination
     UUID nominatorId = candidate.getNominator().getId();
     UUID creatorId = candidate.getElection().getCreator().getId();
+
     if (!nominatorId.equals(userId) && !creatorId.equals(userId)) {
       throw new AccessDeniedException("User not permitted to remove this nomination.");
     }
+
     candidateRepository.delete(candidate);
   }
 
@@ -120,15 +130,20 @@ public class CandidateServiceImpl implements CandidateService {
       String pitch
   ) {
     Candidate candidate = getCandidate(candidateId);
+
     if (!candidate.getElection().getId().equals(electionId)) {
       throw new ResourceNotFoundException("Candidate does not belong to this election.");
     }
+
     UUID nominatorId = candidate.getNominator().getId();
     UUID creatorId = candidate.getElection().getCreator().getId();
+
     if (!nominatorId.equals(userId) && !creatorId.equals(userId)) {
       throw new AccessDeniedException("User not permitted to edit this pitch.");
     }
+
     candidate.setPitch(pitch == null ? "" : pitch.trim());
+
     return new CandidateResponse(candidateRepository.saveAndFlush(candidate));
   }
 
@@ -137,6 +152,7 @@ public class CandidateServiceImpl implements CandidateService {
       @NotNull UUID electionId
   ) {
     Election election = electionService.getElection(electionId);
+
     return election.getCandidates()
         .stream()
         .map(CandidateResponse::new)

@@ -7,7 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { DatePipe, NgIf } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ShelfWidgetStore, ShelfSortOption } from './shelf-widget.store';
 import { PaginatedListComponent } from '../../../common/ui/paginated-list/paginated-list.component';
@@ -16,7 +16,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 @Component({
   selector: 'app-shelf-widget',
   standalone: true,
-  imports: [PaginatedListComponent, NgIf, RouterLink, DatePipe, ReactiveFormsModule],
+  imports: [PaginatedListComponent, RouterLink, DatePipe, ReactiveFormsModule],
   templateUrl: './shelf-widget.component.html',
   styleUrl: './shelf-widget.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

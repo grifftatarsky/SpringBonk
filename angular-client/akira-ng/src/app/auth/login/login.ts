@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserService } from '../user.service';
 import { baseUri } from '../../app.config';
@@ -7,6 +7,7 @@ import { UserHttpService } from '../../common/http/user-http.service';
 @Component({
   selector: 'app-login',
   imports: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './login.html',
 })
 export class Login {

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { createSpyObj, type SpyObj } from '../../testing/mock';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ElectionDetailStore } from './election-detail.store';
 import { ElectionHttpService } from '../../common/http/election-http.service';
@@ -16,6 +17,8 @@ const election: ElectionResponse = {
   status: 'OPEN',
   endDateTime: null,
   createDate: '2025-01-01T00:00:00Z',
+  maxNominationsPerUser: null,
+  maxNominationsTotal: null,
 };
 
 const candidate: CandidateResponse = {
@@ -40,14 +43,14 @@ const candidateTwo: CandidateResponse = {
 
 describe('ElectionDetailStore', () => {
   let store: ElectionDetailStore;
-  let electionHttp: jasmine.SpyObj<ElectionHttpService>;
-  let bookHttp: jasmine.SpyObj<BookHttpService>;
-  let shelfHttp: jasmine.SpyObj<ShelfHttpService>;
-  let notifications: jasmine.SpyObj<NotificationService>;
-  let votingHttp: jasmine.SpyObj<VotingHttpService>;
+  let electionHttp: SpyObj<ElectionHttpService>;
+  let bookHttp: SpyObj<BookHttpService>;
+  let shelfHttp: SpyObj<ShelfHttpService>;
+  let notifications: SpyObj<NotificationService>;
+  let votingHttp: SpyObj<VotingHttpService>;
 
   beforeEach(() => {
-    electionHttp = jasmine.createSpyObj<ElectionHttpService>('ElectionHttpService', [
+    electionHttp = createSpyObj<ElectionHttpService>([
       'getElection',
       'getCandidates',
       'nominateCandidate',
@@ -57,19 +60,19 @@ describe('ElectionDetailStore', () => {
       'deleteElection',
       'closeElection',
     ]);
-    bookHttp = jasmine.createSpyObj<BookHttpService>('BookHttpService', ['createBook', 'getOpenLibraryCoverImageUrl']);
-    notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['success', 'error']);
-    shelfHttp = jasmine.createSpyObj<ShelfHttpService>('ShelfHttpService', ['getShelvesPage']);
-    votingHttp = jasmine.createSpyObj<VotingHttpService>('VotingHttpService', [
+    bookHttp = createSpyObj<BookHttpService>(['createBook', 'getOpenLibraryCoverImageUrl']);
+    notifications = createSpyObj<NotificationService>(['success', 'error']);
+    shelfHttp = createSpyObj<ShelfHttpService>(['getShelvesPage']);
+    votingHttp = createSpyObj<VotingHttpService>([
       'getMyVotes',
       'voteForCandidate',
       'deleteVote',
     ]);
 
-    electionHttp.getElection.and.returnValue(of(election));
-    electionHttp.getCandidates.and.returnValue(of([candidate]));
-    electionHttp.nominateCandidate.and.returnValue(of(candidate));
-    bookHttp.createBook.and.returnValue(of({
+    electionHttp.getElection.mockReturnValue(of(election));
+    electionHttp.getCandidates.mockReturnValue(of([candidate]));
+    electionHttp.nominateCandidate.mockReturnValue(of(candidate));
+    bookHttp.createBook.mockReturnValue(of({
       id: 'b1',
       title: 'Book',
       author: 'Author',
@@ -78,20 +81,20 @@ describe('ElectionDetailStore', () => {
       openLibraryId: '',
       shelves: [],
     }));
-    bookHttp.getOpenLibraryCoverImageUrl.and.returnValue('');
-    electionHttp.deleteCandidate.and.returnValue(of(void 0));
-    electionHttp.getElectionResults.and.returnValue(of([]));
-    electionHttp.reopenElection.and.returnValue(of(election));
-    electionHttp.deleteElection.and.returnValue(of(void 0));
-    electionHttp.closeElection.and.returnValue(of(void 0));
-    shelfHttp.getShelvesPage.and.returnValue(
+    bookHttp.getOpenLibraryCoverImageUrl.mockReturnValue('');
+    electionHttp.deleteCandidate.mockReturnValue(of(void 0));
+    electionHttp.getElectionResults.mockReturnValue(of([]));
+    electionHttp.reopenElection.mockReturnValue(of(election));
+    electionHttp.deleteElection.mockReturnValue(of(void 0));
+    electionHttp.closeElection.mockReturnValue(of(void 0));
+    shelfHttp.getShelvesPage.mockReturnValue(
       of({ _embedded: { shelfResponseList: [] }, page: { number: 0, size: 8, totalElements: 0, totalPages: 1 } }),
     );
-    votingHttp.getMyVotes.and.returnValue(of([]));
-    votingHttp.voteForCandidate.and.returnValue(
+    votingHttp.getMyVotes.mockReturnValue(of([]));
+    votingHttp.voteForCandidate.mockReturnValue(
       of({ id: 'v1', candidateId: 'c1', userId: 'u-current', rank: 1 }),
     );
-    votingHttp.deleteVote.and.returnValue(of(void 0));
+    votingHttp.deleteVote.mockReturnValue(of(void 0));
 
     TestBed.configureTestingModule({
       providers: [
@@ -119,7 +122,7 @@ describe('ElectionDetailStore', () => {
   it('nominates a custom book', async () => {
     store.init('e1');
     await wait();
-    await store.nominateCustomBook({ title: 'New', author: 'Me', imageURL: '', blurb: '' });
+    await store.nominateCustomBook({ title: 'New', author: 'Me', imageURL: '', blurb: '', pitch: '' });
     expect(bookHttp.createBook).toHaveBeenCalled();
   });
 
@@ -143,8 +146,8 @@ describe('ElectionDetailStore', () => {
   });
 
   it('reorders the ballot according to the provided order', async () => {
-    electionHttp.getCandidates.and.returnValue(of([candidate, candidateTwo]));
-    votingHttp.getMyVotes.and.returnValue(
+    electionHttp.getCandidates.mockReturnValue(of([candidate, candidateTwo]));
+    votingHttp.getMyVotes.mockReturnValue(
       of([
         { id: 'v1', candidateId: 'c1', userId: 'u-current', rank: 1 },
         { id: 'v2', candidateId: 'c2', userId: 'u-current', rank: 2 },
@@ -153,7 +156,7 @@ describe('ElectionDetailStore', () => {
     store.init('e1');
     await wait();
 
-    votingHttp.voteForCandidate.calls.reset();
+    votingHttp.voteForCandidate.mockClear();
 
     await store.reorderBallot(['c2', 'c1']);
 
@@ -162,14 +165,14 @@ describe('ElectionDetailStore', () => {
   });
 
   it('drops rankings when a candidate leaves the ballot', async () => {
-    electionHttp.getCandidates.and.returnValue(of([candidate]));
-    votingHttp.getMyVotes.and.returnValue(
+    electionHttp.getCandidates.mockReturnValue(of([candidate]));
+    votingHttp.getMyVotes.mockReturnValue(
       of([{ id: 'v1', candidateId: 'c1', userId: 'u-current', rank: 1 }]),
     );
     store.init('e1');
     await wait();
 
-    votingHttp.deleteVote.calls.reset();
+    votingHttp.deleteVote.mockClear();
 
     await store.reorderBallot([]);
 
@@ -177,7 +180,7 @@ describe('ElectionDetailStore', () => {
   });
 
   it('clears the ballot via helper', async () => {
-    votingHttp.getMyVotes.and.returnValue(
+    votingHttp.getMyVotes.mockReturnValue(
       of([{ id: 'v1', candidateId: 'c1', userId: 'u-current', rank: 1 }]),
     );
     store.init('e1');
@@ -203,7 +206,7 @@ describe('ElectionDetailStore', () => {
 
     const deleted = await store.deleteElection();
 
-    expect(deleted).toBeTrue();
+    expect(deleted).toBe(true);
     expect(electionHttp.deleteElection).toHaveBeenCalledWith('e1');
   });
 
@@ -231,7 +234,7 @@ describe('ElectionDetailStore', () => {
       await store.nominateFromOpenLibrary(doc, 'My pitch text');
 
       expect(bookHttp.createBook).toHaveBeenCalledWith(
-        jasmine.objectContaining({ blurb: 'My pitch text' }),
+        expect.objectContaining({ blurb: 'My pitch text' }),
       );
     });
 
@@ -242,7 +245,7 @@ describe('ElectionDetailStore', () => {
       await store.nominateFromOpenLibrary(doc, '  padded pitch  ');
 
       expect(bookHttp.createBook).toHaveBeenCalledWith(
-        jasmine.objectContaining({ blurb: 'padded pitch' }),
+        expect.objectContaining({ blurb: 'padded pitch' }),
       );
     });
 
@@ -253,13 +256,13 @@ describe('ElectionDetailStore', () => {
       await store.nominateFromOpenLibrary(doc, '');
 
       expect(bookHttp.createBook).toHaveBeenCalledWith(
-        jasmine.objectContaining({ blurb: '' }),
+        expect.objectContaining({ blurb: '' }),
       );
     });
 
     it('adds a placeholder candidate optimistically before the request resolves', async () => {
       let resolve!: () => void;
-      bookHttp.createBook.and.returnValue(
+      bookHttp.createBook.mockReturnValue(
         new Observable((subscriber) => {
           resolve = () => {
             subscriber.next({ id: 'b1', title: 'The Test Book', author: 'Test Author', imageURL: '', blurb: 'My pitch text', openLibraryId: '', shelves: [] });
@@ -276,8 +279,7 @@ describe('ElectionDetailStore', () => {
 
       // Placeholder should be present immediately (sync signal update)
       await wait(0);
-      expect(store.candidatesVm().items.length)
-        .withContext('placeholder should appear before HTTP resolves')
+      expect(store.candidatesVm().items.length, 'placeholder should appear before HTTP resolves')
         .toBe(before + 1);
 
       resolve();
@@ -285,7 +287,7 @@ describe('ElectionDetailStore', () => {
     });
 
     it('removes the placeholder on failure and shows an error notification', async () => {
-      bookHttp.createBook.and.returnValue(throwError(() => new Error('network error')));
+      bookHttp.createBook.mockReturnValue(throwError(() => new Error('network error')));
 
       store.init('e1');
       await wait();
@@ -297,8 +299,7 @@ describe('ElectionDetailStore', () => {
         // expected
       }
 
-      expect(store.candidatesVm().items.length)
-        .withContext('placeholder should be rolled back after failure')
+      expect(store.candidatesVm().items.length, 'placeholder should be rolled back after failure')
         .toBe(before);
       expect(notifications.error).toHaveBeenCalled();
     });
@@ -313,8 +314,8 @@ describe('ElectionDetailStore', () => {
         nominatorId: 'u1',
         votes: [],
       };
-      bookHttp.createBook.and.returnValue(of({ id: 'b-real', title: 'The Test Book', author: 'Test Author', imageURL: '', blurb: 'My pitch text', openLibraryId: 'OL123W', shelves: [] }));
-      electionHttp.nominateCandidate.and.returnValue(of(realCandidate));
+      bookHttp.createBook.mockReturnValue(of({ id: 'b-real', title: 'The Test Book', author: 'Test Author', imageURL: '', blurb: 'My pitch text', openLibraryId: 'OL123W', shelves: [] }));
+      electionHttp.nominateCandidate.mockReturnValue(of(realCandidate));
 
       store.init('e1');
       await wait();
@@ -323,9 +324,8 @@ describe('ElectionDetailStore', () => {
 
       const ids = store.candidatesVm().items.map((c) => c.id);
       expect(ids).toContain('c-real');
-      expect(ids.some((id) => id.startsWith('tmp-')))
-        .withContext('no placeholder IDs should remain')
-        .toBeFalse();
+      expect(ids.some((id) => id.startsWith('tmp-')), 'no placeholder IDs should remain')
+        .toBe(false);
     });
 
     it('shows a success notification after nominating', async () => {
@@ -344,7 +344,7 @@ describe('ElectionDetailStore', () => {
       await store.nominateFromOpenLibrary({ ...doc, key: '/works/OL999W' }, '');
 
       expect(bookHttp.createBook).toHaveBeenCalledWith(
-        jasmine.objectContaining({ openLibraryId: 'OL999W' }),
+        expect.objectContaining({ openLibraryId: 'OL999W' }),
       );
     });
 
@@ -355,7 +355,7 @@ describe('ElectionDetailStore', () => {
       await store.nominateFromOpenLibrary({ ...doc, key: 'RAWKEY' }, '');
 
       expect(bookHttp.createBook).toHaveBeenCalledWith(
-        jasmine.objectContaining({ openLibraryId: 'RAWKEY' }),
+        expect.objectContaining({ openLibraryId: 'RAWKEY' }),
       );
     });
   });

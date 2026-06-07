@@ -17,6 +17,8 @@ const openElection: ElectionResponse = {
   status: 'OPEN',
   endDateTime: null,
   createDate: '2025-01-01T00:00:00Z',
+  maxNominationsPerUser: null,
+  maxNominationsTotal: null,
 };
 
 const closedElection: ElectionResponse = {
@@ -25,6 +27,8 @@ const closedElection: ElectionResponse = {
   status: 'CLOSED',
   endDateTime: '2025-06-01T12:00:00Z',
   createDate: '2025-01-01T00:00:00Z',
+  maxNominationsPerUser: null,
+  maxNominationsTotal: null,
 };
 
 const mockBook: OpenLibraryBookResponse = {
@@ -100,24 +104,23 @@ class ElectionDetailStoreStub {
     booksError: null as string | null,
   });
 
-  readonly nominateFromOpenLibrary = jasmine
-    .createSpy('nominateFromOpenLibrary')
-    .and.resolveTo(undefined);
+  readonly nominateFromOpenLibrary = vi.fn()
+    .mockResolvedValue(undefined);
 
-  readonly nominateCustomBook = jasmine.createSpy('nominateCustomBook').and.resolveTo(undefined);
-  readonly nominateExistingBook = jasmine.createSpy('nominateExistingBook').and.resolveTo(undefined);
-  readonly removeCandidate = jasmine.createSpy('removeCandidate').and.resolveTo(undefined);
-  readonly reorderBallot = jasmine.createSpy('reorderBallot').and.resolveTo(undefined);
-  readonly clearBallot = jasmine.createSpy('clearBallot').and.resolveTo(undefined);
-  readonly deleteElection = jasmine.createSpy('deleteElection').and.resolveTo(true);
-  readonly reopenElection = jasmine.createSpy('reopenElection').and.resolveTo(undefined);
-  readonly closeElection = jasmine.createSpy('closeElection').and.resolveTo(undefined);
-  readonly refreshCandidates = jasmine.createSpy('refreshCandidates');
-  readonly refreshVotes = jasmine.createSpy('refreshVotes');
-  readonly refreshResults = jasmine.createSpy('refreshResults');
-  readonly selectShelfForExisting = jasmine.createSpy('selectShelfForExisting').and.resolveTo(undefined);
-  readonly setCandidateRank = jasmine.createSpy('setCandidateRank').and.resolveTo(undefined);
-  readonly init = jasmine.createSpy('init');
+  readonly nominateCustomBook = vi.fn().mockResolvedValue(undefined);
+  readonly nominateExistingBook = vi.fn().mockResolvedValue(undefined);
+  readonly removeCandidate = vi.fn().mockResolvedValue(undefined);
+  readonly reorderBallot = vi.fn().mockResolvedValue(undefined);
+  readonly clearBallot = vi.fn().mockResolvedValue(undefined);
+  readonly deleteElection = vi.fn().mockResolvedValue(true);
+  readonly reopenElection = vi.fn().mockResolvedValue(undefined);
+  readonly closeElection = vi.fn().mockResolvedValue(undefined);
+  readonly refreshCandidates = vi.fn();
+  readonly refreshVotes = vi.fn();
+  readonly refreshResults = vi.fn();
+  readonly selectShelfForExisting = vi.fn().mockResolvedValue(undefined);
+  readonly setCandidateRank = vi.fn().mockResolvedValue(undefined);
+  readonly init = vi.fn();
 }
 
 class BookSearchStoreStub {
@@ -132,8 +135,8 @@ class BookSearchStoreStub {
     validationMessage: null as string | null,
   });
 
-  readonly search = jasmine.createSpy('search').and.resolveTo(undefined);
-  readonly loadMore = jasmine.createSpy('loadMore').and.resolveTo(undefined);
+  readonly search = vi.fn().mockResolvedValue(undefined);
+  readonly loadMore = vi.fn().mockResolvedValue(undefined);
 }
 
 // ---------------------------------------------------------------------------
@@ -261,7 +264,7 @@ describe('ElectionDetailPage', () => {
     });
 
     it('resets search state by calling search("") when opened', () => {
-      searchStore.search.calls.reset();
+      searchStore.search.mockClear();
       openModal();
       expect(searchStore.search).toHaveBeenCalledWith('');
     });
@@ -391,7 +394,7 @@ describe('ElectionDetailPage', () => {
 
       expect(detailStore.nominateFromOpenLibrary).toHaveBeenCalledWith(
         mockBook,
-        jasmine.any(String),
+        expect.any(String),
       );
     });
 

@@ -40,12 +40,12 @@ class ShelfWidgetStoreStub {
   readonly sortOptions = this.vm().sortOptions;
   readonly createState = signal({ creating: false, error: null });
 
-  readonly setFilter = jasmine.createSpy('setFilter');
-  readonly setPage = jasmine.createSpy('setPage');
-  readonly setPageSize = jasmine.createSpy('setPageSize');
-  readonly setSort = jasmine.createSpy('setSort');
-  readonly createShelf = jasmine.createSpy('createShelf').and.callFake(async () => undefined);
-  readonly clearCreateError = jasmine.createSpy('clearCreateError');
+  readonly setFilter = vi.fn();
+  readonly setPage = vi.fn();
+  readonly setPageSize = vi.fn();
+  readonly setSort = vi.fn();
+  readonly createShelf = vi.fn().mockImplementation(async () => undefined);
+  readonly clearCreateError = vi.fn();
 }
 
 describe('ShelfWidgetComponent', () => {

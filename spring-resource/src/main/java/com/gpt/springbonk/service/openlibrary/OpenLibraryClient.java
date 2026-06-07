@@ -15,17 +15,17 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * Thin client for Open Library's Works API. Used to hydrate the blurb
  * (description) of a book after a user picks it from a search result.
- *
+ * <p>
  * Open Library's search API doesn't return `description` (the SOLR index
  * doesn't carry it), so we have to make a follow-up call to
  * {@code https://openlibrary.org/works/{key}.json} to pull the full work
  * record, which DOES include a description.
- *
+ * <p>
  * The description can come back in one of two shapes:
  *   - a plain string
  *   - an object like {"type": "/type/text", "value": "..."}
  * We normalize both to a plain string.
- *
+ * <p>
  * Per Open Library's guidance for identified callers, every request
  * carries a {@code User-Agent} header with app name + contact email so
  * they can reach us if we start hammering the API. Identified callers
@@ -55,7 +55,6 @@ public class OpenLibraryClient {
    * Fetch the description for a work by its Open Library key.
    * Returns {@code Optional.empty()} when the work doesn't exist, the
    * description isn't set, or any network/parse error happens (logged).
-   *
    * Callers should NOT treat a failure here as fatal — if Open Library is
    * down, we just fall back to an empty blurb in the book record.
    *

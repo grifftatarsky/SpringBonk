@@ -2,7 +2,7 @@
   <!-- HEADER ----------------------------------------------------------------- -->
   <header class="border-b border-rule pb-4">
     <!-- Row 1: title + meta grouped on the left, actions slot vertically
-         centered against them on the right. -->
+    centered against them on the right. -->
     <div class="flex items-center justify-between gap-3">
       <div class="min-w-0">
         <h2 class="text-xl font-semibold tracking-tight">{{ title }}</h2>
@@ -22,7 +22,7 @@
         <div
           class="flex items-center gap-2 rounded-md border border-rule bg-bg-subtle px-3 py-2 text-sm text-fg focus-within:border-accent-ring">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75"
-               class="size-4 shrink-0 text-fg-subtle" aria-hidden="true">
+            class="size-4 shrink-0 text-fg-subtle" aria-hidden="true">
             <circle cx="9" cy="9" r="6"></circle>
             <path d="M13.5 13.5L17 17" stroke-linecap="round"></path>
           </svg>
@@ -38,9 +38,9 @@
     }
 
     <!-- Row 3: inline text controls (sort + per-page). No borders — they
-         read as sentence fragments with a bold selectable value. The
-         wrapper uses empty:hidden so it collapses when nothing's projected
-         AND per-page is disabled. -->
+    read as sentence fragments with a bold selectable value. The
+    wrapper uses empty:hidden so it collapses when nothing's projected
+    AND per-page is disabled. -->
     <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-fg-muted empty:hidden">
       <ng-content select="[list-secondary]"></ng-content>
       @if (showPageSize && showPageSizeControl) {
@@ -68,23 +68,29 @@
 
   <!-- BODY ------------------------------------------------------------------- -->
   <div class="py-6">
-    <div *ngIf="busy"
-         class="flex items-center gap-3 py-3 text-sm text-fg-muted">
-      <span class="relative flex size-2">
-        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60"></span>
-        <span class="relative inline-flex size-2 rounded-full bg-accent"></span>
-      </span>
-      Loading…
-    </div>
+    @if (busy) {
+      <div
+        class="flex items-center gap-3 py-3 text-sm text-fg-muted">
+        <span class="relative flex size-2">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60"></span>
+          <span class="relative inline-flex size-2 rounded-full bg-accent"></span>
+        </span>
+        Loading…
+      </div>
+    }
 
-    <div *ngIf="!busy && hasItems">
-      <ng-content></ng-content>
-    </div>
+    @if (!busy && hasItems) {
+      <div>
+        <ng-content></ng-content>
+      </div>
+    }
 
-    <p *ngIf="!busy && !hasItems"
-       class="py-8 text-center text-sm text-fg-subtle">
-      {{ emptyMessage }}
-    </p>
+    @if (!busy && !hasItems) {
+      <p
+        class="py-8 text-center text-sm text-fg-subtle">
+        {{ emptyMessage }}
+      </p>
+    }
 
     <ng-content select="[list-footer]"></ng-content>
   </div>
@@ -94,15 +100,15 @@
     <span>{{ page.totalElements }} total</span>
     <div class="flex items-center gap-1">
       <button type="button"
-              (click)="goPrevious()"
-              [disabled]="!canGoPrevious"
-              class="rounded-md border border-rule px-3 py-1 font-medium text-fg transition hover:bg-bg-subtle disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent">
+        (click)="goPrevious()"
+        [disabled]="!canGoPrevious"
+        class="rounded-md border border-rule px-3 py-1 font-medium text-fg transition hover:bg-bg-subtle disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent">
         ← Prev
       </button>
       <button type="button"
-              (click)="goNext()"
-              [disabled]="!canGoNext"
-              class="rounded-md border border-rule px-3 py-1 font-medium text-fg transition hover:bg-bg-subtle disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent">
+        (click)="goNext()"
+        [disabled]="!canGoNext"
+        class="rounded-md border border-rule px-3 py-1 font-medium text-fg transition hover:bg-bg-subtle disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent">
         Next →
       </button>
     </div>

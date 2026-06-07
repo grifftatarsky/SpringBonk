@@ -145,11 +145,7 @@ public class BookServiceImpl implements BookService {
   ) {
     Book book = getBookById(id);
 
-    // Open Library books are read-only metadata. Authoritative data lives
-    // upstream at Open Library; editing title/author/blurb locally would
-    // fork the record from the catalog and confuse other users sharing
-    // the same Book entity. Shelf assignment is still legal — that's a
-    // per-user relationship, not book-wide metadata.
+    // Open Library books are read-only metadata.
     if (!isCustomBook(book.getOpenLibraryId())) {
       // Any field mismatch from the current book indicates an edit attempt.
       boolean metadataEdit =
@@ -157,22 +153,26 @@ public class BookServiceImpl implements BookService {
               || notEqualIgnoringNull(bookUpdateRequest.getAuthor(), book.getAuthor())
               || notEqualIgnoringNull(bookUpdateRequest.getImageURL(), book.getImageURL())
               || notEqualIgnoringNull(bookUpdateRequest.getBlurb(), book.getBlurb());
+
       if (metadataEdit) {
         throw new AccessDeniedException(
             "Open Library books can't be edited locally. Only custom books are editable.");
       }
+
       // Shelves-only change path — reconcile and save.
       Set<UUID> shelfIds = resolveShelfIds(bookUpdateRequest.getShelfIds(), userId);
+
       shelfIds.forEach(shelfId -> addBookToShelf(book, shelfId, userId));
+
       return new BookResponse(bookRepository.saveAndFlush(book));
     }
 
     // Custom book — must own at least one shelf it lives on to edit.
     boolean ownsShelfForBook = book.getShelves().stream()
         .anyMatch(shelf -> shelf.getUser().getId().equals(userId));
+
     if (!ownsShelfForBook) {
-      throw new AccessDeniedException(
-          "You can only edit custom books on your own shelves.");
+      throw new AccessDeniedException("You can only edit custom books on your own shelves.");
     }
 
     book.setTitle(bookUpdateRequest.getTitle());

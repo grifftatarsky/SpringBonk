@@ -1,4 +1,4 @@
-import { DatePipe, NgIf } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -14,7 +14,7 @@ type AddBookTab = 'search' | 'custom';
 @Component({
   selector: 'app-shelf-detail-page',
   standalone: true,
-  imports: [NgIf, RouterLink, PaginatedListComponent, ReactiveFormsModule, DatePipe],
+  imports: [RouterLink, PaginatedListComponent, ReactiveFormsModule, DatePipe],
   templateUrl: './shelf-detail-page.html',
   styleUrl: './shelf-detail-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

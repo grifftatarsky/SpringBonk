@@ -1,4 +1,4 @@
-import { DatePipe, NgIf } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, HostListener, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
@@ -14,7 +14,7 @@ type WizardStep = 'intent' | 'details' | 'review' | 'done';
 @Component({
   selector: 'app-book-detail-page',
   standalone: true,
-  imports: [NgIf, RouterLink, ReactiveFormsModule, DatePipe],
+  imports: [RouterLink, ReactiveFormsModule, DatePipe],
   providers: [BookDetailStore],
   templateUrl: './book-detail-page.html',
   styleUrl: './book-detail-page.css',

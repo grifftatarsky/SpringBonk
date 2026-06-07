@@ -1,4 +1,4 @@
-import { DatePipe, NgIf } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, HostListener, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -12,7 +12,7 @@ import { OpenLibraryBookResponse } from '../../model/response/open-library-book-
 @Component({
   selector: 'app-election-detail-page',
   standalone: true,
-  imports: [NgIf, RouterLink, ReactiveFormsModule, DatePipe, DragDropModule],
+  imports: [RouterLink, ReactiveFormsModule, DatePipe, DragDropModule],
   providers: [ElectionDetailStore, BookSearchStore],
   templateUrl: './election-detail-page.html',
   styleUrl: './election-detail-page.css',

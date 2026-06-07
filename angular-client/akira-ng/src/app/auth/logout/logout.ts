@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { UserService } from '../user.service';
@@ -7,6 +7,7 @@ import { UserHttpService } from '../../common/http/user-http.service';
 @Component({
   selector: 'app-logout',
   imports: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './logout.html',
 })
 export class Logout {

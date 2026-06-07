@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { createSpyObj, type SpyObj } from '../../testing/mock';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ShelfDetailStore } from './shelf-detail.store';
 import { ShelfHttpService } from '../../common/http/shelf-http.service';
@@ -29,25 +30,23 @@ const book: BookResponse = {
 
 describe('ShelfDetailStore', () => {
   let store: ShelfDetailStore;
-  let shelfHttp: jasmine.SpyObj<ShelfHttpService>;
-  let bookHttp: jasmine.SpyObj<BookHttpService>;
-  let notifications: jasmine.SpyObj<NotificationService>;
+  let shelfHttp: SpyObj<ShelfHttpService>;
+  let bookHttp: SpyObj<BookHttpService>;
+  let notifications: SpyObj<NotificationService>;
 
   beforeEach(() => {
-    shelfHttp = jasmine.createSpyObj<ShelfHttpService>('ShelfHttpService', ['getShelf']);
-    bookHttp = jasmine.createSpyObj<BookHttpService>(
-      'BookHttpService',
-      ['getBooksByShelfId', 'createBook', 'removeBookFromShelf', 'getOpenLibraryCoverImageUrl'],
+    shelfHttp = createSpyObj<ShelfHttpService>(['getShelf']);
+    bookHttp = createSpyObj<BookHttpService>(['getBooksByShelfId', 'createBook', 'removeBookFromShelf', 'getOpenLibraryCoverImageUrl'],
     );
-    notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['success', 'error']);
+    notifications = createSpyObj<NotificationService>(['success', 'error']);
 
-    shelfHttp.getShelf.and.returnValue(of(shelf));
-    bookHttp.getBooksByShelfId.and.returnValue(of([book]));
-    bookHttp.createBook.and.returnValue(
+    shelfHttp.getShelf.mockReturnValue(of(shelf));
+    bookHttp.getBooksByShelfId.mockReturnValue(of([book]));
+    bookHttp.createBook.mockReturnValue(
       of({ ...book, id: 'b2', title: 'New Book' }),
     );
-    bookHttp.removeBookFromShelf.and.returnValue(of(book));
-    bookHttp.getOpenLibraryCoverImageUrl.and.returnValue('');
+    bookHttp.removeBookFromShelf.mockReturnValue(of(book));
+    bookHttp.getOpenLibraryCoverImageUrl.mockReturnValue('');
 
     TestBed.configureTestingModule({
       providers: [

@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
 import { ShelvesPageStore } from './shelves-page.store';
 import { PaginatedListComponent } from '../../common/ui/paginated-list/paginated-list.component';
-import { DatePipe, NgIf } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-shelves-page',
   standalone: true,
-  imports: [PaginatedListComponent, NgIf, RouterLink, DatePipe, ReactiveFormsModule],
+  imports: [PaginatedListComponent, RouterLink, DatePipe, ReactiveFormsModule],
   providers: [ShelvesPageStore],
   templateUrl: './shelves-page.html',
   styleUrl: './shelves-page.css',

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { UserHttpService } from '../../common/http/user-http.service';
@@ -13,6 +13,7 @@ interface LoginOption {
 @Component({
   selector: 'app-login-prompt',
   imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './login-prompt.html',
 })
 export class LoginPrompt implements OnInit {

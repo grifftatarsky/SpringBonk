@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { createSpyObj, type SpyObj } from '../../testing/mock';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ShelvesPageStore } from './shelves-page.store';
 import { ShelfHttpService } from '../../common/http/shelf-http.service';
@@ -16,17 +17,17 @@ const shelfFactory = (id: string, title: string): ShelfResponse => ({
 
 describe('ShelvesPageStore', () => {
   let store: ShelvesPageStore;
-  let http: jasmine.SpyObj<ShelfHttpService>;
+  let http: SpyObj<ShelfHttpService>;
 
   beforeEach(() => {
-    http = jasmine.createSpyObj<ShelfHttpService>('ShelfHttpService', ['getShelvesPage', 'getAllShelves']);
-    http.getShelvesPage.and.returnValue(
+    http = createSpyObj<ShelfHttpService>(['getShelvesPage', 'getAllShelves']);
+    http.getShelvesPage.mockReturnValue(
       of({
         _embedded: { shelfResponseList: [shelfFactory('1', 'Alpha')] },
         page: { number: 0, size: 8, totalElements: 1, totalPages: 1 },
       }),
     );
-    http.getAllShelves.and.returnValue(of([shelfFactory('2', 'Bravo'), shelfFactory('3', 'Charlie')]));
+    http.getAllShelves.mockReturnValue(of([shelfFactory('2', 'Bravo'), shelfFactory('3', 'Charlie')]));
 
     TestBed.configureTestingModule({
       providers: [

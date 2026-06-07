@@ -19,8 +19,8 @@ class DashboardStoreStub {
     avatar: 'BONKLING_PLUM',
   });
 
-  readonly refreshProfile = jasmine.createSpy('refreshProfile');
-  readonly setAvatar = jasmine.createSpy('setAvatar');
+  readonly refreshProfile = vi.fn();
+  readonly setAvatar = vi.fn();
 }
 
 class ShelfWidgetStoreStub {
@@ -80,16 +80,13 @@ describe('Dashboard', () => {
   it('renders user profile details', () => {
     const compiled: HTMLElement = fixture.nativeElement as HTMLElement;
 
-    expect(compiled.querySelector('[data-testid="profile-name"]')?.textContent)
-      .withContext('name text should be visible')
+    expect(compiled.querySelector('[data-testid="profile-name"]')?.textContent, 'name text should be visible')
       .toContain('Jane Doe');
-    expect(compiled.querySelector('[data-testid="profile-email"]')?.textContent)
-      .withContext('email text should be visible')
+    expect(compiled.querySelector('[data-testid="profile-email"]')?.textContent, 'email text should be visible')
       .toContain('jane@example.com');
 
     const roleChips = compiled.querySelectorAll('[data-testid="profile-role-pill"]');
-    expect(roleChips.length)
-      .withContext('role chips should exist for each role')
+    expect(roleChips.length, 'role chips should exist for each role')
       .toBe(2);
   });
 

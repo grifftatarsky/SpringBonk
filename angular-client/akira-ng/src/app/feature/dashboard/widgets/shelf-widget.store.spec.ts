@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { createSpyObj, type SpyObj } from '../../../testing/mock';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ShelfWidgetStore } from './shelf-widget.store';
 import { ShelfHttpService } from '../../../common/http/shelf-http.service';
@@ -19,18 +20,18 @@ const baseShelf: ShelfResponse = {
 
 describe('ShelfWidgetStore', () => {
   let store: ShelfWidgetStore;
-  let http: jasmine.SpyObj<ShelfHttpService>;
+  let http: SpyObj<ShelfHttpService>;
 
   beforeEach(() => {
-    http = jasmine.createSpyObj<ShelfHttpService>('ShelfHttpService', ['getShelvesPage', 'getAllShelves', 'createShelf']);
-    http.getShelvesPage.and.returnValue(
+    http = createSpyObj<ShelfHttpService>(['getShelvesPage', 'getAllShelves', 'createShelf']);
+    http.getShelvesPage.mockReturnValue(
       of({
         _embedded: { shelfResponseList: [baseShelf] },
         page: { number: 0, size: 5, totalElements: 1, totalPages: 1 },
       }),
     );
-    http.getAllShelves.and.returnValue(of([baseShelf]));
-    http.createShelf.and.returnValue(of(baseShelf));
+    http.getAllShelves.mockReturnValue(of([baseShelf]));
+    http.createShelf.mockReturnValue(of(baseShelf));
 
     TestBed.configureTestingModule({
       providers: [
@@ -41,7 +42,7 @@ describe('ShelfWidgetStore', () => {
     });
 
     store = TestBed.inject(ShelfWidgetStore);
-    spyOn(console, 'error');
+    vi.spyOn(console, 'error');
   });
 
   it('exposes shelves from the paged response', async () => {
@@ -53,7 +54,7 @@ describe('ShelfWidgetStore', () => {
   });
 
   it('filters shelves when a filter term is provided', async () => {
-    http.getAllShelves.and.returnValue(
+    http.getAllShelves.mockReturnValue(
       of([
         baseShelf,
         { ...baseShelf, id: '2', title: 'Sci-Fi Picks', defaultShelf: false },
@@ -79,14 +80,14 @@ describe('ShelfWidgetStore', () => {
   });
 
   it('surfaces errors when shelf creation fails', async () => {
-    http.createShelf.and.returnValue(throwError(() => new Error('nope')));
+    http.createShelf.mockReturnValue(throwError(() => new Error('nope')));
     let threw = false;
     try {
       await store.createShelf('Broken');
     } catch {
       threw = true;
     }
-    expect(threw).toBeTrue();
+    expect(threw).toBe(true);
     expect(store.createState().error).toContain('Unable');
   });
 });

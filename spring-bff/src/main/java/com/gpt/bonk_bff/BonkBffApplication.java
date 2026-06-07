@@ -9,7 +9,7 @@ import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2Clien
 @EnableConfigurationProperties(OAuth2ClientProperties.class)
 public class BonkBffApplication {
 
-  public static void main(String[] args) {
+  static void main(String[] args) {
     SpringApplication.run(BonkBffApplication.class, args);
   }
 }
