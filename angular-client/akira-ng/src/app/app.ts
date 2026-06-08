@@ -18,6 +18,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { User } from './auth/user.model';
 import { ToastContainerComponent } from './common/notification/toast-container.component';
 import { NotificationBellComponent } from './common/notification/notification-bell.component';
+import { SystemStatusService } from './common/system-status.service';
 
 type NavLink = Readonly<{
   label: string;
@@ -48,6 +49,8 @@ export class App {
 
   private readonly userService: UserService = inject(UserService);
   private readonly destroyRef = inject(DestroyRef);
+  // Drives the "temporarily unavailable" state on the Oozengine nav link.
+  protected readonly systemStatus = inject(SystemStatusService);
   private readonly document = inject(DOCUMENT);
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);

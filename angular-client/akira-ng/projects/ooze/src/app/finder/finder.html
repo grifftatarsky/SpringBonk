@@ -1,6 +1,32 @@
 <div class="rounded-lg border border-rule bg-bg-subtle">
   <ooze-finder-menu-bar />
 
+  <!-- ACCESS PROMPT — read-only users get a way in -->
+  @if (!canEdit()) {
+    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-rule bg-bg px-3 py-2.5 sm:px-4">
+      @if (isAuthenticated()) {
+        <p class="text-xs text-fg-muted">
+          You're browsing the shared 5e catalog (read-only). Dungeon Master access lets you add,
+          edit, and hide content for your own table.
+        </p>
+        <a [href]="requestAccessHref"
+           class="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-rule px-2.5 py-1 text-xs font-medium text-fg-muted transition hover:bg-bg-subtle hover:text-fg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" />
+          </svg>
+          Request access
+        </a>
+      } @else {
+        <p class="text-xs text-fg-muted">Sign in to build and modify your own catalog.</p>
+        <a routerLink="/login"
+           class="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-accent px-2.5 py-1 text-xs font-semibold text-accent-fg transition hover:bg-accent-hover">
+          Log in or register
+        </a>
+      }
+    </div>
+  }
+
   @if (openDef(); as def) {
     <!-- OPEN FOLDER: list + detail -->
     <div class="p-3 sm:p-4">

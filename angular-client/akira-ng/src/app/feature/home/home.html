@@ -12,7 +12,7 @@
       class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
       <h1
         class="px-2 text-4xl tracking-tighter text-balance max-lg:font-medium max-sm:px-4 sm:text-5xl lg:text-6xl xl:text-8xl">
-        Run a real ranked-choice vote. Argue less. Read more.
+        Run a real ranked-choice vote. Everybody kind of gets what they want. At least more so?
       </h1>
     </div>
 
@@ -30,7 +30,7 @@
         fair way: everybody ranks their choices, an <a
         class="text-accent hover:underline"
         href="https://en.wikipedia.org/wiki/Instant-runoff_voting">instant-runoff</a>
-        counts them, and a winner comes out the other side. No spreadsheets. No group-chat doom.
+        counts them, and a winner comes out the other side. Much easier than thumbs-upping a groupchat.
       </p>
       <div aria-hidden="true"
            class="flex h-6 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-10">
@@ -91,7 +91,7 @@
     <div
       class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
       <h2 class="max-w-lg px-2 text-[2.5rem]/10 font-medium tracking-tighter text-balance max-sm:px-4 2xl:mt-0">
-        Nothing fancy. All the right pieces.
+        Nothing fancy. All the right pieces!
       </h2>
     </div>
     <div aria-hidden="true"
@@ -101,9 +101,9 @@
     <div
       class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
       <p class="max-w-(--breakpoint-md) px-2 text-base/7 text-fg-muted max-sm:px-4">
-        Angular 22 on the front, Spring Boot on the back, NGINX in between, Keycloak for the locks,
-        Postgres to remember everything. Deploy it on your laptop, a VPS, or a cluster. Nobody's
-        pretending it's magic.
+        Angular 22 (federated for fun) on the front end, Spring Boot microservices, NGINX in between, Keycloak auth,
+        Postgres database. Deploy it on your laptop, a VPS, or a cluster. I'm not
+        pretending it's magic. Just good practice :)
       </p>
     </div>
     <div
@@ -120,6 +120,42 @@
       </div>
     </div>
   </div>
+
+  <!-- OOZENGINE HERO (only when the federated app + its backend are both up) -->
+  @if (status.oozeAvailable()) {
+    <div>
+      <div aria-hidden="true"
+           class="flex h-6 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-10">
+        <span>It's delving time.</span>
+      </div>
+      <div
+        class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
+        <h1 class="px-2 text-4xl tracking-tighter text-balance max-lg:font-medium max-sm:px-4 sm:text-5xl lg:text-6xl">
+          Run the game without losing your f'in mind.
+        </h1>
+      </div>
+      <div aria-hidden="true"
+           class="flex h-6 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-10">
+        <span>Roll for initiative!</span>
+      </div>
+      <div
+        class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
+        <p class="max-w-(--breakpoint-md) px-2 text-lg/7 font-medium text-fg-muted max-sm:px-4">
+          Oozengine is Akira's Dungeon Master toolkit — a searchable 5e (2024) compendium you can bend and break to fit
+          your own table, plus 3D dice for when the party casts a dozen fireballs and maybe you don't want to roll a hundred real dice.
+        </p>
+      </div>
+      <div class="mt-5 px-2 max-sm:px-4">
+        <a routerLink="/ooze"
+           class="inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover">
+          Open Oozengine
+          <svg fill="currentColor" aria-hidden="true" viewBox="0 0 10 10" class="w-2.5">
+            <path d="M4.85355 0.146423L9.70711 4.99998L4.85355 9.85353L4.14645 9.14642L7.79289 5.49998H0V4.49998H7.79289L4.14645 0.85353L4.85355 0.146423Z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  }
 
   <!-- SYSTEM STATUS -->
   <app-system-status />

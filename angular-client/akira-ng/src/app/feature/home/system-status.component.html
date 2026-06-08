@@ -1,36 +1,49 @@
 <div class="px-2 max-sm:px-4">
-  <div class="rounded-lg border border-rule bg-bg-subtle p-5">
-    <div class="flex items-center justify-between gap-3">
-      <h2 class="text-sm font-semibold uppercase tracking-[0.15em] text-fg-subtle">System status</h2>
-      <button type="button" (click)="refresh()" [disabled]="checking()"
-              class="inline-flex items-center gap-1.5 rounded-md border border-rule px-2 py-1 text-xs font-medium text-fg-muted transition hover:bg-bg hover:text-fg disabled:opacity-60">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" class="size-3.5"
-             [class.animate-spin]="checking()">
-          <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
-        </svg>
-        Refresh
-      </button>
+  <div class="overflow-hidden rounded-lg border border-rule bg-bg-subtle">
+    <div class="p-5">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-sm font-semibold uppercase tracking-[0.15em] text-fg-subtle">System status</h2>
+        <button type="button" (click)="status.refresh()" [disabled]="status.checking()"
+                class="inline-flex items-center gap-1.5 rounded-md border border-rule px-2 py-1 text-xs font-medium text-fg-muted transition hover:bg-bg hover:text-fg disabled:opacity-60">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" class="size-3.5"
+               [class.animate-spin]="status.checking()">
+            <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
+          </svg>
+          Refresh
+        </button>
+      </div>
+
+      <ul class="mt-4 grid gap-2">
+        @for (s of status.services(); track s.key) {
+          <li class="flex items-center justify-between gap-3 rounded-md border border-rule bg-bg px-3 py-2.5">
+            <span class="flex items-center gap-2.5">
+              <span class="size-2.5 shrink-0 rounded-full" [class]="dotClass(s.status)"
+                    [class.animate-pulse]="s.status === 'checking'" aria-hidden="true"></span>
+              <span class="text-sm font-medium text-fg">{{ s.label }}</span>
+            </span>
+            <span class="text-xs font-medium" [class]="textClass(s.status)">{{ statusLabel(s.status) }}</span>
+          </li>
+        }
+      </ul>
+
+      <p class="mt-3 text-xs text-fg-subtle">
+        @if (status.lastChecked(); as t) {
+          Last checked {{ t | date: 'shortTime' }} ·
+        }
+        Re-checks every 30s.
+      </p>
     </div>
 
-    <ul class="mt-4 grid gap-2">
-      @for (s of services(); track s.key) {
-        <li class="flex items-center justify-between gap-3 rounded-md border border-rule bg-bg px-3 py-2.5">
-          <span class="flex items-center gap-2.5">
-            <span class="size-2.5 shrink-0 rounded-full" [class]="dotClass(s.status)"
-                  [class.animate-pulse]="s.status === 'checking'" aria-hidden="true"></span>
-            <span class="text-sm font-medium text-fg">{{ s.label }}</span>
-          </span>
-          <span class="text-xs font-medium" [class]="textClass(s.status)">{{ statusLabel(s.status) }}</span>
-        </li>
-      }
-    </ul>
-
-    <p class="mt-3 text-xs text-fg-subtle">
-      @if (lastChecked(); as t) {
-        Last checked {{ t | date: 'shortTime' }} ·
-      }
-      Re-checks every 30s.
-    </p>
+    @if (status.oozeDown()) {
+      <div class="flex items-center gap-2 border-t border-danger/30 bg-danger-subtle px-5 py-3 text-xs font-medium text-danger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <path d="M12 9v4" /><path d="M12 17h.01" />
+        </svg>
+        Apologies — Oozengine is currently unavailable.
+      </div>
+    }
   </div>
 </div>

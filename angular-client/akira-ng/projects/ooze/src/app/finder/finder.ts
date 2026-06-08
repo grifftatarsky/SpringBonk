@@ -6,6 +6,7 @@ import {
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { ShellAuthService } from '../shell/shell-auth.service';
 import { CONTENT_TYPES, CatalogItem, ContentTypeDef } from './ooze-content.models';
 import { ContentService } from './content.service';
@@ -27,7 +28,7 @@ interface ItemGroup {
  */
 @Component({
   selector: 'ooze-finder',
-  imports: [FinderMenuBar, ContentPanel],
+  imports: [FinderMenuBar, ContentPanel, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './finder.html',
 })
@@ -50,6 +51,15 @@ export class Finder {
   protected readonly canEdit = computed(() =>
     (this.user()?.roles ?? []).includes('DUNGEON_MASTER'),
   );
+  protected readonly isAuthenticated = computed(() => this.user()?.isAuthenticated ?? false);
+
+  /** mailto for logged-in users without the DM role to request access. */
+  protected readonly requestAccessHref =
+    'mailto:grifftatarsky@gmail.com' +
+    '?subject=' +
+    encodeURIComponent('Oozengine — Dungeon Master access request') +
+    '&body=' +
+    encodeURIComponent("Hey! I'm requesting access for Dungeon Master tools on Oozengine. Thanks!");
 
   protected readonly filtered = computed(() => {
     const q = this.search().trim().toLowerCase();
