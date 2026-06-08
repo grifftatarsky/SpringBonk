@@ -72,6 +72,10 @@ com:
             - /vocation/**
             - /monster/**
             - /character/**
+            - /feat/**
+            - /condition/**
+            - /weapon-mastery/**
+            - /glossary/**
 # Log Levels #######################################################################################
 logging:
   level:

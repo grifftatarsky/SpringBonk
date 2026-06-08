@@ -10,5 +10,9 @@ public enum ContentType {
   BACKGROUND,
   SPECIES,
   VOCATION,
-  MONSTER
+  MONSTER,
+  FEAT,
+  CONDITION,
+  WEAPON_MASTERY,
+  GLOSSARY
 }

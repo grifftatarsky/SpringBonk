@@ -6,7 +6,7 @@
 <!-- COLLAPSED: full-height "book spine" tab, always visible on the side -->
 @if (!open()) {
   <button type="button"
-          class="group fixed right-0 top-14 bottom-0 z-30 flex w-11 flex-col items-center gap-4 border-l border-rule-strong bg-bg-muted py-4 text-fg-muted shadow-lg transition-colors hover:bg-bg-sunk hover:text-fg"
+          class="dice-rail group fixed right-0 top-14 z-30 flex w-11 flex-col items-center gap-4 border-l border-rule-strong bg-bg-muted py-4 text-fg-muted shadow-lg transition-colors hover:bg-bg-sunk hover:text-fg"
           [attr.aria-controls]="panelId" [attr.aria-expanded]="false"
           aria-label="Open dice roller" (click)="toggle()">
     <span class="grid size-6 shrink-0 place-items-center rounded-md border border-rule-strong bg-bg text-fg-muted transition-colors group-hover:border-accent group-hover:text-accent">

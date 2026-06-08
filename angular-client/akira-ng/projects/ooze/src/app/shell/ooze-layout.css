@@ -5,6 +5,17 @@
   text-orientation: mixed;
 }
 
+/* The collapsed spine sits below the 3.5rem header and must reach the bottom of
+ * the *visible* viewport. `bottom: 0` fails on mobile Safari (it measures the
+ * toolbar-hidden viewport, so the bar tucks behind the translucent bottom bar).
+ * Sizing to the dynamic viewport (dvh) tracks the toolbar showing/hiding; vh is
+ * the fallback for browsers without dvh. */
+.dice-rail {
+  height: calc(100vh - 3.5rem);
+  height: calc(100dvh - 3.5rem);
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+
 .ooze-content {
   transition: padding-right 0.2s ease;
   /* Clear the always-visible collapsed spine (w-11 ≈ 2.75rem) at every width,

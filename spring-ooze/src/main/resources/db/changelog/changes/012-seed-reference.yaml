@@ -1,0 +1,255 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 012 — seed reference content. Conditions (all 15) and weapon mastery (all 8)
+  # are complete; feats seeds the 10 Origin feats; glossary seeds a starter set.
+  # Stats/rules are facts; descriptions are our own concise wording. Each
+  # changeset runs once and only if its table is empty.
+  # ==========================================================================
+  - changeSet:
+      id: 012-seed-conditions
+      author: oozengine
+      preConditions: {onFail: MARK_RAN, sqlCheck: {expectedResult: 0, sql: SELECT COUNT(*) FROM conditions}}
+      changes:
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-000000000001"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Blinded"}},
+            {column: {name: description, value: "Can't see and automatically fails any check that requires sight. Attack rolls against the creature have Advantage, and the creature's own attack rolls have Disadvantage."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-000000000002"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Charmed"}},
+            {column: {name: description, value: "Can't attack the charmer or target it with harmful effects, and the charmer has Advantage on ability checks to interact socially with the creature."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-000000000003"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Deafened"}},
+            {column: {name: description, value: "Can't hear and automatically fails any check that requires hearing."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-000000000004"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Exhaustion"}},
+            {column: {name: description, value: "Measured in levels 1-6. Each level imposes a cumulative -2 penalty to d20 Tests and reduces Speed by 5 feet; level 6 is fatal. A Long Rest removes one level."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-000000000005"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Frightened"}},
+            {column: {name: description, value: "Has Disadvantage on ability checks and attack rolls while the source of fear is within line of sight, and can't willingly move closer to that source."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-000000000006"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Grappled"}},
+            {column: {name: description, value: "Speed is 0 and has Disadvantage on attack rolls against any target other than the grappler. Ends if the grappler is Incapacitated or the two are moved apart."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-000000000007"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Incapacitated"}},
+            {column: {name: description, value: "Can't take actions, Bonus Actions, or Reactions, loses Concentration, and can't speak. If in the middle of its turn, only the rest of that turn is lost."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-000000000008"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Invisible"}},
+            {column: {name: description, value: "Can't be seen without the aid of magic or a special sense; counts as heavily obscured for being located. Attack rolls against it have Disadvantage, and its attack rolls have Advantage."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-000000000009"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Paralyzed"}},
+            {column: {name: description, value: "Is Incapacitated, can't move or speak, and automatically fails Strength and Dexterity saves. Attacks against it have Advantage, and any hit from within 5 feet is a Critical Hit."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-00000000000a"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Petrified"}},
+            {column: {name: description, value: "Transformed into a solid substance; Incapacitated, unaware of surroundings, and weighs ten times more. Resistant to all damage, immune to poison and disease, and automatically fails Strength and Dexterity saves; attacks against it have Advantage."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-00000000000b"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Poisoned"}},
+            {column: {name: description, value: "Has Disadvantage on attack rolls and ability checks."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-00000000000c"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Prone"}},
+            {column: {name: description, value: "Can only crawl unless it stands up (costing half its Speed), and has Disadvantage on attack rolls. Melee attackers within 5 feet have Advantage against it; attackers farther away have Disadvantage."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-00000000000d"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Restrained"}},
+            {column: {name: description, value: "Speed is 0, has Disadvantage on attack rolls and Dexterity saves, and attacks against it have Advantage."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-00000000000e"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Stunned"}},
+            {column: {name: description, value: "Is Incapacitated, can't move, and can speak only falteringly. Automatically fails Strength and Dexterity saves, and attacks against it have Advantage."}}]}
+        - insert: {tableName: conditions, columns: [
+            {column: {name: id, value: "c04d0000-0000-4000-a000-00000000000f"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Unconscious"}},
+            {column: {name: description, value: "Is Incapacitated and Prone, unaware of surroundings, and drops whatever it's holding. Automatically fails Strength and Dexterity saves; attacks against it have Advantage, and any hit from within 5 feet is a Critical Hit."}}]}
+
+  - changeSet:
+      id: 012-seed-weapon-masteries
+      author: oozengine
+      preConditions: {onFail: MARK_RAN, sqlCheck: {expectedResult: 0, sql: SELECT COUNT(*) FROM weapon_masteries}}
+      changes:
+        - insert: {tableName: weapon_masteries, columns: [
+            {column: {name: id, value: "a5700000-0000-4000-a000-000000000001"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Cleave"}},
+            {column: {name: description, value: "After hitting a creature with the weapon, you can make one extra attack with it against a second creature within 5 feet of the first and within reach. Add no ability modifier to that extra damage. Usable once per turn."}}]}
+        - insert: {tableName: weapon_masteries, columns: [
+            {column: {name: id, value: "a5700000-0000-4000-a000-000000000002"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Graze"}},
+            {column: {name: description, value: "If your attack roll misses, you still deal damage to the target equal to the ability modifier used for the attack."}}]}
+        - insert: {tableName: weapon_masteries, columns: [
+            {column: {name: id, value: "a5700000-0000-4000-a000-000000000003"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Nick"}},
+            {column: {name: description, value: "You can make the extra attack of the Light property as part of the Attack action instead of as a Bonus Action, once per turn."}}]}
+        - insert: {tableName: weapon_masteries, columns: [
+            {column: {name: id, value: "a5700000-0000-4000-a000-000000000004"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Push"}},
+            {column: {name: description, value: "On a hit, you can push the target up to 10 feet straight away from you if it is Large or smaller."}}]}
+        - insert: {tableName: weapon_masteries, columns: [
+            {column: {name: id, value: "a5700000-0000-4000-a000-000000000005"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Sap"}},
+            {column: {name: description, value: "On a hit, the target has Disadvantage on its next attack roll before the start of your next turn."}}]}
+        - insert: {tableName: weapon_masteries, columns: [
+            {column: {name: id, value: "a5700000-0000-4000-a000-000000000006"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Slow"}},
+            {column: {name: description, value: "On a hit that deals damage, reduce the target's Speed by 10 feet until the start of your next turn. The reduction doesn't stack with itself."}}]}
+        - insert: {tableName: weapon_masteries, columns: [
+            {column: {name: id, value: "a5700000-0000-4000-a000-000000000007"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Topple"}},
+            {column: {name: description, value: "On a hit, the target must succeed on a Constitution saving throw (against your attack's save DC) or have the Prone condition."}}]}
+        - insert: {tableName: weapon_masteries, columns: [
+            {column: {name: id, value: "a5700000-0000-4000-a000-000000000008"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Vex"}},
+            {column: {name: description, value: "On a hit that deals damage, you have Advantage on your next attack roll against that creature before the end of your next turn."}}]}
+
+  - changeSet:
+      id: 012-seed-feats
+      author: oozengine
+      preConditions: {onFail: MARK_RAN, sqlCheck: {expectedResult: 0, sql: SELECT COUNT(*) FROM feats}}
+      changes:
+        - insert: {tableName: feats, columns: [
+            {column: {name: id, value: "fea70000-0000-4000-a000-000000000001"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Alert"}}, {column: {name: feat_category, value: "Origin"}},
+            {column: {name: description, value: "Add your Proficiency Bonus to Initiative rolls, and when you roll Initiative you can swap your result with a willing ally's."}}]}
+        - insert: {tableName: feats, columns: [
+            {column: {name: id, value: "fea70000-0000-4000-a000-000000000002"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Crafter"}}, {column: {name: feat_category, value: "Origin"}},
+            {column: {name: description, value: "Gain proficiency with three Artisan's Tools, buy nonmagical gear at a discount, and craft faster during a rest."}}]}
+        - insert: {tableName: feats, columns: [
+            {column: {name: id, value: "fea70000-0000-4000-a000-000000000003"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Healer"}}, {column: {name: feat_category, value: "Origin"}},
+            {column: {name: description, value: "Use a Healer's Kit (Utilize action) to restore Hit Points to a creature, and reroll any 1s on healing dice you roll."}}]}
+        - insert: {tableName: feats, columns: [
+            {column: {name: id, value: "fea70000-0000-4000-a000-000000000004"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Lucky"}}, {column: {name: feat_category, value: "Origin"}},
+            {column: {name: description, value: "Gain Luck Points equal to your Proficiency Bonus (regained on a Long Rest) to grant yourself Advantage on a d20 Test or impose Disadvantage on an attack against you."}}]}
+        - insert: {tableName: feats, columns: [
+            {column: {name: id, value: "fea70000-0000-4000-a000-000000000005"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Magic Initiate"}}, {column: {name: feat_category, value: "Origin"}},
+            {column: {name: description, value: "Learn two cantrips and one level-1 spell from a chosen class's list. Cast the level-1 spell once per Long Rest for free, or with spell slots you have."}}]}
+        - insert: {tableName: feats, columns: [
+            {column: {name: id, value: "fea70000-0000-4000-a000-000000000006"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Musician"}}, {column: {name: feat_category, value: "Origin"}},
+            {column: {name: description, value: "Gain proficiency with three Musical Instruments, and after a Short or Long Rest grant Heroic Inspiration to allies who heard you play."}}]}
+        - insert: {tableName: feats, columns: [
+            {column: {name: id, value: "fea70000-0000-4000-a000-000000000007"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Savage Attacker"}}, {column: {name: feat_category, value: "Origin"}},
+            {column: {name: description, value: "Once per turn when you hit with a weapon, roll its damage dice twice and use either total."}}]}
+        - insert: {tableName: feats, columns: [
+            {column: {name: id, value: "fea70000-0000-4000-a000-000000000008"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Skilled"}}, {column: {name: feat_category, value: "Origin"}},
+            {column: {name: description, value: "Gain proficiency in any combination of three skills or tools of your choice."}}]}
+        - insert: {tableName: feats, columns: [
+            {column: {name: id, value: "fea70000-0000-4000-a000-000000000009"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Tavern Brawler"}}, {column: {name: feat_category, value: "Origin"}},
+            {column: {name: description, value: "Reroll 1s on Unarmed Strike and improvised-weapon damage, deal more unarmed damage, and once per turn push a creature you hit with an Unarmed Strike."}}]}
+        - insert: {tableName: feats, columns: [
+            {column: {name: id, value: "fea70000-0000-4000-a000-00000000000a"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Tough"}}, {column: {name: feat_category, value: "Origin"}},
+            {column: {name: description, value: "Your Hit Point maximum increases by an amount equal to twice your character level, and by 2 each time you gain a level thereafter."}}]}
+
+  - changeSet:
+      id: 012-seed-glossary
+      author: oozengine
+      preConditions: {onFail: MARK_RAN, sqlCheck: {expectedResult: 0, sql: SELECT COUNT(*) FROM glossary_entries}}
+      changes:
+        - insert: {tableName: glossary_entries, columns: [
+            {column: {name: id, value: "6105a000-0000-4000-a000-000000000001"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Advantage"}},
+            {column: {name: description, value: "Roll two d20s for the d20 Test and use the higher roll. Multiple sources of Advantage don't stack — you still roll only two dice."}}]}
+        - insert: {tableName: glossary_entries, columns: [
+            {column: {name: id, value: "6105a000-0000-4000-a000-000000000002"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Disadvantage"}},
+            {column: {name: description, value: "Roll two d20s for the d20 Test and use the lower roll. If you have both Advantage and Disadvantage, they cancel and you roll a single d20."}}]}
+        - insert: {tableName: glossary_entries, columns: [
+            {column: {name: id, value: "6105a000-0000-4000-a000-000000000003"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Proficiency Bonus"}},
+            {column: {name: description, value: "A bonus tied to character level (+2 at level 1, rising to +6 at level 17) added to rolls you're proficient with. It's never added more than once to a single roll."}}]}
+        - insert: {tableName: glossary_entries, columns: [
+            {column: {name: id, value: "6105a000-0000-4000-a000-000000000004"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Heroic Inspiration"}},
+            {column: {name: description, value: "A resource you can spend to reroll any one d20 immediately; you must use the new roll. You can hold only one at a time."}}]}
+        - insert: {tableName: glossary_entries, columns: [
+            {column: {name: id, value: "6105a000-0000-4000-a000-000000000005"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Concentration"}},
+            {column: {name: description, value: "Some spells must be concentrated on to persist. Taking damage forces a Constitution save (DC 10 or half the damage taken, whichever is higher) or the spell ends. You can concentrate on only one spell at a time."}}]}
+        - insert: {tableName: glossary_entries, columns: [
+            {column: {name: id, value: "6105a000-0000-4000-a000-000000000006"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Cover"}},
+            {column: {name: description, value: "Obstacles between attacker and target grant defense: Half Cover gives +2 AC and Dexterity saves, Three-Quarters Cover gives +5, and Total Cover can't be targeted directly."}}]}
+        - insert: {tableName: glossary_entries, columns: [
+            {column: {name: id, value: "6105a000-0000-4000-a000-000000000007"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Difficult Terrain"}},
+            {column: {name: description, value: "Each foot of movement through it costs 1 extra foot. The cost isn't multiplied for overlapping sources of Difficult Terrain."}}]}
+        - insert: {tableName: glossary_entries, columns: [
+            {column: {name: id, value: "6105a000-0000-4000-a000-000000000008"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Long Rest"}},
+            {column: {name: description, value: "A period of at least 8 hours of light activity and sleep. Restores all lost Hit Points and Hit Dice (up to half your total) and refreshes most expended resources. One per day."}}]}
+        - insert: {tableName: glossary_entries, columns: [
+            {column: {name: id, value: "6105a000-0000-4000-a000-000000000009"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Short Rest"}},
+            {column: {name: description, value: "A period of at least 1 hour of light activity. You can spend Hit Dice to regain Hit Points and recover features that recharge on a Short Rest."}}]}
+        - insert: {tableName: glossary_entries, columns: [
+            {column: {name: id, value: "6105a000-0000-4000-a000-00000000000a"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Initiative"}},
+            {column: {name: description, value: "A Dexterity check made at the start of combat to determine turn order, from highest result to lowest."}}]}
+        - insert: {tableName: glossary_entries, columns: [
+            {column: {name: id, value: "6105a000-0000-4000-a000-00000000000b"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Saving Throw"}},
+            {column: {name: description, value: "A d20 roll to resist a threat, adding the relevant ability modifier (and Proficiency Bonus if proficient) against a set DC."}}]}
+        - insert: {tableName: glossary_entries, columns: [
+            {column: {name: id, value: "6105a000-0000-4000-a000-00000000000c"}},
+            {column: {name: created_at, valueComputed: "now()"}}, {column: {name: updated_at, valueComputed: "now()"}}, {column: {name: version, valueNumeric: 0}},
+            {column: {name: name, value: "Armor Class"}},
+            {column: {name: description, value: "The target number an attack roll must equal or exceed to hit a creature or object."}}]}

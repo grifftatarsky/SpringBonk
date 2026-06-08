@@ -218,6 +218,67 @@ export const CONTENT_TYPES: readonly ContentTypeDef[] = [
         .join(' · '),
   },
   {
+    key: 'feats',
+    title: 'Feats',
+    apiPath: 'feat',
+    iconPath: 'M12 3l2.2 4.8 5.3.5-4 3.6 1.2 5.1L12 14.8 7.3 17l1.2-5.1-4-3.6 5.3-.5z',
+    description: 'Origin, general, and epic boons.',
+    implemented: true,
+    fields: [
+      {
+        key: 'featCategory',
+        label: 'Category',
+        kind: 'select',
+        group: 'meta',
+        required: true,
+        options: [
+          { value: 'Origin', label: 'Origin' },
+          { value: 'General', label: 'General' },
+          { value: 'Fighting Style', label: 'Fighting Style' },
+          { value: 'Epic Boon', label: 'Epic Boon' },
+        ],
+      },
+      { key: 'prerequisite', label: 'Prerequisite', kind: 'text', group: 'meta' },
+      { key: 'description', label: 'Description', kind: 'textarea', group: 'prose', required: true },
+    ],
+    subtitle: i =>
+      [String(i['featCategory'] ?? ''), i['prerequisite'] ? `Prereq: ${i['prerequisite']}` : '']
+        .filter(Boolean)
+        .join(' · '),
+    group: i => ({
+      key: String(i['featCategory'] ?? 'Other'),
+      label: String(i['featCategory'] ?? 'Other'),
+      order: 0,
+    }),
+  },
+  {
+    key: 'conditions',
+    title: 'Conditions',
+    apiPath: 'condition',
+    iconPath: 'M3 12h4l2.5 7 5-14 2.5 7h4',
+    description: 'Blinded, Prone, Stunned, and the rest.',
+    implemented: true,
+    fields: [{ key: 'description', label: 'Effect', kind: 'textarea', group: 'prose', required: true }],
+  },
+  {
+    key: 'weapon-mastery',
+    title: 'Weapon Mastery',
+    apiPath: 'weapon-mastery',
+    iconPath: 'M14.5 3.5 21 10l-2 2-6.5-6.5zM3 21l6-6M9 9l-6 6 3 3 6-6',
+    description: 'Cleave, Topple, Vex, and more.',
+    implemented: true,
+    fields: [{ key: 'description', label: 'Effect', kind: 'textarea', group: 'prose', required: true }],
+  },
+  {
+    key: 'glossary',
+    title: 'Rules glossary',
+    apiPath: 'glossary',
+    iconPath: 'M5 4h13a1 1 0 0 1 1 1v15H6a2 2 0 0 1-2-2V4zM9 4v16',
+    description: 'Quick reference for key rules terms.',
+    implemented: true,
+    fields: [{ key: 'description', label: 'Definition', kind: 'textarea', group: 'prose', required: true }],
+  },
+  {
     key: 'characters',
     title: 'Characters',
     apiPath: 'character',

@@ -131,6 +131,162 @@ databaseChangeLog:
               - {column: {name: skill_proficiencies, value: "Arcana, History"}}
               - {column: {name: tool_proficiencies, value: "Calligrapher's Supplies"}}
               - {column: {name: description, value: "You spent years studying lore, poring over tomes in libraries and dusty archives."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-000000000005"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Artisan"}}
+              - {column: {name: ability_scores, value: "Strength, Dexterity, Intelligence"}}
+              - {column: {name: feat, value: "Crafter"}}
+              - {column: {name: skill_proficiencies, value: "Investigation, Persuasion"}}
+              - {column: {name: tool_proficiencies, value: "Artisan's Tools"}}
+              - {column: {name: description, value: "Apprenticed to a trade and skilled with the tools of a craft."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-000000000006"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Charlatan"}}
+              - {column: {name: ability_scores, value: "Dexterity, Constitution, Charisma"}}
+              - {column: {name: feat, value: "Skilled"}}
+              - {column: {name: skill_proficiencies, value: "Deception, Sleight of Hand"}}
+              - {column: {name: tool_proficiencies, value: "Forgery Kit"}}
+              - {column: {name: description, value: "Made a living on charm, disguises, and a convincing lie."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-000000000007"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Entertainer"}}
+              - {column: {name: ability_scores, value: "Strength, Dexterity, Charisma"}}
+              - {column: {name: feat, value: "Musician"}}
+              - {column: {name: skill_proficiencies, value: "Acrobatics, Performance"}}
+              - {column: {name: tool_proficiencies, value: "Musical Instrument"}}
+              - {column: {name: description, value: "Played to crowds — music, theatrics, and the open road."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-000000000008"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Farmer"}}
+              - {column: {name: ability_scores, value: "Strength, Constitution, Wisdom"}}
+              - {column: {name: feat, value: "Tough"}}
+              - {column: {name: skill_proficiencies, value: "Animal Handling, Nature"}}
+              - {column: {name: tool_proficiencies, value: "Carpenter's Tools"}}
+              - {column: {name: description, value: "Raised on the land, hardened by honest labor and lean seasons."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-000000000009"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Guard"}}
+              - {column: {name: ability_scores, value: "Strength, Intelligence, Wisdom"}}
+              - {column: {name: feat, value: "Alert"}}
+              - {column: {name: skill_proficiencies, value: "Athletics, Perception"}}
+              - {column: {name: tool_proficiencies, value: "Gaming Set"}}
+              - {column: {name: description, value: "Stood watch over wall, gate, or caravan."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-00000000000a"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Guide"}}
+              - {column: {name: ability_scores, value: "Dexterity, Constitution, Wisdom"}}
+              - {column: {name: feat, value: "Magic Initiate (Druid)"}}
+              - {column: {name: skill_proficiencies, value: "Stealth, Survival"}}
+              - {column: {name: tool_proficiencies, value: "Cartographer's Tools"}}
+              - {column: {name: description, value: "Knew the hidden trails and the ways of untamed places."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-00000000000b"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Hermit"}}
+              - {column: {name: ability_scores, value: "Constitution, Wisdom, Charisma"}}
+              - {column: {name: feat, value: "Healer"}}
+              - {column: {name: skill_proficiencies, value: "Medicine, Religion"}}
+              - {column: {name: tool_proficiencies, value: "Herbalism Kit"}}
+              - {column: {name: description, value: "Withdrew from the world to study, pray, or simply be alone."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-00000000000c"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Merchant"}}
+              - {column: {name: ability_scores, value: "Constitution, Intelligence, Charisma"}}
+              - {column: {name: feat, value: "Lucky"}}
+              - {column: {name: skill_proficiencies, value: "Animal Handling, Persuasion"}}
+              - {column: {name: tool_proficiencies, value: "Navigator's Tools"}}
+              - {column: {name: description, value: "Bought, sold, and bartered along the trade roads."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-00000000000d"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Noble"}}
+              - {column: {name: ability_scores, value: "Strength, Intelligence, Charisma"}}
+              - {column: {name: feat, value: "Skilled"}}
+              - {column: {name: skill_proficiencies, value: "History, Persuasion"}}
+              - {column: {name: tool_proficiencies, value: "Gaming Set"}}
+              - {column: {name: description, value: "Born to privilege and schooled in courtly manners and politics."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-00000000000e"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Sailor"}}
+              - {column: {name: ability_scores, value: "Strength, Dexterity, Wisdom"}}
+              - {column: {name: feat, value: "Tavern Brawler"}}
+              - {column: {name: skill_proficiencies, value: "Acrobatics, Perception"}}
+              - {column: {name: tool_proficiencies, value: "Navigator's Tools"}}
+              - {column: {name: description, value: "Crewed a ship across open water, deck and rigging both."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-00000000000f"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Scribe"}}
+              - {column: {name: ability_scores, value: "Dexterity, Intelligence, Wisdom"}}
+              - {column: {name: feat, value: "Skilled"}}
+              - {column: {name: skill_proficiencies, value: "Investigation, Perception"}}
+              - {column: {name: tool_proficiencies, value: "Calligrapher's Supplies"}}
+              - {column: {name: description, value: "Worked with quill and ledger, copying and keeping records."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-000000000010"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Wayfarer"}}
+              - {column: {name: ability_scores, value: "Dexterity, Wisdom, Charisma"}}
+              - {column: {name: feat, value: "Lucky"}}
+              - {column: {name: skill_proficiencies, value: "Insight, Stealth"}}
+              - {column: {name: tool_proficiencies, value: "Thieves' Tools"}}
+              - {column: {name: description, value: "Grew up on streets and roads, getting by on wits and luck."}}
 
   - changeSet:
       id: 009-seed-species
@@ -161,7 +317,7 @@ databaseChangeLog:
               - {column: {name: size, value: "Medium"}}
               - {column: {name: speed, value: "30 feet"}}
               - {column: {name: creature_type, value: "Humanoid"}}
-              - {column: {name: traits, value: "Darkvision, Fey Ancestry, Keen Senses, Trance."}}
+              - {column: {name: traits, value: "Darkvision, Elven Lineage, Fey Ancestry, Keen Senses, Trance."}}
               - {column: {name: description, value: "Graceful and long-lived, with a deep affinity for magic and the natural world."}}
         - insert:
             tableName: species
@@ -189,6 +345,71 @@ databaseChangeLog:
               - {column: {name: creature_type, value: "Humanoid"}}
               - {column: {name: traits, value: "Brave, Halfling Nimbleness, Luck, Naturally Stealthy."}}
               - {column: {name: description, value: "Small, cheerful, and famously lucky wanderers who value comfort and community."}}
+        - insert:
+            tableName: species
+            columns:
+              - {column: {name: id, value: "5ec50000-0000-4000-a000-000000000005"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Dragonborn"}}
+              - {column: {name: size, value: "Medium"}}
+              - {column: {name: speed, value: "30 feet"}}
+              - {column: {name: creature_type, value: "Humanoid"}}
+              - {column: {name: traits, value: "Draconic Ancestry, Breath Weapon, Damage Resistance, Darkvision, Draconic Flight."}}
+              - {column: {name: description, value: "Dragon-blooded folk who carry a breath weapon drawn from their ancestry."}}
+        - insert:
+            tableName: species
+            columns:
+              - {column: {name: id, value: "5ec50000-0000-4000-a000-000000000006"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Gnome"}}
+              - {column: {name: size, value: "Small"}}
+              - {column: {name: speed, value: "30 feet"}}
+              - {column: {name: creature_type, value: "Humanoid"}}
+              - {column: {name: traits, value: "Darkvision, Gnomish Cunning, Gnomish Lineage."}}
+              - {column: {name: description, value: "Small, curious, and irrepressibly clever tinkers and tricksters."}}
+        - insert:
+            tableName: species
+            columns:
+              - {column: {name: id, value: "5ec50000-0000-4000-a000-000000000007"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Goliath"}}
+              - {column: {name: size, value: "Medium"}}
+              - {column: {name: speed, value: "35 feet"}}
+              - {column: {name: creature_type, value: "Humanoid"}}
+              - {column: {name: traits, value: "Giant Ancestry, Large Form, Powerful Build."}}
+              - {column: {name: description, value: "Towering, giant-blooded wanderers marked by the gifts of their lineage."}}
+        - insert:
+            tableName: species
+            columns:
+              - {column: {name: id, value: "5ec50000-0000-4000-a000-000000000008"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Orc"}}
+              - {column: {name: size, value: "Medium"}}
+              - {column: {name: speed, value: "30 feet"}}
+              - {column: {name: creature_type, value: "Humanoid"}}
+              - {column: {name: traits, value: "Adrenaline Rush, Darkvision, Relentless Endurance."}}
+              - {column: {name: description, value: "Powerful and tenacious folk built to endure and push onward."}}
+        - insert:
+            tableName: species
+            columns:
+              - {column: {name: id, value: "5ec50000-0000-4000-a000-000000000009"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Tiefling"}}
+              - {column: {name: size, value: "Medium"}}
+              - {column: {name: speed, value: "30 feet"}}
+              - {column: {name: creature_type, value: "Humanoid"}}
+              - {column: {name: traits, value: "Darkvision, Fiendish Legacy, Otherworldly Presence."}}
+              - {column: {name: description, value: "Bearers of a fiendish legacy, set apart by their otherworldly heritage."}}
 
   - changeSet:
       id: 009-seed-vocations
@@ -247,6 +468,102 @@ databaseChangeLog:
               - {column: {name: hit_die, value: "d8"}}
               - {column: {name: saving_throws, value: "Wisdom, Charisma"}}
               - {column: {name: description, value: "A priestly champion who wields divine magic in service of a higher power."}}
+        - insert:
+            tableName: vocations
+            columns:
+              - {column: {name: id, value: "0cac0000-0000-4000-a000-000000000005"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Barbarian"}}
+              - {column: {name: primary_ability, value: "Strength"}}
+              - {column: {name: hit_die, value: "d12"}}
+              - {column: {name: saving_throws, value: "Strength, Constitution"}}
+              - {column: {name: description, value: "A fierce warrior who channels primal fury in battle."}}
+        - insert:
+            tableName: vocations
+            columns:
+              - {column: {name: id, value: "0cac0000-0000-4000-a000-000000000006"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Bard"}}
+              - {column: {name: primary_ability, value: "Charisma"}}
+              - {column: {name: hit_die, value: "d8"}}
+              - {column: {name: saving_throws, value: "Dexterity, Charisma"}}
+              - {column: {name: description, value: "A versatile performer whose magic flows through music and words."}}
+        - insert:
+            tableName: vocations
+            columns:
+              - {column: {name: id, value: "0cac0000-0000-4000-a000-000000000007"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Druid"}}
+              - {column: {name: primary_ability, value: "Wisdom"}}
+              - {column: {name: hit_die, value: "d8"}}
+              - {column: {name: saving_throws, value: "Intelligence, Wisdom"}}
+              - {column: {name: description, value: "A guardian of the wild who wields nature's magic and forms."}}
+        - insert:
+            tableName: vocations
+            columns:
+              - {column: {name: id, value: "0cac0000-0000-4000-a000-000000000008"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Monk"}}
+              - {column: {name: primary_ability, value: "Dexterity and Wisdom"}}
+              - {column: {name: hit_die, value: "d8"}}
+              - {column: {name: saving_throws, value: "Strength, Dexterity"}}
+              - {column: {name: description, value: "A martial artist who channels inner energy through discipline."}}
+        - insert:
+            tableName: vocations
+            columns:
+              - {column: {name: id, value: "0cac0000-0000-4000-a000-000000000009"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Paladin"}}
+              - {column: {name: primary_ability, value: "Strength and Charisma"}}
+              - {column: {name: hit_die, value: "d10"}}
+              - {column: {name: saving_throws, value: "Wisdom, Charisma"}}
+              - {column: {name: description, value: "A holy warrior bound by a sacred oath."}}
+        - insert:
+            tableName: vocations
+            columns:
+              - {column: {name: id, value: "0cac0000-0000-4000-a000-00000000000a"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Ranger"}}
+              - {column: {name: primary_ability, value: "Dexterity and Wisdom"}}
+              - {column: {name: hit_die, value: "d10"}}
+              - {column: {name: saving_throws, value: "Strength, Dexterity"}}
+              - {column: {name: description, value: "A hunter and tracker at home on the wild frontier."}}
+        - insert:
+            tableName: vocations
+            columns:
+              - {column: {name: id, value: "0cac0000-0000-4000-a000-00000000000b"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Sorcerer"}}
+              - {column: {name: primary_ability, value: "Charisma"}}
+              - {column: {name: hit_die, value: "d6"}}
+              - {column: {name: saving_throws, value: "Constitution, Charisma"}}
+              - {column: {name: description, value: "An innate caster whose power wells up from within."}}
+        - insert:
+            tableName: vocations
+            columns:
+              - {column: {name: id, value: "0cac0000-0000-4000-a000-00000000000c"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Warlock"}}
+              - {column: {name: primary_ability, value: "Charisma"}}
+              - {column: {name: hit_die, value: "d8"}}
+              - {column: {name: saving_throws, value: "Wisdom, Charisma"}}
+              - {column: {name: description, value: "A caster who draws power from a pact with a patron."}}
 
   - changeSet:
       id: 009-seed-monsters

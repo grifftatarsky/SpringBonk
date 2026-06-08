@@ -1,0 +1,113 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 011 — reference content tables: feats, conditions, weapon_masteries,
+  # glossary_entries. Each is CatalogContent (owner_id, overrides_id self-FK)
+  # so the shared override/permission logic applies uniformly. Kept as distinct
+  # per-domain tables (rather than one polymorphic "reference" table) so they
+  # can diverge and map 1:1 to the API + finder folders.
+  # ==========================================================================
+  - changeSet:
+      id: 011-feats-create
+      author: oozengine
+      preConditions: {onFail: MARK_RAN, not: {tableExists: {tableName: feats}}}
+      changes:
+        - createTable:
+            tableName: feats
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: owner_id, type: UUID}
+              - column: {name: overrides_id, type: UUID}
+              - column: {name: name, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: feat_category, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: prerequisite, type: VARCHAR(255)}
+              - column: {name: description, type: TEXT, constraints: {nullable: false}}
+        - addForeignKeyConstraint:
+            constraintName: fk_feats_overrides
+            baseTableName: feats
+            baseColumnNames: overrides_id
+            referencedTableName: feats
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex: {tableName: feats, indexName: idx_feats_owner, columns: [{column: {name: owner_id}}]}
+        - createIndex: {tableName: feats, indexName: idx_feats_name, columns: [{column: {name: name}}]}
+
+  - changeSet:
+      id: 011-conditions-create
+      author: oozengine
+      preConditions: {onFail: MARK_RAN, not: {tableExists: {tableName: conditions}}}
+      changes:
+        - createTable:
+            tableName: conditions
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: owner_id, type: UUID}
+              - column: {name: overrides_id, type: UUID}
+              - column: {name: name, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: description, type: TEXT, constraints: {nullable: false}}
+        - addForeignKeyConstraint:
+            constraintName: fk_conditions_overrides
+            baseTableName: conditions
+            baseColumnNames: overrides_id
+            referencedTableName: conditions
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex: {tableName: conditions, indexName: idx_conditions_owner, columns: [{column: {name: owner_id}}]}
+        - createIndex: {tableName: conditions, indexName: idx_conditions_name, columns: [{column: {name: name}}]}
+
+  - changeSet:
+      id: 011-weapon-masteries-create
+      author: oozengine
+      preConditions: {onFail: MARK_RAN, not: {tableExists: {tableName: weapon_masteries}}}
+      changes:
+        - createTable:
+            tableName: weapon_masteries
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: owner_id, type: UUID}
+              - column: {name: overrides_id, type: UUID}
+              - column: {name: name, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: description, type: TEXT, constraints: {nullable: false}}
+        - addForeignKeyConstraint:
+            constraintName: fk_weapon_masteries_overrides
+            baseTableName: weapon_masteries
+            baseColumnNames: overrides_id
+            referencedTableName: weapon_masteries
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex: {tableName: weapon_masteries, indexName: idx_weapon_masteries_owner, columns: [{column: {name: owner_id}}]}
+        - createIndex: {tableName: weapon_masteries, indexName: idx_weapon_masteries_name, columns: [{column: {name: name}}]}
+
+  - changeSet:
+      id: 011-glossary-entries-create
+      author: oozengine
+      preConditions: {onFail: MARK_RAN, not: {tableExists: {tableName: glossary_entries}}}
+      changes:
+        - createTable:
+            tableName: glossary_entries
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: owner_id, type: UUID}
+              - column: {name: overrides_id, type: UUID}
+              - column: {name: name, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: description, type: TEXT, constraints: {nullable: false}}
+        - addForeignKeyConstraint:
+            constraintName: fk_glossary_entries_overrides
+            baseTableName: glossary_entries
+            baseColumnNames: overrides_id
+            referencedTableName: glossary_entries
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex: {tableName: glossary_entries, indexName: idx_glossary_entries_owner, columns: [{column: {name: owner_id}}]}
+        - createIndex: {tableName: glossary_entries, indexName: idx_glossary_entries_name, columns: [{column: {name: name}}]}
