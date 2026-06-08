@@ -1,0 +1,36 @@
+databaseChangeLog:
+  # Master changelog. Individual changesets live in db/changelog/changes/
+  # and are included here in deterministic order. Each change file should
+  # contain one or more changeSet entries with stable ids, and should NEVER
+  # be modified after being applied to a shared environment — new schema work
+  # goes into new files.
+  - include:
+      file: db/changelog/changes/001-spells.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/002-vocations.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/003-species.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/004-catalog-ownership.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/005-hidden-content.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/006-seed-spells.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/007-content-fields.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/008-content-tables.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/009-seed-content.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/010-characters.yaml
+      relativeToChangelogFile: false

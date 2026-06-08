@@ -1,0 +1,121 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 008 — new catalog tables: items, backgrounds, monsters. Each carries the
+  # BaseEntity + CatalogContent columns (owner_id, overrides_id self-FK) so the
+  # shared override logic works uniformly.
+  # ==========================================================================
+  - changeSet:
+      id: 008-items-create
+      author: oozengine
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: items
+      changes:
+        - createTable:
+            tableName: items
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: owner_id, type: UUID}
+              - column: {name: overrides_id, type: UUID}
+              - column: {name: name, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: category, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: rarity, type: VARCHAR(255)}
+              - column: {name: cost, type: VARCHAR(255)}
+              - column: {name: weight, type: VARCHAR(255)}
+              - column: {name: attunement, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: description, type: TEXT, constraints: {nullable: false}}
+              - column: {name: properties, type: TEXT}
+        - addForeignKeyConstraint:
+            constraintName: fk_items_overrides
+            baseTableName: items
+            baseColumnNames: overrides_id
+            referencedTableName: items
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex: {tableName: items, indexName: idx_items_owner, columns: [{column: {name: owner_id}}]}
+        - createIndex: {tableName: items, indexName: idx_items_name, columns: [{column: {name: name}}]}
+
+  - changeSet:
+      id: 008-backgrounds-create
+      author: oozengine
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: backgrounds
+      changes:
+        - createTable:
+            tableName: backgrounds
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: owner_id, type: UUID}
+              - column: {name: overrides_id, type: UUID}
+              - column: {name: name, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: ability_scores, type: VARCHAR(255)}
+              - column: {name: feat, type: VARCHAR(255)}
+              - column: {name: skill_proficiencies, type: VARCHAR(255)}
+              - column: {name: tool_proficiencies, type: VARCHAR(255)}
+              - column: {name: equipment, type: TEXT}
+              - column: {name: description, type: TEXT, constraints: {nullable: false}}
+        - addForeignKeyConstraint:
+            constraintName: fk_backgrounds_overrides
+            baseTableName: backgrounds
+            baseColumnNames: overrides_id
+            referencedTableName: backgrounds
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex: {tableName: backgrounds, indexName: idx_backgrounds_owner, columns: [{column: {name: owner_id}}]}
+        - createIndex: {tableName: backgrounds, indexName: idx_backgrounds_name, columns: [{column: {name: name}}]}
+
+  - changeSet:
+      id: 008-monsters-create
+      author: oozengine
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: monsters
+      changes:
+        - createTable:
+            tableName: monsters
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: owner_id, type: UUID}
+              - column: {name: overrides_id, type: UUID}
+              - column: {name: name, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: size, type: VARCHAR(255)}
+              - column: {name: creature_type, type: VARCHAR(255)}
+              - column: {name: alignment, type: VARCHAR(255)}
+              - column: {name: armor_class, type: INT}
+              - column: {name: hit_points, type: VARCHAR(255)}
+              - column: {name: speed, type: VARCHAR(255)}
+              - column: {name: challenge_rating, type: VARCHAR(255)}
+              - column: {name: strength, type: INT}
+              - column: {name: dexterity, type: INT}
+              - column: {name: constitution, type: INT}
+              - column: {name: intelligence, type: INT}
+              - column: {name: wisdom, type: INT}
+              - column: {name: charisma, type: INT}
+              - column: {name: traits, type: TEXT}
+              - column: {name: actions, type: TEXT}
+              - column: {name: description, type: TEXT}
+        - addForeignKeyConstraint:
+            constraintName: fk_monsters_overrides
+            baseTableName: monsters
+            baseColumnNames: overrides_id
+            referencedTableName: monsters
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex: {tableName: monsters, indexName: idx_monsters_owner, columns: [{column: {name: owner_id}}]}
+        - createIndex: {tableName: monsters, indexName: idx_monsters_name, columns: [{column: {name: name}}]}

@@ -1,0 +1,56 @@
+<div class="flex items-center justify-between gap-3 border-b border-rule px-2 py-2 max-sm:px-3">
+  <div class="flex items-center gap-2 text-fg-subtle">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+         stroke-linecap="round" stroke-linejoin="round" class="size-4">
+      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    </svg>
+    <span class="text-xs font-semibold uppercase tracking-[0.15em]">Oozengine</span>
+  </div>
+
+  <!-- DESKTOP: inline feature buttons -->
+  <div class="flex items-center gap-1.5 max-sm:hidden">
+    @for (f of features; track f.label) {
+      <ooze-tooltip text="{{ f.label }} — coming soon">
+        <button type="button" disabled
+                class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md border border-rule px-2.5 py-1.5 text-xs font-medium text-fg-subtle opacity-60">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+               stroke-linecap="round" stroke-linejoin="round" class="size-3.5">
+            <path [attr.d]="f.iconPath" />
+          </svg>
+          {{ f.label }}
+        </button>
+      </ooze-tooltip>
+    }
+  </div>
+
+  <!-- MOBILE: a single dropdown -->
+  <div class="relative sm:hidden">
+    <button type="button"
+            class="inline-flex items-center gap-1.5 rounded-md border border-rule px-2.5 py-1.5 text-xs font-medium text-fg-muted transition hover:bg-bg-subtle"
+            [attr.aria-expanded]="menuOpen()" aria-haspopup="menu" (click)="toggleMenu()">
+      Tools
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" class="size-3.5">
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    </button>
+    @if (menuOpen()) {
+      <div class="absolute right-0 z-30 mt-1.5 w-56 overflow-hidden rounded-md border border-rule bg-bg shadow-lg"
+           role="menu">
+        @for (f of features; track f.label) {
+          <div class="flex items-center justify-between gap-2 px-3 py-2 text-sm text-fg-subtle"
+               role="menuitem" aria-disabled="true">
+            <span class="inline-flex items-center gap-2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+                   stroke-linecap="round" stroke-linejoin="round" class="size-4">
+                <path [attr.d]="f.iconPath" />
+              </svg>
+              {{ f.label }}
+            </span>
+            <span class="rounded border border-rule px-1.5 py-0.5 text-[0.6rem] uppercase tracking-wide text-fg-subtle">Soon</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

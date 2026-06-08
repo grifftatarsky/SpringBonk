@@ -1,0 +1,54 @@
+package com.gpt.oozengine.security;
+
+import com.c4_soft.springaddons.security.oidc.starter.ClaimSetAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oidc.starter.ConfigurableClaimSetAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
+import com.gpt.oozengine.constant.security.Permission;
+import com.gpt.oozengine.constant.security.Role;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import org.springframework.context.annotation.Primary;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Component;
+
+/**
+ * Replaces the default spring-addons authorities converter so that every
+ * application {@link Role} present in the JWT also contributes its bundled
+ * {@link Permission}s as authorities.
+ *
+ * <p>Delegates to the stock converter for claim extraction (so the
+ * {@code authorities.path} YAML config still applies), then expands roles into
+ * a deduplicated set of role + permission authorities. Unknown roles (Keycloak
+ * defaults like {@code offline_access}) pass through unchanged.
+ */
+@Component
+@Primary
+public class PermissionExpandingAuthoritiesConverter implements ClaimSetAuthoritiesConverter {
+  private final ConfigurableClaimSetAuthoritiesConverter delegate;
+
+  public PermissionExpandingAuthoritiesConverter(OpenidProviderPropertiesResolver resolver) {
+    this.delegate = new ConfigurableClaimSetAuthoritiesConverter(resolver);
+  }
+
+  @Override
+  public Collection<? extends GrantedAuthority> convert(Map<String, Object> source) {
+    Collection<? extends GrantedAuthority> base = delegate.convert(source);
+    LinkedHashSet<GrantedAuthority> expanded = new LinkedHashSet<>(base);
+    for (GrantedAuthority authority : base) {
+      Role.fromAuthority(authority.getAuthority())
+          .ifPresent(
+              role -> {
+                for (Permission permission : role.getPermissions()) {
+                  expanded.add(new SimpleGrantedAuthority(permission.name()));
+                }
+              });
+    }
+    // Writes are gated on the DUNGEON_MASTER role (expanded into MANAGE_CONTENT
+    // above). Users without it — logged in or anonymous — get only the public,
+    // read-only base view. Granting the role is the future "request access"
+    // flow. (To make every signed-in user a DM instead, add MANAGE_CONTENT here.)
+    return expanded;
+  }
+}

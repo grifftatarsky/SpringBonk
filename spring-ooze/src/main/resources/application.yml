@@ -1,0 +1,79 @@
+# Base #############################################################################################
+ooz-scheme: ${SCHEME_OOZ:http}
+ooz-container-name: ${CONTAINER_NAME_OOZ:localhost}
+ooz-prefix: ${PREFIX_OOZ:/ooz}
+# Reverse Proxy ####################################################################################
+reverse-proxy-scheme: ${SCHEME_REVERSE_PROXY:http}
+reverse-proxy-port: ${PORT_REVERSE_PROXY:7080}
+reverse-proxy-container-name: ${CONTAINER_NAME_REVERSE_PROXY:localhost}
+reverse-proxy-uri: ${reverse-proxy-scheme}://${reverse-proxy-container-name}:${reverse-proxy-port}
+# Authorization Server #############################################################################
+auth-server-prefix: ${PREFIX_AUTH:/auth}
+auth-server-issuer: ${AUTH_ISSUER:/realms/local-keycloak}
+auth-server-jwk-set: ${AUTH_JWK_SET:/protocol/openid-connect/certs}
+issuer: ${reverse-proxy-uri}${auth-server-prefix}${auth-server-issuer}
+jwk-set: ${issuer}${auth-server-jwk-set}
+# Server Properties ################################################################################
+server:
+  port: ${PORT_OOZ:7085}
+# Spring Properties ################################################################################
+spring:
+  application:
+    name: Ooze Engine
+  devtools:
+    add-properties: ${DEV_TOOLS_ADD_PROPS:false}
+    livereload:
+      enabled: ${DEV_TOOLS_LIVE_RELOAD:false}
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    # Defaults match init-db.sh / .env so the module boots against the shared
+    # Postgres without exported env vars. Tests override this via the
+    # Testcontainers @ServiceConnection, so these values are unused there.
+    url: ${OOZ_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ooz-db}
+    username: ${OOZ_DATASOURCE_USERNAME:ooz_user}
+    password: ${OOZ_DATASOURCE_PASSWORD:ooz_password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      # Liquibase owns schema migrations; Hibernate only validates that the
+      # JPA entities match the Liquibase-managed schema at startup.
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    default-schema: public
+# Spring OIDC Properties ###########################################################################
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+          - iss: ${issuer}
+            username-claim: ${AUTH_USERNAME_CLAIM_JSON:$.preferred_username}
+            authorities:
+              - path: ${AUTH_AUTHORITIES_JSON:$.realm_access.roles}
+            aud: ${AUTH_AUDIENCE:}
+        resourceserver:
+          permit-all:
+            - /swagger-ui*/**
+            - /v3/api-docs*/**
+            - /actuator/health/readiness
+            - /actuator/health/liveness
+            # Catalog content: reads are public (base 5e content is shared);
+            # writes are gated per-method via @PreAuthorize('MANAGE_CONTENT').
+            - /spell/**
+            - /item/**
+            - /background/**
+            - /species/**
+            - /vocation/**
+            - /monster/**
+            - /character/**
+# Log Levels #######################################################################################
+logging:
+  level:
+    org:
+      keycloak: INFO

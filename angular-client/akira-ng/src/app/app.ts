@@ -147,6 +147,7 @@ export class App {
     { label: 'Elections', href: '/elections' },
     { label: 'Activity', href: '/activity' },
     { label: 'Blog', href: '/blog' },
+    { label: 'Oozengine', href: '/ooze', accent: true, ariaLabel: 'Oozengine DM tools (federated)' },
     {
       label: 'GitHub',
       href: 'https://github.com/grifftatarsky/SpringBonk',

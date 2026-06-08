@@ -78,7 +78,11 @@ services:
     ports:
       - "7080:7080"
     volumes:
-      - ./angular-client/akira-ng/dist/akira-ng/browser:/usr/share/nginx/html:ro
+      # Mount the stable parent dist/ (shell + ooze remote), NOT the per-app
+      # browser/ dirs: those are replaced on every `ng build`, which invalidates
+      # a deeper bind mount and 403s the site until nginx is recreated. nginx
+      # resolves paths per-request, so it always reads the current subdir here.
+      - ./angular-client/akira-ng/dist:/usr/share/nginx/dist:ro
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certs:/etc/ssl/certs:ro
       - ./logs:/var/log/nginx

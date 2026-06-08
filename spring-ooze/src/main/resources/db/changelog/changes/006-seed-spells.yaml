@@ -1,0 +1,219 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 006 — seed base spells. A representative slice of 5e (2024) spells, loaded
+  # as base content (owner_id NULL ⇒ shared + immutable). Runs once, and only
+  # if the table is empty, so it never fights user/imported data.
+  # ==========================================================================
+  - changeSet:
+      id: 006-seed-spells
+      author: oozengine
+      preConditions:
+        onFail: MARK_RAN
+        sqlCheck:
+          expectedResult: 0
+          sql: SELECT COUNT(*) FROM spells
+      changes:
+        - insert:
+            tableName: spells
+            columns:
+              - column: {name: id, value: "5be1a000-0000-4000-a000-000000000001"}
+              - column: {name: created_at, valueComputed: "now()"}
+              - column: {name: updated_at, valueComputed: "now()"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: name, value: "Fire Bolt"}
+              - column: {name: level, valueNumeric: 0}
+              - column: {name: school, value: "EVOCATION"}
+              - column: {name: casting_time, value: "Action"}
+              - column: {name: range, value: "120 feet"}
+              - column: {name: duration, value: "Instantaneous"}
+              - column: {name: verbal_component, valueBoolean: true}
+              - column: {name: somatic_component, valueBoolean: true}
+              - column: {name: description, value: "You hurl a mote of fire at a creature or object within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Fire damage. A flammable object hit by this spell starts burning if it isn't being worn or carried."}
+              - column: {name: at_higher_levels, value: "The damage increases by 1d10 when you reach levels 5 (2d10), 11 (3d10), and 17 (4d10)."}
+        - insert:
+            tableName: spells
+            columns:
+              - column: {name: id, value: "5be1a000-0000-4000-a000-000000000002"}
+              - column: {name: created_at, valueComputed: "now()"}
+              - column: {name: updated_at, valueComputed: "now()"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: name, value: "Mage Hand"}
+              - column: {name: level, valueNumeric: 0}
+              - column: {name: school, value: "CONJURATION"}
+              - column: {name: casting_time, value: "Action"}
+              - column: {name: range, value: "30 feet"}
+              - column: {name: duration, value: "1 minute"}
+              - column: {name: verbal_component, valueBoolean: true}
+              - column: {name: somatic_component, valueBoolean: true}
+              - column: {name: description, value: "A spectral, floating hand appears at a point you choose within range. The hand can manipulate objects, open unlocked doors and containers, stow or retrieve items, and pour out the contents of a container. You can move the hand up to 30 feet each time you use it. The hand can't attack, activate magic items, or carry more than 10 pounds."}
+        - insert:
+            tableName: spells
+            columns:
+              - column: {name: id, value: "5be1a000-0000-4000-a000-000000000003"}
+              - column: {name: created_at, valueComputed: "now()"}
+              - column: {name: updated_at, valueComputed: "now()"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: name, value: "Eldritch Blast"}
+              - column: {name: level, valueNumeric: 0}
+              - column: {name: school, value: "EVOCATION"}
+              - column: {name: casting_time, value: "Action"}
+              - column: {name: range, value: "120 feet"}
+              - column: {name: duration, value: "Instantaneous"}
+              - column: {name: verbal_component, valueBoolean: true}
+              - column: {name: somatic_component, valueBoolean: true}
+              - column: {name: description, value: "A beam of crackling energy streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Force damage."}
+              - column: {name: at_higher_levels, value: "The spell creates more than one beam at levels 5 (2 beams), 11 (3 beams), and 17 (4 beams). You can direct the beams at the same target or different ones. Make a separate attack roll for each beam."}
+        - insert:
+            tableName: spells
+            columns:
+              - column: {name: id, value: "5be1a000-0000-4000-a000-000000000004"}
+              - column: {name: created_at, valueComputed: "now()"}
+              - column: {name: updated_at, valueComputed: "now()"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: name, value: "Magic Missile"}
+              - column: {name: level, valueNumeric: 1}
+              - column: {name: school, value: "EVOCATION"}
+              - column: {name: casting_time, value: "Action"}
+              - column: {name: range, value: "120 feet"}
+              - column: {name: duration, value: "Instantaneous"}
+              - column: {name: verbal_component, valueBoolean: true}
+              - column: {name: somatic_component, valueBoolean: true}
+              - column: {name: description, value: "You create three glowing darts of magical force. Each dart hits a creature of your choice that you can see within range. A dart deals 1d4 + 1 Force damage to its target. The darts all strike simultaneously, and you can direct them to hit one creature or several."}
+              - column: {name: at_higher_levels, value: "The spell creates one more dart for each spell slot level above 1."}
+        - insert:
+            tableName: spells
+            columns:
+              - column: {name: id, value: "5be1a000-0000-4000-a000-000000000005"}
+              - column: {name: created_at, valueComputed: "now()"}
+              - column: {name: updated_at, valueComputed: "now()"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: name, value: "Shield"}
+              - column: {name: level, valueNumeric: 1}
+              - column: {name: school, value: "ABJURATION"}
+              - column: {name: casting_time, value: "Reaction, which you take when you are hit by an attack or targeted by the Magic Missile spell"}
+              - column: {name: range, value: "Self"}
+              - column: {name: duration, value: "1 round"}
+              - column: {name: verbal_component, valueBoolean: true}
+              - column: {name: somatic_component, valueBoolean: true}
+              - column: {name: description, value: "An invisible barrier of magical force appears and protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from Magic Missile."}
+        - insert:
+            tableName: spells
+            columns:
+              - column: {name: id, value: "5be1a000-0000-4000-a000-000000000006"}
+              - column: {name: created_at, valueComputed: "now()"}
+              - column: {name: updated_at, valueComputed: "now()"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: name, value: "Thunderwave"}
+              - column: {name: level, valueNumeric: 1}
+              - column: {name: school, value: "EVOCATION"}
+              - column: {name: casting_time, value: "Action"}
+              - column: {name: range, value: "Self (15-foot Cube)"}
+              - column: {name: duration, value: "Instantaneous"}
+              - column: {name: verbal_component, valueBoolean: true}
+              - column: {name: somatic_component, valueBoolean: true}
+              - column: {name: description, value: "You unleash a wave of thunderous force. Each creature in a 15-foot Cube originating from you makes a Constitution saving throw. On a failed save, a creature takes 2d8 Thunder damage and is pushed 10 feet away from you. On a successful save, a creature takes half as much damage only. In addition, unsecured objects that are fully within the Cube are pushed 10 feet away, and the spell emits a thunderous boom audible out to 300 feet."}
+              - column: {name: at_higher_levels, value: "The damage increases by 1d8 for each spell slot level above 1."}
+        - insert:
+            tableName: spells
+            columns:
+              - column: {name: id, value: "5be1a000-0000-4000-a000-000000000007"}
+              - column: {name: created_at, valueComputed: "now()"}
+              - column: {name: updated_at, valueComputed: "now()"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: name, value: "Detect Magic"}
+              - column: {name: level, valueNumeric: 1}
+              - column: {name: school, value: "DIVINATION"}
+              - column: {name: casting_time, value: "Action or Ritual"}
+              - column: {name: range, value: "Self"}
+              - column: {name: duration, value: "Concentration, up to 10 minutes"}
+              - column: {name: concentration, valueBoolean: true}
+              - column: {name: ritual, valueBoolean: true}
+              - column: {name: verbal_component, valueBoolean: true}
+              - column: {name: somatic_component, valueBoolean: true}
+              - column: {name: description, value: "For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead."}
+        - insert:
+            tableName: spells
+            columns:
+              - column: {name: id, value: "5be1a000-0000-4000-a000-000000000008"}
+              - column: {name: created_at, valueComputed: "now()"}
+              - column: {name: updated_at, valueComputed: "now()"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: name, value: "Charm Person"}
+              - column: {name: level, valueNumeric: 1}
+              - column: {name: school, value: "ENCHANTMENT"}
+              - column: {name: casting_time, value: "Action"}
+              - column: {name: range, value: "30 feet"}
+              - column: {name: duration, value: "1 hour"}
+              - column: {name: verbal_component, valueBoolean: true}
+              - column: {name: somatic_component, valueBoolean: true}
+              - column: {name: description, value: "You attempt to charm a Humanoid you can see within range. It makes a Wisdom saving throw, with Advantage if you or your allies are fighting it. On a failed save, it is Charmed by you until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the creature knows it was Charmed by you."}
+              - column: {name: at_higher_levels, value: "You can target one additional creature for each spell slot level above 1. The targets must be within 30 feet of each other when you cast the spell."}
+        - insert:
+            tableName: spells
+            columns:
+              - column: {name: id, value: "5be1a000-0000-4000-a000-000000000009"}
+              - column: {name: created_at, valueComputed: "now()"}
+              - column: {name: updated_at, valueComputed: "now()"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: name, value: "Misty Step"}
+              - column: {name: level, valueNumeric: 2}
+              - column: {name: school, value: "CONJURATION"}
+              - column: {name: casting_time, value: "Bonus Action"}
+              - column: {name: range, value: "Self"}
+              - column: {name: duration, value: "Instantaneous"}
+              - column: {name: verbal_component, valueBoolean: true}
+              - column: {name: description, value: "Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space that you can see."}
+        - insert:
+            tableName: spells
+            columns:
+              - column: {name: id, value: "5be1a000-0000-4000-a000-00000000000a"}
+              - column: {name: created_at, valueComputed: "now()"}
+              - column: {name: updated_at, valueComputed: "now()"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: name, value: "Invisibility"}
+              - column: {name: level, valueNumeric: 2}
+              - column: {name: school, value: "ILLUSION"}
+              - column: {name: casting_time, value: "Action"}
+              - column: {name: range, value: "Touch"}
+              - column: {name: duration, value: "Concentration, up to 1 hour"}
+              - column: {name: concentration, valueBoolean: true}
+              - column: {name: verbal_component, valueBoolean: true}
+              - column: {name: somatic_component, valueBoolean: true}
+              - column: {name: material_component, valueBoolean: true}
+              - column: {name: materials, value: "an eyelash encased in gum arabic"}
+              - column: {name: description, value: "A creature you touch has the Invisible condition until the spell ends. The spell ends early immediately after the target makes an attack roll, deals damage, or casts a spell."}
+              - column: {name: at_higher_levels, value: "You can target one additional creature for each spell slot level above 2."}
+        - insert:
+            tableName: spells
+            columns:
+              - column: {name: id, value: "5be1a000-0000-4000-a000-00000000000b"}
+              - column: {name: created_at, valueComputed: "now()"}
+              - column: {name: updated_at, valueComputed: "now()"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: name, value: "Fireball"}
+              - column: {name: level, valueNumeric: 3}
+              - column: {name: school, value: "EVOCATION"}
+              - column: {name: casting_time, value: "Action"}
+              - column: {name: range, value: "150 feet"}
+              - column: {name: duration, value: "Instantaneous"}
+              - column: {name: verbal_component, valueBoolean: true}
+              - column: {name: somatic_component, valueBoolean: true}
+              - column: {name: material_component, valueBoolean: true}
+              - column: {name: materials, value: "a ball of bat guano and sulfur"}
+              - column: {name: description, value: "A bright streak flashes from you to a point you choose within range and then blossoms with a low roar into a fiery explosion. Each creature in a 20-foot-radius Sphere centered on that point makes a Dexterity saving throw, taking 8d6 Fire damage on a failed save or half as much damage on a successful one. Flammable objects in the area that aren't being worn or carried start burning."}
+              - column: {name: at_higher_levels, value: "The damage increases by 1d6 for each spell slot level above 3."}
+        - insert:
+            tableName: spells
+            columns:
+              - column: {name: id, value: "5be1a000-0000-4000-a000-00000000000c"}
+              - column: {name: created_at, valueComputed: "now()"}
+              - column: {name: updated_at, valueComputed: "now()"}
+              - column: {name: version, valueNumeric: 0}
+              - column: {name: name, value: "Counterspell"}
+              - column: {name: level, valueNumeric: 3}
+              - column: {name: school, value: "ABJURATION"}
+              - column: {name: casting_time, value: "Reaction, which you take when you see a creature within 60 feet of yourself casting a spell"}
+              - column: {name: range, value: "60 feet"}
+              - column: {name: duration, value: "Instantaneous"}
+              - column: {name: somatic_component, valueBoolean: true}
+              - column: {name: description, value: "You attempt to interrupt a creature in the process of casting a spell. The creature makes a Constitution saving throw. On a failed save, the spell dissipates with no effect, and the action used to cast it is wasted. The DC equals 10 plus the spell's level."}

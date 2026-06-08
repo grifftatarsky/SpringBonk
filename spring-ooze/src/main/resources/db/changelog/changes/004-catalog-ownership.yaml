@@ -1,0 +1,104 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 004 — catalog ownership. Adds the CatalogContent fields (owner_id,
+  # overrides_id) to every catalog table. owner_id NULL = shared base content;
+  # overrides_id is a self-referencing FK to the base row a user copy shadows.
+  # ==========================================================================
+  - changeSet:
+      id: 004-spells-ownership
+      author: oozengine
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: spells
+            columnName: owner_id
+      changes:
+        - addColumn:
+            tableName: spells
+            columns:
+              - column:
+                  name: owner_id
+                  type: UUID
+              - column:
+                  name: overrides_id
+                  type: UUID
+        - addForeignKeyConstraint:
+            constraintName: fk_spells_overrides
+            baseTableName: spells
+            baseColumnNames: overrides_id
+            referencedTableName: spells
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex:
+            tableName: spells
+            indexName: idx_spells_owner
+            columns:
+              - column:
+                  name: owner_id
+
+  - changeSet:
+      id: 004-species-ownership
+      author: oozengine
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: species
+            columnName: owner_id
+      changes:
+        - addColumn:
+            tableName: species
+            columns:
+              - column:
+                  name: owner_id
+                  type: UUID
+              - column:
+                  name: overrides_id
+                  type: UUID
+        - addForeignKeyConstraint:
+            constraintName: fk_species_overrides
+            baseTableName: species
+            baseColumnNames: overrides_id
+            referencedTableName: species
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex:
+            tableName: species
+            indexName: idx_species_owner
+            columns:
+              - column:
+                  name: owner_id
+
+  - changeSet:
+      id: 004-vocations-ownership
+      author: oozengine
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: vocations
+            columnName: owner_id
+      changes:
+        - addColumn:
+            tableName: vocations
+            columns:
+              - column:
+                  name: owner_id
+                  type: UUID
+              - column:
+                  name: overrides_id
+                  type: UUID
+        - addForeignKeyConstraint:
+            constraintName: fk_vocations_overrides
+            baseTableName: vocations
+            baseColumnNames: overrides_id
+            referencedTableName: vocations
+            referencedColumnNames: id
+            onDelete: SET NULL
+        - createIndex:
+            tableName: vocations
+            indexName: idx_vocations_owner
+            columns:
+              - column:
+                  name: owner_id

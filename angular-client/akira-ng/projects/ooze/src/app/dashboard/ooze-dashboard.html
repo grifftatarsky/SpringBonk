@@ -1,0 +1,48 @@
+<div class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-12 pb-24 text-fg sm:gap-16">
+  <!-- HERO -->
+  <div class="mt-4">
+    <div aria-hidden="true"
+         class="flex h-14 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-20">
+      <span>Roll for initiative.</span>
+    </div>
+    <div
+      class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
+      <h1 class="px-2 text-4xl tracking-tighter text-balance max-lg:font-medium max-sm:px-4 sm:text-5xl lg:text-6xl">
+        Oozengine
+      </h1>
+    </div>
+    <div aria-hidden="true"
+         class="flex h-6 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-10">
+      <span>DM's little helper~</span>
+    </div>
+    <div
+      class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
+      <p class="max-w-(--breakpoint-lg) px-2 text-base/7 font-medium text-fg-muted max-sm:px-4">
+        A Dungeon Master's toolkit — spells, species, and encounters, and dice to roll when you're feelin' lazy.
+      </p>
+    </div>
+  </div>
+
+  <!-- FEDERATION STATUS (dev only; stripped from production builds) -->
+  @if (showFederationBadge) {
+    @if (user$ | async; as user) {
+      <div class="px-2 max-sm:px-4">
+        <span class="inline-flex items-center gap-2 rounded-full border border-rule bg-bg-subtle py-1 pr-3 pl-2.5 font-mono text-xs text-fg-muted">
+          <span class="size-1.5 shrink-0 rounded-full"
+                [class.bg-success]="user.isAuthenticated" [class.bg-fg-whisper]="!user.isAuthenticated"
+                aria-hidden="true"></span>
+          @if (user.isAuthenticated) {
+            <span>federated · {{ user.name }}</span>
+          } @else {
+            <span>federated · anonymous</span>
+          }
+        </span>
+      </div>
+    }
+  }
+
+  <!-- FINDER -->
+  <div class="px-2 max-sm:px-4">
+    <ooze-finder />
+  </div>
+</div>

@@ -3,7 +3,7 @@ resource-scheme: ${SCHEME_RESOURCE_SERVER:https}
 resource-container-name: ${CONTAINER_NAME_RESOURCE:localhost}
 resource-prefix: ${PREFIX_RESOURCE:/api}
 # Reverse Proxy ####################################################################################
-reverse-proxy-scheme: ${SCHEME_REVERSE_PROXY:https}
+reverse-proxy-scheme: ${SCHEME_REVERSE_PROXY:http}
 reverse-proxy-port: ${PORT_REVERSE_PROXY:7080}
 reverse-proxy-container-name: ${CONTAINER_NAME_REVERSE_PROXY:localhost}
 reverse-proxy-uri: ${reverse-proxy-scheme}://${reverse-proxy-container-name}:${reverse-proxy-port}

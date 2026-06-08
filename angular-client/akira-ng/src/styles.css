@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Federated remote: the ooze micro-frontend uses these same design tokens and
+ * utilities but lives in a separate build. Tailwind only emits classes it sees,
+ * so scan the remote's templates here — the shell's stylesheet is the global
+ * one when ooze is loaded into it, keeping the two visually uniform. */
+@source "../projects/ooze/src";
+
 /* Dark mode via a class on <html>. Set from app.ts based on user/system preference. */
 @custom-variant dark (&:where(.dark, .dark *));
 

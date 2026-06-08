@@ -19,6 +19,11 @@ resource-port: ${PORT_RESOURCE_SERVER:7084}
 resource-scheme: ${SCHEME_RESOURCE_SERVER:http}
 resource-container-name: ${CONTAINER_NAME_RESOURCE:localhost}
 resource-prefix: ${PREFIX_RESOURCE:/api}
+# Ooz Server #######################################################################################
+ooz-port: ${PORT_OOZ:7085}
+ooz-scheme: ${SCHEME_OOZ:http}
+ooz-container-name: ${CONTAINER_NAME_OOZ:localhost}
+ooz-prefix: ${PREFIX_OOZ:/ooz}
 # Application Properties ###########################################################################
 server:
   port: ${PORT_BFF:7081}
@@ -58,6 +63,15 @@ spring:
                 - TokenRelay=
                 - SaveSession
                 - StripPrefix=1
+            - id: ooz
+              uri: ${ooz-scheme}://${ooz-container-name}:${ooz-port}
+              predicates:
+                - Path=${ooz-prefix}/**
+              filters:
+                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+                - TokenRelay=
+                - SaveSession
+                - StripPrefix=1
 # Addons ###########################################################################################
 com:
   c4-soft:
@@ -72,11 +86,13 @@ com:
           client-uri: ${reverse-proxy-uri}${bff-prefix}
           security-matchers:
             - ${resource-prefix}/**
+            - ${ooz-prefix}/**
             - /login/**
             - /oauth2/**
             - /logout
           permit-all:
             - ${resource-prefix}/**
+            - ${ooz-prefix}/**
             - /login/**
             - /oauth2/**
           csrf: cookie-accessible-from-js

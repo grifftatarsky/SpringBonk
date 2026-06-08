@@ -1,0 +1,350 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 009 — seed base content for items, backgrounds, species, vocations,
+  # monsters. Representative slices (not the full SRD); each runs once and only
+  # if its table is empty. owner_id NULL ⇒ shared, immutable base content.
+  # ==========================================================================
+  - changeSet:
+      id: 009-seed-items
+      author: oozengine
+      preConditions: {onFail: MARK_RAN, sqlCheck: {expectedResult: 0, sql: SELECT COUNT(*) FROM items}}
+      changes:
+        - insert:
+            tableName: items
+            columns:
+              - {column: {name: id, value: "17e30000-0000-4000-a000-000000000001"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Longsword"}}
+              - {column: {name: category, value: "Weapon"}}
+              - {column: {name: cost, value: "15 gp"}}
+              - {column: {name: weight, value: "3 lb."}}
+              - {column: {name: description, value: "A versatile martial melee weapon, favored by knights and soldiers."}}
+              - {column: {name: properties, value: "Martial Melee Weapon. Damage 1d8 Slashing (1d10 with two hands). Properties: Versatile."}}
+        - insert:
+            tableName: items
+            columns:
+              - {column: {name: id, value: "17e30000-0000-4000-a000-000000000002"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Chain Mail"}}
+              - {column: {name: category, value: "Armor"}}
+              - {column: {name: cost, value: "75 gp"}}
+              - {column: {name: weight, value: "55 lb."}}
+              - {column: {name: description, value: "Heavy armor made of interlocking metal rings worn over a layer of padding."}}
+              - {column: {name: properties, value: "Heavy Armor. AC 16. Requires Strength 13 or speed is reduced by 10 ft. Disadvantage on Stealth."}}
+        - insert:
+            tableName: items
+            columns:
+              - {column: {name: id, value: "17e30000-0000-4000-a000-000000000003"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Potion of Healing"}}
+              - {column: {name: category, value: "Consumable"}}
+              - {column: {name: rarity, value: "Common"}}
+              - {column: {name: weight, value: "0.5 lb."}}
+              - {column: {name: description, value: "You regain 2d4 + 2 Hit Points when you drink this potion. Drinking or administering it takes a Bonus Action."}}
+        - insert:
+            tableName: items
+            columns:
+              - {column: {name: id, value: "17e30000-0000-4000-a000-000000000004"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Bag of Holding"}}
+              - {column: {name: category, value: "Wondrous Item"}}
+              - {column: {name: rarity, value: "Uncommon"}}
+              - {column: {name: weight, value: "15 lb."}}
+              - {column: {name: description, value: "This bag has an interior space considerably larger than its outside dimensions."}}
+              - {column: {name: properties, value: "Holds up to 500 lb., not exceeding 64 cubic feet. Retrieving an item takes a Utilize action."}}
+        - insert:
+            tableName: items
+            columns:
+              - {column: {name: id, value: "17e30000-0000-4000-a000-000000000005"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Thieves' Tools"}}
+              - {column: {name: category, value: "Tool"}}
+              - {column: {name: cost, value: "25 gp"}}
+              - {column: {name: weight, value: "1 lb."}}
+              - {column: {name: description, value: "A set including a file, lock picks, a small mirror, narrow-bladed scissors, and pliers."}}
+              - {column: {name: properties, value: "Proficiency lets you add your bonus to checks to pick locks and disarm traps."}}
+
+  - changeSet:
+      id: 009-seed-backgrounds
+      author: oozengine
+      preConditions: {onFail: MARK_RAN, sqlCheck: {expectedResult: 0, sql: SELECT COUNT(*) FROM backgrounds}}
+      changes:
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-000000000001"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Acolyte"}}
+              - {column: {name: ability_scores, value: "Intelligence, Wisdom, Charisma"}}
+              - {column: {name: feat, value: "Magic Initiate (Cleric)"}}
+              - {column: {name: skill_proficiencies, value: "Insight, Religion"}}
+              - {column: {name: tool_proficiencies, value: "Calligrapher's Supplies"}}
+              - {column: {name: description, value: "You devoted yourself to service in a temple, learning sacred rites and tending to the faithful."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-000000000002"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Criminal"}}
+              - {column: {name: ability_scores, value: "Dexterity, Constitution, Intelligence"}}
+              - {column: {name: feat, value: "Alert"}}
+              - {column: {name: skill_proficiencies, value: "Sleight of Hand, Stealth"}}
+              - {column: {name: tool_proficiencies, value: "Thieves' Tools"}}
+              - {column: {name: description, value: "You learned your trade in the criminal underworld, surviving on cunning and nerve."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-000000000003"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Soldier"}}
+              - {column: {name: ability_scores, value: "Strength, Dexterity, Constitution"}}
+              - {column: {name: feat, value: "Savage Attacker"}}
+              - {column: {name: skill_proficiencies, value: "Athletics, Intimidation"}}
+              - {column: {name: tool_proficiencies, value: "Gaming Set"}}
+              - {column: {name: description, value: "You trained as a soldier, drilled in weapons, tactics, and the chain of command."}}
+        - insert:
+            tableName: backgrounds
+            columns:
+              - {column: {name: id, value: "bac40000-0000-4000-a000-000000000004"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Sage"}}
+              - {column: {name: ability_scores, value: "Constitution, Intelligence, Wisdom"}}
+              - {column: {name: feat, value: "Magic Initiate (Wizard)"}}
+              - {column: {name: skill_proficiencies, value: "Arcana, History"}}
+              - {column: {name: tool_proficiencies, value: "Calligrapher's Supplies"}}
+              - {column: {name: description, value: "You spent years studying lore, poring over tomes in libraries and dusty archives."}}
+
+  - changeSet:
+      id: 009-seed-species
+      author: oozengine
+      preConditions: {onFail: MARK_RAN, sqlCheck: {expectedResult: 0, sql: SELECT COUNT(*) FROM species}}
+      changes:
+        - insert:
+            tableName: species
+            columns:
+              - {column: {name: id, value: "5ec50000-0000-4000-a000-000000000001"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Human"}}
+              - {column: {name: size, value: "Medium"}}
+              - {column: {name: speed, value: "30 feet"}}
+              - {column: {name: creature_type, value: "Humanoid"}}
+              - {column: {name: traits, value: "Resourceful, Skillful, Versatile."}}
+              - {column: {name: description, value: "The most adaptable and ambitious of the common species, found everywhere."}}
+        - insert:
+            tableName: species
+            columns:
+              - {column: {name: id, value: "5ec50000-0000-4000-a000-000000000002"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Elf"}}
+              - {column: {name: size, value: "Medium"}}
+              - {column: {name: speed, value: "30 feet"}}
+              - {column: {name: creature_type, value: "Humanoid"}}
+              - {column: {name: traits, value: "Darkvision, Fey Ancestry, Keen Senses, Trance."}}
+              - {column: {name: description, value: "Graceful and long-lived, with a deep affinity for magic and the natural world."}}
+        - insert:
+            tableName: species
+            columns:
+              - {column: {name: id, value: "5ec50000-0000-4000-a000-000000000003"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Dwarf"}}
+              - {column: {name: size, value: "Medium"}}
+              - {column: {name: speed, value: "30 feet"}}
+              - {column: {name: creature_type, value: "Humanoid"}}
+              - {column: {name: traits, value: "Darkvision, Dwarven Resilience, Dwarven Toughness, Stonecunning."}}
+              - {column: {name: description, value: "Stout and steadfast folk of mountain and hall, renowned smiths and warriors."}}
+        - insert:
+            tableName: species
+            columns:
+              - {column: {name: id, value: "5ec50000-0000-4000-a000-000000000004"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Halfling"}}
+              - {column: {name: size, value: "Small"}}
+              - {column: {name: speed, value: "30 feet"}}
+              - {column: {name: creature_type, value: "Humanoid"}}
+              - {column: {name: traits, value: "Brave, Halfling Nimbleness, Luck, Naturally Stealthy."}}
+              - {column: {name: description, value: "Small, cheerful, and famously lucky wanderers who value comfort and community."}}
+
+  - changeSet:
+      id: 009-seed-vocations
+      author: oozengine
+      preConditions: {onFail: MARK_RAN, sqlCheck: {expectedResult: 0, sql: SELECT COUNT(*) FROM vocations}}
+      changes:
+        - insert:
+            tableName: vocations
+            columns:
+              - {column: {name: id, value: "0cac0000-0000-4000-a000-000000000001"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Fighter"}}
+              - {column: {name: primary_ability, value: "Strength or Dexterity"}}
+              - {column: {name: complexity, value: "Average"}}
+              - {column: {name: hit_die, value: "d10"}}
+              - {column: {name: saving_throws, value: "Strength, Constitution"}}
+              - {column: {name: description, value: "A master of martial combat, skilled with a wide array of weapons and armor."}}
+        - insert:
+            tableName: vocations
+            columns:
+              - {column: {name: id, value: "0cac0000-0000-4000-a000-000000000002"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Wizard"}}
+              - {column: {name: primary_ability, value: "Intelligence"}}
+              - {column: {name: complexity, value: "High"}}
+              - {column: {name: hit_die, value: "d6"}}
+              - {column: {name: saving_throws, value: "Intelligence, Wisdom"}}
+              - {column: {name: description, value: "A scholarly magic-user capable of manipulating the structures of reality."}}
+        - insert:
+            tableName: vocations
+            columns:
+              - {column: {name: id, value: "0cac0000-0000-4000-a000-000000000003"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Rogue"}}
+              - {column: {name: primary_ability, value: "Dexterity"}}
+              - {column: {name: complexity, value: "Low"}}
+              - {column: {name: hit_die, value: "d8"}}
+              - {column: {name: saving_throws, value: "Dexterity, Intelligence"}}
+              - {column: {name: description, value: "A scoundrel who uses stealth and guile to overcome obstacles and enemies."}}
+        - insert:
+            tableName: vocations
+            columns:
+              - {column: {name: id, value: "0cac0000-0000-4000-a000-000000000004"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Cleric"}}
+              - {column: {name: primary_ability, value: "Wisdom"}}
+              - {column: {name: complexity, value: "Average"}}
+              - {column: {name: hit_die, value: "d8"}}
+              - {column: {name: saving_throws, value: "Wisdom, Charisma"}}
+              - {column: {name: description, value: "A priestly champion who wields divine magic in service of a higher power."}}
+
+  - changeSet:
+      id: 009-seed-monsters
+      author: oozengine
+      preConditions: {onFail: MARK_RAN, sqlCheck: {expectedResult: 0, sql: SELECT COUNT(*) FROM monsters}}
+      changes:
+        - insert:
+            tableName: monsters
+            columns:
+              - {column: {name: id, value: "dead0000-0000-4000-a000-000000000001"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Goblin"}}
+              - {column: {name: size, value: "Small"}}
+              - {column: {name: creature_type, value: "Humanoid (Goblinoid)"}}
+              - {column: {name: alignment, value: "Chaotic Neutral"}}
+              - {column: {name: armor_class, valueNumeric: 15}}
+              - {column: {name: hit_points, value: "7 (2d6)"}}
+              - {column: {name: speed, value: "30 ft."}}
+              - {column: {name: challenge_rating, value: "1/4"}}
+              - {column: {name: strength, valueNumeric: 8}}
+              - {column: {name: dexterity, valueNumeric: 15}}
+              - {column: {name: constitution, valueNumeric: 10}}
+              - {column: {name: intelligence, valueNumeric: 10}}
+              - {column: {name: wisdom, valueNumeric: 8}}
+              - {column: {name: charisma, valueNumeric: 8}}
+              - {column: {name: traits, value: "Nimble Escape. The goblin can take the Disengage or Hide action as a Bonus Action."}}
+              - {column: {name: actions, value: "Scimitar. Melee attack, +4 to hit, 1d6+2 Slashing. Shortbow. Ranged attack, +4 to hit, range 80/320, 1d6+2 Piercing."}}
+              - {column: {name: description, value: "Small, black-hearted humanoids that lair in caves and ruins, raiding in packs."}}
+        - insert:
+            tableName: monsters
+            columns:
+              - {column: {name: id, value: "dead0000-0000-4000-a000-000000000002"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Wolf"}}
+              - {column: {name: size, value: "Medium"}}
+              - {column: {name: creature_type, value: "Beast"}}
+              - {column: {name: alignment, value: "Unaligned"}}
+              - {column: {name: armor_class, valueNumeric: 13}}
+              - {column: {name: hit_points, value: "11 (2d8 + 2)"}}
+              - {column: {name: speed, value: "40 ft."}}
+              - {column: {name: challenge_rating, value: "1/4"}}
+              - {column: {name: strength, valueNumeric: 12}}
+              - {column: {name: dexterity, valueNumeric: 15}}
+              - {column: {name: constitution, valueNumeric: 12}}
+              - {column: {name: intelligence, valueNumeric: 3}}
+              - {column: {name: wisdom, valueNumeric: 12}}
+              - {column: {name: charisma, valueNumeric: 6}}
+              - {column: {name: traits, value: "Pack Tactics. Advantage on attack rolls against a creature if at least one of the wolf's allies is within 5 ft. of it."}}
+              - {column: {name: actions, value: "Bite. Melee attack, +4 to hit, 2d4+2 Piercing. If the target is a creature, it makes a DC 11 Strength save or has the Prone condition."}}
+              - {column: {name: description, value: "A pack hunter of forest and tundra, dangerous in numbers."}}
+        - insert:
+            tableName: monsters
+            columns:
+              - {column: {name: id, value: "dead0000-0000-4000-a000-000000000003"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Skeleton"}}
+              - {column: {name: size, value: "Medium"}}
+              - {column: {name: creature_type, value: "Undead"}}
+              - {column: {name: alignment, value: "Lawful Evil"}}
+              - {column: {name: armor_class, valueNumeric: 13}}
+              - {column: {name: hit_points, value: "13 (2d8 + 4)"}}
+              - {column: {name: speed, value: "30 ft."}}
+              - {column: {name: challenge_rating, value: "1/4"}}
+              - {column: {name: strength, valueNumeric: 10}}
+              - {column: {name: dexterity, valueNumeric: 14}}
+              - {column: {name: constitution, valueNumeric: 15}}
+              - {column: {name: intelligence, valueNumeric: 6}}
+              - {column: {name: wisdom, valueNumeric: 8}}
+              - {column: {name: charisma, valueNumeric: 5}}
+              - {column: {name: actions, value: "Shortsword. Melee attack, +4 to hit, 1d6+2 Piercing. Shortbow. Ranged attack, +4 to hit, range 80/320, 1d6+2 Piercing."}}
+              - {column: {name: description, value: "Animated bones bound to a creator's will; tireless and without fear."}}
+        - insert:
+            tableName: monsters
+            columns:
+              - {column: {name: id, value: "dead0000-0000-4000-a000-000000000004"}}
+              - {column: {name: created_at, valueComputed: "now()"}}
+              - {column: {name: updated_at, valueComputed: "now()"}}
+              - {column: {name: version, valueNumeric: 0}}
+              - {column: {name: name, value: "Adult Red Dragon"}}
+              - {column: {name: size, value: "Huge"}}
+              - {column: {name: creature_type, value: "Dragon"}}
+              - {column: {name: alignment, value: "Chaotic Evil"}}
+              - {column: {name: armor_class, valueNumeric: 19}}
+              - {column: {name: hit_points, value: "256 (19d12 + 133)"}}
+              - {column: {name: speed, value: "40 ft., climb 40 ft., fly 80 ft."}}
+              - {column: {name: challenge_rating, value: "17"}}
+              - {column: {name: strength, valueNumeric: 27}}
+              - {column: {name: dexterity, valueNumeric: 10}}
+              - {column: {name: constitution, valueNumeric: 25}}
+              - {column: {name: intelligence, valueNumeric: 16}}
+              - {column: {name: wisdom, valueNumeric: 13}}
+              - {column: {name: charisma, valueNumeric: 23}}
+              - {column: {name: traits, value: "Legendary Resistance (3/Day). If the dragon fails a saving throw, it can choose to succeed instead."}}
+              - {column: {name: actions, value: "Multiattack: one Bite and two Claw attacks. Bite +14, 2d10+8 Piercing plus 1d6 Fire. Claw +14, 2d6+8 Slashing. Fire Breath (Recharge 5-6): DC 21 Dexterity save, 18d6 Fire in a 60-ft. cone."}}
+              - {column: {name: description, value: "The mightiest and most arrogant of the chromatic dragons, wreathed in fire and greed."}}
