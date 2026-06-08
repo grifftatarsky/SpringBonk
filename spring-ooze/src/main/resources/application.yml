@@ -1,9 +1,9 @@
 # Base #############################################################################################
-ooz-scheme: ${SCHEME_OOZ:https}
+ooz-scheme: ${SCHEME_OOZ:http}
 ooz-container-name: ${CONTAINER_NAME_OOZ:localhost}
 ooz-prefix: ${PREFIX_OOZ:/ooz}
 # Reverse Proxy ####################################################################################
-reverse-proxy-scheme: ${SCHEME_REVERSE_PROXY:https}
+reverse-proxy-scheme: ${SCHEME_REVERSE_PROXY:http}
 reverse-proxy-port: ${PORT_REVERSE_PROXY:7080}
 reverse-proxy-container-name: ${CONTAINER_NAME_REVERSE_PROXY:localhost}
 reverse-proxy-uri: ${reverse-proxy-scheme}://${reverse-proxy-container-name}:${reverse-proxy-port}
