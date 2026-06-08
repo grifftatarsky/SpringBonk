@@ -14,6 +14,7 @@ import { BlogListPage } from './feature/blog/blog-list-page';
 import { BlogDetailPage } from './feature/blog/blog-detail-page';
 import { BlogEditorPage } from './feature/blog/blog-editor-page';
 import { LoginPrompt } from './feature/login/login-prompt';
+import { OozeUnavailable } from './feature/ooze/ooze-unavailable';
 import { authGuard } from './auth/auth.guard';
 import { postAdminGuard } from './auth/post-admin.guard';
 
@@ -33,13 +34,15 @@ export const routes: Routes = [
   { path: 'blog/:id/edit', component: BlogEditorPage, canActivate: [authGuard, postAdminGuard], data: { title: 'Edit post' } },
   { path: 'docs', component: DocsPage, data: { title: 'Docs' } },
   { path: 'about', component: AboutPage, data: { title: 'About' } },
-  // Federated micro-frontend: the ooze DM tool is its own independently-built
-  // Angular app (Native Federation remote), loaded at runtime into this shell.
   {
     path: 'ooze',
     loadChildren: () =>
-      loadRemoteModule('ooze', './routes').then(m => m.OOZE_ROUTES),
-    data: { title: 'Ooze' },
+      loadRemoteModule('ooze', './routes')
+        .then(m => m.OOZE_ROUTES)
+        .catch(() => [
+          { path: '**', component: OozeUnavailable, data: { title: 'Oozengine' } },
+        ]),
+    data: { title: 'Oozengine' },
   },
   { path: '**', redirectTo: '/' },
 ];

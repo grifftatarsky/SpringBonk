@@ -63,6 +63,14 @@ com:
             - /v3/api-docs*/**
             - /actuator/health/readiness
             - /actuator/health/liveness
+            # Catalog content: reads are public (base 5e content is shared);
+            # writes are gated per-method via @PreAuthorize('MANAGE_CONTENT').
+            - /spell/**
+            - /item/**
+            - /background/**
+            - /species/**
+            - /vocation/**
+            - /monster/**
 # Log Levels #######################################################################################
 logging:
   level:

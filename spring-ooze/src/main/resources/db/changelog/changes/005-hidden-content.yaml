@@ -1,0 +1,69 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 005 — hidden content. Per-user suppression of base rows (a DM hiding base
+  # 5e content from their catalog) without copying the row. Mirrors the
+  # HiddenContent JPA entity (extends BaseEntity).
+  # ==========================================================================
+  - changeSet:
+      id: 005-hidden-content-create
+      author: oozengine
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: hidden_content
+      changes:
+        - createTable:
+            tableName: hidden_content
+            columns:
+              # BaseEntity columns
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              # Suppression
+              - column:
+                  name: owner_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content_type
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: base_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: hidden_content
+            constraintName: uq_hidden_owner_type_base
+            columnNames: owner_id, content_type, base_id
+        - createIndex:
+            tableName: hidden_content
+            indexName: idx_hidden_owner_type
+            columns:
+              - column:
+                  name: owner_id
+              - column:
+                  name: content_type

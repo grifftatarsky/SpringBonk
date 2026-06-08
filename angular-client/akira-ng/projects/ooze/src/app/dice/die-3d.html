@@ -1,0 +1,26 @@
+<div
+  class="die"
+  [class.die--rolling]="rolling()"
+  [class.text-success]="tone() === 'adv'"
+  [class.text-danger]="tone() === 'dis'"
+  [class.text-fg]="tone() === 'default'"
+  [style.--die-size.px]="size()"
+>
+  <div class="die__tumble">
+    @for (f of faces(); track f.index) {
+      <div
+        class="die__face"
+        [class.die__face--tri]="shape() === 'tri'"
+        [class.die__face--penta]="shape() === 'penta'"
+        [class.die__face--kite]="shape() === 'kite'"
+        [class.die__face--kite-top]="f.ring === 1"
+        [class.die__face--kite-bot]="f.ring === 2"
+        [style.transform]="f.transform"
+      >
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" overflow="visible" aria-hidden="true">
+          <polygon class="die__shape" [attr.points]="points()" />
+        </svg>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,42 @@
+<!-- ROUTED PAGE — reserves room on desktop for the spine / open panel -->
+<div class="ooze-content" [class.ooze-content--open]="open()">
+  <router-outlet />
+</div>
+
+<!-- COLLAPSED: full-height "book spine" tab, always visible on the side -->
+@if (!open()) {
+  <button type="button"
+          class="group fixed right-0 top-14 bottom-0 z-30 flex w-11 flex-col items-center gap-4 border-l border-rule-strong bg-bg-muted py-4 text-fg-muted shadow-lg transition-colors hover:bg-bg-sunk hover:text-fg"
+          [attr.aria-controls]="panelId" [attr.aria-expanded]="false"
+          aria-label="Open dice roller" (click)="toggle()">
+    <span class="grid size-6 shrink-0 place-items-center rounded-md border border-rule-strong bg-bg text-fg-muted transition-colors group-hover:border-accent group-hover:text-accent">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" class="size-3.5">
+        <path d="M12 5v14M5 12h14" />
+      </svg>
+    </span>
+    <span class="dice-spine__label text-xs font-semibold uppercase tracking-[0.2em]">Dice roller</span>
+  </button>
+}
+
+<!-- EXPANDED: full-screen sheet (mobile/tablet) / slide-over (desktop) -->
+@if (open()) {
+  <aside class="fixed inset-0 z-40 flex flex-col bg-bg lg:left-auto lg:top-14 lg:right-0 lg:bottom-0 lg:w-[22rem] lg:border-l lg:border-rule lg:shadow-xl"
+         [attr.id]="panelId" aria-label="Dice roller">
+    <div class="flex h-14 shrink-0 items-center justify-between border-b border-rule px-4 lg:h-12">
+      <span class="text-sm font-semibold text-fg">Dice roller</span>
+      <button type="button"
+              class="relative grid size-8 place-items-center rounded-md text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg"
+              aria-label="Collapse dice roller" (click)="close()">
+        <span class="absolute top-1/2 left-1/2 size-11 -translate-1/2 pointer-fine:hidden"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" class="size-4">
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      </button>
+    </div>
+    <div class="min-h-0 flex-1 overflow-y-auto p-4">
+      <ooze-dice-roller />
+    </div>
+  </aside>
+}

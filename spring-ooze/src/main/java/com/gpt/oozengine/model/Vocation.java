@@ -15,7 +15,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Vocation extends BaseEntity {
+public class Vocation extends CatalogContent {
 
     // region Basic Info
     @Column(nullable = false)
@@ -27,6 +27,15 @@ public class Vocation extends BaseEntity {
     private String primaryAbility;
 
     private String complexity;
+
+    @Column(name = "hit_die")
+    private String hitDie;
+
+    @Column(name = "saving_throws")
+    private String savingThrows;
+
+    @Column(columnDefinition = "text")
+    private String description;
     // endregion
 }
 

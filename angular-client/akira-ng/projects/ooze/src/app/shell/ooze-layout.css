@@ -1,0 +1,19 @@
+/* Vertical "book spine" label: glyphs run top-to-bottom, left-to-right within
+ * the line — like the spine of a book stood upright. */
+.dice-spine__label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.ooze-content {
+  transition: padding-right 0.2s ease;
+}
+
+@media (min-width: 1024px) {
+  .ooze-content {
+    padding-right: 3.25rem;
+  }
+  .ooze-content--open {
+    padding-right: 22rem;
+  }
+}

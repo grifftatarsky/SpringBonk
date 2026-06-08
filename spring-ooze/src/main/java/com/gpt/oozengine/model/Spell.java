@@ -17,7 +17,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Spell extends BaseEntity {
+public class Spell extends CatalogContent {
 
     // region Basic Info
     @Column(nullable = false)

@@ -1,0 +1,40 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 007 — richer fields for species and vocations (classes), matching the
+  # enriched JPA entities. All nullable so existing rows stay valid.
+  # ==========================================================================
+  - changeSet:
+      id: 007-species-fields
+      author: oozengine
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: species
+            columnName: description
+      changes:
+        - addColumn:
+            tableName: species
+            columns:
+              - column: {name: size, type: VARCHAR(255)}
+              - column: {name: speed, type: VARCHAR(255)}
+              - column: {name: creature_type, type: VARCHAR(255)}
+              - column: {name: traits, type: TEXT}
+              - column: {name: description, type: TEXT}
+
+  - changeSet:
+      id: 007-vocations-fields
+      author: oozengine
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          columnExists:
+            tableName: vocations
+            columnName: hit_die
+      changes:
+        - addColumn:
+            tableName: vocations
+            columns:
+              - column: {name: hit_die, type: VARCHAR(255)}
+              - column: {name: saving_throws, type: VARCHAR(255)}
+              - column: {name: description, type: TEXT}

@@ -8,82 +8,41 @@
     <div
       class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
       <h1 class="px-2 text-4xl tracking-tighter text-balance max-lg:font-medium max-sm:px-4 sm:text-5xl lg:text-6xl">
-        Ooze
+        Oozengine
       </h1>
     </div>
     <div aria-hidden="true"
          class="flex h-6 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-10">
-      <span>The DM screen, digitized.</span>
+      <span>DM's little helper~</span>
     </div>
     <div
       class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
       <p class="max-w-(--breakpoint-lg) px-2 text-base/7 font-medium text-fg-muted max-sm:px-4">
-        A Dungeon Master's toolkit — spells, species, and encounters, with the dice to settle them.
+        A Dungeon Master's toolkit — spells, species, and encounters, and dice to roll when you're feelin' lazy.
       </p>
     </div>
   </div>
 
-  <!-- FEDERATION CALL-OUT (dev only; stripped from production builds) -->
+  <!-- FEDERATION STATUS (dev only; stripped from production builds) -->
   @if (showFederationBadge) {
     @if (user$ | async; as user) {
       <div class="px-2 max-sm:px-4">
-        <div class="flex items-center gap-2.5 rounded-md border border-rule bg-accent-subtle px-3 py-2 text-sm text-fg">
-          <span class="grid size-5 shrink-0 place-items-center text-accent" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" class="size-4">
-              <path d="M13 2 4 14h7l-1 8 9-12h-7z" />
-            </svg>
-          </span>
+        <span class="inline-flex items-center gap-2 rounded-full border border-rule bg-bg-subtle py-1 pr-3 pl-2.5 font-mono text-xs text-fg-muted">
+          <span class="size-1.5 shrink-0 rounded-full"
+                [class.bg-success]="user.isAuthenticated" [class.bg-fg-whisper]="!user.isAuthenticated"
+                aria-hidden="true"></span>
           @if (user.isAuthenticated) {
-            <span>Logged in as <span class="font-semibold">“{{ user.name }}”</span> in a federated session!</span>
+            <span>federated · {{ user.name }}</span>
           } @else {
-            <span>You're in a federated session — sign in via the shell to bring your identity along.</span>
+            <span>federated · anonymous</span>
           }
-        </div>
+        </span>
       </div>
     }
   }
 
-  <!-- TOOLS + DICE -->
+  <!-- FINDER -->
   <div class="px-2 max-sm:px-4">
-    <div class="grid gap-10 lg:grid-cols-3">
-      <!-- DM TOOLS -->
-      <section class="lg:col-span-2">
-        <div class="flex items-baseline justify-between border-b border-rule pb-3">
-          <h2 class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">DM tools</h2>
-          <span class="text-xs text-fg-subtle">{{ tools.length }} modules</span>
-        </div>
-
-        <div class="mt-5 grid gap-3 sm:grid-cols-2">
-          @for (tool of tools; track tool.title) {
-            <article
-              class="group rounded-lg border border-rule bg-bg p-4 transition hover:border-rule-strong hover:bg-bg-subtle">
-              <div class="flex items-start justify-between gap-3">
-                <span
-                  class="grid size-9 shrink-0 place-items-center rounded-md border border-rule bg-bg-subtle text-fg-muted transition group-hover:text-accent">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-                       stroke-linecap="round" stroke-linejoin="round" class="size-5">
-                    <path [attr.d]="tool.iconPath" />
-                  </svg>
-                </span>
-                <span class="rounded border px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide"
-                      [class]="statusClass(tool.status)">
-                  {{ statusLabel(tool.status) }}
-                </span>
-              </div>
-              <h3 class="mt-3 text-sm font-semibold text-fg">{{ tool.title }}</h3>
-              <p class="mt-1 text-xs/5 text-fg-muted">{{ tool.description }}</p>
-            </article>
-          }
-        </div>
-      </section>
-
-      <!-- DICE ROLLER SIDEBAR -->
-      <aside class="lg:col-span-1">
-        <div class="lg:sticky lg:top-20">
-          <ooze-dice-roller />
-        </div>
-      </aside>
-    </div>
+    <ooze-finder />
   </div>
 </div>

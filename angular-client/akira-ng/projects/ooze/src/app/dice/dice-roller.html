@@ -1,41 +1,57 @@
-<div class="rounded-lg border border-rule bg-bg-subtle p-5">
+<div class="flex flex-col">
+  <!-- LIVE FORMULA -->
   <div class="flex items-center justify-between">
-    <h2 class="text-sm font-semibold text-fg">Dice roller</h2>
-    <span class="font-mono text-xs text-fg-subtle">d{{ die() }}{{ modLabel(modifier()) }}</span>
+    <span class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Roll</span>
+    <span class="font-mono text-xs text-fg-subtle">{{ formula({ count: count(), die: die(), mode: mode(), modifier: modifier() }) }}</span>
   </div>
 
-  <!-- DIE + RESULT -->
-  <div class="mt-4 flex flex-col items-center" [class.dice-rolling]="rolling()">
-    <div class="die-face relative grid size-24 place-items-center rounded-xl border border-rule-strong bg-bg">
-      <svg class="absolute inset-0 size-full text-rule" viewBox="0 0 100 100" fill="none"
-           stroke="currentColor" aria-hidden="true">
-        <polygon points="50,8 86,30 86,70 50,92 14,70 14,30" stroke-width="2" />
-      </svg>
-      <span class="relative font-mono text-3xl font-semibold tabular-nums text-fg"
-            [class.result-pop]="result() && !rolling()">
-        {{ display() }}
-      </span>
-    </div>
-
-    @if (result(); as r) {
-      <p class="mt-3 font-mono text-2xl font-semibold tabular-nums text-accent">{{ r.total }}</p>
-      <p class="mt-0.5 text-center text-xs text-fg-muted">
-        d{{ r.die }}@if (r.mode !== 'normal') {
-          <span class="text-fg-subtle"> {{ r.mode === 'adv' ? 'adv' : 'dis' }} [{{ r.rolls.join(', ') }}]</span>
-        } → {{ r.picked }}{{ modLabel(r.modifier) }}
-      </p>
-    } @else if (rolling()) {
-      <p class="mt-3 text-xs text-fg-subtle">Rolling…</p>
+  <!-- HERO: 3D DICE -->
+  <div class="mt-3 flex min-h-28 items-center justify-center gap-4">
+    @if (mode() === 'normal') {
+      <ooze-die-3d [die]="die()" [rolling]="rolling()" [size]="96" />
     } @else {
-      <p class="mt-3 text-xs text-fg-subtle">Pick a die and roll.</p>
+      <ooze-die-3d [die]="die()" [rolling]="rolling()" [tone]="mode() === 'adv' ? 'adv' : 'dis'" [size]="74" />
+      <ooze-die-3d [die]="die()" [rolling]="rolling()" [tone]="mode() === 'adv' ? 'adv' : 'dis'" [size]="74" />
     }
   </div>
 
-  <!-- DIE SELECTOR -->
-  <div class="mt-5 grid grid-cols-4 gap-1.5">
+  <!-- RESULT -->
+  <div class="mt-2 min-h-14 text-center">
+    @if (result(); as r) {
+      <p class="font-mono text-3xl font-semibold tabular-nums text-accent result-pop">{{ r.total }}</p>
+
+      @if (r.count === 1) {
+        <p class="mt-1 text-xs text-fg-muted">
+          d{{ r.die }}@if (r.mode !== 'normal') {
+            <span class="text-fg-subtle"> {{ r.mode === 'adv' ? 'adv' : 'dis' }} [{{ r.dice[0].rolls.join(', ') }}]</span>
+          } → {{ r.dice[0].picked }}{{ modLabel(r.modifier) }}
+        </p>
+      } @else {
+        <div class="mt-2 flex flex-wrap items-center justify-center gap-1.5">
+          @for (d of r.dice; track $index) {
+            <span class="inline-flex items-center gap-1 rounded-md border border-rule bg-bg px-1.5 py-0.5"
+                  [attr.title]="d.rolls.length > 1 ? 'rolled ' + d.rolls.join(', ') : null">
+              <span class="block size-4 text-fg-muted"><ooze-die-icon [die]="r.die" /></span>
+              <span class="font-mono text-xs font-semibold tabular-nums text-fg">{{ d.picked }}</span>
+            </span>
+          }
+        </div>
+        <p class="mt-1.5 font-mono text-[0.7rem] text-fg-subtle">
+          {{ r.subtotal }} from {{ r.count }} dice@if (r.mode !== 'normal') { ({{ r.mode === 'adv' ? 'advantage' : 'disadvantage' }}) }{{ modLabel(r.modifier) }}
+        </p>
+      }
+    } @else if (rolling()) {
+      <p class="pt-2 text-xs text-fg-subtle">Rolling…</p>
+    } @else {
+      <p class="pt-2 text-xs text-fg-subtle">Pick your dice and roll.</p>
+    }
+  </div>
+
+  <!-- DIE TYPE -->
+  <div class="mt-3 grid grid-cols-4 gap-1.5">
     @for (d of dice; track d) {
       <button type="button"
-              class="rounded-md border border-rule py-1.5 text-xs font-semibold text-fg-muted transition hover:bg-bg disabled:opacity-50 data-[on=true]:border-accent data-[on=true]:bg-accent-subtle data-[on=true]:text-accent"
+              class="rounded-md border border-rule py-1.5 text-xs font-semibold text-fg-muted transition hover:bg-bg-subtle disabled:opacity-50 data-[on=true]:border-accent data-[on=true]:bg-accent-subtle data-[on=true]:text-accent"
               [attr.data-on]="die() === d ? 'true' : null"
               [disabled]="rolling()"
               (click)="selectDie(d)">
@@ -44,21 +60,38 @@
     }
   </div>
 
-  <!-- MODIFIER + ADV / DIS -->
-  <div class="mt-3 flex items-center gap-2">
-    <div class="inline-flex items-center rounded-md border border-rule">
-      <button type="button" class="grid size-8 place-items-center text-fg-muted transition hover:text-fg disabled:opacity-50"
-              [disabled]="rolling()" (click)="adjustModifier(-1)" aria-label="Decrease modifier">−</button>
-      <span class="w-10 text-center font-mono text-xs tabular-nums text-fg">{{ modifier() > 0 ? '+' : '' }}{{ modifier() }}</span>
-      <button type="button" class="grid size-8 place-items-center text-fg-muted transition hover:text-fg disabled:opacity-50"
-              [disabled]="rolling()" (click)="adjustModifier(1)" aria-label="Increase modifier">+</button>
+  <!-- COUNT + MODIFIER -->
+  <div class="mt-3 grid grid-cols-2 gap-2">
+    <div>
+      <p class="mb-1 text-[0.7rem] font-medium text-fg-subtle">Dice (max {{ maxCount }})</p>
+      <div class="flex items-center justify-between rounded-md border border-rule">
+        <button type="button" class="grid size-8 place-items-center text-fg-muted transition hover:text-fg disabled:opacity-50"
+                [disabled]="rolling()" (click)="adjustCount(-1)" aria-label="Fewer dice">−</button>
+        <span class="font-mono text-xs tabular-nums text-fg">{{ count() }}</span>
+        <button type="button" class="grid size-8 place-items-center text-fg-muted transition hover:text-fg disabled:opacity-50"
+                [disabled]="rolling()" (click)="adjustCount(1)" aria-label="More dice">+</button>
+      </div>
     </div>
+    <div>
+      <p class="mb-1 text-[0.7rem] font-medium text-fg-subtle">Modifier</p>
+      <div class="flex items-center justify-between rounded-md border border-rule">
+        <button type="button" class="grid size-8 place-items-center text-fg-muted transition hover:text-fg disabled:opacity-50"
+                [disabled]="rolling()" (click)="adjustModifier(-1)" aria-label="Decrease modifier">−</button>
+        <span class="font-mono text-xs tabular-nums text-fg">{{ modifier() > 0 ? '+' : '' }}{{ modifier() }}</span>
+        <button type="button" class="grid size-8 place-items-center text-fg-muted transition hover:text-fg disabled:opacity-50"
+                [disabled]="rolling()" (click)="adjustModifier(1)" aria-label="Increase modifier">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADV / DIS -->
+  <div class="mt-2 grid grid-cols-2 gap-2">
     <button type="button"
-            class="flex-1 rounded-md border border-rule py-1.5 text-xs font-semibold text-fg-muted transition hover:bg-bg disabled:opacity-50 data-[on=true]:border-accent data-[on=true]:bg-accent-subtle data-[on=true]:text-accent"
-            [attr.data-on]="mode() === 'adv' ? 'true' : null" [disabled]="rolling()" (click)="toggleMode('adv')">Adv</button>
+            class="rounded-md border border-rule py-1.5 text-xs font-semibold text-fg-muted transition hover:bg-bg-subtle disabled:opacity-50 data-[on=true]:border-success data-[on=true]:bg-success-subtle data-[on=true]:text-success"
+            [attr.data-on]="mode() === 'adv' ? 'true' : null" [disabled]="rolling()" (click)="toggleMode('adv')">Advantage</button>
     <button type="button"
-            class="flex-1 rounded-md border border-rule py-1.5 text-xs font-semibold text-fg-muted transition hover:bg-bg disabled:opacity-50 data-[on=true]:border-accent data-[on=true]:bg-accent-subtle data-[on=true]:text-accent"
-            [attr.data-on]="mode() === 'dis' ? 'true' : null" [disabled]="rolling()" (click)="toggleMode('dis')">Dis</button>
+            class="rounded-md border border-rule py-1.5 text-xs font-semibold text-fg-muted transition hover:bg-bg-subtle disabled:opacity-50 data-[on=true]:border-danger data-[on=true]:bg-danger-subtle data-[on=true]:text-danger"
+            [attr.data-on]="mode() === 'dis' ? 'true' : null" [disabled]="rolling()" (click)="toggleMode('dis')">Disadvantage</button>
   </div>
 
   <!-- ROLL -->
@@ -71,11 +104,39 @@
   <!-- HISTORY -->
   @if (history().length) {
     <div class="mt-4 border-t border-rule pt-3">
-      <p class="mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Recent</p>
+      <div class="mb-2 flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <p class="text-xs font-semibold uppercase tracking-[0.15em] text-fg-subtle">Recent</p>
+          <span class="group relative inline-flex">
+            <button type="button" class="grid size-4 place-items-center text-warn"
+                    aria-label="Recent rolls aren't saved"
+                    title="Rolls aren't saved — they clear when you close the tab or leave Oozengine.">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" class="size-3.5">
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <path d="M12 9v4" /><path d="M12 17h.01" />
+              </svg>
+            </button>
+            <span role="tooltip"
+                  class="pointer-events-none absolute left-0 top-full z-20 mt-1.5 w-52 rounded-md border border-rule bg-bg px-2.5 py-1.5 text-left text-[0.7rem] leading-snug text-fg-muted opacity-0 shadow-md transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+              Rolls aren't saved — they clear when you close the tab or leave Oozengine.
+            </span>
+          </span>
+        </div>
+        <button type="button"
+                class="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-danger transition hover:bg-danger-subtle"
+                (click)="clearHistory()" aria-label="Clear recent rolls">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round" stroke-linejoin="round" class="size-3.5">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+          Clear
+        </button>
+      </div>
       <ul class="grid gap-1">
         @for (r of history(); track $index) {
           <li class="flex items-center justify-between font-mono text-xs text-fg-muted">
-            <span>d{{ r.die }}@if (r.mode !== 'normal') { {{ r.mode === 'adv' ? 'adv' : 'dis' }} }{{ modLabel(r.modifier) }}</span>
+            <span>{{ formula(r) }}</span>
             <span class="font-semibold tabular-nums text-fg">{{ r.total }}</span>
           </li>
         }

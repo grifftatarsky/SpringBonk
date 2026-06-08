@@ -12,8 +12,21 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Species extends BaseEntity {
+public class Species extends CatalogContent {
 
     @Column(nullable = false)
     private String name;
+
+    private String size;
+
+    private String speed;
+
+    @Column(name = "creature_type")
+    private String creatureType;
+
+    @Column(columnDefinition = "text")
+    private String traits;
+
+    @Column(columnDefinition = "text")
+    private String description;
 }
