@@ -71,6 +71,7 @@ com:
             - /species/**
             - /vocation/**
             - /monster/**
+            - /character/**
 # Log Levels #######################################################################################
 logging:
   level:

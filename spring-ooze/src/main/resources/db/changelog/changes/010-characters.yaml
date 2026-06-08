@@ -1,0 +1,44 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 010 — characters (PCs and NPCs). User-owned, no shared base content, so no
+  # overrides/hidden machinery — just owner_id. Mirrors the GameCharacter entity.
+  # ==========================================================================
+  - changeSet:
+      id: 010-characters-create
+      author: oozengine
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: characters
+      changes:
+        - createTable:
+            tableName: characters
+            columns:
+              - column: {name: id, type: UUID, constraints: {primaryKey: true, nullable: false}}
+              - column: {name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: version, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: owner_id, type: UUID, constraints: {nullable: false}}
+              - column: {name: kind, type: VARCHAR(32), constraints: {nullable: false}}
+              - column: {name: name, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: species, type: VARCHAR(255)}
+              - column: {name: character_class, type: VARCHAR(255)}
+              - column: {name: background, type: VARCHAR(255)}
+              - column: {name: alignment, type: VARCHAR(255)}
+              - column: {name: level, type: INT}
+              - column: {name: armor_class, type: INT}
+              - column: {name: hit_points, type: VARCHAR(255)}
+              - column: {name: strength, type: INT}
+              - column: {name: dexterity, type: INT}
+              - column: {name: constitution, type: INT}
+              - column: {name: intelligence, type: INT}
+              - column: {name: wisdom, type: INT}
+              - column: {name: charisma, type: INT}
+              - column: {name: description, type: TEXT}
+              - column: {name: notes, type: TEXT}
+        - createIndex:
+            tableName: characters
+            indexName: idx_characters_owner
+            columns:
+              - column: {name: owner_id}

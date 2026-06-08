@@ -7,12 +7,14 @@
 
 .ooze-content {
   transition: padding-right 0.2s ease;
+  /* Clear the always-visible collapsed spine (w-11 ≈ 2.75rem) at every width,
+   * so it never overlaps page content — including on mobile. */
+  padding-right: 3rem;
 }
 
+/* Desktop: the open panel is a slide-over, so reserve its full width. (On
+ * mobile the open panel is a full-screen sheet, so the base value is fine.) */
 @media (min-width: 1024px) {
-  .ooze-content {
-    padding-right: 3.25rem;
-  }
   .ooze-content--open {
     padding-right: 22rem;
   }

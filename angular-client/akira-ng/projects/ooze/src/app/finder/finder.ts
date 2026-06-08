@@ -46,8 +46,10 @@ export class Finder {
   protected readonly creating = signal(false);
 
   private readonly user = toSignal(this.shellAuth.user$);
-  /** Auto-grant means any signed-in user is a DM over their own catalog. */
-  protected readonly canEdit = computed(() => this.user()?.isAuthenticated ?? false);
+  /** Editing is gated on the DUNGEON_MASTER role; everyone else is read-only. */
+  protected readonly canEdit = computed(() =>
+    (this.user()?.roles ?? []).includes('DUNGEON_MASTER'),
+  );
 
   protected readonly filtered = computed(() => {
     const q = this.search().trim().toLowerCase();

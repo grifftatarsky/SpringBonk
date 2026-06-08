@@ -222,9 +222,39 @@ export const CONTENT_TYPES: readonly ContentTypeDef[] = [
     title: 'Characters',
     apiPath: 'character',
     iconPath: 'M8.5 8a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0-7 0M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6',
-    description: 'Player characters and sheets.',
-    implemented: false,
-    fields: [],
+    description: 'Your player characters and NPCs.',
+    implemented: true,
+    fields: [
+      {
+        key: 'kind',
+        label: 'Type',
+        kind: 'select',
+        group: 'meta',
+        required: true,
+        options: [
+          { value: 'PLAYER_CHARACTER', label: 'Player Character' },
+          { value: 'NPC', label: 'NPC' },
+        ],
+      },
+      { key: 'species', label: 'Species', kind: 'text', group: 'meta' },
+      { key: 'characterClass', label: 'Class', kind: 'text', group: 'meta' },
+      { key: 'level', label: 'Level', kind: 'number', group: 'meta', min: 1, max: 20 },
+      { key: 'background', label: 'Background', kind: 'text', group: 'meta' },
+      { key: 'alignment', label: 'Alignment', kind: 'text', group: 'meta' },
+      { key: 'armorClass', label: 'AC', kind: 'number', group: 'meta', min: 0, max: 40 },
+      { key: 'hitPoints', label: 'HP', kind: 'text', group: 'meta' },
+      ...ABILITY_FIELDS,
+      { key: 'description', label: 'Description', kind: 'textarea', group: 'prose' },
+      { key: 'notes', label: 'Notes', kind: 'textarea', group: 'prose' },
+    ],
+    subtitle: i =>
+      [i['level'] ? `Level ${i['level']}` : '', i['characterClass'], i['species']]
+        .filter(Boolean)
+        .join(' · '),
+    group: i =>
+      i['kind'] === 'NPC'
+        ? { key: 'NPC', label: 'NPCs', order: 1 }
+        : { key: 'PC', label: 'Player Characters', order: 0 },
   },
   {
     key: 'encounters',

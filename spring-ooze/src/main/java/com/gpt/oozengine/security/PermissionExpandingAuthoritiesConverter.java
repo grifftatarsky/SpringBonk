@@ -45,11 +45,10 @@ public class PermissionExpandingAuthoritiesConverter implements ClaimSetAuthorit
                 }
               });
     }
-    // Every authenticated user is a DM over their own (per-user) catalog. This
-    // converter only runs for a valid token, so anonymous callers never get it
-    // and stay read-only. To instead require an explicit DUNGEON_MASTER realm
-    // role, delete the next line — role expansion above already grants it.
-    expanded.add(new SimpleGrantedAuthority(Permission.MANAGE_CONTENT.name()));
+    // Writes are gated on the DUNGEON_MASTER role (expanded into MANAGE_CONTENT
+    // above). Users without it — logged in or anonymous — get only the public,
+    // read-only base view. Granting the role is the future "request access"
+    // flow. (To make every signed-in user a DM instead, add MANAGE_CONTENT here.)
     return expanded;
   }
 }
