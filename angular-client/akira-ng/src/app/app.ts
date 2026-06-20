@@ -20,12 +20,21 @@ import { ToastContainerComponent } from './common/notification/toast-container.c
 import { NotificationBellComponent } from './common/notification/notification-bell.component';
 import { SystemStatusService } from './common/system-status.service';
 
+type DownKey = 'ooze' | 'president';
+
 type NavLink = Readonly<{
   label: string;
   href: string;
-  external?: boolean;
-  accent?: boolean;
   ariaLabel?: string;
+  /** When set, the link renders an "unavailable" state while the matching
+   *  federated service is reported down by {@link SystemStatusService}. */
+  downKey?: DownKey;
+}>;
+
+type NavGroup = Readonly<{
+  label: string;
+  ariaLabel?: string;
+  children: readonly NavLink[];
 }>;
 
 type ThemePreference = 'system' | 'light' | 'dark';
@@ -150,14 +159,30 @@ export class App {
     { label: 'Elections', href: '/elections' },
     { label: 'Activity', href: '/activity' },
     { label: 'Blog', href: '/blog' },
-    { label: 'Oozengine', href: '/ooze', accent: true, ariaLabel: 'Oozengine DM tools (federated)' },
-    {
-      label: 'GitHub',
-      href: 'https://github.com/grifftatarsky/SpringBonk',
-      external: true,
-      ariaLabel: 'GitHub repository',
-    },
   ];
+
+  /** Federated micro-frontends, grouped under one desktop dropdown. */
+  protected readonly gamesMenu: NavGroup = {
+    label: 'Games',
+    ariaLabel: 'Games and tools',
+    children: [
+      { label: 'Oozengine', href: '/ooze', ariaLabel: 'Oozengine DM tools (federated)', downKey: 'ooze' },
+      { label: 'President 🃏', href: '/games/president', ariaLabel: 'President card game (federated)', downKey: 'president' },
+    ],
+  };
+
+  protected readonly githubUrl = 'https://github.com/grifftatarsky/SpringBonk';
+
+  /** Whether a federated nav entry's service is currently reported down. */
+  protected isDown(link: NavLink): boolean {
+    if (link.downKey === 'ooze') {
+      return this.systemStatus.oozeDown();
+    }
+    if (link.downKey === 'president') {
+      return this.systemStatus.presidentDown();
+    }
+    return false;
+  }
   protected readonly mobileMenuOpen: WritableSignal<boolean> = signal(false);
   protected readonly mobileMenuId: string = 'mobile-nav-panel';
 

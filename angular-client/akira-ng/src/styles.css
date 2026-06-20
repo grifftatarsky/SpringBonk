@@ -1,25 +1,10 @@
 @import "tailwindcss";
 
-/* Federated remote: the ooze micro-frontend uses these same design tokens and
- * utilities but lives in a separate build. Tailwind only emits classes it sees,
- * so scan the remote's templates here — the shell's stylesheet is the global
- * one when ooze is loaded into it, keeping the two visually uniform. */
 @source "../projects/ooze/src";
+@source "../projects/president/src";
 
-/* Dark mode via a class on <html>. Set from app.ts based on user/system preference. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ----------------------------------------------------------------------------
- * Semantic design tokens
- *
- * Tailwind v4 picks these up from @theme and emits them as both CSS custom
- * properties AND utility classes. So `--color-bg` becomes `bg-bg`, `text-bg`,
- * `border-bg`, etc. The dark overrides live in a `.dark {}` block below and
- * cascade to any utility that reads `var(--color-*)`.
- *
- * The accent is the one and only product accent — a civic/ballot blue that
- * reads as "interactive". Don't introduce new accents per feature.
- * --------------------------------------------------------------------------*/
 @theme {
   --font-sans: InterVariable, ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-sans--font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
@@ -61,7 +46,6 @@
   --color-focus: #3b82f6;
 }
 
-/* Dark mode — override the same tokens; every utility that reads them flips. */
 .dark {
   --color-bg: #0a0a0b;
   --color-bg-subtle: #111113;
@@ -128,10 +112,6 @@ body {
   }
 }
 
-/* ----------------------------------------------------------------------------
- * Pattern fill for the decorative gutters from the home/shell layout.
- * Previously inlined on every page; now a single utility-friendly class.
- * --------------------------------------------------------------------------*/
 .bg-gutter-pattern {
   background-image: repeating-linear-gradient(
     315deg,
@@ -144,11 +124,6 @@ body {
   background-attachment: fixed;
 }
 
-/* ----------------------------------------------------------------------------
- * .prose — typography for user-authored markdown (blog posts).
- * Tracks the same design tokens as the rest of the site so dark mode and
- * theme tweaks flow through without per-element overrides.
- * --------------------------------------------------------------------------*/
 .prose { color: var(--color-fg); line-height: 1.7; }
 .prose > * + * { margin-top: 1em; }
 .prose h1, .prose h2, .prose h3, .prose h4 {

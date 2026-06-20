@@ -1,0 +1,29 @@
+/* On mobile the detail is a swipe-dismissable bottom sheet rather than an inline
+ * block under the scrollable list (which fought the list for scroll). On desktop
+ * (lg) it stays the sticky side column — those styles are Tailwind on the
+ * element; this only adds the mobile sheet behaviour. */
+@media (max-width: 1023px) {
+  .detail-pane {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    max-height: 85dvh;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    box-shadow: 0 -10px 40px -12px rgb(0 0 0 / 0.45);
+    transition: transform 0.25s ease;
+  }
+
+  /* No transition while the finger is down — the sheet should track 1:1. */
+  .detail-pane.is-dragging {
+    transition: none;
+  }
+
+  /* Nothing selected on mobile → no sheet (list gets the full screen). */
+  .detail-pane--closed {
+    display: none;
+  }
+}

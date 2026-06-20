@@ -1,0 +1,114 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 002 — lobby. Mirrors the Game (extends BaseEntity) + Seat entities.
+  # ==========================================================================
+  - changeSet:
+      id: 002-game-create
+      author: decks
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: game
+      changes:
+        - createTable:
+            tableName: game
+            columns:
+              # BaseEntity columns
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              # Game fields
+              - column:
+                  name: owner_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_game_owner
+                    references: keycloak_user(id)
+              - column:
+                  name: max_players
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: decks
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(16)
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 002-seat-create
+      author: decks
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: seat
+      changes:
+        - createTable:
+            tableName: seat
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: game_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_seat_game
+                    references: game(id)
+              - column:
+                  name: seat_index
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: kind
+                  type: VARCHAR(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_seat_user
+                    references: keycloak_user(id)
+              - column:
+                  name: bot_name
+                  type: VARCHAR(255)
+              - column:
+                  name: ready
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

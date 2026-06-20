@@ -35,12 +35,12 @@
 /* Real 3D tumble — the whole polyhedron rotates, not a flat plane. End values
  * are full turns so the infinite loop is seamless. */
 @-webkit-keyframes die-tumble {
-  from { -webkit-transform: rotateX(0) rotateY(0) rotateZ(0); }
-  to { -webkit-transform: rotateX(360deg) rotateY(720deg) rotateZ(360deg); }
+  0% { -webkit-transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+  100% { -webkit-transform: rotateX(360deg) rotateY(720deg) rotateZ(360deg); }
 }
 @keyframes die-tumble {
-  from { transform: rotateX(0) rotateY(0) rotateZ(0); }
-  to { transform: rotateX(360deg) rotateY(720deg) rotateZ(360deg); }
+  0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+  100% { transform: rotateX(360deg) rotateY(720deg) rotateZ(360deg); }
 }
 
 .die__face {

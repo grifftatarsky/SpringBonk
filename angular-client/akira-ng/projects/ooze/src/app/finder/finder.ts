@@ -31,6 +31,7 @@ interface ItemGroup {
   imports: [FinderMenuBar, ContentPanel, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './finder.html',
+  styleUrl: './finder.css',
 })
 export class Finder {
   private readonly content = inject(ContentService);
@@ -87,6 +88,15 @@ export class Finder {
     () => this.all().find(i => i.id === this.selectedId()) ?? null,
   );
 
+  /** On mobile the detail is a bottom sheet shown only when something's open. */
+  protected readonly detailOpen = computed(() => this.selected() !== null || this.creating());
+
+  // Swipe-to-dismiss state for the mobile bottom sheet.
+  protected readonly dragY = signal(0);
+  protected readonly dragging = signal(false);
+  protected readonly sheetTransform = computed(() => `translateY(${this.dragY()}px)`);
+  private dragStartY = 0;
+
   protected open(def: ContentTypeDef): void {
     if (!def.implemented) return;
     this.openDef.set(def);
@@ -118,6 +128,33 @@ export class Finder {
 
   protected onCloseCreate(): void {
     this.creating.set(false);
+  }
+
+  /** Close the mobile bottom sheet (back to the list). */
+  protected closeDetail(): void {
+    this.selectedId.set(null);
+    this.creating.set(false);
+    this.dragY.set(0);
+    this.dragging.set(false);
+  }
+
+  protected onDragStart(event: TouchEvent): void {
+    this.dragStartY = event.touches[0]?.clientY ?? 0;
+    this.dragging.set(true);
+  }
+
+  protected onDragMove(event: TouchEvent): void {
+    const y = event.touches[0]?.clientY ?? this.dragStartY;
+    this.dragY.set(Math.max(0, y - this.dragStartY));
+  }
+
+  protected onDragEnd(): void {
+    this.dragging.set(false);
+    if (this.dragY() > 120) {
+      this.closeDetail();
+    } else {
+      this.dragY.set(0);
+    }
   }
 
   protected subtitle(i: CatalogItem): string {

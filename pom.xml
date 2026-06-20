@@ -19,6 +19,7 @@
     <module>spring-resource</module>
     <module>spring-bff</module>
     <module>spring-ooze</module>
+    <module>spring-decks</module>
   </modules>
 
   <properties>

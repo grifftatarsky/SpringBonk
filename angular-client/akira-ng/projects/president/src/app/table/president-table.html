@@ -1,0 +1,163 @@
+<div class="table">
+  <canvas #cv
+          class="surface"
+          [class.surface--hidden]="status() !== 'ready'"
+          (click)="onCanvasClick($event)"
+          (mousemove)="onCanvasMove($event)"
+          (mouseleave)="onCanvasLeave()"></canvas>
+
+  @if (status() === 'init') {
+    <div class="overlay">
+      <p class="overlay__msg">Dealing the table…</p>
+    </div>
+  } @else if (status() === 'unsupported') {
+    <div class="overlay">
+      <div class="panel">
+        <div class="panel__icon" aria-hidden="true">🃏</div>
+        <h1 class="panel__title">WebGPU isn’t available here</h1>
+        <p class="panel__body">
+          President renders with WebGPU, which your browser doesn’t support yet.
+          Try the latest Chrome or Edge, or Safari 26+.
+        </p>
+      </div>
+    </div>
+  } @else if (game(); as g) {
+    <!-- Left sidebar: title, turn, seat roster, play log. Collapsible. -->
+    <div class="hud" [class.hud--collapsed]="!sidebarOpen()">
+      <div class="hud__head">
+        <div class="hud__titles">
+          <a routerLink="/games/president" class="hud__lobby">← Lobby</a>
+          <span class="hud__title">President 🃏</span>
+          <span class="hud__turn">{{ turnText() }}</span>
+        </div>
+        <button type="button" class="hud__toggle" aria-label="Hide panel"
+                (click)="sidebarOpen.set(false)">«</button>
+      </div>
+      <ul class="seats">
+        @for (seat of g.seats(); track seat.id) {
+          <li class="seat" [class.seat--active]="seat.isCurrent">
+            <span class="seat__name">{{ seat.label }}</span>
+            @if (seat.role) {
+              <span class="seat__role">{{ roleLabel(seat.role) }}</span>
+            }
+            <span class="seat__count">{{ seat.finished ? 'out' : seat.handCount + ' cards' }}</span>
+          </li>
+        }
+      </ul>
+
+      @if (g.log().length) {
+        <ul class="log" aria-label="Recent plays">
+          @for (entry of g.log(); track entry.id) {
+            <li class="log__line" [class.log__line--latest]="$last">{{ entry.text }}</li>
+          }
+        </ul>
+      }
+    </div>
+
+    @if (!sidebarOpen()) {
+      <button type="button" class="hud-expand" aria-label="Show panel"
+              (click)="sidebarOpen.set(true)">»</button>
+    }
+
+    <!-- Bottom: selection readout + controls. -->
+    @if (g.phase() === 'playing') {
+      <div class="controls">
+        <span class="controls__sel">
+          @if (selectionDesc(); as desc) {
+            Selected: <strong>{{ desc }}</strong>
+          } @else if (g.isHumanTurn()) {
+            Tap your cards to select a play
+          } @else {
+            Waiting for {{ turnText() }}
+          }
+        </span>
+        <div class="controls__btns">
+          <button type="button" class="btn" (click)="onClear()" [disabled]="selected().size === 0">
+            Clear
+          </button>
+          <button type="button" class="btn" (click)="onPass()" [disabled]="!canPass()">
+            Pass
+          </button>
+          <button type="button" class="btn btn--primary" (click)="onPlay()" [disabled]="!canPlay()">
+            Play
+          </button>
+        </div>
+      </div>
+    } @else if (g.humanExchange(); as ex) {
+      <div class="controls">
+        <span class="controls__sel">
+          As <strong>{{ roleLabel(ex.role) }}</strong>, give
+          {{ ex.count }} card{{ ex.count === 1 ? '' : 's' }} to {{ ex.toLabel }} —
+          keep your best!
+          <span class="controls__hint">Selected {{ selected().size }} / {{ ex.count }}</span>
+        </span>
+        <div class="controls__btns">
+          <button type="button" class="btn" (click)="onClear()" [disabled]="selected().size === 0">
+            Clear
+          </button>
+          <button type="button" class="btn btn--primary" (click)="onGive()"
+                  [disabled]="selected().size !== ex.count">
+            Give
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Round results. -->
+    @if (g.standings(); as standings) {
+      <div class="overlay">
+        <div class="results">
+          <h2 class="results__title">Round {{ g.state().round }} — results</h2>
+          <ol class="results__list">
+            @for (row of standings; track row.id) {
+              <li class="results__row"
+                  [class.results__row--top]="row.role === 'president'"
+                  [class.results__row--bottom]="row.role === 'asshole'">
+                <span class="results__role">{{ roleLabel(row.role) }}</span>
+                <span class="results__name">{{ row.label }}</span>
+              </li>
+            }
+          </ol>
+          <button type="button" class="btn btn--primary" (click)="onNextRound()">
+            Next round
+          </button>
+        </div>
+      </div>
+    }
+  }
+
+  @if (banner(); as b) {
+    <div class="announce"
+         [class.announce--good]="b.kind === 'good'"
+         [class.announce--bad]="b.kind === 'bad'"
+         role="status" aria-live="polite">
+      {{ b.text }}
+    </div>
+  }
+
+  @if (status() !== 'init') {
+    <button type="button" class="help"
+            aria-label="How to play"
+            title="How to play"
+            [attr.aria-expanded]="rulesOpen()"
+            (click)="rulesOpen.set(true)">
+      ?
+    </button>
+  }
+
+  @if (rulesOpen()) {
+    <app-rules-dialog (close)="rulesOpen.set(false)" />
+  }
+
+  <!-- Shown only on very narrow viewports (CSS media query). -->
+  <div class="small-notice">
+    <div class="small-notice__box">
+      <div class="small-notice__icon" aria-hidden="true">🃏</div>
+      <p class="small-notice__text">
+        President needs a wider screen. Please play on a desktop or a larger
+        browser window.
+      </p>
+    </div>
+  </div>
+
+</div>

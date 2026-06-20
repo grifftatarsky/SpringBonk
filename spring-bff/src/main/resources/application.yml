@@ -24,6 +24,11 @@ ooz-port: ${PORT_OOZ:7085}
 ooz-scheme: ${SCHEME_OOZ:http}
 ooz-container-name: ${CONTAINER_NAME_OOZ:localhost}
 ooz-prefix: ${PREFIX_OOZ:/ooz}
+# Decks Server #####################################################################################
+dck-port: ${PORT_DECKS:7086}
+dck-scheme: ${SCHEME_DECKS:http}
+dck-container-name: ${CONTAINER_NAME_DECKS:localhost}
+dck-prefix: ${PREFIX_DECKS:/dck}
 # Application Properties ###########################################################################
 server:
   port: ${PORT_BFF:7081}
@@ -72,6 +77,15 @@ spring:
                 - TokenRelay=
                 - SaveSession
                 - StripPrefix=1
+            - id: dck
+              uri: ${dck-scheme}://${dck-container-name}:${dck-port}
+              predicates:
+                - Path=${dck-prefix}/**
+              filters:
+                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+                - TokenRelay=
+                - SaveSession
+                - StripPrefix=1
 # Addons ###########################################################################################
 com:
   c4-soft:
@@ -87,12 +101,14 @@ com:
           security-matchers:
             - ${resource-prefix}/**
             - ${ooz-prefix}/**
+            - ${dck-prefix}/**
             - /login/**
             - /oauth2/**
             - /logout
           permit-all:
             - ${resource-prefix}/**
             - ${ooz-prefix}/**
+            - ${dck-prefix}/**
             - /login/**
             - /oauth2/**
           csrf: cookie-accessible-from-js

@@ -46,6 +46,7 @@
     "@angular/cli": "^22.0.0",
     "@angular/compiler-cli": "^22.0.0",
     "@softarc/native-federation-orchestrator": "^4.2.2",
+    "@webgpu/types": "^0.1.70",
     "baseline-browser-mapping": "^2.10.34",
     "jsdom": "^29.1.1",
     "typescript": "~6.0.3",

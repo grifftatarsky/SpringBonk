@@ -43,3 +43,18 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/013-seed-feats-glossary.yaml
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/014-seed-spells-srd.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/015-seed-spells-level1.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/016-seed-spells-level2.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/017-seed-spells-level3.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/018-seed-spells-level4.yaml
+      relativeToChangelogFile: false

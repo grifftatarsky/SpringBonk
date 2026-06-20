@@ -1,0 +1,69 @@
+# Base #############################################################################################
+dck-scheme: ${SCHEME_DECKS:http}
+dck-container-name: ${CONTAINER_NAME_DECKS:localhost}
+dck-prefix: ${PREFIX_DECKS:/dck}
+# Reverse Proxy ####################################################################################
+reverse-proxy-scheme: ${SCHEME_REVERSE_PROXY:http}
+reverse-proxy-port: ${PORT_REVERSE_PROXY:7080}
+reverse-proxy-container-name: ${CONTAINER_NAME_REVERSE_PROXY:localhost}
+reverse-proxy-uri: ${reverse-proxy-scheme}://${reverse-proxy-container-name}:${reverse-proxy-port}
+# Authorization Server #############################################################################
+auth-server-prefix: ${PREFIX_AUTH:/auth}
+auth-server-issuer: ${AUTH_ISSUER:/realms/local-keycloak}
+auth-server-jwk-set: ${AUTH_JWK_SET:/protocol/openid-connect/certs}
+issuer: ${reverse-proxy-uri}${auth-server-prefix}${auth-server-issuer}
+jwk-set: ${issuer}${auth-server-jwk-set}
+# Server Properties ################################################################################
+server:
+  port: ${PORT_DECKS:7086}
+# Spring Properties ################################################################################
+spring:
+  application:
+    name: Decks
+  devtools:
+    add-properties: ${DEV_TOOLS_ADD_PROPS:false}
+    livereload:
+      enabled: ${DEV_TOOLS_LIVE_RELOAD:false}
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${DECKS_DATASOURCE_URL:jdbc:postgresql://localhost:5432/dck-db}
+    username: ${DECKS_DATASOURCE_USERNAME:dck_user}
+    password: ${DECKS_DATASOURCE_PASSWORD:dck_password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      # Liquibase owns schema migrations; Hibernate only validates that the JPA
+      # entities match the Liquibase-managed schema at startup.
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    default-schema: public
+# Spring OIDC Properties ###########################################################################
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+          - iss: ${issuer}
+            username-claim: ${AUTH_USERNAME_CLAIM_JSON:$.preferred_username}
+            authorities:
+              - path: ${AUTH_AUTHORITIES_JSON:$.realm_access.roles}
+            aud: ${AUTH_AUDIENCE:}
+        resourceserver:
+          permit-all:
+            - /swagger-ui*/**
+            - /v3/api-docs*/**
+            - /actuator/health/readiness
+            - /actuator/health/liveness
+            # Public "server browser" — also the frontend down-detector's ping target.
+            - /games/open
+# Log Levels #######################################################################################
+logging:
+  level:
+    org:
+      keycloak: INFO

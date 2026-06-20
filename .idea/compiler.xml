@@ -15,9 +15,10 @@
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
         </processorPath>
-        <module name="spring-resource" />
         <module name="spring-ooze" />
         <module name="spring-bff" />
+        <module name="spring-resource" />
+        <module name="spring-decks" />
       </profile>
     </annotationProcessing>
   </component>
@@ -25,6 +26,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="SpringBonk" options="" />
       <module name="spring-bff" options="-parameters" />
+      <module name="spring-decks" options="-parameters" />
       <module name="spring-ooze" options="-parameters" />
       <module name="spring-resource" options="-parameters" />
     </option>

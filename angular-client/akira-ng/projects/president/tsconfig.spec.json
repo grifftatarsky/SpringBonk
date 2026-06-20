@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../out-tsc/president-spec",
+    "types": ["vitest/globals"]
+  },
+  "include": [
+    "src/app/game/**/*.ts"
+  ]
+}
