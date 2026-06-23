@@ -33,6 +33,7 @@
     "@angular/forms": "^22.0.0",
     "@angular/platform-browser": "^22.0.0",
     "@angular/router": "^22.0.0",
+    "@stomp/stompjs": "^7.3.0",
     "@tailwindcss/postcss": "^4.1.13",
     "es-module-shims": "^2.8.0",
     "marked": "^18.0.4",

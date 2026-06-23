@@ -46,6 +46,14 @@ public class Game extends BaseEntity {
   @Column(nullable = false)
   private GameStatus status = GameStatus.WAITING;
 
+  /** Deal seed for the authoritative engine (set when the game starts). */
+  @Column
+  private Long seed;
+
+  /** Serialized engine {@code GameState} snapshot, written on every action. */
+  @Column(name = "game_state", columnDefinition = "text")
+  private String gameState;
+
   @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
   @OrderBy("index ASC")
   private List<Seat> seats = new ArrayList<>();

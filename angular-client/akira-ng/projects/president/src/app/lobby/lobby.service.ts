@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { GameState } from '../game/state';
 import { GameStatus, LobbyGame, Seat, SeatKind } from './lobby.models';
 
 const BASE = '/bff/dck';
@@ -85,6 +86,11 @@ export class LobbyService {
 
   getGame(id: string): Promise<LobbyGame> {
     return firstValueFrom(this.http.get<GameDto>(`${BASE}/games/${id}`)).then(toLobbyGame);
+  }
+
+  /** The caller's redacted snapshot of an active game (seed for the live view). */
+  getState(id: string): Promise<GameState> {
+    return firstValueFrom(this.http.get<GameState>(`${BASE}/games/${id}/state`));
   }
 
   createGame(maxPlayers: number, decks: number): Promise<LobbyGame> {

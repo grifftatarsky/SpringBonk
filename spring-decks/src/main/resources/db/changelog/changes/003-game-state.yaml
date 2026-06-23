@@ -1,0 +1,18 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 003 — authoritative game runtime state on the game aggregate: the deal seed
+  # and the serialized engine GameState (snapshot, written on every action).
+  # ==========================================================================
+  - changeSet:
+      id: 003-game-runtime-state
+      author: decks
+      changes:
+        - addColumn:
+            tableName: game
+            columns:
+              - column:
+                  name: seed
+                  type: BIGINT
+              - column:
+                  name: game_state
+                  type: TEXT

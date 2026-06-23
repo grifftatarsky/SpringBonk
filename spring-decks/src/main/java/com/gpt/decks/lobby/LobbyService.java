@@ -3,6 +3,8 @@ package com.gpt.decks.lobby;
 import com.gpt.decks.keycloak.KeycloakUser;
 import com.gpt.decks.keycloak.KeycloakUserRepository;
 import com.gpt.decks.lobby.dto.GameResponse;
+import com.gpt.decks.runtime.GameClosedEvent;
+import com.gpt.decks.runtime.GameStartedEvent;
 import com.gpt.decks.lobby.model.Game;
 import com.gpt.decks.lobby.model.GameStatus;
 import com.gpt.decks.lobby.model.Seat;
@@ -14,6 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,6 +36,7 @@ public class LobbyService {
 
   private final GameRepository games;
   private final KeycloakUserRepository users;
+  private final ApplicationEventPublisher events;
 
   public GameResponse create(UUID ownerId, int maxPlayers, int decks) {
     KeycloakUser owner = loadUser(ownerId);
@@ -124,10 +128,14 @@ public class LobbyService {
   public GameResponse start(UUID id, UUID requesterId) {
     Game game = load(id);
     requireHost(game, requesterId);
+    // Only a waiting game deals — re-calling start on an ACTIVE game must not
+    // re-deal over an in-progress one (that would wipe the resume snapshot).
+    requireWaiting(game);
     if (!game.canStart()) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "All seats must be filled and ready");
     }
     game.setStatus(GameStatus.ACTIVE);
+    events.publishEvent(new GameStartedEvent(game.getId())); // runtime starts after commit
     return GameResponse.from(game);
   }
 
@@ -135,6 +143,7 @@ public class LobbyService {
     Game game = load(id);
     requireHost(game, requesterId);
     game.setStatus(GameStatus.CLOSED);
+    events.publishEvent(new GameClosedEvent(game.getId()));
     return GameResponse.from(game);
   }
 

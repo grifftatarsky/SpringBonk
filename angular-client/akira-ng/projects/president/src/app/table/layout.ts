@@ -28,7 +28,7 @@ const DEG = Math.PI / 180;
 const BOTTOM_RESERVE = 108;
 const EDGE_MARGIN = 14;
 /** Width of the left info sidebar — kept in sync with the CSS panel width. */
-const SIDEBAR_WIDTH = 200;
+const SIDEBAR_WIDTH = 248;
 
 interface Seat {
   cx: number;

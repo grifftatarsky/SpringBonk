@@ -105,6 +105,7 @@ export class App {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
+        this.closeGamesMenu(); // any navigation dismisses the dropdown
         let route = this.activatedRoute;
         while (route.firstChild) {
           route = route.firstChild;
@@ -196,9 +197,27 @@ export class App {
     }
   }
 
+  /** Desktop "Games" dropdown — controlled so it closes on click/nav/Escape. */
+  protected readonly gamesOpen: WritableSignal<boolean> = signal(false);
+
+  protected toggleGamesMenu(): void {
+    this.gamesOpen.update((isOpen: boolean): boolean => !isOpen);
+  }
+
+  protected openGamesMenu(): void {
+    this.gamesOpen.set(true);
+  }
+
+  protected closeGamesMenu(): void {
+    if (this.gamesOpen()) {
+      this.gamesOpen.set(false);
+    }
+  }
+
   @HostListener('window:keydown.escape')
   protected handleEscape(): void {
     this.closeMobileMenu();
+    this.closeGamesMenu();
   }
 
   // endregion

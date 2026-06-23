@@ -62,6 +62,8 @@ com:
             - /actuator/health/liveness
             # Public "server browser" — also the frontend down-detector's ping target.
             - /games/open
+            # WebSocket handshake; STOMP CONNECT-frame auth is layered on top.
+            - /ws/**
 # Log Levels #######################################################################################
 logging:
   level:

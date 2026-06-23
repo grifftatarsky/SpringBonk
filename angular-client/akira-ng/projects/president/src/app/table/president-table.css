@@ -67,6 +67,13 @@
   color: var(--color-fg-muted, #a1a1aa);
 }
 
+.panel__actions {
+  margin-top: 1.25rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
 /* --- HUD: title, turn, seats --------------------------------------------- */
 /* Dedicated left sidebar — the layout reserves a matching strip so cards are
    never drawn underneath it (keeps the play log readable). */
@@ -75,7 +82,7 @@
   top: 0;
   left: 0;
   bottom: 0;
-  width: 11.5rem;
+  width: 14.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
@@ -211,6 +218,8 @@
 }
 
 .seat {
+  position: relative;
+  pointer-events: auto; /* HUD is click-through; seats opt back in for hover */
   display: flex;
   align-items: baseline;
   gap: 0.4rem;
@@ -218,6 +227,7 @@
   border-radius: 0.4rem;
   border: 1px solid transparent;
   font-size: 0.75rem;
+  cursor: default;
 }
 
 .seat--active {
@@ -231,12 +241,70 @@
 
 .seat__role {
   color: var(--color-fg-muted, #a1a1aa);
+  white-space: nowrap;
 }
 
 .seat__count {
   margin-left: auto;
   color: var(--color-fg-subtle, #8a8a8f);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Hover tally — escapes downward within the full-height sidebar. */
+.seat__stats {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0.25rem;
+  right: 0.25rem;
+  z-index: 20;
+  display: none;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-rule-strong, #2a2a2f);
+  background: var(--color-bg, #0a0a0b);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.45);
+}
+
+.seat:hover .seat__stats,
+.seat:focus-within .seat__stats,
+.seat:focus .seat__stats {
+  display: flex;
+}
+
+.seat__stats-head {
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+
+.seat__stats-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--color-fg-muted, #a1a1aa);
+}
+
+.seat__stats-row strong,
+.seat__stats-roles strong {
+  color: var(--color-fg, #f4f4f5);
+  font-variant-numeric: tabular-nums;
+}
+
+.seat__stats-roles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--color-rule, #1f1f23);
+}
+
+.seat__stats-roles > span {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--color-fg-subtle, #8a8a8f);
 }
 
 /* --- play log ------------------------------------------------------------ */

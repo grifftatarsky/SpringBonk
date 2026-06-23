@@ -21,6 +21,21 @@
         </p>
       </div>
     </div>
+  } @else if (status() === 'offline') {
+    <div class="overlay">
+      <div class="panel">
+        <div class="panel__icon" aria-hidden="true">🃏</div>
+        <h1 class="panel__title">Couldn’t join the live game</h1>
+        <p class="panel__body">
+          {{ liveError() }} The game server may be unreachable, or your session may
+          have expired — try again, or play this table locally vs bots.
+        </p>
+        <div class="panel__actions">
+          <button type="button" class="btn btn--primary" (click)="retry()">Retry</button>
+          <button type="button" class="btn" (click)="playOffline()">Play offline vs bots</button>
+        </div>
+      </div>
+    </div>
   } @else if (game(); as g) {
     <!-- Left sidebar: title, turn, seat roster, play log. Collapsible. -->
     <div class="hud" [class.hud--collapsed]="!sidebarOpen()">
@@ -35,12 +50,24 @@
       </div>
       <ul class="seats">
         @for (seat of g.seats(); track seat.id) {
-          <li class="seat" [class.seat--active]="seat.isCurrent">
+          @let st = g.statsFor(seat.id);
+          <li class="seat" [class.seat--active]="seat.isCurrent" tabindex="0">
             <span class="seat__name">{{ seat.label }}</span>
             @if (seat.role) {
               <span class="seat__role">{{ roleLabel(seat.role) }}</span>
             }
             <span class="seat__count">{{ seat.finished ? 'out' : seat.handCount + ' cards' }}</span>
+            <div class="seat__stats" role="tooltip">
+              <div class="seat__stats-head">{{ seat.label }} — record</div>
+              <div class="seat__stats-row"><span>Tricks won</span><strong>{{ st.trickWins }}</strong></div>
+              <div class="seat__stats-roles">
+                <span><span>President</span><strong>{{ st.roles.president }}</strong></span>
+                <span><span>Vice-President</span><strong>{{ st.roles['vice-president'] }}</strong></span>
+                <span><span>Citizen</span><strong>{{ st.roles.citizen }}</strong></span>
+                <span><span>Vice-Asshole</span><strong>{{ st.roles['vice-asshole'] }}</strong></span>
+                <span><span>Asshole</span><strong>{{ st.roles.asshole }}</strong></span>
+              </div>
+            </div>
           </li>
         }
       </ul>
