@@ -35,6 +35,9 @@
     },
     {
       "path": "./projects/ooze/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/president/tsconfig.app.json"
     }
   ]
 }

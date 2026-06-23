@@ -1,0 +1,32 @@
+/* Standalone fallback tokens.
+ *
+ * When federated into the Akira host, the host's global stylesheet defines
+ * these design tokens and this file is NOT loaded — so there's no conflict.
+ * When running president on its own (ng serve, :4202) this gives the table the
+ * same palette as the host, honouring the OS light/dark preference. */
+:root {
+  --color-bg: #ffffff;
+  --color-bg-subtle: #fafaf9;
+  --color-fg: #0b0b0c;
+  --color-fg-muted: #52525b;
+  --color-fg-subtle: #8a8a8f;
+  --color-rule: #e7e7e4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0a0a0b;
+    --color-bg-subtle: #111113;
+    --color-fg: #f4f4f5;
+    --color-fg-muted: #a1a1aa;
+    --color-fg-subtle: #71717a;
+    --color-rule: #1f1f23;
+  }
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+}

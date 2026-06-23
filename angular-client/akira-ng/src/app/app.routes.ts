@@ -15,6 +15,7 @@ import { BlogDetailPage } from './feature/blog/blog-detail-page';
 import { BlogEditorPage } from './feature/blog/blog-editor-page';
 import { LoginPrompt } from './feature/login/login-prompt';
 import { OozeUnavailable } from './feature/ooze/ooze-unavailable';
+import { PresidentUnavailable } from './feature/president/president-unavailable';
 import { authGuard } from './auth/auth.guard';
 import { postAdminGuard } from './auth/post-admin.guard';
 
@@ -43,6 +44,16 @@ export const routes: Routes = [
           { path: '**', component: OozeUnavailable, data: { title: 'Oozengine' } },
         ]),
     data: { title: 'Oozengine' },
+  },
+  {
+    path: 'games/president',
+    loadChildren: () =>
+      loadRemoteModule('president', './routes')
+        .then(m => m.PRESIDENT_ROUTES)
+        .catch(() => [
+          { path: '**', component: PresidentUnavailable, data: { title: 'President' } },
+        ]),
+    data: { title: 'President' },
   },
   { path: '**', redirectTo: '/' },
 ];

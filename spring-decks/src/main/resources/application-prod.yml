@@ -1,0 +1,1 @@
+reverse-proxy-uri: ${reverse-proxy-scheme}://${reverse-proxy-container-name}

@@ -15,14 +15,30 @@
       </div>
 
       <ul class="mt-4 grid gap-2">
-        @for (s of status.services(); track s.key) {
-          <li class="flex items-center justify-between gap-3 rounded-md border border-rule bg-bg px-3 py-2.5">
-            <span class="flex items-center gap-2.5">
-              <span class="size-2.5 shrink-0 rounded-full" [class]="dotClass(s.status)"
-                    [class.animate-pulse]="s.status === 'checking'" aria-hidden="true"></span>
-              <span class="text-sm font-medium text-fg">{{ s.label }}</span>
-            </span>
-            <span class="text-xs font-medium" [class]="textClass(s.status)">{{ statusLabel(s.status) }}</span>
+        @for (g of status.groups(); track g.service.key) {
+          <li class="overflow-hidden rounded-md border border-rule bg-bg">
+            <div class="flex items-center justify-between gap-3 px-3 py-2.5">
+              <span class="flex items-center gap-2.5">
+                <span class="size-2.5 shrink-0 rounded-full" [class]="dotClass(g.service.status)"
+                      [class.animate-pulse]="g.service.status === 'checking'" aria-hidden="true"></span>
+                <span class="text-sm font-medium text-fg">{{ g.service.label }}</span>
+              </span>
+              <span class="text-xs font-medium" [class]="textClass(g.service.status)">{{ statusLabel(g.service.status) }}</span>
+            </div>
+            @if (g.subs.length) {
+              <ul class="border-t border-rule bg-bg-subtle px-3 py-1">
+                @for (s of g.subs; track s.key) {
+                  <li class="flex items-center justify-between gap-3 py-1.5 pl-5">
+                    <span class="flex items-center gap-2">
+                      <span class="size-2 shrink-0 rounded-full" [class]="dotClass(s.status)"
+                            [class.animate-pulse]="s.status === 'checking'" aria-hidden="true"></span>
+                      <span class="text-xs text-fg-muted">{{ s.label }}</span>
+                    </span>
+                    <span class="text-[0.7rem] font-medium" [class]="textClass(s.status)">{{ statusLabel(s.status) }}</span>
+                  </li>
+                }
+              </ul>
+            }
           </li>
         }
       </ul>

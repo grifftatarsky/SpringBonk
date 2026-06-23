@@ -8,28 +8,39 @@ export interface ServiceCheck {
   /** Same-origin, permit-all GET that returns 200 when the service is up. */
   readonly url: string;
   readonly status: Status;
+  /** When set, this is a game frontend nested under a backend (e.g. Decks). */
+  readonly parentKey?: string;
 }
 
-/**
- * Shared liveness of Akira's moving parts. Pings same-origin, public endpoints
- * with native `fetch` (so the global HTTP error interceptor doesn't toast on the
- * failures we expect), re-checking every 30s. One instance feeds the home
- * status box, the home Oozengine hero, and the nav availability state.
- *
- * Oozengine counts as "available" only when both its backend and its federated
- * micro-frontend answer — either being down marks it unavailable.
- */
+/** A top-level service plus any frontends served under it. */
+export interface ServiceGroup {
+  readonly service: ServiceCheck;
+  readonly subs: readonly ServiceCheck[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class SystemStatusService {
   private readonly state = signal<readonly ServiceCheck[]>([
     { key: 'akira-api', label: 'Akira backend', url: '/bff/api/tag', status: 'checking' },
     { key: 'ooze-api', label: 'Oozengine backend', url: '/bff/ooz/spell', status: 'checking' },
     { key: 'ooze-mfe', label: 'Oozengine frontend', url: '/remotes/ooze/remoteEntry.json', status: 'checking' },
+    // The Decks backend (spring-decks) hosts several card-game frontends; each
+    // game's micro-frontend is a sub-entry under it.
+    { key: 'decks-api', label: 'Decks backend', url: '/bff/dck/games/open', status: 'checking' },
+    { key: 'president-mfe', label: 'President', url: '/remotes/president/remoteEntry.json', status: 'checking', parentKey: 'decks-api' },
   ]);
 
   readonly services = this.state.asReadonly();
   readonly lastChecked = signal<Date | null>(null);
   readonly checking = computed(() => this.state().some(s => s.status === 'checking'));
+
+  /** Top-level services with their nested frontends, for the status panel. */
+  readonly groups = computed<readonly ServiceGroup[]>(() => {
+    const all = this.state();
+    return all
+      .filter(s => !s.parentKey)
+      .map(service => ({ service, subs: all.filter(s => s.parentKey === service.key) }));
+  });
 
   /** Both Oozengine pieces up. */
   readonly oozeAvailable = computed(
@@ -39,6 +50,16 @@ export class SystemStatusService {
   /** Either Oozengine piece confirmed down (not merely still checking). */
   readonly oozeDown = computed(
     () => this.statusOf('ooze-api') === 'down' || this.statusOf('ooze-mfe') === 'down',
+  );
+
+  /** President up = the shared Decks backend AND President's frontend both up. */
+  readonly presidentAvailable = computed(
+    () => this.statusOf('decks-api') === 'up' && this.statusOf('president-mfe') === 'up',
+  );
+
+  /** Either piece confirmed down (the Decks backend, shared by all games, or President's frontend). */
+  readonly presidentDown = computed(
+    () => this.statusOf('decks-api') === 'down' || this.statusOf('president-mfe') === 'down',
   );
 
   constructor() {

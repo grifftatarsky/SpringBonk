@@ -66,7 +66,7 @@
           } @else if (!filtered().length) {
             <p class="px-1 py-6 text-center text-xs text-fg-subtle">Nothing here yet.</p>
           } @else {
-            <div class="max-h-[26rem] overflow-y-auto pr-1">
+            <div class="pr-1 lg:max-h-[26rem] lg:overflow-y-auto">
               @for (g of groups(); track g.key) {
                 @if (g.label) {
                   <p class="sticky top-0 z-10 bg-bg-subtle py-1 text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-fg-subtle">
@@ -100,11 +100,35 @@
           }
         </div>
 
-        <!-- DETAIL -->
-        <div class="min-w-0 self-start rounded-lg border border-rule bg-bg p-3 sm:p-4 lg:sticky lg:top-20">
-          <ooze-content-panel
-            [def]="def" [item]="selected()" [creating]="creating()" [canEdit]="canEdit()"
-            (changed)="onChanged($event)" (closeCreate)="onCloseCreate()" />
+        <!-- mobile backdrop for the bottom sheet -->
+        @if (detailOpen()) {
+          <div class="fixed inset-0 z-30 bg-fg/40 backdrop-blur-sm lg:hidden"
+               (click)="closeDetail()" aria-hidden="true"></div>
+        }
+
+        <!-- DETAIL — sticky side column on desktop, swipe-dismissable bottom sheet on mobile -->
+        <div class="detail-pane min-w-0 border border-rule bg-bg lg:self-start lg:rounded-lg lg:p-4 lg:sticky lg:top-20"
+             [class.detail-pane--closed]="!detailOpen()"
+             [class.is-dragging]="dragging()"
+             [style.transform]="sheetTransform()">
+          <!-- mobile grab handle + close -->
+          <div class="relative shrink-0 lg:hidden">
+            <div class="cursor-grab touch-none pb-1 pt-3"
+                 (touchstart)="onDragStart($event)" (touchmove)="onDragMove($event)" (touchend)="onDragEnd()">
+              <span class="mx-auto block h-1.5 w-10 rounded-full bg-rule-strong"></span>
+            </div>
+            <button type="button" (click)="closeDetail()" aria-label="Close details"
+                    class="absolute right-2 top-2 grid size-8 place-items-center rounded-md text-fg-muted transition hover:bg-bg-subtle hover:text-fg">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" class="size-4"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+          <!-- content (scrolls inside the sheet on mobile) -->
+          <div class="min-h-0 overflow-y-auto px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] max-lg:flex-1 lg:overflow-visible lg:p-0">
+            <ooze-content-panel
+              [def]="def" [item]="selected()" [creating]="creating()" [canEdit]="canEdit()"
+              (changed)="onChanged($event)" (closeCreate)="onCloseCreate()" />
+          </div>
         </div>
       </div>
     </div>
