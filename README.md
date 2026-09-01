@@ -1,4 +1,4 @@
-# SpringBonk
+# akira-platform (formerly known as SpringBonk)
 
 A multi-service containerized application for running a ranked-choice book club. Built with a BFF (Backend for Frontend) pattern, OAuth 2.0 authentication, and event-driven messaging.
 
