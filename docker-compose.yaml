@@ -33,7 +33,7 @@ services:
 
   keycloak:
     container_name: keycloak
-    image: keycloak/keycloak:26.2
+    image: keycloak/keycloak:26.7
     command:
       - start-dev
       - --import-realm
