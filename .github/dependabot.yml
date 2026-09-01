@@ -1,0 +1,125 @@
+# Dependabot configuration for SpringBonk.
+#
+# This repo is a Maven reactor (four Spring services) plus one Angular
+# workspace, so each ecosystem is declared separately. Alerts are repo-level
+# and need no config, but *version updates* — the PRs that keep us ahead of
+# the next advisory — do.
+#
+# Grouping notes: patch/minor updates are batched into one PR per ecosystem to
+# keep the queue readable. Majors are deliberately left ungrouped so each one
+# arrives as its own reviewable PR. Nothing is added to `ignore`: an ignore
+# rule also suppresses the matching *security* update, which would recreate
+# exactly the blind spot this file exists to close.
+version: 2
+
+updates:
+  # ── Maven ───────────────────────────────────────────────────────────────
+  # Only the root pom is listed. Every version lives here (the Boot parent
+  # plus the <properties> block); the child poms carry `${...}` references
+  # only. Dependabot walks <modules> when it is a direct child of <project>,
+  # which is the case here, so the reactor is covered from `/`.
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "java"]
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    cooldown:
+      default-days: 3
+      semver-major-days: 14
+      semver-minor-days: 7
+    groups:
+      # One PR for all low-risk movement. Spring Boot patch bumps land here,
+      # which is what carries most transitive CVE fixes (netty, tomcat,
+      # jackson, spring-framework are all BOM-managed by the parent).
+      maven-minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      # Security fixes batch separately so they are not queued behind a
+      # routine version bump.
+      maven-security:
+        applies-to: "security-updates"
+        patterns: ["*"]
+
+  # ── npm (Angular workspace) ─────────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/angular-client/akira-ng"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "frontend"]
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    # Keeps the caret ranges in package.json intact and updates the lockfile
+    # unless a range genuinely cannot satisfy the new version.
+    versioning-strategy: "increase-if-necessary"
+    cooldown:
+      default-days: 3
+      semver-major-days: 14
+      semver-minor-days: 7
+    groups:
+      # Angular packages MUST move together. They carry exact peer pins on
+      # each other, so a partial bump produces an unresolvable tree (e.g.
+      # @angular/cli at 22.1.x against @angular/build at 22.0.x). No
+      # update-types filter here — majors included — for that reason.
+      angular:
+        patterns:
+          - "@angular/*"
+          - "@angular-architects/*"
+          - "@softarc/*"
+      # Everything else, low-risk only.
+      npm-minor-and-patch:
+        patterns: ["*"]
+        exclude-patterns:
+          - "@angular/*"
+          - "@angular-architects/*"
+          - "@softarc/*"
+        update-types: ["minor", "patch"]
+      npm-security:
+        applies-to: "security-updates"
+        patterns: ["*"]
+
+  # ── Docker base images ──────────────────────────────────────────────────
+  # The service Dockerfiles use non-standard names (DockerfileBFF, etc.).
+  # Dependabot's docker file matcher is the substring regex
+  # /dockerfile|containerfile/i, so these are picked up from `/`.
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "docker"]
+    commit-message:
+      prefix: "deps"
+    groups:
+      docker-images:
+        patterns: ["*"]
+
+  # ── docker-compose ──────────────────────────────────────────────────────
+  # Local-only stack. Of the three images, only keycloak is pinned to a real
+  # tag; postgres and nginx are on `:latest`, which Dependabot cannot bump.
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "docker"]
+    commit-message:
+      prefix: "deps"
+    groups:
+      compose-images:
+        patterns: ["*"]
