@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.6</version>
+    <version>4.0.8</version>
     <relativePath/>
   </parent>
 
@@ -24,11 +24,12 @@
 
   <properties>
     <java.version>26</java.version>
-    <spring.cloud.version>2025.1.1</spring.cloud.version>
+    <spring.cloud.version>2025.1.3</spring.cloud.version>
     <maven.compiler.version>3.14.0</maven.compiler.version>
     <lombok.version>1.18.46</lombok.version>
-    <spring-addons.version>9.1.3</spring-addons.version>
-    <keycloak.version>26.0.9</keycloak.version>
+    <spring-addons.version>9.1.5</spring-addons.version>
+    <keycloak.version>26.0.12</keycloak.version>
+    <commons-io.version>2.22.0</commons-io.version>
     <springdoc.version>3.0.3</springdoc.version>
   </properties>
 
@@ -53,6 +54,14 @@
         <artifactId>lombok</artifactId>
         <version>${lombok.version}</version>
         <scope>provided</scope>
+      </dependency>
+      <!-- keycloak-admin-client pulls resteasy-multipart-provider, which still
+           depends on commons-io 2.11.0 (GHSA-78wr-2p64-hpwj). Keycloak has not
+           moved its resteasy version, so pin commons-io here until it does. -->
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>${commons-io.version}</version>
       </dependency>
       <!-- spring-boot-starter-actuator and spring-boot-devtools are intentionally
            not managed here: the Spring Boot BOM (via the parent) already provides
