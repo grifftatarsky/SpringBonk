@@ -6,6 +6,8 @@ COPY pom.xml /tmp/pom.xml
 RUN mvn -f /tmp/pom.xml install -N
 
 COPY ./spring-ooze/pom.xml ./pom.xml
+RUN mvn dependency:go-offline
+
 COPY ./spring-ooze/src ./src
 
 RUN mvn clean package -DskipTests

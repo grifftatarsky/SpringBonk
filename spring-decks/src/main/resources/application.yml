@@ -69,3 +69,9 @@ logging:
   level:
     org:
       keycloak: INFO
+# Actuator #########################################################################################
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true

@@ -121,5 +121,12 @@ com:
             - /actuator/health/readiness
             - /actuator/health/liveness
 
+# Actuator #########################################################################################
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
 # TODO: Why is this unused?
 #username-claim-json-path: $.preferred_username

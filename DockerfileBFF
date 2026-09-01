@@ -6,6 +6,8 @@ COPY pom.xml /tmp/pom.xml
 RUN mvn -f /tmp/pom.xml install -N
 
 COPY ./spring-bff/pom.xml ./pom.xml
+RUN mvn dependency:go-offline
+
 COPY ./spring-bff/src ./src
 
 RUN mvn clean package -DskipTests
