@@ -82,3 +82,7 @@ management:
     health:
       probes:
         enabled: true
+      group:
+        readiness:
+          # Default is readinessState only; db makes the probe fail while Postgres is down.
+          include: readinessState,db
