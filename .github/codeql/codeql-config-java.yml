@@ -1,0 +1,24 @@
+# CodeQL config for the java-kotlin leg.
+#
+# Separate from the JS/Actions config for one reason: `threat-models` is only
+# supported by the Java/Kotlin and C# analyses, so it cannot live in a config
+# shared with javascript-typescript.
+name: akira-platform (Java)
+
+queries:
+  - uses: security-extended
+
+# The default threat model treats only remote (request) data as tainted. This
+# app stores user-authored content — book blurbs, review bodies, blog posts,
+# election pitches — in Postgres and renders it back out, so a database read is
+# a genuine untrusted source here, not a trusted one. `local` adds database,
+# file, environment, stdin and command-line sources, which is what surfaces
+# stored-XSS and second-order injection paths.
+#
+# Trade-off: this also treats configuration read from the environment as
+# tainted, so expect some by-design findings around datasource wiring. Drop this
+# block to return to remote-only sources.
+#
+# Note: threat models are still a GitHub public preview and the option may change.
+threat-models:
+  - local

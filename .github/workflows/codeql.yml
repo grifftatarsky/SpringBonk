@@ -32,15 +32,19 @@ jobs:
       matrix:
         include:
           # Maven multi-module backend; needs a real compile for accurate dataflow.
+          # Uses its own config because `threat-models` is Java/C#-only.
           - language: java-kotlin
             build-mode: manual
+            config: ./.github/codeql/codeql-config-java.yml
           # angular-client/akira-ng; dist/, node_modules/ and .angular/ are
           # gitignored, so a fresh checkout contains sources only.
           - language: javascript-typescript
             build-mode: none
+            config: ./.github/codeql/codeql-config.yml
           # Lints these workflow files themselves.
           - language: actions
             build-mode: none
+            config: ./.github/codeql/codeql-config.yml
 
     steps:
       - name: Checkout
@@ -59,9 +63,9 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
-          # Default suite = curated, low-noise security queries. To widen later:
-          #   queries: security-extended        # more security queries, more FPs
-          #   queries: security-and-quality     # the above plus lint/maintainability
+          # Query suite and threat model live in the config file so they are
+          # reviewable next to the reasoning for them.
+          config-file: ${{ matrix.config }}
 
       - name: Build Java modules
         if: matrix.build-mode == 'manual'

@@ -3,6 +3,7 @@ package com.gpt.springbonk.service.openlibrary;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.annotation.PostConstruct;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -40,6 +41,17 @@ public class OpenLibraryClient {
 
   private static final String WORKS_BASE = "https://openlibrary.org/works/";
 
+  /**
+   * Open Library work keys are {@code OL}, digits, {@code W} — nothing else.
+   * The key is concatenated into the request path, so anything that doesn't
+   * match this is refused rather than fetched: a value containing {@code ../},
+   * {@code ?} or {@code #} would otherwise steer the request at a different
+   * path on openlibrary.org. The host is a constant, so this was never
+   * server-side request forgery, but the path is ours to control and shouldn't
+   * be caller-supplied.
+   */
+  private static final Pattern WORK_KEY = Pattern.compile("^OL[0-9]+W$");
+
   private final JsonMapper objectMapper = JsonMapper.builder().build();
   private RestClient restClient;
 
@@ -66,6 +78,10 @@ public class OpenLibraryClient {
     }
     // Normalize: accept "OL45804W", "/works/OL45804W", "works/OL45804W".
     String normalized = workKey.replaceFirst("^/?works/", "").replaceFirst("^/", "");
+    if (!WORK_KEY.matcher(normalized).matches()) {
+      log.warn("[OpenLibraryClient] Refusing to fetch malformed work key: {}", workKey);
+      return Optional.empty();
+    }
     String url = WORKS_BASE + normalized + ".json";
     try {
       String body = restClient.get()

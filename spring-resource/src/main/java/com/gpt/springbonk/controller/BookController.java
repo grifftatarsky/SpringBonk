@@ -42,7 +42,7 @@ public class BookController {
   @PostMapping
   @Operation(summary = "Create a new book")
   public ResponseEntity<BookResponse> createBook(
-      @RequestBody BookRequest bookRequest,
+      @Valid @RequestBody BookRequest bookRequest,
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());
@@ -61,7 +61,7 @@ public class BookController {
   @Operation(summary = "Update an existing book")
   public ResponseEntity<BookResponse> updateBook(
       @PathVariable UUID id,
-      @RequestBody BookRequest bookUpdateRequest,
+      @Valid @RequestBody BookRequest bookUpdateRequest,
       @AuthenticationPrincipal Jwt jwt
   ) {
     UUID userId = UUID.fromString(jwt.getSubject());

@@ -1,0 +1,21 @@
+# CodeQL config for the interpreted legs: javascript-typescript and actions.
+#
+# `security-extended` is the wider of the two security suites — it keeps the
+# default suite's queries and adds ones with lower precision thresholds. It is
+# still security-only: it does NOT pull in the maintainability/lint queries that
+# `security-and-quality` would.
+name: akira-platform (JS/TS + Actions)
+
+queries:
+  - uses: security-extended
+
+# Nothing is path-excluded on purpose. dist/, node_modules/ and .angular/ are
+# gitignored so a fresh checkout never contains them, and the 12 spec files are
+# worth scanning — test helpers leak credentials as often as app code does.
+#
+# Once you have triaged a first run, silence individual rules here rather than
+# dropping whole paths, e.g.:
+#
+# query-filters:
+#   - exclude:
+#       id: js/unused-local-variable
