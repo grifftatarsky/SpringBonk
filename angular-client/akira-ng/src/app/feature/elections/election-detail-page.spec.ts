@@ -39,47 +39,61 @@ const mockBook: OpenLibraryBookResponse = {
 };
 
 // ---------------------------------------------------------------------------
-// Local shape mirrors (to avoid importing private interfaces from the store)
+// View-model shapes, derived from the store so they cannot drift out of sync.
+// (The store's VM interfaces are module-local, so read them off the signals.)
 // ---------------------------------------------------------------------------
 
-interface ElectionVm {
-  election: ElectionResponse | null;
-  loading: boolean;
-  error: string | null;
-  badgeTone: 'emerald' | 'amber' | 'sky';
-  statusLabel: string;
-}
+type ElectionVm = ReturnType<ElectionDetailStore['electionVm']>;
+type CandidatesVm = ReturnType<ElectionDetailStore['candidatesVm']>;
+type ResultsVm = ReturnType<ElectionDetailStore['resultsVm']>;
+type MyNominationsVm = ReturnType<ElectionDetailStore['myNominationsVm']>;
+type ShelfOptionsVm = ReturnType<ElectionDetailStore['shelfOptionsVm']>;
 
-interface ResultsVm {
-  items: Array<{
-    id: string;
-    winnerId: string | null;
-    winnerName: string;
-    totalVotes: number;
-    closureTime: string;
-    flags: string[];
-    rounds: Array<{
-      roundNumber: number;
-      eliminationMessage: string | null;
-      rows: Array<{ candidateId: string; candidateName: string; votes: number; eliminated: boolean }>;
-    }>;
-  }>;
-  loading: boolean;
-  error: string | null;
+function electionVm(overrides: Partial<ElectionVm> = {}): ElectionVm {
+  return {
+    election: openElection,
+    loading: false,
+    error: null,
+    notFound: false,
+    badgeTone: 'emerald',
+    statusLabel: 'Open',
+    ...overrides,
+  };
 }
 
 // ---------------------------------------------------------------------------
 // Store stubs
 // ---------------------------------------------------------------------------
 
-class ElectionDetailStoreStub {
-  readonly electionVm = signal<ElectionVm>({
-    election: openElection,
-    loading: false,
-    error: null,
-    badgeTone: 'emerald',
-    statusLabel: 'Open',
-  });
+// `implements` keeps the stub honest: when the store's API changes, this fails
+// to compile instead of the page throwing inside the TestBed at runtime.
+class ElectionDetailStoreStub
+  implements
+    Pick<
+      ElectionDetailStore,
+      | 'electionVm'
+      | 'candidatesVm'
+      | 'resultsVm'
+      | 'myNominationsVm'
+      | 'shelfOptionsVm'
+      | 'init'
+      | 'nominateFromOpenLibrary'
+      | 'nominateCustomBook'
+      | 'nominateExistingBook'
+      | 'removeCandidate'
+      | 'updateCandidatePitch'
+      | 'reorderBallot'
+      | 'clearBallot'
+      | 'deleteElection'
+      | 'reopenElection'
+      | 'closeElection'
+      | 'refreshCandidates'
+      | 'refreshVotes'
+      | 'refreshResults'
+      | 'selectShelfForExisting'
+    >
+{
+  readonly electionVm = signal<ElectionVm>(electionVm());
 
   readonly candidatesVm = signal({
     items: [] as any[],
@@ -93,6 +107,12 @@ class ElectionDetailStoreStub {
   });
 
   readonly resultsVm = signal<ResultsVm>({ items: [], loading: false, error: null });
+
+  readonly myNominationsVm = signal({
+    items: [] as any[],
+    count: 0,
+    hasAny: false,
+  });
 
   readonly shelfOptionsVm = signal({
     shelves: [] as any[],
@@ -119,22 +139,47 @@ class ElectionDetailStoreStub {
   readonly refreshVotes = vi.fn();
   readonly refreshResults = vi.fn();
   readonly selectShelfForExisting = vi.fn().mockResolvedValue(undefined);
-  readonly setCandidateRank = vi.fn().mockResolvedValue(undefined);
+  readonly updateCandidatePitch = vi.fn().mockResolvedValue(undefined);
   readonly init = vi.fn();
 }
 
-class BookSearchStoreStub {
-  readonly vm = signal({
+// Mirrors BookSearchStore.vm. `pending` (typing || loading) and `statusLabel`
+// drive the modal's in-flight states, so stubs must carry them.
+interface SearchVm {
+  query: string;
+  typing: boolean;
+  loading: boolean;
+  pending: boolean;
+  statusLabel: string | null;
+  error: string | null;
+  results: OpenLibraryBookResponse[];
+  total: number;
+  canLoadMore: boolean;
+  queryTooShort: boolean;
+  validationMessage: string | null;
+}
+
+function searchVm(overrides: Partial<SearchVm> = {}): SearchVm {
+  return {
     query: '',
+    typing: false,
     loading: false,
-    error: null as string | null,
-    results: [] as OpenLibraryBookResponse[],
+    pending: false,
+    statusLabel: null,
+    error: null,
+    results: [],
     total: 0,
     canLoadMore: false,
     queryTooShort: false,
-    validationMessage: null as string | null,
-  });
+    validationMessage: null,
+    ...overrides,
+  };
+}
 
+class BookSearchStoreStub implements Pick<BookSearchStore, 'vm' | 'setQuery' | 'search' | 'loadMore'> {
+  readonly vm = signal<SearchVm>(searchVm());
+
+  readonly setQuery = vi.fn();
   readonly search = vi.fn().mockResolvedValue(undefined);
   readonly loadMore = vi.fn().mockResolvedValue(undefined);
 }
@@ -143,8 +188,23 @@ class BookSearchStoreStub {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function click(el: Element | null): void {
+function click(el: Element | null | undefined): void {
+  if (!el) throw new Error('click(): element not found');
   (el as HTMLElement).click();
+}
+
+/** Click the button in `scope` whose trimmed text matches, or fail loudly. */
+function clickButton(
+  fixture: ComponentFixture<unknown>,
+  scope: string,
+  match: (text: string) => boolean,
+  label: string,
+): void {
+  const btn = qAll<HTMLButtonElement>(fixture, scope).find((b) =>
+    match((b.textContent ?? '').trim()),
+  );
+  if (!btn) throw new Error(`clickButton(): no ${scope} button matching ${label}`);
+  btn.click();
 }
 
 function q<T extends Element>(fixture: ComponentFixture<unknown>, selector: string): T | null {
@@ -195,6 +255,19 @@ describe('ElectionDetailPage', () => {
     fixture.detectChanges();
   });
 
+  /**
+   * Opens the Open Library search modal the way the UI does: the nominate
+   * menu ("+ Add book") on the Nominate candidates section, then its
+   * "From Open Library" item. (The Manage menu holds reopen/delete only.)
+   */
+  function openModal(): void {
+    clickButton(fixture, 'section button', (t) => t === '+ Add book', '"+ Add book"');
+    fixture.detectChanges();
+
+    clickButton(fixture, '.absolute button', (t) => t.includes('Open Library'), '"Open Library"');
+    fixture.detectChanges();
+  }
+
   // -------------------------------------------------------------------------
   // Rendering basics
   // -------------------------------------------------------------------------
@@ -204,20 +277,40 @@ describe('ElectionDetailPage', () => {
     expect(h1?.textContent).toContain('Test Election');
   });
 
-  it('shows the ballot section when the election is open', () => {
+  it('shows the ballot section once the election has candidates to rank', () => {
+    const item = {
+      id: 'c1',
+      title: 'Dune',
+      author: 'Frank Herbert',
+      cover: '',
+      blurb: '',
+      votes: 0,
+      bookId: 'b1',
+      userRank: null,
+      nominatorId: 'u1',
+      mine: false,
+    };
+    detailStore.candidatesVm.set({
+      items: [item],
+      loading: false,
+      error: null,
+      votesLoading: false,
+      votesError: null,
+      reorderBusy: false,
+      rankedItems: [],
+      unrankedItems: [item],
+    });
+    fixture.detectChanges();
+
     const h2s = qAll<HTMLHeadingElement>(fixture, 'h2');
-    const ballotHeading = h2s.find((h) => h.textContent?.includes('Arrange your ballot'));
+    const ballotHeading = h2s.find((h) => h.textContent?.includes('Rank your ballot'));
     expect(ballotHeading).toBeTruthy();
   });
 
   it('shows the results section when the election is closed', () => {
-    detailStore.electionVm.set({
-      election: closedElection,
-      loading: false,
-      error: null,
-      badgeTone: 'amber',
-      statusLabel: 'Closed',
-    });
+    detailStore.electionVm.set(
+      electionVm({ election: closedElection, badgeTone: 'amber', statusLabel: 'Closed' }),
+    );
     fixture.detectChanges();
 
     const h2s = qAll<HTMLHeadingElement>(fixture, 'h2');
@@ -225,13 +318,9 @@ describe('ElectionDetailPage', () => {
   });
 
   it('shows the closed-on date in the results header for a closed election', () => {
-    detailStore.electionVm.set({
-      election: closedElection,
-      loading: false,
-      error: null,
-      badgeTone: 'amber',
-      statusLabel: 'Closed',
-    });
+    detailStore.electionVm.set(
+      electionVm({ election: closedElection, badgeTone: 'amber', statusLabel: 'Closed' }),
+    );
     fixture.detectChanges();
 
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Closed on');
@@ -242,18 +331,6 @@ describe('ElectionDetailPage', () => {
   // -------------------------------------------------------------------------
 
   describe('search modal', () => {
-    function openModal(): void {
-      const menuToggle = qAll<HTMLButtonElement>(fixture, 'section button').find(
-        (b) => b.textContent?.trim() === 'Menu',
-      );
-      menuToggle?.click();
-      fixture.detectChanges();
-
-      const menuItems = qAll<HTMLButtonElement>(fixture, '.absolute button');
-      menuItems.find((b) => b.textContent?.includes('Open Library'))?.click();
-      fixture.detectChanges();
-    }
-
     it('is not rendered before being opened', () => {
       expect(q(fixture, '[role="dialog"]')).toBeNull();
     });
@@ -271,10 +348,7 @@ describe('ElectionDetailPage', () => {
 
     it('closes when the Close button is clicked', () => {
       openModal();
-      const closeBtn = qAll<HTMLButtonElement>(fixture, '[role="dialog"] button').find(
-        (b) => b.textContent?.trim() === 'Close',
-      );
-      closeBtn?.click();
+      click(q(fixture, '[role="dialog"] button[aria-label="Close"]'));
       fixture.detectChanges();
       expect(q(fixture, '[role="dialog"]')).toBeNull();
     });
@@ -292,28 +366,8 @@ describe('ElectionDetailPage', () => {
   // -------------------------------------------------------------------------
 
   describe('two-step search flow', () => {
-    function openModal(): void {
-      qAll<HTMLButtonElement>(fixture, 'section button')
-        .find((b) => b.textContent?.trim() === 'Menu')
-        ?.click();
-      fixture.detectChanges();
-      qAll<HTMLButtonElement>(fixture, '.absolute button')
-        .find((b) => b.textContent?.includes('Open Library'))
-        ?.click();
-      fixture.detectChanges();
-    }
-
     function setResults(results: OpenLibraryBookResponse[]): void {
-      searchStore.vm.set({
-        query: 'dune',
-        loading: false,
-        error: null,
-        results,
-        total: results.length,
-        canLoadMore: false,
-        queryTooShort: false,
-        validationMessage: null,
-      });
+      searchStore.vm.set(searchVm({ query: 'dune', results, total: results.length }));
       fixture.detectChanges();
     }
 
@@ -371,9 +425,7 @@ describe('ElectionDetailPage', () => {
       click(q(fixture, '[role="dialog"] ul button'));
       fixture.detectChanges();
 
-      qAll<HTMLButtonElement>(fixture, '[role="dialog"] button')
-        .find((b) => b.textContent?.includes('Back'))
-        ?.click();
+      clickButton(fixture, '[role="dialog"] button', (t) => t.includes('Back'), '"Back"');
       fixture.detectChanges();
 
       expect(q(fixture, '[role="dialog"] input[type="search"]')).toBeTruthy();
@@ -386,9 +438,7 @@ describe('ElectionDetailPage', () => {
       click(q(fixture, '[role="dialog"] ul button'));
       fixture.detectChanges();
 
-      qAll<HTMLButtonElement>(fixture, '[role="dialog"] button')
-        .find((b) => b.textContent?.trim() === 'Nominate')
-        ?.click();
+      clickButton(fixture, '[role="dialog"] button', (t) => t === 'Nominate', '"Nominate"');
 
       await wait();
 
@@ -404,9 +454,7 @@ describe('ElectionDetailPage', () => {
       click(q(fixture, '[role="dialog"] ul button'));
       fixture.detectChanges();
 
-      qAll<HTMLButtonElement>(fixture, '[role="dialog"] button')
-        .find((b) => b.textContent?.trim() === 'Nominate')
-        ?.click();
+      clickButton(fixture, '[role="dialog"] button', (t) => t === 'Nominate', '"Nominate"');
 
       await wait();
       fixture.detectChanges();
@@ -420,36 +468,20 @@ describe('ElectionDetailPage', () => {
       expect(detailStore.nominateFromOpenLibrary).not.toHaveBeenCalled();
     });
 
-    it('shows a loading spinner while searching', () => {
+    it('shows the searching status while a query is in flight', () => {
       openModal();
-      searchStore.vm.set({
-        query: 'dune',
-        loading: true,
-        error: null,
-        results: [],
-        total: 0,
-        canLoadMore: false,
-        queryTooShort: false,
-        validationMessage: null,
-      });
+      searchStore.vm.set(
+        searchVm({ query: 'dune', loading: true, pending: true, statusLabel: 'Searching…' }),
+      );
       fixture.detectChanges();
 
-      // The pulsing spinner uses animate-ping class
-      expect(q(fixture, '[role="dialog"] .animate-ping')).toBeTruthy();
+      const status = q(fixture, '[role="dialog"] [role="status"]');
+      expect(status?.textContent).toContain('Searching');
     });
 
     it('shows a no-results message when search returns empty', () => {
       openModal();
-      searchStore.vm.set({
-        query: 'xyzxyz',
-        loading: false,
-        error: null,
-        results: [],
-        total: 0,
-        canLoadMore: false,
-        queryTooShort: false,
-        validationMessage: null,
-      });
+      searchStore.vm.set(searchVm({ query: 'xyzxyz' }));
       fixture.detectChanges();
 
       expect((fixture.nativeElement as HTMLElement).textContent).toContain('No results');
@@ -457,16 +489,13 @@ describe('ElectionDetailPage', () => {
 
     it('shows the validation message when query is too short', () => {
       openModal();
-      searchStore.vm.set({
-        query: 'ab',
-        loading: false,
-        error: null,
-        results: [],
-        total: 0,
-        canLoadMore: false,
-        queryTooShort: true,
-        validationMessage: 'Search requires at least 3 characters',
-      });
+      searchStore.vm.set(
+        searchVm({
+          query: 'ab',
+          queryTooShort: true,
+          validationMessage: 'Search requires at least 3 characters',
+        }),
+      );
       fixture.detectChanges();
 
       expect((fixture.nativeElement as HTMLElement).textContent).toContain(
@@ -492,9 +521,7 @@ describe('ElectionDetailPage', () => {
       searchStore.vm.update((v) => ({ ...v, canLoadMore: true, total: 99 }));
       fixture.detectChanges();
 
-      qAll<HTMLButtonElement>(fixture, '[role="dialog"] button')
-        .find((b) => b.textContent?.includes('Load more'))
-        ?.click();
+      clickButton(fixture, '[role="dialog"] button', (t) => t.includes('Load more'), '"Load more"');
 
       expect(searchStore.loadMore).toHaveBeenCalled();
     });
@@ -506,13 +533,9 @@ describe('ElectionDetailPage', () => {
 
   describe('closed election results', () => {
     beforeEach(() => {
-      detailStore.electionVm.set({
-        election: closedElection,
-        loading: false,
-        error: null,
-        badgeTone: 'amber',
-        statusLabel: 'Closed',
-      });
+      detailStore.electionVm.set(
+        electionVm({ election: closedElection, badgeTone: 'amber', statusLabel: 'Closed' }),
+      );
       detailStore.resultsVm.set({
         items: [
           {
@@ -525,10 +548,12 @@ describe('ElectionDetailPage', () => {
             rounds: [
               {
                 roundNumber: 1,
+                totalVotes: 5,
                 eliminationMessage: null,
+                maxVotes: 3,
                 rows: [
-                  { candidateId: 'c1', candidateName: 'Dune', votes: 3, eliminated: false },
-                  { candidateId: 'c2', candidateName: 'Neuromancer', votes: 2, eliminated: true },
+                  { candidateId: 'c1', candidateName: 'Dune', votes: 3, eliminated: false, isWinner: true, widthPct: 100 },
+                  { candidateId: 'c2', candidateName: 'Neuromancer', votes: 2, eliminated: true, isWinner: false, widthPct: 67 },
                 ],
               },
             ],
@@ -548,8 +573,8 @@ describe('ElectionDetailPage', () => {
       expect((fixture.nativeElement as HTMLElement).textContent).toContain('5');
     });
 
-    it('shows the "Decided" closure timestamp', () => {
-      expect((fixture.nativeElement as HTMLElement).textContent).toContain('Decided');
+    it('shows the decided-on closure timestamp', () => {
+      expect((fixture.nativeElement as HTMLElement).textContent).toContain('decided');
     });
 
     it('shows an "Eliminated" badge for eliminated candidates', () => {
@@ -565,12 +590,13 @@ describe('ElectionDetailPage', () => {
     });
 
     it('shows the round-by-round breakdown label', () => {
-      expect((fixture.nativeElement as HTMLElement).textContent).toContain('Round-by-round');
+      expect((fixture.nativeElement as HTMLElement).textContent).toContain('Round by round');
     });
 
     it('renders one round card per round', () => {
-      const roundCards = qAll(fixture, '.space-y-3 > div');
-      expect(roundCards.length).toBe(1);
+      const label = qAll(fixture, 'p').find((el) => el.textContent?.trim() === 'Round by round');
+      expect(label, 'round-by-round section should be present').toBeTruthy();
+      expect(label!.nextElementSibling?.children.length).toBe(1);
     });
   });
 
@@ -579,32 +605,28 @@ describe('ElectionDetailPage', () => {
   // -------------------------------------------------------------------------
 
   describe('command menu', () => {
-    function getMenuToggle(): HTMLButtonElement | undefined {
-      return qAll<HTMLButtonElement>(fixture, 'section button').find(
-        (b) => b.textContent?.trim() === 'Menu',
-      );
+    function openMenu(): void {
+      clickButton(fixture, 'section button', (t) => t === 'Manage', '"Manage"');
+      fixture.detectChanges();
     }
 
-    it('opens when the Menu button is clicked', () => {
-      getMenuToggle()?.click();
-      fixture.detectChanges();
+    it('opens when the Manage button is clicked', () => {
+      openMenu();
       // Dropdown is the first absolute-positioned div that appears
       expect(q(fixture, '.absolute.right-0.top-full')).toBeTruthy();
     });
 
     it('closes when clicking the page backdrop', () => {
-      getMenuToggle()?.click();
-      fixture.detectChanges();
+      openMenu();
 
-      q<HTMLDivElement>(fixture, '.fixed.inset-0.z-20')?.click();
+      click(q(fixture, '.fixed.inset-0.z-20'));
       fixture.detectChanges();
 
       expect(q(fixture, '.absolute.right-0.top-full')).toBeNull();
     });
 
     it('closes on Escape', () => {
-      getMenuToggle()?.click();
-      fixture.detectChanges();
+      openMenu();
 
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
       fixture.detectChanges();

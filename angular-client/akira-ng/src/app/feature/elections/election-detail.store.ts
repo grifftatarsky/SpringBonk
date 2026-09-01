@@ -29,7 +29,6 @@ export interface CandidateListItem {
   votes: number;
   bookId: string;
   userRank: number | null;
-  voteBusy: boolean;
   nominatorId: string;
   mine: boolean;
 }
@@ -117,7 +116,6 @@ export class ElectionDetailStore {
   private readonly votes = signal<VoteResponse[]>([]);
   private readonly votesLoading = signal(false);
   private readonly votesError = signal<string | null>(null);
-  private readonly voteBusyMap = signal<Record<string, boolean>>({});
   private readonly reorderBusy = signal(false);
   private readonly results = signal<ElectionResultResponse[]>([]);
   private readonly resultsLoading = signal(false);
@@ -167,7 +165,6 @@ export class ElectionDetailStore {
       acc[vote.candidateId] = vote.rank;
       return acc;
     }, {});
-    const busyMap = this.voteBusyMap();
     const userId = this.currentUserId();
     const items: CandidateListItem[] = this.candidates().map((candidate) => ({
       id: candidate.id,
@@ -178,7 +175,6 @@ export class ElectionDetailStore {
       votes: candidate.votes?.length ?? 0,
       bookId: candidate.base.id,
       userRank: voteMap[candidate.id] ?? null,
-      voteBusy: busyMap[candidate.id] ?? false,
       nominatorId: candidate.nominatorId,
       mine: !!userId && candidate.nominatorId === userId,
     }));
@@ -591,36 +587,6 @@ export class ElectionDetailStore {
     }
   }
 
-  async setCandidateRank(candidateId: string, rank: number | null): Promise<void> {
-    if (!candidateId) {
-      return;
-    }
-
-    const previousVotes = this.votes();
-    this.setVoteBusy(candidateId, true);
-    try {
-      if (rank === null) {
-        await firstValueFrom(this.votingHttp.deleteVote(candidateId));
-        this.votes.update((current) => current.filter((vote) => vote.candidateId !== candidateId));
-        this.notifications.success('Vote removed');
-      } else {
-        const vote = await firstValueFrom(this.votingHttp.voteForCandidate(candidateId, rank));
-        this.upsertVote(vote);
-        this.notifications.success('Vote recorded');
-      }
-      const updatedVotes = this.votes();
-      this.syncVotesWithCandidates(previousVotes, updatedVotes);
-      this.votesError.set(null);
-    } catch (error) {
-      console.error('[ElectionDetailStore] Failed to update vote', error);
-      this.votesError.set('Unable to update vote right now.');
-      this.notifications.error('Unable to update vote right now.');
-      throw error;
-    } finally {
-      this.setVoteBusy(candidateId, false);
-    }
-  }
-
   async clearBallot(): Promise<void> {
     await this.reorderBallot([]);
   }
@@ -805,25 +771,6 @@ export class ElectionDetailStore {
     this.candidates.update((candidates) =>
       candidates.map((current) => (current.id === tempId ? candidate : current)),
     );
-  }
-
-  private upsertVote(vote: VoteResponse): void {
-    this.votes.update((current) => {
-      const index = current.findIndex((existing) => existing.candidateId === vote.candidateId);
-      if (index === -1) {
-        return [...current, vote];
-      }
-      const updated = [...current];
-      updated[index] = vote;
-      return updated;
-    });
-  }
-
-  private setVoteBusy(candidateId: string, busy: boolean): void {
-    this.voteBusyMap.update((current) => ({
-      ...current,
-      [candidateId]: busy,
-    }));
   }
 
   private syncVotesWithCandidates(previous: VoteResponse[], next: VoteResponse[]): void {

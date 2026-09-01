@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { ElectionHttpService, ElectionPageRequest } from '../../../common/http/election-http.service';
 import { ElectionResponse, ElectionStatus } from '../../../model/response/election-response.model';
-import { PaginatedResult, PageMetadata, SortDirection } from '../../../model/type/pagination';
+import { PaginatedResult, SortDirection } from '../../../model/type/pagination';
 import { mapSpringPagedResponse, paginateArray, createEmptyResult } from '../../../common/util/pagination.util';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, firstValueFrom, map, of, switchMap, tap } from 'rxjs';

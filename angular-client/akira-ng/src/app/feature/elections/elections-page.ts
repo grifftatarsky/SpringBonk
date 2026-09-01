@@ -168,10 +168,6 @@ export class ElectionsPage {
     this.closeMenus();
   }
 
-  protected trackByElection(_: number, election: ElectionListItem): string {
-    return election.id;
-  }
-
   protected formatStatusLabel(status: ElectionStatus): string {
     switch (status) {
       case 'OPEN':

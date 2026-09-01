@@ -14,8 +14,17 @@ const basePage: PageMetadata = {
   totalPages: 1,
 };
 
-class ShelfWidgetStoreStub {
-  readonly vm = signal({
+type ShelfWidgetVm = ReturnType<ShelfWidgetStore['vm']>;
+type ShelfWidgetVmCreate = ReturnType<ShelfWidgetStore['createState']>;
+
+class ShelfWidgetStoreStub
+  implements
+    Pick<
+      ShelfWidgetStore,
+      'vm' | 'sortOptions' | 'createState' | 'setFilter' | 'setPage' | 'setPageSize' | 'setSort'
+    >
+{
+  readonly vm = signal<ShelfWidgetVm>({
     items: [
       {
         id: '1',
@@ -38,7 +47,7 @@ class ShelfWidgetStoreStub {
   });
 
   readonly sortOptions = this.vm().sortOptions;
-  readonly createState = signal({ creating: false, error: null });
+  readonly createState = signal<ShelfWidgetVmCreate>({ creating: false, error: null });
 
   readonly setFilter = vi.fn();
   readonly setPage = vi.fn();

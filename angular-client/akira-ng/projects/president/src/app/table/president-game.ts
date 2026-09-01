@@ -126,8 +126,6 @@ export class PresidentGame {
   /** The most recent play (combo + who) — context for skip / trick-win banners. */
   private lastPlay: { playerId: PlayerId; combo: Combo } | null = null;
   private readonly _stats = signal<Record<PlayerId, PlayerStats>>({});
-  /** Per-player running tally (tricks won, roles earned) for the seat tooltip. */
-  readonly stats = this._stats.asReadonly();
 
   readonly phase = computed(() => this._state().phase);
   readonly current = computed(() => {

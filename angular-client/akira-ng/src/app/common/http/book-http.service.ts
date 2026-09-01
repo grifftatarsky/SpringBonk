@@ -4,7 +4,7 @@ import { BaseHttpService } from './base-http.service';
 import { BookResponse } from '../../model/response/book-response.model';
 import { BookRequest } from '../../model/request/book-request.model';
 import { PagedOpenLibraryResponse } from '../../model/response/open-library-book-response.model';
-import { PagedResponse } from '../../model/response/paged-response.model';
+import { SpringPagedResponse } from '../../model/response/spring-paged-response.model';
 
 @Injectable({ providedIn: 'root' })
 export class BookHttpService extends BaseHttpService {
@@ -46,12 +46,7 @@ export class BookHttpService extends BaseHttpService {
     return `https://covers.openlibrary.org/b/id/${coverId}-${size}.jpg`;
   }
 
-  getOpenLibraryCoverImageByOpenLibraryId(olid: string, size: 'S' | 'M' | 'L' = 'M'): string {
-    return `https://covers.openlibrary.org/b/olid/${olid}-${size}.jpg`;
-  }
-
   createBook(request: BookRequest): Observable<BookResponse> {
-    console.log("PRE SEND:" + request.blurb)
     return this.post<BookResponse>(this.baseUrl, request);
   }
 
@@ -59,18 +54,26 @@ export class BookHttpService extends BaseHttpService {
     return this.put<BookResponse>(`${this.baseUrl}/${id}`, request);
   }
 
+  /**
+   * Server-side page of a shelf's books. Preferred over {@link getBooksByShelfId}
+   * so a large shelf isn't fetched whole just to show eight rows. The endpoint
+   * takes a Pageable only — it has no search parameter, so callers that need to
+   * filter fall back to the full list.
+   */
   getPagedBooksByShelfId(
     shelfId: string,
     page = 0,
-    size = 12,
-  ): Observable<PagedResponse<BookResponse>> {
-    return this.get<PagedResponse<BookResponse>>(`${this.baseUrl}/shelf/${shelfId}?page=${page}&size=${size}`);
+    size = 8,
+  ): Observable<SpringPagedResponse<BookResponse>> {
+    return this.get<SpringPagedResponse<BookResponse>>(`${this.baseUrl}/shelf/${shelfId}`, { page, size });
   }
 
+  /** Every book on a shelf. Use only when the whole list is genuinely needed. */
   getBooksByShelfId(shelfId: string): Observable<BookResponse[]> {
     return this.get<BookResponse[]>(`${this.baseUrl}/shelf/${shelfId}/all`);
   }
 
+  /** Puts an existing book on another shelf. Returns the book with its updated shelves. */
   addBookToShelf(bookId: string, shelfId: string): Observable<BookResponse> {
     return this.put<BookResponse>(`${this.baseUrl}/${bookId}/shelf/${shelfId}`, {});
   }

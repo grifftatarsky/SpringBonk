@@ -42,7 +42,4 @@ export class ContentService {
     return this.http.post<void>(`${this.url(path)}/${baseId}/hide`, {});
   }
 
-  unhide(path: string, baseId: string): Observable<void> {
-    return this.http.delete<void>(`${this.url(path)}/${baseId}/hide`);
-  }
 }

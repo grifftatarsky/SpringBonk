@@ -67,7 +67,7 @@
         @let candidateState = candidatesVm();
         @let resultsState = resultsVm();
 
-        @if (showClosedState($safeNavigationMigration(electionState.election?.status))) {
+        @if (showClosedState(electionState.election?.status)) {
           <!-- =========================================================================
           CLOSED: RESULTS
           ========================================================================= -->

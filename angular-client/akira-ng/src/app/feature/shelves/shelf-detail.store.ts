@@ -1,14 +1,24 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ShelfHttpService } from '../../common/http/shelf-http.service';
 import { ShelfResponse } from '../../model/response/shelf-response.model';
 import { BookHttpService } from '../../common/http/book-http.service';
 import { BookResponse } from '../../model/response/book-response.model';
-import { PaginatedResult, PaginationQuery } from '../../model/type/pagination';
-import { paginateArray } from '../../common/util/pagination.util';
+import { PaginatedResult } from '../../model/type/pagination';
+import { createEmptyResult, mapSpringPagedResponse, paginateArray } from '../../common/util/pagination.util';
 import { OpenLibraryBookResponse } from '../../model/response/open-library-book-response.model';
 import { BookRequest } from '../../model/request/book-request.model';
-import { firstValueFrom } from 'rxjs';
+import { catchError, debounceTime, filter, firstValueFrom, map, of, switchMap, tap } from 'rxjs';
 import { NotificationService } from '../../common/notification/notification.service';
+
+interface ShelfBooksQuery {
+  shelfId: string;
+  page: number;
+  size: number;
+  filter: string;
+  /** Bumped to force a refetch after a mutation. */
+  tick: number;
+}
 
 @Injectable()
 export class ShelfDetailStore {
@@ -21,23 +31,79 @@ export class ShelfDetailStore {
   private readonly shelfLoading = signal(false);
   private readonly shelfError = signal<string | null>(null);
 
-  private readonly allBooks = signal<BookResponse[]>([]);
+  private readonly result = signal<PaginatedResult<BookResponse>>(createEmptyResult<BookResponse>(8));
   private readonly booksLoading = signal(false);
   private readonly booksError = signal<string | null>(null);
 
   private readonly pageIndex = signal(0);
   private readonly pageSize = signal(8);
   private readonly filterTerm = signal('');
+  private readonly reloadTick = signal(0);
+
+  private readonly params = computed<ShelfBooksQuery>(() => ({
+    shelfId: this.shelfId(),
+    page: this.pageIndex(),
+    size: this.pageSize(),
+    filter: this.filterTerm(),
+    tick: this.reloadTick(),
+  }));
 
   constructor() {
     effect(() => {
       const id = this.shelfId();
-      if (!id) {
-        return;
+      if (id) {
+        this.fetchShelf(id);
       }
-      this.fetchShelf(id);
-      this.fetchBooks(id);
     });
+
+    toObservable(this.params)
+      .pipe(
+        filter((params) => !!params.shelfId),
+        debounceTime(75),
+        tap(() => this.booksLoading.set(true)),
+        switchMap((params) =>
+          this.loadBooks(params).pipe(
+            catchError((error) => {
+              console.error('[ShelfDetailStore] Failed to load shelf books', error);
+              this.booksError.set('Unable to load books for this shelf.');
+              return of(createEmptyResult<BookResponse>(params.size));
+            }),
+          ),
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe((result) => {
+        this.result.set(result);
+        this.booksLoading.set(false);
+        if (result.items.length) {
+          this.booksError.set(null);
+        }
+      });
+  }
+
+  /**
+   * Server-paged by default. The books-by-shelf endpoint takes a Pageable with
+   * no search parameter, so an active filter falls back to the full list and
+   * narrows it here — the same trade the shelves and elections pages make.
+   */
+  private loadBooks(state: ShelfBooksQuery) {
+    const term = state.filter.trim().toLowerCase();
+
+    if (term) {
+      return this.bookHttp.getBooksByShelfId(state.shelfId).pipe(
+        map((books) =>
+          books.filter(
+            (book) =>
+              book.title.toLowerCase().includes(term) || book.author.toLowerCase().includes(term),
+          ),
+        ),
+        map((filtered) => paginateArray(filtered, state)),
+      );
+    }
+
+    return this.bookHttp
+      .getPagedBooksByShelfId(state.shelfId, state.page, state.size)
+      .pipe(map((response) => mapSpringPagedResponse<BookResponse>(response)));
   }
 
   readonly shelfVm = computed(() => ({
@@ -46,22 +112,9 @@ export class ShelfDetailStore {
     error: this.shelfError(),
   }));
 
-  private readonly booksResult = computed<PaginatedResult<BookResponse>>(() => {
-    const books = this.allBooks();
-    const query: PaginationQuery = {
-      page: this.pageIndex(),
-      size: this.pageSize(),
-    };
-    const filter = this.filterTerm().trim().toLowerCase();
-    const filtered = filter
-      ? books.filter((book) => book.title.toLowerCase().includes(filter) || book.author.toLowerCase().includes(filter))
-      : books;
-    return paginateArray(filtered, query);
-  });
-
   readonly booksVm = computed(() => ({
-    items: this.booksResult().items,
-    page: this.booksResult().page,
+    items: this.result().items,
+    page: this.result().page,
     loading: this.booksLoading(),
     error: this.booksError(),
     filter: this.filterTerm(),
@@ -108,7 +161,7 @@ export class ShelfDetailStore {
       shelves: [],
     };
 
-    this.allBooks.update((books) => [placeholder, ...books]);
+    this.result.update((current) => ({ ...current, items: [placeholder, ...current.items] }));
     this.pageIndex.set(0);
 
     try {
@@ -121,11 +174,18 @@ export class ShelfDetailStore {
         shelfIds: [shelfId],
       };
       const created = await firstValueFrom(this.bookHttp.createBook(request));
-      this.allBooks.update((books) => books.map((book) => (book.id === tempId ? created : book)));
+      this.result.update((current) => ({
+        ...current,
+        items: current.items.map((book) => (book.id === tempId ? created : book)),
+      }));
       this.notifications.success('Book added to shelf');
+      this.refresh();
     } catch (error) {
       console.error('[ShelfDetailStore] Failed to add book from Open Library', error);
-      this.allBooks.update((books) => books.filter((book) => book.id !== tempId));
+      this.result.update((current) => ({
+        ...current,
+        items: current.items.filter((book) => book.id !== tempId),
+      }));
       this.notifications.error('Unable to add book right now.');
       throw error;
     }
@@ -148,7 +208,7 @@ export class ShelfDetailStore {
       shelves: [],
     };
 
-    this.allBooks.update((books) => [placeholder, ...books]);
+    this.result.update((current) => ({ ...current, items: [placeholder, ...current.items] }));
     this.pageIndex.set(0);
 
     try {
@@ -158,11 +218,18 @@ export class ShelfDetailStore {
         shelfIds: [shelfId],
       };
       const created = await firstValueFrom(this.bookHttp.createBook(request));
-      this.allBooks.update((books) => books.map((book) => (book.id === tempId ? created : book)));
+      this.result.update((current) => ({
+        ...current,
+        items: current.items.map((book) => (book.id === tempId ? created : book)),
+      }));
       this.notifications.success('Book added to shelf');
+      this.refresh();
     } catch (error) {
       console.error('[ShelfDetailStore] Failed to add custom book', error);
-      this.allBooks.update((books) => books.filter((book) => book.id !== tempId));
+      this.result.update((current) => ({
+        ...current,
+        items: current.items.filter((book) => book.id !== tempId),
+      }));
       this.notifications.error('Unable to add book right now.');
       throw error;
     }
@@ -173,14 +240,18 @@ export class ShelfDetailStore {
     if (!shelfId) {
       return;
     }
-    const snapshot = this.allBooks();
-    this.allBooks.update((books) => books.filter((book) => book.id !== bookId));
+    const snapshot = this.result();
+    this.result.update((current) => ({
+      ...current,
+      items: current.items.filter((book) => book.id !== bookId),
+    }));
     try {
       await firstValueFrom(this.bookHttp.removeBookFromShelf(bookId, shelfId));
       this.notifications.success('Book removed from shelf');
+      this.refresh();
     } catch (error) {
       console.error('[ShelfDetailStore] Failed to remove book', error);
-      this.allBooks.set(snapshot);
+      this.result.set(snapshot);
       this.notifications.error('Unable to remove book right now.');
       throw error;
     }
@@ -200,11 +271,9 @@ export class ShelfDetailStore {
     }
   }
 
+  /** Re-runs the current query (page, size and filter unchanged). */
   refresh(): void {
-    const id = this.shelfId();
-    if (id) {
-      this.fetchBooks(id);
-    }
+    this.reloadTick.update((tick) => tick + 1);
   }
 
   private async fetchShelf(id: string): Promise<void> {
@@ -219,21 +288,6 @@ export class ShelfDetailStore {
       this.shelf.set(null);
     } finally {
       this.shelfLoading.set(false);
-    }
-  }
-
-  private async fetchBooks(id: string): Promise<void> {
-    this.booksLoading.set(true);
-    this.booksError.set(null);
-    try {
-      const books = await firstValueFrom(this.bookHttp.getBooksByShelfId(id));
-      this.allBooks.set(books);
-    } catch (error) {
-      console.error('[ShelfDetailStore] Failed to load shelf books', error);
-      this.booksError.set('Unable to load books for this shelf.');
-      this.allBooks.set([]);
-    } finally {
-      this.booksLoading.set(false);
     }
   }
 }

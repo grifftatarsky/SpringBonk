@@ -70,7 +70,7 @@ export class UserService {
           }
         }
       },
-      error: (error): void => {
+      error: (): void => {
         this.user$.next(User.ANONYMOUS);
       },
     });

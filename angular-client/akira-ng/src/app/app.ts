@@ -19,6 +19,7 @@ import { User } from './auth/user.model';
 import { ToastContainerComponent } from './common/notification/toast-container.component';
 import { NotificationBellComponent } from './common/notification/notification-bell.component';
 import { SystemStatusService } from './common/system-status.service';
+import { GITHUB_URL } from './app.constants';
 
 type DownKey = 'ooze' | 'president';
 
@@ -172,7 +173,7 @@ export class App {
     ],
   };
 
-  protected readonly githubUrl = 'https://github.com/grifftatarsky/SpringBonk';
+  protected readonly githubUrl = GITHUB_URL;
 
   /** Whether a federated nav entry's service is currently reported down. */
   protected isDown(link: NavLink): boolean {

@@ -38,6 +38,7 @@ export class ReviewHttpService extends BaseHttpService {
     );
   }
 
+  /** Reviews written by one user, newest first. Powers the "Your reviews" widget. */
   getReviewsByAuthor(
     authorId: string,
     page = 0,

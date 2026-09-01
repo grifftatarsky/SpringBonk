@@ -3,13 +3,14 @@ import { DashboardStore } from './dashboard.store';
 import { ShelfWidgetComponent } from './widgets/shelf-widget.component';
 import { ElectionWidgetComponent } from './widgets/election-widget.component';
 import { ActivityWidgetComponent } from './widgets/activity-widget.component';
+import { MyReviewsWidgetComponent } from './widgets/my-reviews-widget.component';
 import { AVATAR_OPTIONS, AvatarOption, findAvatarOption } from './avatar-options';
 import { ProfileAvatarId } from '../../model/type/profile-avatar-id';
 import { NotificationService } from '../../common/notification/notification.service';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [ShelfWidgetComponent, ElectionWidgetComponent, ActivityWidgetComponent],
+  imports: [ShelfWidgetComponent, ElectionWidgetComponent, ActivityWidgetComponent, MyReviewsWidgetComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,10 +24,6 @@ export class Dashboard {
   protected readonly selectedAvatar = computed(() => findAvatarOption(this.vm().avatar));
   protected readonly avatarPickerOpen = signal(false);
   protected readonly avatarSaving = signal(false);
-
-  protected refreshProfile(): void {
-    this.store.refreshProfile();
-  }
 
   protected openAvatarPicker(): void {
     this.avatarPickerOpen.set(true);

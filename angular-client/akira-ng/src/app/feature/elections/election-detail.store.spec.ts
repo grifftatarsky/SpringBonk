@@ -6,10 +6,12 @@ import { ElectionHttpService } from '../../common/http/election-http.service';
 import { BookHttpService } from '../../common/http/book-http.service';
 import { NotificationService } from '../../common/notification/notification.service';
 import { ShelfHttpService } from '../../common/http/shelf-http.service';
-import { Observable, of, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { ElectionResponse } from '../../model/response/election-response.model';
 import { CandidateResponse } from '../../model/response/candidate-response.model';
 import { VotingHttpService } from '../../common/http/voting-http.service';
+import { UserService } from '../../auth/user.service';
+import { User } from '../../auth/user.model';
 
 const election: ElectionResponse = {
   id: 'e1',
@@ -20,6 +22,8 @@ const election: ElectionResponse = {
   maxNominationsPerUser: null,
   maxNominationsTotal: null,
 };
+
+const currentUser = new User('u-current', 'Current User', 'current@example.com', [], 'BONKLING_PLUM');
 
 const candidate: CandidateResponse = {
   id: 'c1',
@@ -96,9 +100,16 @@ describe('ElectionDetailStore', () => {
     );
     votingHttp.deleteVote.mockReturnValue(of(void 0));
 
+    const user$ = new BehaviorSubject<User>(currentUser);
+    const userService = {
+      valueChanges: user$.asObservable(),
+      current: currentUser,
+    } as unknown as UserService;
+
     TestBed.configureTestingModule({
       providers: [
         ElectionDetailStore,
+        { provide: UserService, useValue: userService },
         { provide: ElectionHttpService, useValue: electionHttp },
         { provide: BookHttpService, useValue: bookHttp },
         { provide: ShelfHttpService, useValue: shelfHttp },
@@ -126,23 +137,16 @@ describe('ElectionDetailStore', () => {
     expect(bookHttp.createBook).toHaveBeenCalled();
   });
 
-  it('records a vote when ranking a candidate', async () => {
+  // Ranking goes through reorderBallot; unranking is covered by the
+  // "drops rankings" and "clears the ballot" cases below.
+  it('records a vote and reflects the new rank in the ballot', async () => {
     store.init('e1');
     await wait();
 
-    await store.setCandidateRank('c1', 1);
+    await store.reorderBallot(['c1']);
 
     expect(votingHttp.voteForCandidate).toHaveBeenCalledWith('c1', 1);
     expect(store.candidatesVm().rankedItems[0]?.userRank).toBe(1);
-  });
-
-  it('removes a vote when clearing a rank', async () => {
-    store.init('e1');
-    await wait();
-
-    await store.setCandidateRank('c1', null);
-
-    expect(votingHttp.deleteVote).toHaveBeenCalledWith('c1');
   });
 
   it('reorders the ballot according to the provided order', async () => {
@@ -227,15 +231,16 @@ describe('ElectionDetailStore', () => {
       cover_i: undefined,
     };
 
-    it('creates the book with the provided pitch as blurb', async () => {
+    it('sends the pitch to the candidate, not the book blurb', async () => {
       store.init('e1');
       await wait();
 
       await store.nominateFromOpenLibrary(doc, 'My pitch text');
 
       expect(bookHttp.createBook).toHaveBeenCalledWith(
-        expect.objectContaining({ blurb: 'My pitch text' }),
+        expect.objectContaining({ blurb: '' }),
       );
+      expect(electionHttp.nominateCandidate).toHaveBeenCalledWith('e1', 'b1', 'My pitch text');
     });
 
     it('trims whitespace from the pitch before sending', async () => {
@@ -244,12 +249,10 @@ describe('ElectionDetailStore', () => {
 
       await store.nominateFromOpenLibrary(doc, '  padded pitch  ');
 
-      expect(bookHttp.createBook).toHaveBeenCalledWith(
-        expect.objectContaining({ blurb: 'padded pitch' }),
-      );
+      expect(electionHttp.nominateCandidate).toHaveBeenCalledWith('e1', 'b1', 'padded pitch');
     });
 
-    it('sends an empty blurb when no pitch is provided', async () => {
+    it('sends an empty pitch when none is provided', async () => {
       store.init('e1');
       await wait();
 
@@ -258,6 +261,7 @@ describe('ElectionDetailStore', () => {
       expect(bookHttp.createBook).toHaveBeenCalledWith(
         expect.objectContaining({ blurb: '' }),
       );
+      expect(electionHttp.nominateCandidate).toHaveBeenCalledWith('e1', 'b1', '');
     });
 
     it('adds a placeholder candidate optimistically before the request resolves', async () => {

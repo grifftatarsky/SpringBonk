@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { UserService } from '../user.service';
 import { baseUri } from '../../app.config';
 import { UserHttpService } from '../../common/http/user-http.service';
+import { LoginOptionResponse } from '../../model/response/login-option-response.model';
 
 @Component({
   selector: 'app-login',

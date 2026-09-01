@@ -15,6 +15,8 @@ import {
   ReviewRequest,
   ReviewResponse,
 } from '../../model/response/review-response.model';
+import { ShelfHttpService } from '../../common/http/shelf-http.service';
+import { ShelfResponse } from '../../model/response/shelf-response.model';
 import { NotificationService } from '../../common/notification/notification.service';
 import { mapSpringPagedResponse } from '../../common/util/pagination.util';
 
@@ -23,6 +25,7 @@ export class BookDetailStore {
   private readonly http = inject(BookHttpService);
   private readonly statusHttp = inject(BookStatusHttpService);
   private readonly reviewHttp = inject(ReviewHttpService);
+  private readonly shelfHttp = inject(ShelfHttpService);
   private readonly notifications = inject(NotificationService);
 
   private readonly loading = signal(false);
@@ -40,6 +43,12 @@ export class BookDetailStore {
   private readonly reviewsLoading = signal(false);
   private readonly reviewsError = signal<string | null>(null);
   private readonly reviewSaving = signal(false);
+
+  // Shelf membership
+  private readonly allShelves = signal<ShelfResponse[]>([]);
+  private readonly shelvesLoading = signal(false);
+  private readonly shelvesError = signal<string | null>(null);
+  private readonly shelfBusy = signal<Record<string, boolean>>({});
 
   // Comments (keyed by review id)
   private readonly commentsByReview = signal<Record<string, ReviewCommentResponse[]>>({});
@@ -71,6 +80,26 @@ export class BookDetailStore {
     loadingByReview: this.commentsLoading(),
   }));
 
+  /** Every shelf the user owns, each flagged with whether this book is on it. */
+  readonly shelvesVm = computed(() => {
+    const onShelfIds = new Set((this.book()?.shelves ?? []).map((shelf) => shelf.id));
+    const busy = this.shelfBusy();
+    const items = this.allShelves().map((shelf) => ({
+      id: shelf.id,
+      title: shelf.title,
+      defaultShelf: shelf.defaultShelf,
+      onShelf: onShelfIds.has(shelf.id),
+      busy: busy[shelf.id] ?? false,
+    }));
+    return {
+      items,
+      loading: this.shelvesLoading(),
+      error: this.shelvesError(),
+      isEmpty: !this.shelvesLoading() && items.length === 0,
+      selectedCount: items.filter((item) => item.onShelf).length,
+    };
+  });
+
   async load(id: string): Promise<void> {
     if (!id) {
       this.error.set('Book not found.');
@@ -98,6 +127,69 @@ export class BookDetailStore {
 
     // Reviews are non-blocking — load after the main book resolves.
     void this.loadReviews(id);
+  }
+
+  /**
+   * Loads the user's shelves for the membership picker. Called when the picker
+   * opens rather than on page load — most visits never touch it.
+   */
+  async loadShelves(): Promise<void> {
+    if (this.shelvesLoading()) return;
+    this.shelvesLoading.set(true);
+    this.shelvesError.set(null);
+    try {
+      const shelves = await firstValueFrom(this.shelfHttp.getAllShelves());
+      this.allShelves.set(shelves);
+    } catch (error) {
+      console.error('[BookDetailStore] Failed to load shelves', error);
+      this.shelvesError.set('Unable to load your shelves right now.');
+      this.allShelves.set([]);
+    } finally {
+      this.shelvesLoading.set(false);
+    }
+  }
+
+  /**
+   * Puts this book on a shelf or takes it off. Flips the chip immediately and
+   * reconciles with the server's copy of the book, rolling back on failure.
+   */
+  async setShelfMembership(shelfId: string, onShelf: boolean): Promise<void> {
+    const book = this.book();
+    if (!book || this.shelfBusy()[shelfId]) return;
+
+    const snapshot = book;
+    const shelf = this.allShelves().find((candidate) => candidate.id === shelfId);
+    if (!shelf) return;
+
+    this.setShelfBusy(shelfId, true);
+    this.book.set({
+      ...book,
+      shelves: onShelf
+        ? [...book.shelves, { id: shelf.id, title: shelf.title, userId: shelf.userId, defaultShelf: shelf.defaultShelf }]
+        : book.shelves.filter((entry) => entry.id !== shelfId),
+    });
+
+    try {
+      const updated = await firstValueFrom(
+        onShelf
+          ? this.http.addBookToShelf(book.id, shelfId)
+          : this.http.removeBookFromShelf(book.id, shelfId),
+      );
+      this.book.set(updated);
+      this.notifications.success(onShelf ? `Added to ${shelf.title}` : `Removed from ${shelf.title}`);
+    } catch (error) {
+      console.error('[BookDetailStore] Failed to update shelf membership', error);
+      this.book.set(snapshot);
+      this.notifications.error(
+        onShelf ? 'Unable to add to that shelf right now.' : 'Unable to remove from that shelf right now.',
+      );
+    } finally {
+      this.setShelfBusy(shelfId, false);
+    }
+  }
+
+  private setShelfBusy(shelfId: string, busy: boolean): void {
+    this.shelfBusy.update((current) => ({ ...current, [shelfId]: busy }));
   }
 
   async updatePitch(blurb: string): Promise<void> {

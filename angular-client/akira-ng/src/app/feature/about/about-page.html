@@ -94,7 +94,7 @@
       Angular on the front, Spring Boot on the back, Keycloak for auth, NGINX in between, Postgres
       underneath, Docker wrapping it all. Deploy on a laptop, a VPS, or a cluster — nothing fancy.
       Source is on
-      <a class="text-accent hover:underline" href="https://github.com/grifftatarsky/SpringBonk"
+      <a class="text-accent hover:underline" [href]="githubUrl"
          target="_blank" rel="noreferrer">GitHub</a>.
     </p>
   </section>
@@ -106,7 +106,7 @@
          class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover">
         Read the docs
       </a>
-      <a href="https://github.com/grifftatarsky/SpringBonk"
+      <a [href]="githubUrl"
          target="_blank" rel="noreferrer"
          class="inline-flex items-center gap-1.5 rounded-md border border-rule px-3 py-1.5 text-sm font-semibold text-fg transition hover:bg-bg-subtle">
         GitHub ↗

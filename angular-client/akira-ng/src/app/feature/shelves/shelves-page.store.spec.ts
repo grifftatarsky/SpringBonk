@@ -20,6 +20,10 @@ describe('ShelvesPageStore', () => {
   let http: SpyObj<ShelfHttpService>;
 
   beforeEach(() => {
+    // The store debounces its param stream by 75ms. Fake timers make that
+    // deterministic instead of racing a real sleep against it.
+    vi.useFakeTimers();
+
     http = createSpyObj<ShelfHttpService>(['getShelvesPage', 'getAllShelves']);
     http.getShelvesPage.mockReturnValue(
       of({
@@ -40,20 +44,25 @@ describe('ShelvesPageStore', () => {
     store = TestBed.inject(ShelvesPageStore);
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('maps shelves from paged response', async () => {
-    await wait();
+    await flush();
     expect(store.vm().items.length).toBe(1);
     expect(store.vm().items[0].title).toBe('Alpha');
   });
 
   it('uses full list when filtering', async () => {
     store.setFilter('br');
-    await wait();
+    await flush();
     expect(http.getAllShelves).toHaveBeenCalled();
     expect(store.vm().items[0].title).toBe('Bravo');
   });
 });
 
-function wait(ms: number = 120): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+/** Drive past the store's 75ms debounce and settle the resulting promises. */
+async function flush(): Promise<void> {
+  await vi.advanceTimersByTimeAsync(200);
 }

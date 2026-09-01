@@ -3,12 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { UserHttpService } from '../../common/http/user-http.service';
 import { UserService } from '../../auth/user.service';
-
-interface LoginOption {
-  label: string;
-  loginUri: string;
-  isSameAuthority: boolean;
-}
+import { LoginOptionResponse } from '../../model/response/login-option-response.model';
 
 @Component({
   selector: 'app-login-prompt',
@@ -25,7 +20,7 @@ export class LoginPrompt implements OnInit {
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly loginOptions = signal<LoginOption[]>([]);
+  protected readonly loginOptions = signal<LoginOptionResponse[]>([]);
   protected returnUrl = '/';
 
   ngOnInit(): void {

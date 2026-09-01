@@ -26,7 +26,6 @@ export interface TableLayout {
 const DEG = Math.PI / 180;
 /** Space reserved at the bottom for the controls bar (so the hand clears it). */
 const BOTTOM_RESERVE = 108;
-const EDGE_MARGIN = 14;
 /** Width of the left info sidebar — kept in sync with the CSS panel width. */
 const SIDEBAR_WIDTH = 248;
 

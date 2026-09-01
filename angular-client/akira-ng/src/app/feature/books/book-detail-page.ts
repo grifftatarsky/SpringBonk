@@ -28,6 +28,7 @@ export class BookDetailPage {
   protected readonly statusVm = this.store.statusVm;
   protected readonly reviewsVm = this.store.reviewsVm;
   protected readonly commentsVm = this.store.commentsVm;
+  protected readonly shelvesVm = this.store.shelvesVm;
 
   private readonly fb = inject(NonNullableFormBuilder);
   protected readonly pitchForm = this.fb.group({ blurb: ['', [Validators.maxLength(1000)]] });
@@ -305,8 +306,29 @@ export class BookDetailPage {
     return 'Unfortunately OpenLibrary has no blurb nor description for this book.';
   }
 
+  // ---- Shelf membership ----------------------------------------------------
+
+  protected readonly shelfPickerOpen = signal(false);
+
+  protected openShelfPicker(): void {
+    this.shelfPickerOpen.set(true);
+    void this.store.loadShelves();
+  }
+
+  protected closeShelfPicker(): void {
+    this.shelfPickerOpen.set(false);
+  }
+
+  protected toggleShelf(shelfId: string, onShelf: boolean): void {
+    void this.store.setShelfMembership(shelfId, onShelf);
+  }
+
   @HostListener('document:keydown.escape')
   protected handleEscape(): void {
+    if (this.shelfPickerOpen()) {
+      this.closeShelfPicker();
+      return;
+    }
     if (this.wizardOpen()) {
       this.closeWizard();
       return;

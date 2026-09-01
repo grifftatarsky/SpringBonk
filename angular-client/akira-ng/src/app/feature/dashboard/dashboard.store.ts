@@ -50,11 +50,6 @@ export class DashboardStore {
     };
   });
 
-  refreshProfile(): void {
-    console.debug('[DashboardStore] refreshProfile invoked');
-    this.userService.refresh();
-  }
-
   setAvatar(avatar: ProfileAvatarId): Promise<void> {
     return this.userService.setAvatar(avatar);
   }

@@ -53,7 +53,6 @@ export class ElectionDetailPage {
   protected readonly shelfModalOpen = signal(false);
   protected readonly deleteConfirmOpen = signal(false);
   protected readonly reopenModalOpen = signal(false);
-  protected readonly shelfSearch = signal('');
   protected readonly reopenForm = this.fb.group({
     endDateTime: [''],
   });

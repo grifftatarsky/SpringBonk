@@ -23,6 +23,10 @@ describe('ShelfWidgetStore', () => {
   let http: SpyObj<ShelfHttpService>;
 
   beforeEach(() => {
+    // The store debounces its param stream by 75ms. Fake timers make that
+    // deterministic instead of racing a real sleep against it.
+    vi.useFakeTimers();
+
     http = createSpyObj<ShelfHttpService>(['getShelvesPage', 'getAllShelves', 'createShelf']);
     http.getShelvesPage.mockReturnValue(
       of({
@@ -45,8 +49,12 @@ describe('ShelfWidgetStore', () => {
     vi.spyOn(console, 'error');
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('exposes shelves from the paged response', async () => {
-    await wait(150);
+    await flush();
     const viewModel = store.vm();
     expect(viewModel.items.length).toBe(1);
     expect(viewModel.items[0].bookCount).toBe(2);
@@ -62,7 +70,7 @@ describe('ShelfWidgetStore', () => {
     );
 
     store.setFilter('sci');
-    await wait(150);
+    await flush();
 
     expect(http.getAllShelves).toHaveBeenCalled();
     const viewModel = store.vm();
@@ -71,9 +79,9 @@ describe('ShelfWidgetStore', () => {
   });
 
   it('creates a shelf and refreshes data', async () => {
-    await wait(150); // allow initial load
+    await flush(); // allow initial load
     await store.createShelf('New Shelf');
-    await wait(200);
+    await flush();
 
     expect(http.createShelf).toHaveBeenCalledWith({ title: 'New Shelf' });
     expect(http.getShelvesPage).toHaveBeenCalledTimes(2);
@@ -92,6 +100,7 @@ describe('ShelfWidgetStore', () => {
   });
 });
 
-function wait(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+/** Drive past the store's 75ms debounce and settle the resulting promises. */
+async function flush(): Promise<void> {
+  await vi.advanceTimersByTimeAsync(200);
 }

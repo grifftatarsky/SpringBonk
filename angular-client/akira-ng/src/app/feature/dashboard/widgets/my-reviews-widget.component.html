@@ -1,0 +1,89 @@
+@let state = vm();
+
+<div class="w-full px-2 sm:px-0">
+  <section class="text-fg">
+    <header class="flex items-center justify-between gap-3 border-b border-rule pb-4">
+      <div class="min-w-0">
+        <h2 class="text-xl font-semibold tracking-tight">Your reviews</h2>
+        <p class="mt-1 text-xs text-fg-subtle">What you've had to say.</p>
+      </div>
+      <button type="button"
+              class="rounded-md p-1.5 text-fg-subtle transition-colors hover:bg-bg-subtle hover:text-fg disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Refresh your reviews"
+              [disabled]="state.loading"
+              (click)="refresh()">
+        <svg viewBox="0 0 20 20" class="size-4" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M4 4.5v4h4" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M16 15.5v-4h-4" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M5.5 14.5A6 6 0 0 0 16 9" stroke-linecap="round"></path>
+          <path d="M14.5 5.5A6 6 0 0 0 4 11" stroke-linecap="round"></path>
+        </svg>
+      </button>
+    </header>
+
+    <div class="py-4">
+      @if (state.loading) {
+        <p class="text-sm text-fg-muted">Loading…</p>
+      }
+
+      @if (state.error) {
+        <p class="rounded-md border border-danger bg-danger-subtle px-3 py-2 text-sm text-danger" role="status">
+          {{ state.error }}
+        </p>
+      }
+
+      @if (state.isEmpty && !state.error) {
+        <p class="py-4 text-center text-sm text-fg-subtle">
+          @if (state.signedIn) {
+            You haven't reviewed anything yet.
+          } @else {
+            Sign in to see your reviews.
+          }
+        </p>
+      }
+
+      @if (state.items.length) {
+        <ul class="flex min-w-0 flex-col">
+          @for (review of state.items; track review.id) {
+            <li class="border-t border-rule first:border-t-0">
+              <a [routerLink]="['/books', review.bookId]"
+                 class="group flex min-w-0 items-start gap-3 py-3 transition-colors hover:bg-bg-subtle">
+                <img
+                  [src]="review.bookImageUrl || 'https://placehold.co/100x150/eeeeee/aaaaaa?text=No+cover'"
+                  alt=""
+                  class="h-12 w-8 shrink-0 rounded-sm border border-rule object-cover" />
+                <div class="min-w-0 flex-1">
+                  <div class="flex min-w-0 items-baseline justify-between gap-2">
+                    <p class="truncate text-sm font-semibold text-fg group-hover:text-accent">
+                      {{ review.bookTitle }}
+                    </p>
+                    @if (review.rating) {
+                      <span class="shrink-0 text-xs text-fg-muted">
+                        <span class="font-semibold text-fg">{{ review.rating }}</span><span class="text-fg-subtle">/5</span>
+                      </span>
+                    }
+                  </div>
+                  @if (excerpt(review.body)) {
+                    <p class="mt-0.5 truncate text-xs text-fg-muted">{{ excerpt(review.body) }}</p>
+                  }
+                  <p class="mt-1 flex items-center gap-3 text-xs text-fg-subtle">
+                    <span>{{ review.likeCount }} {{ review.likeCount === 1 ? 'like' : 'likes' }}</span>
+                    <span>{{ review.commentCount }} {{ review.commentCount === 1 ? 'comment' : 'comments' }}</span>
+                  </p>
+                </div>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    @if (state.moreCount) {
+      <footer class="border-t border-rule pt-4">
+        <p class="text-sm text-fg-subtle">
+          + {{ state.moreCount }} more {{ state.moreCount === 1 ? 'review' : 'reviews' }}
+        </p>
+      </footer>
+    }
+  </section>
+</div>

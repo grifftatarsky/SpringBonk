@@ -8,8 +8,17 @@ import { By } from '@angular/platform-browser';
 
 const sortOption: ElectionSortOption = { label: 'Title (A-Z)', field: 'title', direction: 'asc' };
 
-class ElectionWidgetStoreStub {
-  readonly vm = signal({
+type ElectionWidgetVm = ReturnType<ElectionWidgetStore['vm']>;
+type ElectionWidgetVmCreate = ReturnType<ElectionWidgetStore['createState']>;
+
+class ElectionWidgetStoreStub
+  implements
+    Pick<
+      ElectionWidgetStore,
+      'vm' | 'sortOptions' | 'createState' | 'setFilter' | 'setPage' | 'setPageSize' | 'setSort'
+    >
+{
+  readonly vm = signal<ElectionWidgetVm>({
     items: [
       {
         id: '1',
@@ -32,7 +41,7 @@ class ElectionWidgetStoreStub {
   });
 
   readonly sortOptions = this.vm().sortOptions;
-  readonly createState = signal({ creating: false, error: null });
+  readonly createState = signal<ElectionWidgetVmCreate>({ creating: false, error: null });
 
   readonly setFilter = vi.fn();
   readonly setPage = vi.fn();

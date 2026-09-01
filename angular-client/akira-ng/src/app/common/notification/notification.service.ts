@@ -28,10 +28,6 @@ export class NotificationService {
     this.toasts.update((list) => list.filter((t) => t.id !== id));
   }
 
-  dismissAll(): void {
-    this.toasts.set([]);
-  }
-
   private push(kind: ToastKind, message: string, options?: ToastOptions | number): void {
     const resolved: ToastOptions =
       typeof options === 'number' ? { timeoutMs: options } : options ?? {};

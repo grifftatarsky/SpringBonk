@@ -21,6 +21,10 @@ describe('ElectionWidgetStore', () => {
   let http: SpyObj<ElectionHttpService>;
 
   beforeEach(() => {
+    // The store debounces its param stream by 75ms. Fake timers make that
+    // deterministic instead of racing a real sleep against it.
+    vi.useFakeTimers();
+
     http = createSpyObj<ElectionHttpService>(['getElectionsPage', 'getAllElections']);
     http.getElectionsPage.mockReturnValue(
       of({
@@ -42,8 +46,12 @@ describe('ElectionWidgetStore', () => {
     vi.spyOn(console, 'error');
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('exposes election data with status labels', async () => {
-    await wait(150);
+    await flush();
     const viewModel = store.vm();
     expect(viewModel.items[0].statusLabel).toBe('Open');
     expect(http.getElectionsPage).toHaveBeenCalled();
@@ -58,7 +66,7 @@ describe('ElectionWidgetStore', () => {
     );
 
     store.setFilter('sci');
-    await wait(150);
+    await flush();
 
     const viewModel = store.vm();
     expect(viewModel.items.length).toBe(1);
@@ -68,11 +76,12 @@ describe('ElectionWidgetStore', () => {
   it('handles load errors gracefully', async () => {
     http.getElectionsPage.mockReturnValue(throwError(() => new Error('boom')));
     store.setPageSize(10); // trigger reload
-    await wait(150);
+    await flush();
     expect(store.vm().error).toContain('Unable');
   });
 });
 
-function wait(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+/** Drive past the store's 75ms debounce and settle the resulting promises. */
+async function flush(): Promise<void> {
+  await vi.advanceTimersByTimeAsync(200);
 }

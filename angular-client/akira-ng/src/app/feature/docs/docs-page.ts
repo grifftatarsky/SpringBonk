@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { GITHUB_URL } from '../../app.constants';
 
 interface Step {
   readonly n: string;
@@ -69,7 +70,7 @@ export class DocsPage {
     { label: 'Keycloak (auth with OAuth 2)', href: 'https://www.keycloak.org/', external: true },
     { label: 'PostgreSQL (storage)', href: 'https://www.postgresql.org/', external: true },
     { label: 'Tailwind CSS v4', href: 'https://tailwindcss.com/', external: true },
-    { label: 'Source on GitHub', href: 'https://github.com/grifftatarsky/SpringBonk', external: true },
+    { label: 'Source on GitHub', href: GITHUB_URL, external: true },
   ];
 
   protected readonly reading: ReadonlyArray<Link> = [
