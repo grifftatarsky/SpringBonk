@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Superseded PR pushes are cancelled; main is always built to completion so
+  # the branch always has a known-good result attached to it.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Maven reactor: spring-resource, spring-bff, spring-ooze, spring-decks ──
+  backend:
+    name: Backend (Maven)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 26
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '26'
+          cache: maven
+
+      # `verify` rather than `test`: it also runs the spring-boot repackage
+      # goal, so a module that compiles and passes its tests but fails to
+      # produce an executable jar is still caught here.
+      #
+      # spring-ooze and spring-resource start a Testcontainers PostgreSQL for
+      # their @SpringBootTest slices. The GitHub-hosted Ubuntu runner ships a
+      # working Docker daemon, so this needs no extra setup — it is just the
+      # slowest part of the job (first run pulls the postgres image).
+      - name: Build and test
+        run: ./mvnw -B -ntp verify
+
+  # ── Angular workspace: host + ooze/president federated remotes ────────────
+  frontend:
+    name: Frontend (Angular)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: angular-client/akira-ng
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          # .nvmrc is the single source of truth; package.json `engines` allows
+          # 22/24/26, and CI should build on the version the author uses.
+          node-version-file: angular-client/akira-ng/.nvmrc
+          cache: npm
+          cache-dependency-path: angular-client/akira-ng/package-lock.json
+
+      # `ci` not `install`: fails on a package-lock.json that has drifted from
+      # package.json instead of silently rewriting it.
+      - name: Install dependencies
+        run: npm ci
+
+      # Host first, then the remotes. The host's Tailwind scan reaches into the
+      # remotes' templates, so it is the build that has to see every source.
+      - name: Build host (akira-ng)
+        run: npx ng build akira-ng
+
+      - name: Build ooze remote
+        run: npx ng build ooze
+
+      - name: Build president remote
+        run: npx ng build president
+
+      # Only these two projects declare a `test` target; ooze has none yet.
+      - name: Test host (akira-ng)
+        run: npx ng test akira-ng --watch=false
+
+      - name: Test president remote
+        run: npx ng test president --watch=false
