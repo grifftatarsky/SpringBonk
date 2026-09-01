@@ -63,6 +63,11 @@ com:
             - /v3/api-docs*/**
             - /actuator/health/readiness
             - /actuator/health/liveness
+            # Spring forwards an unhandled exception to /error, and that forward
+            # goes back through the security filter chain. Without this it is
+            # rejected as unauthenticated, so a server-side fault reaches the
+            # client as 401 "sign in" instead of the 500 it actually is.
+            - /error
             # Catalog content: reads are public (base 5e content is shared);
             # writes are gated per-method via @PreAuthorize('MANAGE_CONTENT').
             - /spell/**

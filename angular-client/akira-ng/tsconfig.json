@@ -38,6 +38,9 @@
     },
     {
       "path": "./projects/president/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/jpss-ui/tsconfig.app.json"
     }
   ]
 }

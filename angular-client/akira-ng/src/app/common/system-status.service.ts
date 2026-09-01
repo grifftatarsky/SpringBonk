@@ -28,6 +28,8 @@ export class SystemStatusService {
     // game's micro-frontend is a sub-entry under it.
     { key: 'decks-api', label: 'Decks backend', url: '/bff/dck/games/open', status: 'checking' },
     { key: 'president-mfe', label: 'President', url: '/remotes/president/remoteEntry.json', status: 'checking', parentKey: 'decks-api' },
+    { key: 'jpss-api', label: 'Stickers backend', url: '/bff/jps/stickers', status: 'checking' },
+    { key: 'jpss-mfe', label: 'Stickers frontend', url: '/remotes/jpss-ui/remoteEntry.json', status: 'checking' },
   ]);
 
   readonly services = this.state.asReadonly();
@@ -61,6 +63,29 @@ export class SystemStatusService {
   readonly presidentDown = computed(
     () => this.statusOf('decks-api') === 'down' || this.statusOf('president-mfe') === 'down',
   );
+
+  /** Both sticker pieces up. */
+  readonly jpssAvailable = computed(
+    () => this.statusOf('jpss-api') === 'up' && this.statusOf('jpss-mfe') === 'up',
+  );
+
+  /** Either sticker piece confirmed down (not merely still checking). */
+  readonly jpssDown = computed(
+    () => this.statusOf('jpss-api') === 'down' || this.statusOf('jpss-mfe') === 'down',
+  );
+
+  /**
+   * Federated apps confirmed down, by display name — what the home page's
+   * warning strip reads from. Derived rather than hand-maintained per app, so
+   * adding a remote to the checks above is enough to make it show up here.
+   */
+  readonly downApps = computed<readonly string[]>(() => {
+    const down: string[] = [];
+    if (this.oozeDown()) down.push('Oozengine');
+    if (this.presidentDown()) down.push('President');
+    if (this.jpssDown()) down.push('Jo Peace Stickers');
+    return down;
+  });
 
   constructor() {
     void this.checkAll();

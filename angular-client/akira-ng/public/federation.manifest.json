@@ -1,4 +1,5 @@
 {
   "ooze": "/remotes/ooze/remoteEntry.json",
-  "president": "/remotes/president/remoteEntry.json"
+  "president": "/remotes/president/remoteEntry.json",
+  "jpss-ui": "/remotes/jpss-ui/remoteEntry.json"
 }

@@ -1,0 +1,101 @@
+:host {
+  display: block;
+}
+
+/* Break out of the host shell's centred content column to use the whole window
+ * — the same trick the president table uses. The globe is the page, and a globe
+ * inset in a 2xl column with gutters either side reads as a widget. */
+.jpss-stage {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  /* Sits below the shell's 3.5rem header and reaches the bottom of the *visible*
+   * viewport; dvh tracks a mobile browser's toolbar showing and hiding, and vh
+   * is the fallback for anything without it. */
+  height: calc(100vh - 3.5rem);
+  height: calc(100dvh - 3.5rem);
+  min-height: 28rem;
+  overflow: hidden;
+  --jpss-sidebar-width: 380px;
+}
+
+/* The overlay layer covers the whole stage, so it has to let clicks through to
+ * the map by default; each panel opts back in with pointer-events-auto. */
+.jpss-overlays {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Centred within whatever the sidebar has left, rather than within the stage —
+ * so the hover label and the toast do not slide under the panel when it opens. */
+.jpss-centred {
+  left: 50%;
+  transform: translateX(-50%);
+  transition: left 260ms ease;
+}
+
+.jpss-stage--sidebar .jpss-centred {
+  left: calc(50% - var(--jpss-sidebar-width) / 2);
+}
+
+/* The sidebar itself: a full-height column pinned to the right of the stage.
+ * It overlays rather than resizes the map, because resizing the GL canvas
+ * mid-flight interrupts the camera animation that opened it. */
+.jpss-sidebar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  width: var(--jpss-sidebar-width);
+  max-width: 100%;
+  border-left: 1px solid var(--color-rule);
+  background: color-mix(in srgb, var(--color-bg) 94%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow: -12px 0 32px rgb(0 0 0 / 28%);
+  animation: jpss-sidebar-in 240ms ease-out;
+}
+
+@keyframes jpss-sidebar-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+/* On a phone the column becomes a bottom sheet — a 380px rail would cover the
+ * globe it is describing. */
+@media (max-width: 767px) {
+  .jpss-stage {
+    --jpss-sidebar-width: 0px;
+  }
+
+  .jpss-sidebar {
+    top: auto;
+    left: 0;
+    width: auto;
+    max-height: 72dvh;
+    border-left: 0;
+    border-top: 1px solid var(--color-rule);
+    box-shadow: 0 -12px 32px rgb(0 0 0 / 28%);
+    padding-bottom: env(safe-area-inset-bottom);
+    animation-name: jpss-sheet-in;
+  }
+}
+
+@keyframes jpss-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jpss-sidebar {
+    animation: none;
+  }
+
+  .jpss-centred {
+    transition: none;
+  }
+}

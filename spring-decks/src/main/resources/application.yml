@@ -60,6 +60,11 @@ com:
             - /v3/api-docs*/**
             - /actuator/health/readiness
             - /actuator/health/liveness
+            # Spring forwards an unhandled exception to /error, and that forward
+            # goes back through the security filter chain. Without this it is
+            # rejected as unauthenticated, so a server-side fault reaches the
+            # client as 401 "sign in" instead of the 500 it actually is.
+            - /error
             # Public "server browser" — also the frontend down-detector's ping target.
             - /games/open
             # WebSocket handshake; STOMP CONNECT-frame auth is layered on top.

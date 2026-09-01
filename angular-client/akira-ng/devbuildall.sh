@@ -9,5 +9,7 @@ build() {
 
 build "Akira" "akira-ng"
 build "Oozengine" "ooze"
+build "President" "president"
+build "Jo Peace Stickers" "jpss-ui"
 
 echo "All builds green."

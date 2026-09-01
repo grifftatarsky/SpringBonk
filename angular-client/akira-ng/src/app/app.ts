@@ -21,7 +21,7 @@ import { NotificationBellComponent } from './common/notification/notification-be
 import { SystemStatusService } from './common/system-status.service';
 import { GITHUB_URL } from './app.constants';
 
-type DownKey = 'ooze' | 'president';
+type DownKey = 'ooze' | 'president' | 'jpss';
 
 type NavLink = Readonly<{
   label: string;
@@ -165,11 +165,12 @@ export class App {
 
   /** Federated micro-frontends, grouped under one desktop dropdown. */
   protected readonly gamesMenu: NavGroup = {
-    label: 'Games',
-    ariaLabel: 'Games and tools',
+    label: 'Apps',
+    ariaLabel: 'Federated apps and tools',
     children: [
       { label: 'Oozengine', href: '/ooze', ariaLabel: 'Oozengine DM tools (federated)', downKey: 'ooze' },
       { label: 'President 🃏', href: '/games/president', ariaLabel: 'President card game (federated)', downKey: 'president' },
+      { label: 'Jo Peace Stickers 🌍', href: '/stickers', ariaLabel: 'Jo Peace Sticker Service — photos on a globe (federated)', downKey: 'jpss' },
     ],
   };
 
@@ -182,6 +183,9 @@ export class App {
     }
     if (link.downKey === 'president') {
       return this.systemStatus.presidentDown();
+    }
+    if (link.downKey === 'jpss') {
+      return this.systemStatus.jpssDown();
     }
     return false;
   }

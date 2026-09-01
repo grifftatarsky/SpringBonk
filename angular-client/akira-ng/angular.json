@@ -357,6 +357,125 @@
 					}
 				}
 			}
+		},
+		"jpss-ui": {
+			"projectType": "application",
+			"schematics": {
+				"@schematics/angular:class": {
+					"skipTests": true
+				},
+				"@schematics/angular:component": {
+					"skipTests": true
+				},
+				"@schematics/angular:directive": {
+					"skipTests": true
+				},
+				"@schematics/angular:guard": {
+					"skipTests": true
+				},
+				"@schematics/angular:interceptor": {
+					"skipTests": true
+				},
+				"@schematics/angular:pipe": {
+					"skipTests": true
+				},
+				"@schematics/angular:resolver": {
+					"skipTests": true
+				},
+				"@schematics/angular:service": {
+					"skipTests": true
+				}
+			},
+			"root": "projects/jpss-ui",
+			"sourceRoot": "projects/jpss-ui/src",
+			"prefix": "app",
+			"architect": {
+				"build": {
+					"builder": "@angular-architects/native-federation:build",
+					"options": {
+						"cacheExternalArtifacts": true
+					},
+					"configurations": {
+						"production": {
+							"target": "jpss-ui:esbuild:production"
+						},
+						"development": {
+							"target": "jpss-ui:esbuild:development",
+							"dev": true
+						}
+					},
+					"defaultConfiguration": "production"
+				},
+				"serve": {
+					"builder": "@angular-architects/native-federation:build",
+					"options": {
+						"target": "jpss-ui:serve-original:development",
+						"rebuildDelay": 500,
+						"cacheExternalArtifacts": true,
+						"dev": true,
+						"devServer": true,
+						"port": 0
+					}
+				},
+				"esbuild": {
+					"builder": "@angular/build:application",
+					"options": {
+						"browser": "projects/jpss-ui/src/main.ts",
+						"deleteOutputPath": false,
+						"tsConfig": "projects/jpss-ui/tsconfig.app.json",
+						"assets": [
+							{
+								"glob": "**/*",
+								"input": "projects/jpss-ui/public"
+							}
+						],
+						"styles": [
+							"projects/jpss-ui/src/styles.css"
+						],
+						"polyfills": [
+							"es-module-shims"
+						]
+					},
+					"configurations": {
+						"production": {
+							"budgets": [
+								{
+									"type": "initial",
+									"maximumWarning": "700kB",
+									"maximumError": "1.5MB"
+								},
+								{
+									"type": "anyComponentStyle",
+									"maximumWarning": "96kB",
+									"maximumError": "128kB"
+								}
+							],
+							"outputHashing": "all"
+						},
+						"development": {
+							"optimization": false,
+							"extractLicenses": false,
+							"sourceMap": true
+						}
+					},
+					"defaultConfiguration": "production"
+				},
+				"serve-original": {
+					"builder": "@angular/build:dev-server",
+					"configurations": {
+						"production": {
+							"buildTarget": "jpss-ui:esbuild:production"
+						},
+						"development": {
+							"buildTarget": "jpss-ui:esbuild:development"
+						}
+					},
+					"defaultConfiguration": "development",
+					"options": {
+						"port": 4203
+					}
+				}
+			}
 		}
 	},
 	"cli": {

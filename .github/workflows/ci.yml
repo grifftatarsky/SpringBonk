@@ -17,7 +17,8 @@ permissions:
   contents: read
 
 jobs:
-  # ── Maven reactor: spring-resource, spring-bff, spring-ooze, spring-decks ──
+  # ── Maven reactor: spring-resource, spring-bff, spring-ooze, spring-decks,
+  #    jpss-resource ───────────────────────────────────────────────────────
   backend:
     name: Backend (Maven)
     runs-on: ubuntu-latest
@@ -38,14 +39,14 @@ jobs:
       # goal, so a module that compiles and passes its tests but fails to
       # produce an executable jar is still caught here.
       #
-      # spring-ooze and spring-resource start a Testcontainers PostgreSQL for
-      # their @SpringBootTest slices. The GitHub-hosted Ubuntu runner ships a
+      # spring-ooze, spring-resource and jpss-resource start a Testcontainers
+      # PostgreSQL for their @SpringBootTest slices. The GitHub-hosted Ubuntu runner ships a
       # working Docker daemon, so this needs no extra setup — it is just the
       # slowest part of the job (first run pulls the postgres image).
       - name: Build and test
         run: ./mvnw -B -ntp verify
 
-  # ── Angular workspace: host + ooze/president federated remotes ────────────
+  # ── Angular workspace: host + ooze/president/jpss-ui federated remotes ────
   frontend:
     name: Frontend (Angular)
     runs-on: ubuntu-latest
@@ -84,7 +85,11 @@ jobs:
       - name: Build president remote
         run: npx ng build president
 
-      # Only these two projects declare a `test` target; ooze has none yet.
+      - name: Build sticker remote (jpss-ui)
+        run: npx ng build jpss-ui
+
+      # Only these two projects declare a `test` target; ooze and jpss-ui
+      # have none yet.
       - name: Test host (akira-ng)
         run: npx ng test akira-ng --watch=false
 

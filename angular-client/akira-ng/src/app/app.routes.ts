@@ -16,6 +16,7 @@ import { BlogEditorPage } from './feature/blog/blog-editor-page';
 import { LoginPrompt } from './feature/login/login-prompt';
 import { OozeUnavailable } from './feature/ooze/ooze-unavailable';
 import { PresidentUnavailable } from './feature/president/president-unavailable';
+import { JpssUnavailable } from './feature/jpss/jpss-unavailable';
 import { authGuard } from './auth/auth.guard';
 import { postAdminGuard } from './auth/post-admin.guard';
 
@@ -54,6 +55,16 @@ export const routes: Routes = [
           { path: '**', component: PresidentUnavailable, data: { title: 'President' } },
         ]),
     data: { title: 'President' },
+  },
+  {
+    path: 'stickers',
+    loadChildren: () =>
+      loadRemoteModule('jpss-ui', './routes')
+        .then(m => m.JPSS_ROUTES)
+        .catch(() => [
+          { path: '**', component: JpssUnavailable, data: { title: 'Jo Peace Stickers' } },
+        ]),
+    data: { title: 'Jo Peace Stickers' },
   },
   { path: '**', redirectTo: '/' },
 ];

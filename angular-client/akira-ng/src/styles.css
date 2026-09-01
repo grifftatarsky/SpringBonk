@@ -2,6 +2,7 @@
 
 @source "../projects/ooze/src";
 @source "../projects/president/src";
+@source "../projects/jpss-ui/src";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

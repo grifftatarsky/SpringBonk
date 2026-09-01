@@ -194,6 +194,43 @@
     </div>
   }
 
+  <!-- JO PEACE STICKERS HERO (only when the sticker backend + the federated globe are both up) -->
+  @if (status.jpssAvailable()) {
+    <div>
+      <div aria-hidden="true"
+           class="flex h-6 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-10">
+        <span>Somewhere out there.</span>
+      </div>
+      <div
+        class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
+        <h1 class="px-2 text-4xl tracking-tighter text-balance max-lg:font-medium max-sm:px-4 sm:text-5xl lg:text-6xl">
+          Stick a photo to the planet. Leave it there.
+        </h1>
+      </div>
+      <div aria-hidden="true"
+           class="flex h-6 items-end px-2 font-mono text-xs whitespace-pre text-fg-whisper max-sm:px-4 sm:h-10">
+        <span>Spin it. Go on.</span>
+      </div>
+      <div
+        class="relative before:absolute before:top-0 before:h-px before:w-[200vw] before:bg-rule before:-left-[100vw] after:absolute after:bottom-0 after:h-px after:w-[200vw] after:bg-rule after:-left-[100vw]">
+        <p class="max-w-(--breakpoint-md) px-2 text-lg/7 font-medium text-fg-muted max-sm:px-4">
+          The Jo Peace Sticker Service is a globe you can pin photos to — one picture, one spot, one
+          comment, signed with your name and the date. Everybody's stickers are on the same earth, and
+          anyone can look without an account. Yours stay yours to edit or take back down.
+        </p>
+      </div>
+      <div class="mt-5 px-2 max-sm:px-4">
+        <a routerLink="/stickers"
+           class="inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover">
+          Open the globe
+          <svg fill="currentColor" aria-hidden="true" viewBox="0 0 10 10" class="w-2.5">
+            <path d="M4.85355 0.146423L9.70711 4.99998L4.85355 9.85353L4.14645 9.14642L7.79289 5.49998H0V4.49998H7.79289L4.14645 0.85353L4.85355 0.146423Z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  }
+
   <!-- SYSTEM STATUS -->
   <app-system-status />
 </div>

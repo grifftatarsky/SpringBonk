@@ -1,8 +1,9 @@
 # akira-platform (formerly known as SpringBonk)
 
-A multi-service containerized application for running a ranked-choice book club, plus a
-pair of federated side apps — a D&D toolkit and a real-time card game. Built with a BFF
-(Backend for Frontend) pattern, OAuth 2.0 authentication, and micro-frontends.
+A multi-service containerized application for running a ranked-choice book club, plus
+three federated side apps — a D&D toolkit, a real-time card game, and a globe you can pin
+photos to. Built with a BFF (Backend for Frontend) pattern, OAuth 2.0 authentication, and
+micro-frontends.
 
 ### Services
 
@@ -16,6 +17,7 @@ directly.
 | `spring-resource` | 7084 | `/api` | Books, shelves, elections, reviews, notifications, activity |
 | `spring-ooze` | 7085 | `/ooz` | Oozengine — D&D compendium and combat tooling |
 | `spring-decks` | 7086 | `/dck`, `/dck-ws` | Real-time card games (President), STOMP over WebSocket |
+| `jpss-resource` | 7087 | `/jps` | Jo Peace Sticker Service — geotagged photos on a shared globe |
 | `keycloak` | 8080 | `/auth` | Identity, roles, OAuth 2.0 token issuance |
 | `postgres` | 5432 | — | One database per service |
 
@@ -28,6 +30,12 @@ directly.
   never touches tokens directly.
 - **Backend-For-Frontend** — Spring Boot Cloud Gateway. Aggregates downstream calls, manages
   session state, and acts as the OAuth 2.0 client. Sits behind Nginx as a reverse proxy.
+- **Jo Peace Sticker Service** — Spring Boot. A photo wall with coordinates: anyone can read
+  it without an account, a signed-in user can pin a picture with a comment, and a sticker can
+  only be edited or removed by the account that placed it. Uploads are decoded and re-encoded
+  on the way in (which drops EXIF, including a photo's own GPS tags) into a capped display
+  image and a small tile for the globe; both live in their own table so listing the wall never
+  reads a photo.
 - **Decks** — Spring Boot. Authoritative game engine with a STOMP broadcaster over WebSocket.
   Clients authenticate the CONNECT frame with a short-lived ticket; the session principal is the
   Keycloak subject. Runs on the in-memory simple broker — scaling past one instance means
@@ -41,7 +49,7 @@ directly.
 
 ### Frontend layout
 
-The Angular workspace lives in `angular-client/akira-ng` and builds three projects wired with
+The Angular workspace lives in `angular-client/akira-ng` and builds four projects wired with
 Angular Native Federation:
 
 | Project | Kind | Served at |
@@ -49,10 +57,23 @@ Angular Native Federation:
 | `akira-ng` | Host shell — book club, dashboard, auth, navigation | `/` |
 | `ooze` | Remote — Oozengine compendium and dice | `/remotes/ooze/` |
 | `president` | Remote — President card game (WebGPU table) | `/remotes/president/` |
+| `jpss-ui` | Remote — Jo Peace Stickers (MapLibre globe) | `/remotes/jpss-ui/` |
 
 Remotes are loaded lazily through `loadRemoteModule`, and the host degrades to an
 "unavailable" route when a remote or its backend is down — the home page and nav both gate on
-live health checks rather than assuming everything is up.
+live health checks rather than assuming everything is up. A new remote has to be listed in
+`public/federation.manifest.json` as well as in `angular.json`; without it the host cannot
+resolve the name and every route into it falls back to "unavailable".
+
+> **Sticker globe note:** `jpss-ui` is the only project that uses maplibre-gl and deck.gl, and
+> its federation config `skip`s that whole graph rather than sharing it. Native Federation builds
+> each shared package into its own *self-contained* chunk — it does not externalise one shared
+> package from inside another — so a diamond gets duplicated. deck.gl is a diamond:
+> `@deck.gl/core` and `@deck.gl/layers` both sit on `@luma.gl/shadertools`, and two copies means
+> deck registers its shader hooks on one `ShaderAssembler` while every layer compiles against the
+> other, so every fragment shader fails at runtime from a build that was green. Declaring the luma
+> packages as dependencies does not help; it only adds chunks nothing imports. Skipping puts the
+> graph through esbuild, where it deduplicates normally.
 
 > **Tailwind note:** the remotes have no Tailwind build of their own. The host's Tailwind scan
 > reaches into the remotes' templates and emits their classes, so after editing a remote's
@@ -80,8 +101,9 @@ Build and test the frontend:
 cd angular-client/akira-ng && npm ci && npx ng build akira-ng && npx ng test akira-ng --watch=false
 ```
 
-The remotes build separately (`npx ng build ooze`, `npx ng build president`). Build the host
-first — see the Tailwind note above.
+The remotes build separately (`npx ng build ooze`, `npx ng build president`,
+`npx ng build jpss-ui`), or all of them at once with `./devbuildall.sh`. Build the host first —
+see the Tailwind note above.
 
 ### Patterns & Approach
 
@@ -96,6 +118,16 @@ first — see the Tailwind note above.
 - **Ranked-choice tallying** — elections resolve using instant-runoff voting with configurable
   round logic, and expose the round-by-round breakdown.
 - **Micro-frontends over a monolith SPA** — side apps ship and fail independently of the shell.
+- **Re-encode, don't relay** — the sticker service never serves back bytes it did not decode
+  itself. An upload is read, size-checked from its header before its pixels, and written out
+  fresh, so a public wall cannot be used to host whatever a "PNG" actually contained.
+- **One draw call, not one element per sticker** — the globe's marks are a deck.gl layer, so
+  drawing cost is flat in the number of stickers. `StickerIconLayer` is a small custom layer
+  rather than deck's own `IconLayer`, which renders nothing under `_GlobeView` with `billboard`
+  on (reproducible with deck 9.3.11 standalone: the same data draws three icons under `MapView`
+  and zero under `_GlobeView`, while a ScatterplotLayer beside it draws all three). It is built
+  on the vertex path that does survive the globe — ScatterplotLayer's — and samples one shared
+  atlas rasterised from the project's sticker glyph.
 - **Virtual threads** — request handling runs on Java virtual threads in the resource, Oozengine,
   and Decks services (`spring.threads.virtual.enabled`). The BFF stays reactive on WebFlux.
 - **Test-driven** — JUnit and Mockito on the backend; Vitest with the Angular `unit-test` builder

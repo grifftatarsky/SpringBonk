@@ -1,0 +1,32 @@
+FROM maven:3.9.16-eclipse-temurin-26-alpine AS build
+
+WORKDIR /app
+
+COPY pom.xml /tmp/pom.xml
+RUN mvn -f /tmp/pom.xml install -N
+
+COPY ./jpss-resource/pom.xml ./pom.xml
+RUN mvn dependency:go-offline
+
+COPY ./jpss-resource/src ./src
+
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:26-jre-alpine
+
+RUN addgroup -S bonk-docker && adduser -S -G bonk-docker veto
+
+WORKDIR /app
+
+COPY --from=build /app/target/*.jar /app/runner.jar
+
+RUN chown -R veto:bonk-docker /app
+
+EXPOSE 7087
+
+USER veto
+
+# Sticker uploads are decoded and re-encoded with ImageIO, which lives in
+# java.desktop. Headless is what Spring Boot sets anyway; stating it here keeps
+# the requirement visible if this image ever gets a slimmer base.
+ENTRYPOINT ["java", "-Djava.awt.headless=true", "-jar", "/app/runner.jar"]

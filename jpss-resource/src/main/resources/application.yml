@@ -1,0 +1,95 @@
+# Base #############################################################################################
+jps-scheme: ${SCHEME_JPS:http}
+jps-container-name: ${CONTAINER_NAME_JPS:localhost}
+jps-prefix: ${PREFIX_JPS:/jps}
+# Reverse Proxy ####################################################################################
+reverse-proxy-scheme: ${SCHEME_REVERSE_PROXY:http}
+reverse-proxy-port: ${PORT_REVERSE_PROXY:7080}
+reverse-proxy-container-name: ${CONTAINER_NAME_REVERSE_PROXY:localhost}
+reverse-proxy-uri: ${reverse-proxy-scheme}://${reverse-proxy-container-name}:${reverse-proxy-port}
+# Authorization Server #############################################################################
+auth-server-prefix: ${PREFIX_AUTH:/auth}
+auth-server-issuer: ${AUTH_ISSUER:/realms/local-keycloak}
+auth-server-jwk-set: ${AUTH_JWK_SET:/protocol/openid-connect/certs}
+issuer: ${reverse-proxy-uri}${auth-server-prefix}${auth-server-issuer}
+jwk-set: ${issuer}${auth-server-jwk-set}
+# Server Properties ################################################################################
+server:
+  port: ${PORT_JPS:7087}
+# Spring Properties ################################################################################
+spring:
+  application:
+    name: Jo Peace Sticker Service
+  devtools:
+    add-properties: ${DEV_TOOLS_ADD_PROPS:false}
+    livereload:
+      enabled: ${DEV_TOOLS_LIVE_RELOAD:false}
+  threads:
+    virtual:
+      enabled: true
+  # Photos arrive as multipart. The file cap is the real limit; the request cap
+  # is a little larger to leave room for the JSON part and the part boundaries.
+  servlet:
+    multipart:
+      max-file-size: ${JPS_MAX_UPLOAD:8MB}
+      max-request-size: ${JPS_MAX_REQUEST:10MB}
+  datasource:
+    # Defaults match init-db.sh / .env so the module boots against the shared
+    # Postgres without exported env vars. Tests override this via the
+    # Testcontainers @ServiceConnection, so these values are unused there.
+    url: ${JPS_DATASOURCE_URL:jdbc:postgresql://localhost:5432/jps-db}
+    username: ${JPS_DATASOURCE_USERNAME:jps_user}
+    password: ${JPS_DATASOURCE_PASSWORD:jps_password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      # Liquibase owns schema migrations; Hibernate only validates that the JPA
+      # entities match the Liquibase-managed schema at startup.
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    default-schema: public
+# Spring OIDC Properties ###########################################################################
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+          - iss: ${issuer}
+            username-claim: ${AUTH_USERNAME_CLAIM_JSON:$.preferred_username}
+            authorities:
+              - path: ${AUTH_AUTHORITIES_JSON:$.realm_access.roles}
+            aud: ${AUTH_AUDIENCE:}
+        resourceserver:
+          permit-all:
+            - /swagger-ui*/**
+            - /v3/api-docs*/**
+            - /actuator/health/readiness
+            - /actuator/health/liveness
+            # Spring forwards an unhandled exception to /error, and that forward
+            # goes through the filter chain again. Without this it is rejected as
+            # unauthenticated, so every server-side fault — a database that is not
+            # migrated, say — reaches the client as 401 "sign in" instead of the
+            # 500 it actually is.
+            - /error
+          # The public reads on /stickers are NOT listed above: permit-all takes
+          # plain path patterns and would open POST /stickers along with GET.
+          # They are granted per-method in security/AccessConfig instead.
+# Log Levels #######################################################################################
+logging:
+  level:
+    org:
+      keycloak: INFO
+# Actuator #########################################################################################
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          # Default is readinessState only; db makes the probe fail while Postgres is down.
+          include: readinessState,db

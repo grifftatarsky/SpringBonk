@@ -65,6 +65,11 @@ com:
             - /v3/api-docs*/**
             - /actuator/health/readiness
             - /actuator/health/liveness
+            # Spring forwards an unhandled exception to /error, and that forward
+            # goes back through the security filter chain. Without this it is
+            # rejected as unauthenticated, so a server-side fault reaches the
+            # client as 401 "sign in" instead of the 500 it actually is.
+            - /error
             # Blog reads are public; writes are still gated by @PreAuthorize
             # on PostService — anonymous requests there hit a 403.
             - /post

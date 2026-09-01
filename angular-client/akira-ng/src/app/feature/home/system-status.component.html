@@ -51,15 +51,17 @@
       </p>
     </div>
 
-    @if (status.oozeDown()) {
-      <div class="flex items-center gap-2 border-t border-danger/30 bg-danger-subtle px-5 py-3 text-xs font-medium text-danger">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true">
-          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-          <path d="M12 9v4" /><path d="M12 17h.01" />
-        </svg>
-        Apologies — Oozengine is currently unavailable.
-      </div>
+    @if (status.downApps(); as down) {
+      @if (down.length) {
+        <div class="flex items-center gap-2 border-t border-danger/30 bg-danger-subtle px-5 py-3 text-xs font-medium text-danger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0" aria-hidden="true">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <path d="M12 9v4" /><path d="M12 17h.01" />
+          </svg>
+          Apologies — {{ down.join(', ') }} {{ down.length === 1 ? 'is' : 'are' }} currently unavailable.
+        </div>
+      }
     }
   </div>
 </div>

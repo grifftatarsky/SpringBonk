@@ -1,0 +1,147 @@
+<div class="jpss-stage" [class.jpss-stage--sidebar]="sidebarOpen()">
+  <jpss-globe
+    #globe
+    [layers]="layers()"
+    [basemap]="basemap()"
+    [visibility]="visibility()"
+    [spinning]="spinning()"
+    [picking]="picking()"
+    (globeClick)="onGlobeClick($event)"
+    (spinStop)="spinning.set(false)"
+    (groupSizes)="groupSizes.set($event)"
+    (loadingChange)="mapLoading.set($event)">
+
+    <div class="jpss-overlays">
+      <jpss-menu-bar
+        [authChecked]="stickers.authChecked()"
+        [username]="username()"
+        [mine]="stickers.mine()"
+        [basemap]="basemap()"
+        [visibility]="visibility()"
+        [groupSizes]="groupSizes()"
+        [spinning]="spinning()"
+        (login)="signIn()"
+        (logout)="signOut()"
+        (addSticker)="startNew()"
+        (toggleSpin)="toggleSpin()"
+        (basemapChange)="basemap.set($event)"
+        (toggleGroup)="toggleGroup($event)"
+        (selectSticker)="open($event)" />
+
+      <!-- STATUS CHIP -->
+      <div
+        class="pointer-events-auto absolute bottom-3 left-3 flex items-center gap-2 rounded-full border border-rule bg-bg/85 px-3 py-1.5 text-xs text-fg-muted shadow-lg backdrop-blur-md">
+        @if (mapLoading() || !stickers.loaded()) {
+          <span class="size-2.5 animate-pulse rounded-full bg-accent" aria-hidden="true"></span>
+          <span>Loading the globe…</span>
+        } @else if (stickers.loadError(); as message) {
+          <span class="size-2.5 rounded-full bg-danger" aria-hidden="true"></span>
+          <span class="text-danger">{{ message }}</span>
+        } @else {
+          <span class="size-2.5 rounded-full bg-success" aria-hidden="true"></span>
+          <span class="tabular-nums">{{ count() }}</span>
+          <span>{{ count() === 1 ? 'sticker' : 'stickers' }}</span>
+          @if (picking()) {
+            <span class="text-accent">· click a spot</span>
+          }
+        }
+      </div>
+
+      <!-- EMPTY STATE — only once we know the wall really is empty. -->
+      @if (stickers.loaded() && !count() && !stickers.loadError()) {
+        <div
+          class="jpss-centred pointer-events-auto absolute bottom-16 w-[min(24rem,calc(100%-1.5rem))] rounded-xl border border-rule bg-bg/90 px-4 py-3 text-center shadow-xl backdrop-blur-md">
+          <p class="text-sm font-semibold text-fg">Nothing on the globe yet</p>
+          <p class="mt-1 text-xs text-fg-muted">
+            @if (username()) {
+              Open the ⋯ menu and add the first sticker.
+            } @else {
+              Sign in to pin the first photo somewhere.
+            }
+          </p>
+        </div>
+      }
+
+      <!-- HOVER LABEL — names whatever the cursor is over. -->
+      @if (hovered(); as sticker) {
+        <div
+          class="jpss-centred absolute bottom-3 max-w-[min(22rem,calc(100%-1.5rem))] truncate rounded-full border border-rule bg-bg/90 px-3 py-1.5 text-xs shadow-lg backdrop-blur-md">
+          <span class="font-semibold text-fg">{{ sticker.authorName }}</span>
+          <span class="text-fg-muted"> · {{ sticker.place || sticker.comment }}</span>
+        </div>
+      }
+
+      <!-- TOAST -->
+      @if (toast(); as note) {
+        <div
+          class="jpss-centred pointer-events-auto absolute bottom-16 flex max-w-[min(26rem,calc(100%-1.5rem))] items-center gap-2 rounded-lg border px-3 py-2 text-xs shadow-xl backdrop-blur-md"
+          [class]="
+            note.tone === 'error'
+              ? 'border-danger/40 bg-danger-subtle text-danger'
+              : 'border-rule bg-bg/90 text-fg'
+          "
+          role="status"
+          aria-live="polite">
+          <span class="truncate">{{ note.message }}</span>
+          <button
+            type="button"
+            class="-mr-1 shrink-0 rounded px-1 text-fg-subtle transition-colors hover:text-fg"
+            aria-label="Dismiss"
+            (click)="toast.set(null)">
+            ×
+          </button>
+        </div>
+      }
+    </div>
+  </jpss-globe>
+
+  <!-- SIDEBAR — the composer wins the column while it is open. -->
+  @if (sidebarOpen()) {
+    <aside class="jpss-sidebar" aria-label="Sticker details">
+      @if (composing()) {
+        <jpss-sticker-composer
+          [editing]="editing()"
+          [coordinate]="pending()"
+          [picking]="picking()"
+          (requestPick)="picking.set(true)"
+          (locate)="onLocate($event)"
+          (saved)="onSaved($event)"
+          (cancel)="closeComposer()" />
+      } @else if (selected(); as sticker) {
+        <jpss-sticker-sidebar
+          [sticker]="sticker"
+          (dismiss)="dismiss()"
+          (edit)="startEdit($event)"
+          (remove)="onRemove($event)" />
+      }
+    </aside>
+  }
+
+  <!--
+    The stickers are drawn on a GPU canvas, which nothing can focus or read out.
+    This is the same wall as a list: one button per sticker, off-screen but in
+    the tab order, so the globe is reachable without a pointer. Focusing an entry
+    highlights its mark on the map; activating it opens the sticker exactly as
+    clicking would.
+  -->
+  <nav class="sr-only" aria-label="All stickers">
+    <h2>Stickers on the globe</h2>
+    @if (!count()) {
+      <p>No stickers have been placed yet.</p>
+    }
+    <ul>
+      @for (sticker of stickers.stickers(); track sticker.id) {
+        <li>
+          <button
+            type="button"
+            [attr.aria-pressed]="sticker.id === selectedId()"
+            (focus)="hoveredId.set(sticker.id)"
+            (blur)="hoveredId.set(null)"
+            (click)="open(sticker)">
+            {{ sticker.authorName }}: {{ sticker.place || sticker.comment }}
+          </button>
+        </li>
+      }
+    </ul>
+  </nav>
+</div>

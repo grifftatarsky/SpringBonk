@@ -29,6 +29,11 @@ dck-port: ${PORT_DECKS:7086}
 dck-scheme: ${SCHEME_DECKS:http}
 dck-container-name: ${CONTAINER_NAME_DECKS:localhost}
 dck-prefix: ${PREFIX_DECKS:/dck}
+# Sticker Server ###################################################################################
+jps-port: ${PORT_JPS:7087}
+jps-scheme: ${SCHEME_JPS:http}
+jps-container-name: ${CONTAINER_NAME_JPS:localhost}
+jps-prefix: ${PREFIX_JPS:/jps}
 # Application Properties ###########################################################################
 server:
   port: ${PORT_BFF:7081}
@@ -40,6 +45,12 @@ server:
         same-site: ${COOKIE_SAME_SITE:lax}  # Safari compatibility + CSRF protection
 # Security #########################################################################################
 spring:
+  # Sticker photos (up to 8MB) are proxied to jpss-resource through this
+  # gateway. The route streams the body rather than decoding it, but the
+  # default 256KB codec buffer is small enough to be worth raising explicitly
+  # rather than discovering at the first large upload.
+  codec:
+    max-in-memory-size: 12MB
   security:
     oauth2:
       client:
@@ -86,6 +97,15 @@ spring:
                 - TokenRelay=
                 - SaveSession
                 - StripPrefix=1
+            - id: jps
+              uri: ${jps-scheme}://${jps-container-name}:${jps-port}
+              predicates:
+                - Path=${jps-prefix}/**
+              filters:
+                - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+                - TokenRelay=
+                - SaveSession
+                - StripPrefix=1
 # Addons ###########################################################################################
 com:
   c4-soft:
@@ -102,6 +122,7 @@ com:
             - ${resource-prefix}/**
             - ${ooz-prefix}/**
             - ${dck-prefix}/**
+            - ${jps-prefix}/**
             - /login/**
             - /oauth2/**
             - /logout
@@ -109,6 +130,7 @@ com:
             - ${resource-prefix}/**
             - ${ooz-prefix}/**
             - ${dck-prefix}/**
+            - ${jps-prefix}/**
             - /login/**
             - /oauth2/**
           csrf: cookie-accessible-from-js

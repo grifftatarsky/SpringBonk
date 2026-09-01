@@ -1,0 +1,5 @@
+/* Global styles for standalone dev only. When federated, the host's stylesheet
+   applies — including the Tailwind utilities emitted from this project's
+   templates (see the @source line in the host's src/styles.css). Anything this
+   remote needs at runtime lives in a component's own stylesheet instead, so it
+   ships with the remote rather than depending on the host. */

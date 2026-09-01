@@ -1,0 +1,145 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 002 — stickers. The sticker row carries everything the wall renders; the
+  # bytes live in sticker_image, keyed by the same id, so a wall listing never
+  # reads a photo. There is no JPA association between the two — see the
+  # Sticker javadoc for why.
+  # ==========================================================================
+  - changeSet:
+      id: 002-sticker-create
+      author: jpss
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: sticker
+      changes:
+        - createTable:
+            tableName: sticker
+            columns:
+              # BaseEntity columns
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              # Sticker fields
+              - column:
+                  name: author_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_sticker_author
+                    references: keycloak_user(id)
+              - column:
+                  name: latitude
+                  type: DOUBLE PRECISION
+                  constraints:
+                    nullable: false
+              - column:
+                  name: longitude
+                  type: DOUBLE PRECISION
+                  constraints:
+                    nullable: false
+              - column:
+                  name: comment
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: place
+                  type: VARCHAR(80)
+              - column:
+                  name: image_content_type
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: image_width
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: image_height
+                  type: INT
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 002-sticker-created-at-index
+      author: jpss
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          indexExists:
+            indexName: idx_sticker_created_at
+      changes:
+        # The wall is "everything, newest first" — this is the only ordering the
+        # service ever asks for.
+        - createIndex:
+            tableName: sticker
+            indexName: idx_sticker_created_at
+            columns:
+              - column:
+                  name: created_at
+                  descending: true
+
+  - changeSet:
+      id: 002-sticker-image-create
+      author: jpss
+      preConditions:
+        onFail: MARK_RAN
+        not:
+          tableExists:
+            tableName: sticker_image
+      changes:
+        - createTable:
+            tableName: sticker_image
+            columns:
+              # Shared primary key with sticker. No FK constraint: the service
+              # writes the sticker first and deletes the image first, so a
+              # constraint would only add an ordering trap for no integrity the
+              # service does not already keep.
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: data
+                  type: BYTEA
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content_type
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: thumb_data
+                  type: BYTEA
+                  constraints:
+                    nullable: false
+              - column:
+                  name: thumb_content_type
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
