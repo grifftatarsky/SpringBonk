@@ -84,7 +84,33 @@ const VIEWS: Record<DeckView, View[]> = {
  * as a bug rather than as a view. Raise it and the globe fills more of the frame
  * but the poles crop on a short viewport; lower it and the void comes back.
  */
-const MIN_ZOOM = 1.5;
+/**
+ * The zoom the globe rests at, and the floor the user can pull back to.
+ *
+ * Derived rather than picked. MapLibre's globe wraps the mercator world onto a
+ * sphere, so at zoom z the sphere's circumference is the world width — 512·2^z
+ * CSS px — and the disc it draws is that over pi. Inverting gives the zoom that
+ * renders a globe of a wanted diameter, which is what lets a phone frame the
+ * whole thing instead of cropping it: at the old flat 1.5 the disc is 461px
+ * across, wider than any phone in portrait.
+ *
+ * Desktop is unchanged — `Math.min` keeps 1.5 wherever the viewport can already
+ * hold the globe, so this only ever zooms *out*, and only as far as it must.
+ */
+function zoomForGlobeDiameter(px: number): number {
+  return Math.log2((px * Math.PI) / 512);
+}
+
+/** Share of the shortest viewport edge the globe is allowed to fill. */
+const GLOBE_FILL = 0.82;
+
+const DESKTOP_MIN_ZOOM = 1.5;
+
+function restingZoom(): number {
+  if (typeof window === 'undefined') return DESKTOP_MIN_ZOOM;
+  const shortest = Math.min(window.innerWidth, window.innerHeight);
+  return Math.min(DESKTOP_MIN_ZOOM, zoomForGlobeDiameter(shortest * GLOBE_FILL));
+}
 
 /**
  * Cross-fades the whole GL container on first load and on every basemap swap,
@@ -101,7 +127,7 @@ const FADE_MS = REDUCED_MOTION ? 0 : 350;
 /** Degrees of longitude per second for the idle spin — a full revolution a minute. */
 const SPIN_DEGREES_PER_SECOND = 6;
 
-/** How long the pull-back to {@link MIN_ZOOM} takes. The rotation runs throughout, not after. */
+/** How long the pull-back to {@link restingZoom} takes. The rotation runs throughout, not after. */
 const SPIN_SETTLE_MS = REDUCED_MOTION ? 0 : 1800;
 
 /** Backstop so a style that never finishes loading cannot leave the map permanently invisible. */
@@ -238,6 +264,8 @@ export class Globe {
   /** How far through resolving a camera flight is — see {@link beginSettle}. */
   protected readonly settlePhase = signal<SettlePhase>('off');
   private settleTimer?: number;
+  /** Pull-back target, read once per spin so a resize cannot move it mid-flight. */
+  private resting = DESKTOP_MIN_ZOOM;
   private cruiseTimer?: number;
   /** Set when the map goes idle before the deep hold is up — see {@link onIdle}. */
   private settledEarly = false;
@@ -409,7 +437,7 @@ export class Globe {
       bearing: INITIAL_VIEW.bearing,
       // The globe interpolates itself into Mercator around z11-12, so one camera
       // covers whole-earth to street level with no mode switch.
-      minZoom: MIN_ZOOM,
+      minZoom: restingZoom(),
       maxZoom: 20,
       // Supplied below, outside the map, so its placement is not at the mercy of
       // MapLibre's corner stacking.
@@ -641,6 +669,7 @@ export class Globe {
     if (!map || this.spinFrame) return;
 
     const start = performance.now();
+    this.resting = restingZoom();
     const from = { zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing() };
     let previous = start;
     let settled = SPIN_SETTLE_MS === 0;
@@ -668,7 +697,7 @@ export class Globe {
       } else {
         map.jumpTo({
           center: turned,
-          zoom: from.zoom + (MIN_ZOOM - from.zoom) * eased,
+          zoom: from.zoom + (this.resting - from.zoom) * eased,
           // Levelled off on the way out; a tilted camera reads as a wobble once turning.
           pitch: from.pitch * (1 - eased),
           bearing: from.bearing * (1 - eased),

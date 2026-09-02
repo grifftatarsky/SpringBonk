@@ -32,8 +32,11 @@
    navigation control, whose own bottom margin is 10px. */
 .jpss-globe__attribution {
   position: absolute;
-  right: 10px;
-  bottom: 2px;
+  /* The insets come from .jpss-stage and are zero unless the document opted
+     into viewport-fit=cover; the fallback covers the globe being rendered
+     outside the stage at all. */
+  right: calc(10px + var(--jpss-safe-right, 0px));
+  bottom: calc(2px + var(--jpss-safe-bottom, 0px));
   z-index: 3;
   margin: 0;
   color: #8fa5c0;
@@ -77,6 +80,13 @@
 
 .jpss-globe .maplibregl-ctrl-group button:not(:disabled):hover {
   background-color: rgb(120 160 210 / 14%);
+}
+
+/* MapLibre positions its control corners against the map container, which under
+   cover runs to the screen edge — so the cluster needs the inset itself. */
+.jpss-globe .maplibregl-ctrl-bottom-right {
+  padding-right: var(--jpss-safe-right, 0px);
+  padding-bottom: var(--jpss-safe-bottom, 0px);
 }
 
 /* MapLibre's zoom cluster is ~31px wide — under any touch guidance — and pinch

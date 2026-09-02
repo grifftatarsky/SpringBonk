@@ -9,21 +9,43 @@
   position: relative;
   width: 100vw;
   margin-left: calc(50% - 50vw);
-  /* Sits below the shell's 3.5rem header and reaches the bottom of the *visible*
+  /* Sits below the shell's header and reaches the bottom of the *visible*
    * viewport; dvh tracks a mobile browser's toolbar showing and hiding, and vh
-   * is the fallback for anything without it. */
-  height: calc(100vh - 3.5rem);
-  height: calc(100dvh - 3.5rem);
+   * is the fallback for anything without it.
+   *
+   * The header height is a variable because standalone (findjo.org) has no shell
+   * header to sit below — the default keeps the host's 3.5rem, and the
+   * standalone App sets it to 0. Hardcoding it left a 56px dead strip under the
+   * globe on findjo.org. */
+  height: calc(100vh - var(--jpss-shell-header, 3.5rem));
+  height: calc(100dvh - var(--jpss-shell-header, 3.5rem));
   min-height: 28rem;
   overflow: hidden;
   --jpss-sidebar-width: 380px;
+
+  /* Non-zero only where the document opted into viewport-fit=cover, i.e. the
+   * standalone build. Named once here so every floating panel can inset itself
+   * without repeating the env() calls, and so they inherit into globe.css,
+   * which is a separate (unencapsulated) stylesheet. */
+  --jpss-safe-top: env(safe-area-inset-top, 0px);
+  --jpss-safe-right: env(safe-area-inset-right, 0px);
+  --jpss-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --jpss-safe-left: env(safe-area-inset-left, 0px);
 }
 
 /* The overlay layer covers the whole stage, so it has to let clicks through to
  * the map by default; each panel opts back in with pointer-events-auto. */
 .jpss-overlays {
   position: absolute;
-  inset: 0;
+  /* Inset by the safe area rather than `inset: 0`. The globe canvas underneath
+   * still fills the screen edge to edge — which is the point of cover — while
+   * everything floating over it (menu bar, + button, status chip, empty state,
+   * hover label, toast) stays clear of the Dynamic Island, the home indicator
+   * and the corner radii. */
+  top: var(--jpss-safe-top, 0px);
+  right: var(--jpss-safe-right, 0px);
+  bottom: var(--jpss-safe-bottom, 0px);
+  left: var(--jpss-safe-left, 0px);
   z-index: 5;
   pointer-events: none;
 }
@@ -45,9 +67,9 @@
  * mid-flight interrupts the camera animation that opened it. */
 .jpss-sidebar {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  top: var(--jpss-safe-top, 0px);
+  right: var(--jpss-safe-right, 0px);
+  bottom: var(--jpss-safe-bottom, 0px);
   z-index: 20;
   width: var(--jpss-sidebar-width);
   max-width: 100%;
@@ -73,7 +95,12 @@
 
   .jpss-sidebar {
     top: auto;
-    left: 0;
+    /* Bottom stays at 0 so the sheet's background bleeds under the home
+       indicator; padding-bottom below lifts the *content* off it instead.
+       Left and right matter in landscape, where the insets are ~44px. */
+    bottom: 0;
+    left: var(--jpss-safe-left, 0px);
+    right: var(--jpss-safe-right, 0px);
     width: auto;
     max-height: 78dvh;
     border-left: 0;
@@ -83,7 +110,7 @@
     border-radius: 1rem 1rem 0 0;
     box-shadow: 0 -12px 32px rgb(0 0 0 / 34%);
     padding-top: 0.5rem;
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: var(--jpss-safe-bottom, 0px);
     animation-name: jpss-sheet-in;
   }
 

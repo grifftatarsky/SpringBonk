@@ -37,3 +37,5 @@ logs/
 
 # Ignore MacOS files
 .DS_Store
+# Local database dumps
+backups/

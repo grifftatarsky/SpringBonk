@@ -17,7 +17,7 @@ import type { Sticker } from '../stickers/sticker.models';
  * The one piece of chrome the globe always shows: who you are, and a "…" that
  * holds everything else.
  *
- * Signed out it reads `Login  ⋯`; signed in, `Welcome, name  ⋯`. Every map tool
+ * Signed out it reads `Login  ⋯`; signed in, `Hi, name  ⋯` over a `+`. Every map tool
  * — basemap, the six detail toggles, the spin — lives behind the "…" rather than
  * in panels of its own, because on this app they are a garnish. The globe and
  * the photos on it are the product.
@@ -45,8 +45,15 @@ import type { Sticker } from '../stickers/sticker.models';
         @if (!authChecked()) {
           <span class="px-3 py-1 text-sm text-fg-subtle">Checking…</span>
         } @else if (username(); as name) {
-          <span class="max-w-[7rem] truncate px-3 py-1 text-sm text-fg sm:max-w-[9rem]">
-            <span class="hidden sm:inline">Welcome, </span><span class="font-semibold">{{ name }}</span>
+          <!-- The ch unit is the advance of "0", so 16ch is about sixteen
+               characters of
+               name before the ellipsis — wide enough for nearly every username,
+               and it degrades to a truncation rather than pushing the ⋯ button
+               off a narrow screen. The greeting is short enough to keep at
+               every width now. -->
+          <span class="flex min-w-0 items-center gap-1 px-3 py-1 text-sm text-fg">
+            <span class="shrink-0">Hi,</span>
+            <span class="min-w-0 max-w-[16ch] truncate font-semibold">{{ name }}</span>
           </span>
         } @else {
           <button
@@ -71,6 +78,22 @@ import type { Sticker } from '../stickers/sticker.models';
           </svg>
         </button>
       </div>
+
+      <!-- Add is the one action worth a permanent target rather than two taps
+           through the ⋯ menu, where it also still lives. Same glass treatment as
+           the pill above it so the two read as one cluster. -->
+      @if (signedIn()) {
+        <button
+          type="button"
+          class="grid size-10 shrink-0 place-items-center rounded-full border border-rule bg-bg/85 text-accent shadow-lg backdrop-blur-md transition-colors hover:bg-accent-subtle sm:size-9"
+          aria-label="Add a sticker"
+          (click)="addSticker.emit()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" class="size-5 sm:size-4" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
+      }
 
       @if (open()) {
         <div

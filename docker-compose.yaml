@@ -31,6 +31,32 @@ services:
     networks:
       - gpt-network
 
+  # Nightly pg_dumpall into ./backups, three copies retained. Same image tag as
+  # the server: pg_dumpall refuses to dump a cluster newer than itself, so these
+  # two versions must be bumped together.
+  pg-backup:
+    container_name: pg-backup
+    image: postgres:18.6
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      PGHOST: pgsql
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_DIR: /backups
+      BACKUP_RETAIN: ${BACKUP_RETAIN:-3}
+      TZ: ${BACKUP_TZ:-America/New_York}
+    volumes:
+      - ./backup/pg-backup.sh:/usr/local/bin/pg-backup.sh:ro
+      - ./backups:/backups
+    entrypoint: [ "/usr/local/bin/pg-backup.sh", "loop" ]
+    restart: unless-stopped
+    networks:
+      - gpt-network
+
   keycloak:
     container_name: keycloak
     image: keycloak/keycloak:26.7

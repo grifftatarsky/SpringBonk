@@ -43,7 +43,17 @@ export class App {
         this.prefersDark.set(stored === 'dark');
       }
     }
+    this.dropShellHeaderOffset();
     effect(() => this.applyTheme(this.prefersDark()));
+  }
+
+  /**
+   * Standalone has no shell header for the globe to sit below, so the stage must
+   * not reserve room for one. jpss-page.css defaults this to the host's 3.5rem;
+   * without the override findjo.org leaves a 56px dead strip under the globe.
+   */
+  private dropShellHeaderOffset(): void {
+    this.document?.documentElement?.style.setProperty('--jpss-shell-header', '0px');
   }
 
   private applyTheme(dark: boolean): void {

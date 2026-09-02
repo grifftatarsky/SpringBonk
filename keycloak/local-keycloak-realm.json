@@ -2479,6 +2479,7 @@
     "policies": []
   },
   "loginTheme": "akira",
+  "emailTheme": "akira",
   "displayName": "Akira",
   "displayNameHtml": "Akira"
 }

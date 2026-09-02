@@ -14,6 +14,8 @@ nginx.
 | Frontend tests | `npx ng test akira-ng --watch=false` (also `president`) |
 | Local stack | `docker compose up -d` (postgres, keycloak, nginx only) |
 | Spring services | Run the jars yourself; they are **not** in compose locally |
+| Ad-hoc DB backup | `docker exec pg-backup /usr/local/bin/pg-backup.sh once` |
+| Restore a backup | `./backup/pg-restore.sh [file]` (stop Keycloak + services first) |
 
 Java 26 is required and is often not the default JVM:
 `JAVA_HOME=$(/usr/libexec/java_home -v 26) ./mvnw ...`
@@ -54,6 +56,19 @@ Read these before touching the relevant area.
 - **maplibre-gl ships only a UMD bundle.** Import the default
   (`import maplibregl from 'maplibre-gl'`), take types from `import type`.
   Named value imports build fine and throw at load.
+- **`jpss-ui` runs in two shells and the difference is load-bearing.** Inside the
+  host it sits under a 3.5rem header; standalone (findjo.org) there is no header
+  and no host `App`. Anything the host provides has to have a standalone
+  equivalent or a working default — `--jpss-shell-header` defaults to `3.5rem`
+  and the standalone `App` sets it to `0px`; theme resolution and the
+  `theme-color` metas are duplicated in `projects/jpss-ui/src/app/app.ts`
+  because the host's `App` never runs there.
+- **Only the standalone document sets `viewport-fit=cover`.** That is what makes
+  `env(safe-area-inset-*)` non-zero, so the globe can reach the screen edges on
+  a notched phone. `.jpss-stage` publishes them as `--jpss-safe-*`, and the
+  floating chrome insets itself by those; in the host they resolve to `0` and
+  every rule is inert. Do not add `cover` to the host `index.html` without
+  auditing every fixed element on every page.
 
 ### Angular signals
 
@@ -96,6 +111,12 @@ Read these before touching the relevant area.
 
 ### Database / deploy
 
+- **Backups are `pg_dumpall`, not per-database `pg_dump`.** The `pg-backup`
+  sidecar dumps the whole cluster to `./backups` at local midnight and keeps 3.
+  Cluster-wide because the dump then also carries `CREATE ROLE` with passwords —
+  a per-database dump restored onto a cluster whose roles are gone has nothing to
+  load into, and `init-db.sh` will not re-run to recreate them. Its image tag
+  must be bumped alongside `postgres`: `pg_dumpall` refuses a newer server.
 - **`init-db.sh` runs only on first initialisation of an empty volume.** On an
   existing Postgres, a new service's database and role must be created by hand;
   Liquibase makes tables, not databases or roles.

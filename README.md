@@ -105,6 +105,39 @@ The remotes build separately (`npx ng build ooze`, `npx ng build president`,
 `npx ng build jpss-ui`), or all of them at once with `./devbuildall.sh`. Build the host first —
 see the Tailwind note above.
 
+### Database backups
+
+The `pg-backup` sidecar dumps the whole cluster to `./backups` at local midnight
+and keeps the three most recent copies. It comes up with the rest of the stack;
+nothing else is needed.
+
+```bash
+docker compose up -d pg-backup
+```
+
+It uses `pg_dumpall`, so one file carries all five databases *and* the roles with
+their passwords. That matters because `init-db.sh` only runs against an empty
+volume — a per-database dump would have nothing to load into on a cluster whose
+roles are gone.
+
+Take one immediately, outside the schedule:
+
+```bash
+docker exec pg-backup /usr/local/bin/pg-backup.sh once
+```
+
+Restore the newest backup (or pass a specific file). The dump is `--clean
+--if-exists`, so it drops and recreates every database it contains; stop
+Keycloak and the services first, since Postgres will not drop a database that
+still has sessions attached:
+
+```bash
+./backup/pg-restore.sh
+```
+
+Retention count and schedule timezone are `BACKUP_RETAIN` and `BACKUP_TZ` in
+`.env`. `backups/` is gitignored.
+
 ### Patterns & Approach
 
 - **BFF as security boundary** — the frontend is a public client with no token storage; all OAuth
