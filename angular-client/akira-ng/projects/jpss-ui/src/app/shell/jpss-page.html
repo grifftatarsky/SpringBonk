@@ -67,7 +67,7 @@
         <div
           class="jpss-centred absolute bottom-3 max-w-[min(22rem,calc(100%-1.5rem))] truncate rounded-full border border-rule bg-bg/90 px-3 py-1.5 text-xs shadow-lg backdrop-blur-md">
           <span class="font-semibold text-fg">{{ sticker.authorName }}</span>
-          <span class="text-fg-muted"> · {{ sticker.place || sticker.comment }}</span>
+          <span class="text-fg-muted"> · {{ label(sticker) }}</span>
         </div>
       }
 
@@ -112,9 +112,20 @@
           [sticker]="sticker"
           (dismiss)="dismiss()"
           (edit)="startEdit($event)"
-          (remove)="onRemove($event)" />
+          (remove)="onRemove($event)"
+          (viewPhoto)="viewingPhoto.set(sticker)" />
       }
     </aside>
+  }
+
+  <!-- Full screen photo. A sibling of the sidebar rather than a child of it:
+       the sidebar's backdrop-filter is a containing block for position:fixed,
+       which would size this to the panel instead of the window. -->
+  @if (viewingPhoto(); as sticker) {
+    <jpss-photo-viewer
+      [src]="stickers.imageUrl(sticker)"
+      [alt]="'Sticker by ' + sticker.authorName"
+      (close)="viewingPhoto.set(null)" />
   }
 
   <!--
@@ -138,7 +149,7 @@
             (focus)="hoveredId.set(sticker.id)"
             (blur)="hoveredId.set(null)"
             (click)="open(sticker)">
-            {{ sticker.authorName }}: {{ sticker.place || sticker.comment }}
+            {{ sticker.authorName }}: {{ label(sticker) }}
           </button>
         </li>
       }

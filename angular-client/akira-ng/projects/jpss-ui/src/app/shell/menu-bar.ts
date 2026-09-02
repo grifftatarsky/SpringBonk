@@ -1,3 +1,4 @@
+import { stickerLabel } from '../stickers/sticker.models';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -165,7 +166,7 @@ import type { Sticker } from '../stickers/sticker.models';
                           class="flex min-h-11 w-full items-baseline justify-between gap-3 rounded-lg px-2.5 py-2.5 text-left transition-colors hover:bg-bg-subtle sm:min-h-0 sm:py-1.5"
                           (click)="choose(sticker)">
                           <span class="min-w-0 flex-1 truncate text-sm text-fg">
-                            {{ sticker.place || sticker.comment }}
+                            {{ label(sticker) }}
                           </span>
                           <span class="shrink-0 text-[0.7rem] tabular-nums text-fg-subtle">
                             {{ sticker.createdAt | date: 'MMM d' }}
@@ -247,6 +248,8 @@ import type { Sticker } from '../stickers/sticker.models';
   `,
 })
 export class MenuBar {
+  protected readonly label = stickerLabel;
+
   readonly authChecked = input(false);
   readonly username = input<string | null>(null);
   readonly mine = input<readonly Sticker[]>([]);

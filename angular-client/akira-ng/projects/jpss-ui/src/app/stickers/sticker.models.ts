@@ -5,7 +5,7 @@ export interface Sticker {
   readonly authorName: string;
   readonly latitude: number;
   readonly longitude: number;
-  readonly comment: string;
+  readonly comment: string | null;
   readonly place: string | null;
   readonly imageContentType: string;
   readonly imageWidth: number;
@@ -25,7 +25,7 @@ export interface CurrentUser {
 export interface StickerEdit {
   readonly latitude: number;
   readonly longitude: number;
-  readonly comment: string;
+  readonly comment: string | null;
   readonly place: string | null;
 }
 
@@ -33,4 +33,28 @@ export interface StickerEdit {
 export interface Coordinate {
   readonly longitude: number;
   readonly latitude: number;
+}
+
+/**
+ * The one way coordinates are written for people: four decimal places — about
+ * ten metres, finer than anyone places a pin — with a hemisphere letter instead
+ * of a minus sign. Shared so the sidebar, the composer and the photo-location
+ * prompt cannot drift into three dialects of the same number.
+ */
+export function formatCoordinate({ latitude, longitude }: Coordinate): string {
+  const ns = `${Math.abs(latitude).toFixed(4)}\u00b0 ${latitude < 0 ? 'S' : 'N'}`;
+  const ew = `${Math.abs(longitude).toFixed(4)}\u00b0 ${longitude < 0 ? 'W' : 'E'}`;
+  return `${ns}, ${ew}`;
+}
+
+/**
+ * The one-line label a sticker is listed under.
+ *
+ * Both the caption and the place are optional, so this falls through to the
+ * coordinate rather than rendering an empty row: every list that shows stickers
+ * — the menu, the hover label, the screen-reader wall — needs *something*, and
+ * where it is is the one thing a sticker always has.
+ */
+export function stickerLabel(sticker: Sticker): string {
+  return sticker.place ?? sticker.comment ?? formatCoordinate(sticker);
 }

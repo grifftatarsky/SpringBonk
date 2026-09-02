@@ -1,3 +1,5 @@
+import { stickerLabel } from '../stickers/sticker.models';
+import { PhotoViewer } from '../stickers/photo-viewer';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -51,11 +53,15 @@ interface Toast {
 @Component({
   selector: 'jpss-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Globe, MenuBar, StickerSidebar, StickerComposer],
+  imports: [Globe, MenuBar, StickerSidebar, StickerComposer, PhotoViewer],
   templateUrl: './jpss-page.html',
   styleUrl: './jpss-page.css',
 })
 export class JpssPage {
+  protected readonly label = stickerLabel;
+  /** The sticker whose photo is open full screen, if any. */
+  protected readonly viewingPhoto = signal<Sticker | null>(null);
+
   protected readonly stickers = inject(StickerService);
   private readonly globe = viewChild.required(Globe);
 

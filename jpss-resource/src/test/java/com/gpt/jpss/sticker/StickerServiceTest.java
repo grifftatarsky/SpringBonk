@@ -12,6 +12,7 @@ import com.gpt.jpss.sticker.dto.StickerEditRequest;
 import com.gpt.jpss.sticker.model.Sticker;
 import java.lang.reflect.Field;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -123,5 +124,69 @@ class StickerServiceTest {
     Field field = sticker.getClass().getSuperclass().getDeclaredField("id");
     field.setAccessible(true);
     field.set(sticker, id);
+  }
+
+  @Test
+  void servesTheThumbnailWithoutReadingTheFullSizedBytes() {
+    var updated = Instant.parse("2026-09-02T10:00:00Z");
+    when(images.findThumbnail(stickerId)).thenReturn(Optional.of(rendition("small".getBytes(), updated)));
+
+    var payload = service.image(stickerId, true);
+
+    assertThat(payload.bytes()).isEqualTo("small".getBytes());
+    assertThat(payload.updatedAt()).isEqualTo(updated);
+    // The point of the projection: asking for a thumbnail must not touch the
+    // row that carries the display rendition too.
+    verify(images, never()).findById(any());
+    verify(images, never()).findFull(any());
+  }
+
+  @Test
+  void servesTheDisplayImageForTheDefaultVariant() {
+    when(images.findFull(stickerId))
+        .thenReturn(Optional.of(rendition("large".getBytes(), Instant.EPOCH)));
+
+    assertThat(service.image(stickerId, false).bytes()).isEqualTo("large".getBytes());
+    verify(images, never()).findThumbnail(any());
+  }
+
+  @Test
+  void reportsAMissingImageAsNotFound() {
+    when(images.findFull(stickerId)).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> service.image(stickerId, false))
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+        .isEqualTo(HttpStatus.NOT_FOUND);
+  }
+
+  @Test
+  void returnsTheWallNewestFirstWithItsAuthorNames() {
+    when(stickers.wall()).thenReturn(List.of(sticker));
+
+    var wall = service.wall();
+
+    assertThat(wall).hasSize(1);
+    assertThat(wall.getFirst().authorName()).isEqualTo(sticker.getAuthor().getUsername());
+    assertThat(wall.getFirst().id()).isEqualTo(stickerId);
+  }
+
+  private static StickerImageRepository.Rendition rendition(byte[] bytes, Instant updatedAt) {
+    return new StickerImageRepository.Rendition() {
+      @Override
+      public byte[] getBytes() {
+        return bytes;
+      }
+
+      @Override
+      public String getContentType() {
+        return "image/jpeg";
+      }
+
+      @Override
+      public Instant getUpdatedAt() {
+        return updatedAt;
+      }
+    };
   }
 }

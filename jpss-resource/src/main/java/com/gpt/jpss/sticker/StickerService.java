@@ -41,7 +41,7 @@ public class StickerService {
 
   @Transactional(readOnly = true)
   public List<StickerResponse> wall() {
-    return stickers.findAllByOrderByCreatedAtDesc().stream().map(StickerResponse::of).toList();
+    return stickers.wall().stream().map(StickerResponse::of).toList();
   }
 
   @Transactional(readOnly = true)
@@ -49,15 +49,20 @@ public class StickerService {
     return StickerResponse.of(require(id));
   }
 
-  /** The display image, or the atlas tile when {@code thumb} is set. */
+  /**
+   * The display image, or the smaller rendition when {@code thumb} is set.
+   *
+   * <p>One projection query per request: it reads only the rendition asked for,
+   * and picks up the sticker's {@code updatedAt} for the ETag on the way, so
+   * serving a photo costs neither the other rendition's bytes nor a second
+   * round trip for the timestamp.
+   */
   @Transactional(readOnly = true)
   public ImagePayload image(UUID id, boolean thumb) {
-    Sticker sticker = require(id);
-    StickerImage image = images.findById(id)
+    var rendition = thumb ? images.findThumbnail(id) : images.findFull(id);
+    return rendition
+        .map(r -> new ImagePayload(r.getBytes(), r.getContentType(), r.getUpdatedAt()))
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such image"));
-    return thumb
-        ? new ImagePayload(image.getThumbData(), image.getThumbContentType(), sticker.getUpdatedAt())
-        : new ImagePayload(image.getData(), image.getContentType(), sticker.getUpdatedAt());
   }
 
   @Transactional
@@ -65,7 +70,7 @@ public class StickerService {
     ImageProcessor.Processed processed = imageProcessor.process(file);
 
     Sticker sticker = new Sticker(
-        author, edit.latitude(), edit.longitude(), edit.comment().trim(), normalize(edit.place()));
+        author, edit.latitude(), edit.longitude(), normalize(edit.comment()), normalize(edit.place()));
     sticker.setImageContentType(processed.contentType());
     sticker.setImageWidth(processed.width());
     sticker.setImageHeight(processed.height());
@@ -80,7 +85,7 @@ public class StickerService {
     Sticker sticker = requireOwned(id, callerId);
     sticker.setLatitude(edit.latitude());
     sticker.setLongitude(edit.longitude());
-    sticker.setComment(edit.comment().trim());
+    sticker.setComment(normalize(edit.comment()));
     sticker.setPlace(normalize(edit.place()));
     return StickerResponse.of(sticker);
   }
@@ -133,8 +138,12 @@ public class StickerService {
     return sticker;
   }
 
-  /** Blank and absent mean the same thing for an optional label; store one of them. */
-  private static String normalize(String place) {
-    return StringUtils.hasText(place) ? place.trim() : null;
+  /**
+   * Blank and absent mean the same thing for an optional field; store one of
+   * them. Applied to the caption as well as the place, so a form submitted with
+   * an empty box does not persist an empty string that renders as a blank line.
+   */
+  private static String normalize(String text) {
+    return StringUtils.hasText(text) ? text.trim() : null;
   }
 }

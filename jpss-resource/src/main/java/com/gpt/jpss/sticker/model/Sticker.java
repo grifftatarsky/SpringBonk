@@ -43,8 +43,8 @@ public class Sticker extends BaseEntity {
   @Column(nullable = false)
   private double longitude;
 
-  /** What the author had to say. Free text, shown verbatim. */
-  @Column(name = "comment", nullable = false, length = 500)
+  /** What the author had to say, if anything. Free text, shown verbatim. */
+  @Column(name = "comment", length = 500)
   private String comment;
 
   /** Optional human label for the spot ("Prospect Park"), typed by the author. */

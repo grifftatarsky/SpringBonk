@@ -1,10 +1,11 @@
+import { JpssButton } from '../shared/button';
+import { PhotoLocationPrompt } from './photo-location-prompt';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
   effect,
-  HostListener,
   inject,
   input,
   output,
@@ -13,6 +14,7 @@ import {
 } from '@angular/core';
 import { StickerService, describe } from './sticker.service';
 import type { Coordinate, Sticker } from './sticker.models';
+import { formatCoordinate } from './sticker.models';
 import { readExifLocation } from './exif-location';
 
 /** Matches jpss-resource's multipart cap, so an oversized photo fails here rather than at the proxy. */
@@ -33,6 +35,7 @@ const MAX_PLACE = 80;
  * inside.
  */
 @Component({
+  imports: [JpssButton, PhotoLocationPrompt],
   selector: 'jpss-sticker-composer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents' },
@@ -107,7 +110,7 @@ const MAX_PLACE = 80;
           </span>
           @if (coordinate(); as spot) {
             <p class="mt-1 font-mono text-xs tabular-nums text-fg">
-              {{ spot.latitude.toFixed(4) }}, {{ spot.longitude.toFixed(4) }}
+              {{ formatCoordinate(spot) }}
             </p>
           } @else {
             <p class="mt-1 text-xs text-fg-muted">Nowhere yet — pick a spot on the globe.</p>
@@ -174,62 +177,23 @@ const MAX_PLACE = 80;
         </div>
       </div>
 
-      <!-- Offered when the chosen photo carries GPS tags. Rendered inside the
-           form but positioned fixed, so it sits over the whole stage rather than
-           being clipped by the sheet. -->
       @if (photoLocation(); as spot) {
-        <div class="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <button
-            type="button"
-            class="absolute inset-0 cursor-default bg-fg/40 backdrop-blur-sm"
-            aria-label="Keep the current location"
-            (click)="dismissPhotoLocation()"></button>
-          <section
-            class="relative z-10 w-full max-w-md rounded-lg border border-rule bg-bg p-5 shadow-2xl"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="jpss-photo-location-title">
-            <h2 id="jpss-photo-location-title" class="text-base font-semibold text-fg">
-              This photo remembers where it was taken
-            </h2>
-            <p class="mt-1.5 text-sm leading-relaxed text-fg-muted">
-              Place the sticker there instead of picking a spot on the globe?
-            </p>
-            <p class="mt-2.5 font-mono text-xs tabular-nums text-fg-subtle">
-              {{ formatCoordinate(spot) }}
-            </p>
-            <div class="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                class="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover sm:min-h-0 sm:px-3.5 sm:py-1.5 sm:text-xs"
-                (click)="acceptPhotoLocation()">
-                Use that spot
-              </button>
-              <button
-                type="button"
-                class="inline-flex min-h-11 items-center justify-center rounded-md border border-rule px-4 text-sm font-semibold text-fg transition hover:bg-bg-subtle sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
-                (click)="dismissPhotoLocation()">
-                No, I will pick
-              </button>
-            </div>
-            <p class="mt-3 text-[0.7rem] leading-relaxed text-fg-subtle">
-              The location is only read here — the copy that gets uploaded has its
-              metadata stripped either way.
-            </p>
-          </section>
-        </div>
+        <jpss-photo-location-prompt
+          [spot]="spot"
+          (accept)="acceptPhotoLocation($event)"
+          (dismiss)="dismissPhotoLocation()" />
       }
 
       <div class="flex shrink-0 items-center gap-2 border-t border-rule px-3.5 py-2.5">
         <button
           type="submit"
-          class="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover disabled:opacity-50 sm:min-h-0 sm:px-3.5 sm:py-1.5 sm:text-xs"
+          jpssButton="primary"
           [disabled]="!canSubmit()">
           {{ busy() ? 'Saving…' : editing() ? 'Save changes' : 'Place sticker' }}
         </button>
         <button
           type="button"
-          class="inline-flex min-h-11 items-center justify-center rounded-md border border-rule px-4 text-sm font-semibold text-fg transition hover:bg-bg-subtle sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
+          jpssButton
           [disabled]="busy()"
           (click)="cancel.emit()">
           Cancel
@@ -272,7 +236,6 @@ export class StickerComposer {
 
   protected readonly canSubmit = computed(() => {
     if (this.busy()) return false;
-    if (!this.comment().trim()) return false;
     if (!this.coordinate()) return false;
     // A new sticker needs a photo; an edit already has one.
     return this.editing() !== null || this.file() !== null;
@@ -365,27 +328,17 @@ export class StickerComposer {
     }
   }
 
-  protected acceptPhotoLocation(): void {
-    const spot = this.photoLocation();
+  protected acceptPhotoLocation(spot: Coordinate): void {
     this.photoLocation.set(null);
-    if (spot) this.locate.emit(spot);
+    this.locate.emit(spot);
   }
 
   protected dismissPhotoLocation(): void {
     this.photoLocation.set(null);
   }
 
-  @HostListener('window:keydown.escape')
-  protected onEscape(): void {
-    this.dismissPhotoLocation();
-  }
 
-  /** The same N/S E/W form the sidebar uses, so the two read alike. */
-  protected formatCoordinate(spot: Coordinate): string {
-    const lat = `${Math.abs(spot.latitude).toFixed(4)}\u00b0 ${spot.latitude < 0 ? 'S' : 'N'}`;
-    const lon = `${Math.abs(spot.longitude).toFixed(4)}\u00b0 ${spot.longitude < 0 ? 'W' : 'E'}`;
-    return `${lat}, ${lon}`;
-  }
+  protected readonly formatCoordinate = formatCoordinate;
 
   /** Object URLs are held by the document until revoked; a long session would leak every preview. */
   private releasePreview(): void {
@@ -425,7 +378,7 @@ export class StickerComposer {
     const edit = {
       latitude: spot.latitude,
       longitude: spot.longitude,
-      comment: this.comment().trim(),
+      comment: this.comment().trim() || null,
       place: this.place().trim() || null,
     };
 

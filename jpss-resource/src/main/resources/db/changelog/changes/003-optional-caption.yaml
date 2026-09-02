@@ -1,0 +1,17 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 003 — a sticker is a photo somewhere. The caption and the place label are
+  # both things an author may simply not have to say, so neither is required
+  # any more. `place` was already nullable; this drops the constraint on
+  # `comment` to match.
+  # ==========================================================================
+  - changeSet:
+      id: 003-comment-optional
+      author: jpss
+      # No precondition: DROP NOT NULL is idempotent, so re-running against a
+      # column that is already nullable is a no-op rather than an error.
+      changes:
+        - dropNotNullConstraint:
+            tableName: sticker
+            columnName: comment
+            columnDataType: VARCHAR(500)

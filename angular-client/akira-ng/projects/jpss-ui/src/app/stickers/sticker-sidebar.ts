@@ -1,7 +1,9 @@
+import { JpssButton } from '../shared/button';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { StickerService } from './sticker.service';
 import type { Sticker } from './sticker.models';
+import { formatCoordinate } from './sticker.models';
 
 /**
  * One sticker, opened: the photo, who put it there, when, what they said, and —
@@ -17,7 +19,7 @@ import type { Sticker } from './sticker.models';
 @Component({
   selector: 'jpss-sticker-sidebar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe],
+  imports: [DatePipe, JpssButton],
   host: { class: 'contents' },
   template: `
     <section class="flex min-h-0 flex-1 flex-col overflow-hidden" aria-labelledby="jpss-sidebar-title">
@@ -55,18 +57,40 @@ import type { Sticker } from './sticker.models';
           [style.aspect-ratio]="aspectRatio()"
           [style.background-image]="placeholder()">
           <div class="absolute inset-0 backdrop-blur-xl"></div>
+          <!-- The photo itself opens it, because that is what people try first;
+               the button is the discoverable version of the same thing. -->
           <img
-            class="absolute inset-0 size-full object-cover transition-opacity duration-300"
+            class="absolute inset-0 size-full cursor-zoom-in object-cover transition-opacity duration-300"
             [class.opacity-0]="!loaded()"
             [src]="imageUrl()"
-            [alt]="'Sticker by ' + sticker().authorName + ': ' + sticker().comment"
+            [alt]="altText()"
             decoding="async"
-            (load)="loaded.set(true)" />
+            (load)="loaded.set(true)"
+            (click)="viewPhoto.emit()" />
+          <button
+            type="button"
+            class="absolute right-2 top-2 grid size-9 place-items-center rounded-full bg-bg/40 text-fg backdrop-blur-sm transition hover:bg-bg/70"
+            aria-label="View photo full screen"
+            (click)="viewPhoto.emit()">
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="size-4"
+              aria-hidden="true">
+              <path d="M6 2H2v4M10 2h4v4M6 14H2v-4M10 14h4v-4" />
+            </svg>
+          </button>
         </div>
 
         <div class="px-4 py-4">
-          <p class="text-sm leading-relaxed whitespace-pre-wrap text-fg">{{ sticker().comment }}</p>
-          <p class="mt-3 font-mono text-[0.7rem] tabular-nums text-fg-subtle">{{ coordinates() }}</p>
+          @if (sticker().comment; as comment) {
+            <p class="mb-3 text-sm leading-relaxed whitespace-pre-wrap text-fg">{{ comment }}</p>
+          }
+          <p class="font-mono text-[0.7rem] tabular-nums text-fg-subtle">{{ coordinates() }}</p>
         </div>
       </div>
 
@@ -77,14 +101,14 @@ import type { Sticker } from './sticker.models';
             <div class="mt-2 flex gap-2">
               <button
                 type="button"
-                class="rounded-md bg-danger inline-flex min-h-11 items-center justify-center px-4 text-sm font-semibold sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs text-danger-fg transition hover:opacity-90 disabled:opacity-60"
+                jpssButton="danger"
                 [disabled]="busy()"
                 (click)="confirmDelete()">
                 {{ busy() ? 'Deleting…' : 'Delete' }}
               </button>
               <button
                 type="button"
-                class="rounded-md border border-rule inline-flex min-h-11 items-center justify-center px-4 text-sm font-semibold sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs text-fg transition hover:bg-bg-subtle"
+                jpssButton
                 [disabled]="busy()"
                 (click)="confirming.set(false)">
                 Keep it
@@ -94,13 +118,13 @@ import type { Sticker } from './sticker.models';
             <div class="flex gap-2">
               <button
                 type="button"
-                class="rounded-md border border-rule inline-flex min-h-11 items-center justify-center px-4 text-sm font-semibold sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs text-fg transition hover:bg-bg-subtle"
+                jpssButton
                 (click)="edit.emit(sticker())">
                 Edit
               </button>
               <button
                 type="button"
-                class="rounded-md inline-flex min-h-11 items-center justify-center px-4 text-sm font-semibold sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs text-danger transition hover:bg-danger-subtle"
+                jpssButton="danger-quiet"
                 (click)="confirming.set(true)">
                 Delete
               </button>
@@ -117,6 +141,12 @@ export class StickerSidebar {
   readonly sticker = input.required<Sticker>();
 
   readonly dismiss = output<void>();
+  /**
+   * Asked for rather than rendered here: the sidebar has a `backdrop-filter`,
+   * which makes it a containing block for `position: fixed`, so a full-screen
+   * overlay mounted inside it is sized to the sidebar instead of the viewport.
+   */
+  readonly viewPhoto = output<void>();
   readonly edit = output<Sticker>();
   readonly remove = output<Sticker>();
 
@@ -135,11 +165,17 @@ export class StickerSidebar {
     return imageWidth > 0 && imageHeight > 0 ? `${imageWidth} / ${imageHeight}` : '4 / 3';
   });
 
-  protected readonly coordinates = computed(() => {
-    const { latitude, longitude } = this.sticker();
-    const ns = latitude >= 0 ? 'N' : 'S';
-    const ew = longitude >= 0 ? 'E' : 'W';
-    return `${Math.abs(latitude).toFixed(4)}° ${ns}, ${Math.abs(longitude).toFixed(4)}° ${ew}`;
+  protected readonly coordinates = computed(() => formatCoordinate(this.sticker()));
+
+  /**
+   * Screen readers get the caption when there is one and the place when there
+   * is not — a photo with neither still needs to say whose it is, so the author
+   * is always in there.
+   */
+  protected readonly altText = computed(() => {
+    const { authorName, comment, place } = this.sticker();
+    const about = comment ?? place;
+    return about ? `Sticker by ${authorName}: ${about}` : `Sticker by ${authorName}`;
   });
 
   protected confirmDelete(): void {

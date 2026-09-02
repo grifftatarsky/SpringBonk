@@ -43,6 +43,8 @@ import {
 } from './layer-groups';
 import type { GroupVisibility, LayerGroupId, StyleGroups } from './layer-groups';
 import { REDUCED_MOTION } from './motion';
+import { Defocus } from './defocus';
+import { SpinController } from './spin-controller';
 
 maplibregl.setWorkerUrl(new URL('maplibre-gl-worker.mjs', import.meta.url).href);
 
@@ -137,12 +139,6 @@ function restingZoom(): number {
  */
 const FADE_MS = REDUCED_MOTION ? 0 : 350;
 
-/** Degrees of longitude per second for the idle spin — a full revolution a minute. */
-const SPIN_DEGREES_PER_SECOND = 6;
-
-/** How long the pull-back to {@link restingZoom} takes. The rotation runs throughout, not after. */
-const SPIN_SETTLE_MS = REDUCED_MOTION ? 0 : 1800;
-
 /** Backstop so a style that never finishes loading cannot leave the map permanently invisible. */
 const FADE_FAILSAFE_MS = 4000;
 
@@ -156,19 +152,6 @@ const FLY_MS = REDUCED_MOTION ? 0 : 2200;
  * than the flight, so it only ever fires after the picture should already be up.
  */
 const SETTLE_FAILSAFE_MS = FLY_MS + 900;
-
-/** How long the camera holds full defocus before it starts gathering focus. */
-const DEFOCUS_HOLD_MS = 260;
-
-/**
- * Deep defocus on departure, easing to a light one for the body of the flight,
- * then sharp once the tiles are in. Three discrete states rather than one set of
- * keyframes: a CSS transition cannot interpolate *out* of a forwards-filled
- * animation — the before-change style is computed without it, so there is no
- * delta and the last step snaps. Each phase here is a plain class swap, so every
- * step interpolates.
- */
-type SettlePhase = 'off' | 'deep' | 'cruise';
 
 /**
  * Ceiling on the device pixel ratio deck renders at. `true` would follow the
@@ -274,17 +257,13 @@ export class Globe {
   protected readonly attribution = ATTRIBUTION_LINKS;
   protected readonly fadeMs = FADE_MS;
   protected readonly ready = signal(false);
-  /** How far through resolving a camera flight is — see {@link beginSettle}. */
-  protected readonly settlePhase = signal<SettlePhase>('off');
-  private settleTimer?: number;
-  /** Pull-back target, read once per spin so a resize cannot move it mid-flight. */
-  private resting = DESKTOP_MIN_ZOOM;
-  private cruiseTimer?: number;
-  /** Set when the map goes idle before the deep hold is up — see {@link onIdle}. */
-  private settledEarly = false;
+  private readonly defocus = new Defocus(SETTLE_FAILSAFE_MS);
+  /** How far through resolving a camera flight is; drives the defocus classes. */
+  protected readonly settlePhase = this.defocus.phase;
 
   private map?: MapLibreMap;
   private overlay?: MapLibreOverlay;
+  private spin?: SpinController;
   /** Which projection deck is drawing in. A signal so the layer effect follows it. */
   private readonly deckView = signal<DeckView>('globe');
   private groups: StyleGroups = emptyStyleGroups();
@@ -293,7 +272,6 @@ export class Globe {
   /** The style actually handed to MapLibre — lags the input across a fade. */
   private readonly applied = signal<string | null>(null);
 
-  private spinFrame = 0;
   private fadeTimer = 0;
   private failsafeTimer = 0;
   private loadingTimer = 0;
@@ -332,8 +310,8 @@ export class Globe {
     });
 
     effect(() => {
-      if (this.spinning()) this.startSpin();
-      else this.stopSpin();
+      if (this.spinning()) this.spin?.start(restingZoom());
+      else this.spin?.stop();
     });
 
     effect(() => {
@@ -361,7 +339,7 @@ export class Globe {
     const map = this.map;
     if (!map) return;
 
-    this.beginSettle();
+    this.defocus.begin();
 
     if (target.kind === 'center') {
       map.flyTo({
@@ -397,45 +375,7 @@ export class Globe {
    * the pull-back is driven by the spin, whose per-frame `jumpTo` would keep
    * the map from ever going idle.
    */
-  private beginSettle(): void {
-    if (REDUCED_MOTION) return;
-    this.clearSettleTimers();
-    this.settledEarly = false;
-    this.settlePhase.set('deep');
-    this.cruiseTimer = window.setTimeout(() => {
-      // If every tile was already cached the map went idle during the hold.
-      // Resolve from there rather than easing into a cruise nobody needs — but
-      // still resolve *through* the transition, so it reads as focusing.
-      this.settlePhase.set(this.settledEarly ? 'off' : 'cruise');
-    }, DEFOCUS_HOLD_MS);
-    this.settleTimer = window.setTimeout(() => this.endSettle(), SETTLE_FAILSAFE_MS);
-  }
-
-  /**
-   * MapLibre fires `idle` once every tile for the current camera is in and
-   * nothing is animating — the moment the picture is worth looking at, and so
-   * the moment to bring it into focus. An idle that arrives during the deep
-   * hold is remembered rather than acted on: snapping back 260ms after the blur
-   * appeared reads as a glitch, not as a camera.
-   */
-  private readonly onIdle = (): void => {
-    if (this.settlePhase() === 'off') return;
-    if (this.settlePhase() === 'deep') {
-      this.settledEarly = true;
-      return;
-    }
-    this.endSettle();
-  };
-
-  private endSettle(): void {
-    this.clearSettleTimers();
-    this.settlePhase.set('off');
-  }
-
-  private clearSettleTimers(): void {
-    window.clearTimeout(this.settleTimer);
-    window.clearTimeout(this.cruiseTimer);
-  }
+  private readonly onIdle = (): void => this.defocus.noteIdle();
 
   // region map lifecycle
 
@@ -495,17 +435,19 @@ export class Globe {
     map.on('click', this.onClick);
     map.on('error', this.onError);
 
+    this.spin = new SpinController(map, this.onReachForMap);
     this.armFailsafe();
     this.onStyleData();
-    if (this.spinning()) this.startSpin();
+    if (this.spinning()) this.spin.start(restingZoom());
   }
 
   private teardown(): void {
-    this.stopSpin();
+    this.spin?.stop();
+    this.spin = undefined;
+    this.defocus.end();
     window.clearTimeout(this.fadeTimer);
     window.clearTimeout(this.failsafeTimer);
     window.clearTimeout(this.loadingTimer);
-    this.clearSettleTimers();
 
     const map = this.map;
     if (!map) return;
@@ -672,101 +614,6 @@ export class Globe {
 
   // region spin
 
-  /**
-   * Pulls the camera back to the whole earth and rotates it, for as long as
-   * `spinning` holds.
-   *
-   * Everything — longitude, zoom, pitch, bearing — is driven from one rAF loop
-   * writing `jumpTo`, rather than an `easeTo` out followed by a rotation. That is
-   * not stylistic: `jumpTo` cancels an in-flight camera animation, so a
-   * per-frame rotation started during an `easeTo` kills the pull-back on its
-   * first frame and the globe spins at whatever zoom it happened to be at.
-   * Driving both from the same frame means they compose, and the earth is
-   * already turning as it recedes.
-   *
-   * The rotation is rate-based (degrees × elapsed seconds) rather than a fixed
-   * step per frame, so it runs at one speed on a 60Hz and a 120Hz display.
-   */
-  private startSpin(): void {
-    const map = this.map;
-    if (!map || this.spinFrame) return;
-
-    const start = performance.now();
-    this.resting = restingZoom();
-    const from = { zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing() };
-    let previous = start;
-    let settled = SPIN_SETTLE_MS === 0;
-
-    const step = (now: number): void => {
-      const seconds = (now - previous) / 1000;
-      previous = now;
-
-      const progress = SPIN_SETTLE_MS === 0 ? 1 : Math.min(1, (now - start) / SPIN_SETTLE_MS);
-      // Ease-out: most of the pull-back happens early, then it settles rather
-      // than arriving abruptly.
-      const eased = 1 - (1 - progress) ** 3;
-      const center = map.getCenter();
-      const turned: [number, number] = [
-        wrapLongitude(center.lng + seconds * SPIN_DEGREES_PER_SECOND),
-        center.lat,
-      ];
-
-      if (settled) {
-        // Longitude only from here. Writing zoom every frame past this point
-        // would fight anyone using the navigation control, and that is the
-        // difference between "the spin owns the camera" and "the zoom buttons
-        // are broken".
-        map.jumpTo({ center: turned });
-      } else {
-        map.jumpTo({
-          center: turned,
-          zoom: from.zoom + (this.resting - from.zoom) * eased,
-          // Levelled off on the way out; a tilted camera reads as a wobble once turning.
-          pitch: from.pitch * (1 - eased),
-          bearing: from.bearing * (1 - eased),
-        });
-        if (progress >= 1) settled = true;
-      }
-
-      this.spinFrame = requestAnimationFrame(step);
-    };
-
-    this.spinFrame = requestAnimationFrame(step);
-
-    /*
-     * Reaching for the map is the clearest "I want the camera back" there is, so
-     * the spin stops rather than fights — and it listens for raw DOM input
-     * rather than for MapLibre's own camera events.
-     *
-     * That is the whole point. `jumpTo` fires the full movestart/move/moveend
-     * cascade, so this loop is opening and closing a "move" sixty times a
-     * second, and a drag beginning in the middle of that churn races our own
-     * events for `movestart`. Inferring user intent from a stream this loop is
-     * also writing to cannot be made reliable. A pointerdown is a finger or a
-     * mouse; nothing can synthesize one.
-     *
-     * The container rather than the canvas, so the navigation control counts as
-     * reaching for the map too. Capture phase, because MapLibre's own handlers
-     * stop propagation on several of these before they would bubble.
-     */
-    const container = map.getContainer();
-    for (const type of STOP_SPIN_ON) {
-      container.addEventListener(type, this.onReachForMap, LISTENER_OPTIONS);
-    }
-  }
-
-  private stopSpin(): void {
-    if (this.spinFrame) {
-      cancelAnimationFrame(this.spinFrame);
-      this.spinFrame = 0;
-    }
-    const container = this.map?.getContainer();
-    if (!container) return;
-    for (const type of STOP_SPIN_ON) {
-      container.removeEventListener(type, this.onReachForMap, LISTENER_OPTIONS);
-    }
-  }
-
   private readonly onReachForMap = (): void => {
     if (this.spinning()) this.spinStop.emit();
   };
@@ -774,10 +621,3 @@ export class Globe {
   // endregion
 }
 
-const STOP_SPIN_ON = ['pointerdown', 'wheel', 'keydown'] as const;
-const LISTENER_OPTIONS = { capture: true, passive: true } as const;
-
-/** Keeps longitude in [-180, 180) so a long spin does not accumulate into the thousands. */
-function wrapLongitude(longitude: number): number {
-  return ((((longitude + 180) % 360) + 360) % 360) - 180;
-}
