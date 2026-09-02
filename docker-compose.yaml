@@ -50,9 +50,12 @@ services:
       BACKUP_RETAIN: ${BACKUP_RETAIN:-3}
       TZ: ${BACKUP_TZ:-America/New_York}
     volumes:
-      - ./backup/pg-backup.sh:/usr/local/bin/pg-backup.sh:ro
+      # Mount the directory, not the script: a single-file bind mount is pinned
+      # to the inode on Linux, and `git pull` replaces files by rename, so the
+      # container would silently keep running the pre-pull copy.
+      - ${BACKUP_SCRIPT_DIR:-./backup}:/opt/backup:ro
       - ./backups:/backups
-    entrypoint: [ "/usr/local/bin/pg-backup.sh", "loop" ]
+    entrypoint: [ "/opt/backup/pg-backup.sh", "loop" ]
     restart: unless-stopped
     networks:
       - gpt-network

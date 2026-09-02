@@ -138,21 +138,29 @@ still has sessions attached:
 Retention count and schedule timezone are `BACKUP_RETAIN` and `BACKUP_TZ` in
 `.env`. `backups/` is gitignored.
 
-Deploying this to production is not just a `git pull`: the compose file here is
-local-only, and the deploy repo has its own. It needs, on that side,
+Deploying elsewhere is not just a `git pull`: the compose file here is
+local-only, and a deploy host has its own alongside its own `.env`. What that
+compose needs:
 
-1. `backup/pg-backup.sh` copied next to the deploy compose file (it is
-   bind-mounted by relative path),
-2. the `pg-backup` service block added to the deploy compose, with `PG_HOST` set
-   to whatever the Postgres service is called there,
-3. `image:` matched to the deployed Postgres — `pg_dumpall` can dump an *older*
-   server but refuses a newer one,
-4. a writable `backups/` directory on the host, on a disk with room for three
-   copies. `jps-db` holds photo blobs, so these dumps are not small the way the
-   local ones are.
+- `BACKUP_SCRIPT_DIR` pointing at this repo's `backup/` directory, wherever the
+  checkout sits relative to it — then `git pull` is enough to update the script.
+  Mount the *directory*, not the script itself: a single-file bind mount on
+  Linux is pinned to the inode, and `git pull` replaces files by rename, so a
+  file mount leaves the running container executing the pre-pull copy with
+  nothing on disk to show for it. (This does not reproduce on Docker Desktop,
+  which resolves shares by path.)
+- `PG_HOST` set to whatever the Postgres service is called there.
+- `image:` matched to the deployed Postgres — `pg_dumpall` can dump an *older*
+  server but refuses a newer one.
+- A writable backup directory on a disk with room for three copies. `jps-db`
+  holds photo blobs, so those dumps are not small the way the local ones are.
+- `depends_on: condition: service_healthy` requires the Postgres service there
+  to actually define a healthcheck; drop the condition if it does not.
 
-`depends_on: condition: service_healthy` requires the Postgres service there to
-actually define a healthcheck; drop the condition if it does not.
+`pg-restore.sh` takes the backup directory or a specific dump as its argument
+rather than deriving one from its own location — where backups live is a
+property of the deployment, so a wrapper script or alias passes it in. It reads
+credentials from the running Postgres container, so there is no `.env` to find.
 
 ### Patterns & Approach
 

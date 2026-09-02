@@ -117,6 +117,14 @@ Read these before touching the relevant area.
   a per-database dump restored onto a cluster whose roles are gone has nothing to
   load into, and `init-db.sh` will not re-run to recreate them. Its image tag
   must be bumped alongside `postgres`: `pg_dumpall` refuses a newer server.
+- **The sidecar mounts `backup/` the directory, never `backup/pg-backup.sh`.** A
+  single-file bind mount is inode-pinned on Linux and `git pull` replaces files
+  by rename, so a file mount silently keeps running the pre-pull script. It does
+  not reproduce on Docker Desktop, which resolves shares by path.
+- **`pg-restore.sh` takes its target as an argument, and reads credentials from
+  the Postgres container.** Neither is derived from the script's own location:
+  backup paths and `.env` live wherever a given deployment puts them, so callers
+  pass them in. Do not reintroduce a repo-relative default for either.
 - **`init-db.sh` runs only on first initialisation of an empty volume.** On an
   existing Postgres, a new service's database and role must be created by hand;
   Liquibase makes tables, not databases or roles.
