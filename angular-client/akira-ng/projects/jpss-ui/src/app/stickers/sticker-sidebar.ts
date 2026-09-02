@@ -154,7 +154,8 @@ export class StickerSidebar {
   protected readonly busy = signal(false);
   protected readonly loaded = signal(false);
 
-  protected readonly owned = computed(() => this.service.owns(this.sticker()));
+  /** Drives the Edit and Delete row: your own stickers, or anyone's if you moderate. */
+  protected readonly owned = computed(() => this.service.canEdit(this.sticker()));
   protected readonly imageUrl = computed(() => this.service.imageUrl(this.sticker()));
   protected readonly placeholder = computed(
     () => `url("${this.service.imageUrl(this.sticker(), 'thumb')}")`,

@@ -19,6 +19,8 @@ export interface Sticker {
 export interface CurrentUser {
   readonly id: string;
   readonly username: string;
+  /** Whether this account may edit and delete other people's stickers. */
+  readonly moderator: boolean;
 }
 
 /** The editable half of a sticker — everything except the photo. */

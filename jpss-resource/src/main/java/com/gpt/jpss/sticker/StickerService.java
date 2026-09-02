@@ -1,6 +1,7 @@
 package com.gpt.jpss.sticker;
 
 import com.gpt.jpss.keycloak.KeycloakUser;
+import com.gpt.jpss.sticker.dto.Caller;
 import com.gpt.jpss.sticker.dto.StickerEditRequest;
 import com.gpt.jpss.sticker.dto.StickerResponse;
 import com.gpt.jpss.sticker.model.Sticker;
@@ -81,8 +82,8 @@ public class StickerService {
   }
 
   @Transactional
-  public StickerResponse edit(UUID id, UUID callerId, StickerEditRequest edit) {
-    Sticker sticker = requireOwned(id, callerId);
+  public StickerResponse edit(UUID id, Caller caller, StickerEditRequest edit) {
+    Sticker sticker = requireEditable(id, caller);
     sticker.setLatitude(edit.latitude());
     sticker.setLongitude(edit.longitude());
     sticker.setComment(normalize(edit.comment()));
@@ -92,8 +93,8 @@ public class StickerService {
 
   /** Swaps in a new photo, keeping the sticker's place, caption and post date. */
   @Transactional
-  public StickerResponse replaceImage(UUID id, UUID callerId, MultipartFile file) {
-    Sticker sticker = requireOwned(id, callerId);
+  public StickerResponse replaceImage(UUID id, Caller caller, MultipartFile file) {
+    Sticker sticker = requireEditable(id, caller);
     ImageProcessor.Processed processed = imageProcessor.process(file);
 
     sticker.setImageContentType(processed.contentType());
@@ -105,8 +106,8 @@ public class StickerService {
   }
 
   @Transactional
-  public void delete(UUID id, UUID callerId) {
-    Sticker sticker = requireOwned(id, callerId);
+  public void delete(UUID id, Caller caller) {
+    Sticker sticker = requireEditable(id, caller);
     // Explicit, because the image is keyed by this id rather than associated to it.
     images.deleteById(sticker.getId());
     stickers.delete(sticker);
@@ -126,16 +127,21 @@ public class StickerService {
   }
 
   /**
-   * 404 for a sticker that does not exist, 403 for one that belongs to somebody
-   * else. The distinction is safe to expose here: the wall is public, so the
-   * existence of a sticker was never a secret.
+   * 404 for a sticker that does not exist, 403 for one the caller may not touch.
+   * The distinction is safe to expose here: the wall is public, so the existence
+   * of a sticker was never a secret.
+   *
+   * <p>A moderator passes for any sticker. Note what that does <em>not</em>
+   * include: the author is never reassigned, so a moderated edit still shows
+   * whose sticker it is. Moderation is for taking things down and fixing them,
+   * not for changing who said them.
    */
-  private Sticker requireOwned(UUID id, UUID callerId) {
+  private Sticker requireEditable(UUID id, Caller caller) {
     Sticker sticker = require(id);
-    if (!sticker.getAuthor().getId().equals(callerId)) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "That sticker belongs to someone else");
+    if (caller.moderator() || sticker.getAuthor().getId().equals(caller.id())) {
+      return sticker;
     }
-    return sticker;
+    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "That sticker belongs to someone else");
   }
 
   /**

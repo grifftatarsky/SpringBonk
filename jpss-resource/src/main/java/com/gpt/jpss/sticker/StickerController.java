@@ -2,6 +2,7 @@ package com.gpt.jpss.sticker;
 
 import com.gpt.jpss.keycloak.KeycloakUser;
 import com.gpt.jpss.keycloak.KeycloakUserService;
+import com.gpt.jpss.sticker.dto.Caller;
 import com.gpt.jpss.sticker.dto.StickerEditRequest;
 import com.gpt.jpss.sticker.dto.StickerResponse;
 import jakarta.validation.Valid;
@@ -13,7 +14,9 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,6 +48,13 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/stickers")
 @RequiredArgsConstructor
 public class StickerController {
+
+  /**
+   * Realm role that grants moderation. Configurable so a deployment can name it
+   * whatever its realm already uses.
+   */
+  @Value("${jpss.moderator-role:jpss-admin}")
+  private String moderatorRole;
 
   /**
    * Photos are immutable at their URL until the sticker is edited, and the ETag
@@ -97,23 +107,41 @@ public class StickerController {
   @PutMapping("/{id}")
   public StickerResponse edit(
       @PathVariable UUID id, @Valid @RequestBody StickerEditRequest body, Authentication auth) {
-    return stickers.edit(id, me(auth).getId(), body);
+    return stickers.edit(id, caller(auth), body);
   }
 
   @PostMapping(path = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public StickerResponse replaceImage(
       @PathVariable UUID id, @RequestPart("image") MultipartFile image, Authentication auth) {
-    return stickers.replaceImage(id, me(auth).getId(), image);
+    return stickers.replaceImage(id, caller(auth), image);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@PathVariable UUID id, Authentication auth) {
-    stickers.delete(id, me(auth).getId());
+    stickers.delete(id, caller(auth));
   }
 
   /** Provision (JIT) the caller's local user record. */
   private KeycloakUser me(Authentication auth) {
     return users.ensure(auth);
+  }
+
+  /** The caller plus whether their token carries the moderator role. */
+  private Caller caller(Authentication auth) {
+    return new Caller(me(auth).getId(), isModerator(auth));
+  }
+
+  /**
+   * Both spellings are accepted because the authority depends on how the token
+   * is mapped: spring-addons reads the realm roles verbatim, but a
+   * {@code ROLE_} prefix is the Spring Security convention and one config change
+   * away. Matching either means a prefix flipping cannot silently un-moderate
+   * everybody.
+   */
+  private boolean isModerator(Authentication auth) {
+    return auth.getAuthorities().stream()
+        .map(GrantedAuthority::getAuthority)
+        .anyMatch(a -> moderatorRole.equals(a) || ("ROLE_" + moderatorRole).equals(a));
   }
 }

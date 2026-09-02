@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.gpt.jpss.keycloak.KeycloakUser;
+import com.gpt.jpss.sticker.dto.Caller;
 import com.gpt.jpss.sticker.dto.StickerEditRequest;
 import com.gpt.jpss.sticker.model.Sticker;
 import java.lang.reflect.Field;
@@ -56,7 +57,7 @@ class StickerServiceTest {
   void ownerCanEditTheirOwnSticker() {
     when(stickers.findById(stickerId)).thenReturn(Optional.of(sticker));
 
-    var edited = service.edit(stickerId, OWNER, new StickerEditRequest(48.85, 2.35, "  moved  ", " Paris "));
+    var edited = service.edit(stickerId, author(OWNER), new StickerEditRequest(48.85, 2.35, "  moved  ", " Paris "));
 
     assertThat(edited.latitude()).isEqualTo(48.85);
     assertThat(edited.longitude()).isEqualTo(2.35);
@@ -69,7 +70,7 @@ class StickerServiceTest {
   void blankPlaceIsStoredAsAbsent() {
     when(stickers.findById(stickerId)).thenReturn(Optional.of(sticker));
 
-    var edited = service.edit(stickerId, OWNER, new StickerEditRequest(1.0, 2.0, "hi", "   "));
+    var edited = service.edit(stickerId, author(OWNER), new StickerEditRequest(1.0, 2.0, "hi", "   "));
 
     assertThat(edited.place()).isNull();
   }
@@ -79,7 +80,7 @@ class StickerServiceTest {
     when(stickers.findById(stickerId)).thenReturn(Optional.of(sticker));
 
     assertThatThrownBy(
-            () -> service.edit(stickerId, SOMEBODY_ELSE, new StickerEditRequest(1.0, 2.0, "mine now", null)))
+            () -> service.edit(stickerId, author(SOMEBODY_ELSE), new StickerEditRequest(1.0, 2.0, "mine now", null)))
         .isInstanceOf(ResponseStatusException.class)
         .extracting(e -> ((ResponseStatusException) e).getStatusCode())
         .isEqualTo(HttpStatus.FORBIDDEN);
@@ -89,7 +90,7 @@ class StickerServiceTest {
   void deletingSomebodyElsesStickerIsForbiddenAndRemovesNothing() {
     when(stickers.findById(stickerId)).thenReturn(Optional.of(sticker));
 
-    assertThatThrownBy(() -> service.delete(stickerId, SOMEBODY_ELSE))
+    assertThatThrownBy(() -> service.delete(stickerId, author(SOMEBODY_ELSE)))
         .isInstanceOf(ResponseStatusException.class);
 
     verify(stickers, never()).delete(any());
@@ -100,7 +101,7 @@ class StickerServiceTest {
   void deletingYourOwnStickerAlsoRemovesItsBytes() {
     when(stickers.findById(stickerId)).thenReturn(Optional.of(sticker));
 
-    service.delete(stickerId, OWNER);
+    service.delete(stickerId, author(OWNER));
 
     // The image is keyed by the sticker id rather than associated to it, so
     // nothing cascades — the service has to remove it, and this is the guard.
@@ -188,5 +189,46 @@ class StickerServiceTest {
         return updatedAt;
       }
     };
+  }
+
+  @Test
+  void letsAModeratorEditSomebodyElsesSticker() {
+    when(stickers.findById(stickerId)).thenReturn(Optional.of(sticker));
+
+    var edited = service.edit(
+        stickerId, moderator(SOMEBODY_ELSE), new StickerEditRequest(1.0, 2.0, "tidied up", null));
+
+    assertThat(edited.comment()).isEqualTo("tidied up");
+    // Moderation fixes and removes; it never reassigns authorship.
+    assertThat(edited.authorId()).isEqualTo(OWNER);
+    assertThat(edited.authorName()).isEqualTo(sticker.getAuthor().getUsername());
+  }
+
+  @Test
+  void letsAModeratorDeleteSomebodyElsesSticker() {
+    when(stickers.findById(stickerId)).thenReturn(Optional.of(sticker));
+
+    service.delete(stickerId, moderator(SOMEBODY_ELSE));
+
+    verify(stickers).delete(sticker);
+    verify(images).deleteById(stickerId);
+  }
+
+  @Test
+  void stillRefusesANonModeratorWhoIsNotTheAuthor() {
+    when(stickers.findById(stickerId)).thenReturn(Optional.of(sticker));
+
+    assertThatThrownBy(() -> service.delete(stickerId, author(SOMEBODY_ELSE)))
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+        .isEqualTo(HttpStatus.FORBIDDEN);
+  }
+
+  private static Caller author(java.util.UUID id) {
+    return new Caller(id, false);
+  }
+
+  private static Caller moderator(java.util.UUID id) {
+    return new Caller(id, true);
   }
 }

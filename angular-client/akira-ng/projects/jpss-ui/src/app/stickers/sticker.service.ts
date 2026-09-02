@@ -47,6 +47,16 @@ export class StickerService {
     return me ? this.stickers().filter(s => s.authorId === me.id) : [];
   });
 
+  /**
+   * Whether the UI should offer Edit and Delete. A moderator may act on anyone's
+   * sticker; everyone else, only their own. This decides what is *drawn* — the
+   * server re-derives the same answer from the token before accepting anything.
+   */
+  canEdit(sticker: Sticker): boolean {
+    const me = this.currentUser();
+    return !!me && (me.moderator || me.id === sticker.authorId);
+  }
+
   owns(sticker: Sticker): boolean {
     return this.currentUser()?.id === sticker.authorId;
   }
