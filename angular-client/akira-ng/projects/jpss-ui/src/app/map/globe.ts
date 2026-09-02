@@ -12,19 +12,25 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-// maplibre-gl ships one UMD bundle and no ESM entry point, so what a named
-// import resolves to depends on who did the bundling. esbuild interops the
-// CommonJS namespace into named exports; Native Federation republishes the same
-// file as a module whose only export is `default`. `import { Map }` therefore
-// type-checks, builds, and then throws "does not provide an export named 'Map'"
-// the moment the remote is loaded through the shell.
-//
-// The default import is the one form both agree on. Types still come from the
-// named declarations, as type-only imports — they are erased, so they never
-// reach the module that does not have them.
-import maplibregl from 'maplibre-gl';
+// maplibre-gl v6 is ESM-only — the UMD bundles are no longer published — and it
+// has no default export. A namespace import is what the migration guide
+// prescribes and the only form that works; `import maplibregl from` was correct
+// under v5 for exactly the opposite reason, so do not "restore" it.
+import * as maplibregl from 'maplibre-gl';
+
+// v6 splits the tile-parsing worker out of the main bundle (v5's UMD inlined
+// it). Left alone it resolves the worker from maplibre's own import.meta.url,
+// which is wrong here: federation bundles maplibre into this remote's chunk, so
+// there is no maplibre package directory to find it in — the worker silently
+// never starts and the map requests no tiles at all, rendering a blank globe
+// with no error. angular.json copies both worker files beside our chunks;
+// import.meta.url points at one of those chunks, so this resolves correctly
+// under the host (/remotes/jpss-ui/) and standalone (/) alike.
 import type { Map as MapLibreMap, MapMouseEvent, StyleSpecification } from 'maplibre-gl';
-import { MapboxOverlay } from '@deck.gl/mapbox';
+// Not @deck.gl/mapbox: its camera bridge reads `map.transform`, which v6
+// removed. MapLibreOverlay is the supported replacement and takes camera state
+// through the public API.
+import { MapLibreOverlay } from '@deck.gl/maplibre';
 import { MapView, _GlobeView as GlobeView } from '@deck.gl/core';
 import type { Layer, View } from '@deck.gl/core';
 import { ATTRIBUTION_LINKS, SKY, styleFor, styleIsRemote } from './basemap';
@@ -37,6 +43,8 @@ import {
 } from './layer-groups';
 import type { GroupVisibility, LayerGroupId, StyleGroups } from './layer-groups';
 import { REDUCED_MOTION } from './motion';
+
+maplibregl.setWorkerUrl(new URL('maplibre-gl-worker.mjs', import.meta.url).href);
 
 /**
  * Which projection *deck* draws in, by zoom. MapLibre is never told anything: it
@@ -52,7 +60,7 @@ import { REDUCED_MOTION } from './motion';
  * MapLibre answers `'globe'` at every zoom, and deck therefore pins itself to
  * GlobeView even above z12 where the map is already flat — where GlobeView loses
  * precision and marks drift off their coordinates. Handing deck a view under its
- * own MAPBOX_VIEW_ID decides it directly, and MapLibre never has to be lied to.
+ * own MAPLIBRE_VIEW_ID decides it directly, and MapLibre never has to be lied to.
  *
  * So the crossover sits at the edges of MapLibre's own blend rather than in the
  * middle of it, and the two thresholds double as hysteresis: sitting inside the
@@ -64,18 +72,23 @@ const TO_GLOBE_ZOOM = 11;
 /**
  * deck's own id for the view it syncs to the basemap camera. Supplying a view
  * under this id is what takes the projection choice away from deck's sniffing:
- * `MapboxOverlay._getViews()` returns `props.views` verbatim when one carries
- * this id, and resolves through it before it would fall back to reading the
- * map's declared projection.
+ * MapLibreOverlay uses `props.views` verbatim when given, but everything
+ * downstream still looks the view up *by this id* — `deck.getView(id)` falls
+ * back to sniffing the map's projection when it misses, and the per-frame
+ * camera sync finds its viewport with `viewports.findIndex(v => v.id === id)`.
+ *
+ * The value is load-bearing and it changed with the overlay: @deck.gl/mapbox
+ * used 'mapbox', @deck.gl/maplibre uses 'maplibre'. Getting it wrong does not
+ * error — deck silently draws through a viewport we did not configure.
  */
-const MAPBOX_VIEW_ID = 'mapbox';
+const MAPLIBRE_VIEW_ID = 'maplibre';
 
 type DeckView = 'globe' | 'mercator';
 
 /** Hoisted so the identity is stable; a new View instance per render is churn deck has to diff. */
 const VIEWS: Record<DeckView, View[]> = {
-  globe: [new GlobeView({ id: MAPBOX_VIEW_ID })],
-  mercator: [new MapView({ id: MAPBOX_VIEW_ID })],
+  globe: [new GlobeView({ id: MAPLIBRE_VIEW_ID })],
+  mercator: [new MapView({ id: MAPLIBRE_VIEW_ID })],
 };
 
 /**
@@ -204,7 +217,7 @@ export type CameraTarget =
  * groups the tools menu switches on and off.
  *
  * It draws the earth; deck.gl draws everything standing on it, through a
- * {@link MapboxOverlay} that stays synced to this camera.
+ * {@link MapLibreOverlay} that stays synced to this camera.
  *
  * {@link ViewEncapsulation.None} because MapLibre builds its own DOM inside the
  * container at runtime — canvas, controls, the lot — and Angular's emulated
@@ -271,7 +284,7 @@ export class Globe {
   private settledEarly = false;
 
   private map?: MapLibreMap;
-  private overlay?: MapboxOverlay;
+  private overlay?: MapLibreOverlay;
   /** Which projection deck is drawing in. A signal so the layer effect follows it. */
   private readonly deckView = signal<DeckView>('globe');
   private groups: StyleGroups = emptyStyleGroups();
@@ -456,11 +469,11 @@ export class Globe {
 
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'bottom-right');
 
-    // Overlaid, not interleaved, and not configurable. MapboxOverlay reads
+    // Overlaid, not interleaved, and not configurable. MapLibreOverlay reads
     // `interleaved` in its constructor only, so flipping it later leaves deck
     // holding GPU buffers created against a context it no longer draws into.
     // Overlaid also means a basemap style swap cannot delete deck's layers.
-    this.overlay = new MapboxOverlay({
+    this.overlay = new MapLibreOverlay({
       interleaved: false,
       layers: this.layers(),
       views: VIEWS.globe,
@@ -474,7 +487,10 @@ export class Globe {
 
     map.on('styledata', this.onStyleData);
     map.on('idle', this.onIdle);
-    map.on('styleimagemissing', this.onMissingImage);
+    // v6 made `styleimagemissing` notify-only: a listener can observe the miss
+    // but not answer it. This is the supported way to supply the image, and it
+    // is a setter rather than a subscription, so there is nothing to unbind.
+    map.setMissingStyleImageResolver(this.onMissingImage);
     map.on('move', this.onMove);
     map.on('click', this.onClick);
     map.on('error', this.onError);
@@ -495,7 +511,6 @@ export class Globe {
     if (!map) return;
     map.off('styledata', this.onStyleData);
     map.off('idle', this.onIdle);
-    map.off('styleimagemissing', this.onMissingImage);
     map.off('move', this.onMove);
     map.off('click', this.onClick);
     map.off('error', this.onError);
@@ -582,22 +597,22 @@ export class Globe {
    * from the sprite already in memory; a transparent pixel is the fallback so an
    * unknown name stops warning instead of repeating.
    */
-  private readonly onMissingImage = (event: { id: string }): void => {
+  private readonly onMissingImage = (id: string): void => {
     const map = this.map;
-    if (!map || map.hasImage(event.id)) return;
+    if (!map || map.hasImage(id)) return;
 
-    const aliased = event.id.replace(/-/g, '_');
-    if (aliased !== event.id && map.hasImage(aliased)) {
+    const aliased = id.replace(/-/g, '_');
+    if (aliased !== id && map.hasImage(aliased)) {
       // getImage returns metadata plus an RGBAImage under `data`; addImage wants
       // the raw pixels, and the sprite's pixelRatio and sdf flag have to travel
       // with them — an SDF icon re-registered as a plain one renders as a black box.
       const source = map.getImage(aliased);
       if (source?.data) {
-        map.addImage(event.id, source.data, { pixelRatio: source.pixelRatio, sdf: source.sdf });
+        map.addImage(id, source.data, { pixelRatio: source.pixelRatio, sdf: source.sdf });
         return;
       }
     }
-    map.addImage(event.id, { width: 1, height: 1, data: new Uint8Array(4) });
+    map.addImage(id, { width: 1, height: 1, data: new Uint8Array(4) });
   };
 
   private readonly onMove = (): void => {
@@ -621,7 +636,7 @@ export class Globe {
    * One click path for both jobs a click can mean, and the ordering is decided
    * here rather than inferred.
    *
-   * Picking explicitly instead of through a layer's own `onClick`: MapboxOverlay
+   * Picking explicitly instead of through a layer's own `onClick`: the overlay
    * forwards the map's click into deck as well, so a layer callback and this
    * handler would both fire for a click on a sticker, and whichever ran second
    * would have to guess whether the other had already claimed it.

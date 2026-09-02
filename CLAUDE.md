@@ -53,9 +53,29 @@ Read these before touching the relevant area.
   `ShaderAssembler` and compile against the other — every fragment shader fails
   at runtime from a green build. Fix is `skip`, not `shared`: the whole graph
   (`@deck.gl/*`, `@luma.gl/*`, `maplibre-gl`) is bundled into `jpss-ui`.
-- **maplibre-gl ships only a UMD bundle.** Import the default
-  (`import maplibregl from 'maplibre-gl'`), take types from `import type`.
-  Named value imports build fine and throw at load.
+- **maplibre-gl v6 is ESM-only and has no default export.** Use
+  `import * as maplibregl from 'maplibre-gl'`. (Under v5 the rule was the exact
+  opposite — it shipped UMD and only `default` worked — so do not "restore" the
+  default import when you see it in old diffs.)
+- **v6 loads its tile-parsing worker as a separate chunk**, resolved from
+  maplibre's own `import.meta.url`. Federation bundles maplibre *into* this
+  remote, so that path does not exist and the worker never starts: no error, no
+  tiles, a blank globe. `angular.json` copies `maplibre-gl-worker.mjs` and
+  `maplibre-gl-shared.mjs` beside our chunks and `globe.ts` calls
+  `setWorkerUrl(new URL(..., import.meta.url))`. Both files are required — the
+  worker imports the shared one.
+- **nginx must map `.mjs` to a JS MIME type.** Its bundled `mime.types` predates
+  `.mjs` and falls back to `application/octet-stream`, which a module worker is
+  required to refuse — same silent blank globe as above. `nginx.conf` adds the
+  `types { application/javascript mjs; }` block; any other host serving this
+  remote needs the same.
+- **Assets go on the `esbuild` target, not `build`.** `build` is
+  `@angular-architects/native-federation:build`, which only wraps; the real
+  Angular options live in the `esbuild` target. `assets` on `build` is silently
+  ignored.
+- **`.npmrc` sets `legacy-peer-deps`** because the deck.gl 9.4 betas have
+  self-contradictory peer ranges. Without it `npm ci` fails outright. Remove it
+  when 9.4 goes stable.
 - **`jpss-ui` runs in two shells and the difference is load-bearing.** Inside the
   host it sits under a 3.5rem header; standalone (findjo.org) there is no header
   and no host `App`. Anything the host provides has to have a standalone

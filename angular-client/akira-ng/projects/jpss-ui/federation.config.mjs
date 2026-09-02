@@ -46,7 +46,7 @@ export default withNativeFederation({
     // These have to travel together, so they are skipped together.
     '@deck.gl/core',
     '@deck.gl/layers',
-    '@deck.gl/mapbox',
+    '@deck.gl/maplibre',
 
     // The custom sticker layer imports Model, Geometry and Texture by name, so
     // these are real dependencies of this project and shareAll would otherwise
@@ -56,11 +56,10 @@ export default withNativeFederation({
     '@luma.gl/core',
     '@luma.gl/engine',
 
-    // maplibre-gl ships only a UMD bundle. Republished as a shared chunk it
-    // becomes a module whose only export is `default`, so named imports resolve
-    // at build time and throw at load time. globe.ts imports the default for
-    // that reason, which is right either way — but it renders with deck against
-    // one WebGL context, so it belongs in the same bundle as deck regardless.
+    // maplibre-gl renders with deck against one WebGL context, so it belongs in
+    // the same bundle as the rest of that graph. (Under v5 there was a second
+    // reason — it shipped UMD only, and a shared chunk exposed just `default`.
+    // v6 is ESM-only, so that no longer applies; this one still does.)
     'maplibre-gl',
   ],
 

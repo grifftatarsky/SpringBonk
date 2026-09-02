@@ -69,7 +69,13 @@ in vec3 instancePositions;
 in vec3 instancePositions64Low;
 in float instanceSizes;
 in vec4 instanceColors;
-in vec3 instancePickingColors;
+// deck 9.4 stopped generating instancePickingColors. Picking colour is derived
+// in the shader now, from the row index when the layer is drawing a subset and
+// from the instance id otherwise. Copied verbatim from ScatterplotLayer, which
+// is where the rest of this billboard path came from.
+#ifdef USE_ROW_INDEXES
+in float rowIndexes;
+#endif
 
 out vec2 vTexCoord;
 out vec4 vColor;
@@ -77,7 +83,11 @@ out vec4 vColor;
 void main(void) {
   geometry.worldPosition = instancePositions;
   geometry.uv = positions.xy;
-  geometry.pickingColor = instancePickingColors;
+#ifdef USE_ROW_INDEXES
+  geometry.pickingColor = picking_getPickingColorFromIndex(rowIndexes);
+#else
+  geometry.pickingColor = picking_getPickingColorFromInstanceID();
+#endif
 
   // positions.xy is the unit quad in [-1, 1]. y is flipped on the way into
   // texture space, where v runs downward — otherwise the artwork lands upside
