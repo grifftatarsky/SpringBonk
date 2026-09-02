@@ -246,6 +246,17 @@ export class Globe {
   readonly spinning = input(false);
   /** Swapped to a crosshair while the composer is waiting for a spot. */
   readonly picking = input(false);
+  /**
+   * Releases the map entirely while another view is on top.
+   *
+   * A hidden WebGL canvas is not a free one: MapLibre keeps rendering, the spin
+   * keeps requesting tiles, and the context holds GPU memory for a globe nobody
+   * is looking at. `map.remove()` is the only thing that actually gives that
+   * back, so suspending tears down and resuming rebuilds. The component itself
+   * stays mounted because the overlays — menu bar included — are projected
+   * through it.
+   */
+  readonly suspended = input(false);
 
   readonly globeClick = output<GlobeClick>();
   /** Fired when the spin ends on its own — somebody grabbed the map — so the menu can follow. */
@@ -262,6 +273,8 @@ export class Globe {
   protected readonly settlePhase = this.defocus.phase;
 
   private map?: MapLibreMap;
+  /** afterNextRender has run, so the container exists and create() is safe. */
+  private built = false;
   private overlay?: MapLibreOverlay;
   private spin?: SpinController;
   /** Which projection deck is drawing in. A signal so the layer effect follows it. */
@@ -277,7 +290,22 @@ export class Globe {
   private loadingTimer = 0;
 
   constructor() {
-    afterNextRender(() => this.create());
+    afterNextRender(() => {
+      this.built = true;
+      if (!this.suspended()) this.create();
+    });
+
+    effect(() => {
+      const suspended = this.suspended();
+      if (!this.built) return;
+      if (suspended && this.map) {
+        this.teardown();
+        this.map = undefined;
+        this.ready.set(false);
+      } else if (!suspended && !this.map) {
+        this.create();
+      }
+    });
 
     // Deferring the style swap until the container has finished fading out is
     // the whole trick; changing it while visible is what makes a rebuild ugly.

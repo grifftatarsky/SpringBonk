@@ -1,5 +1,7 @@
 import { stickerLabel } from '../stickers/sticker.models';
 import { PhotoViewer } from '../stickers/photo-viewer';
+import { GalleryView } from '../stickers/gallery-view';
+import { RequestStickersPrompt } from '../stickers/request-stickers-prompt';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -53,7 +55,7 @@ interface Toast {
 @Component({
   selector: 'jpss-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Globe, MenuBar, StickerSidebar, StickerComposer, PhotoViewer],
+  imports: [Globe, MenuBar, StickerSidebar, StickerComposer, PhotoViewer, GalleryView, RequestStickersPrompt],
   templateUrl: './jpss-page.html',
   styleUrl: './jpss-page.css',
 })
@@ -61,6 +63,9 @@ export class JpssPage {
   protected readonly label = stickerLabel;
   /** The sticker whose photo is open full screen, if any. */
   protected readonly viewingPhoto = signal<Sticker | null>(null);
+  /** Which way the wall is being read. The globe releases its WebGL context in 'gallery'. */
+  protected readonly view = signal<'globe' | 'gallery'>('globe');
+  protected readonly requestingStickers = signal(false);
 
   protected readonly stickers = inject(StickerService);
   private readonly globe = viewChild.required(Globe);
@@ -195,6 +200,15 @@ export class JpssPage {
       zoom: STREET_ZOOM,
       offset: this.sidebarOffset(),
     });
+  }
+
+  /**
+   * Picking a sticker in the gallery goes back to the globe and opens it there,
+   * so "where is this" is answered by the view that can answer it.
+   */
+  protected openFromGallery(sticker: Sticker): void {
+    this.view.set('globe');
+    this.open(sticker);
   }
 
   /**

@@ -144,6 +144,34 @@ import type { Sticker } from '../stickers/sticker.models';
                 </svg>
                 {{ spinning() ? 'Stop spinning' : 'Spin the globe' }}
               </button>
+
+              <button
+                type="button"
+                role="menuitem"
+                class="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-fg transition-colors hover:bg-bg-subtle sm:min-h-0"
+                (click)="pick(showGallery)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round" class="size-4 text-fg-muted" aria-hidden="true">
+                  <rect x="3" y="4" width="7" height="16" rx="1.5" />
+                  <rect x="14" y="4" width="7" height="16" rx="1.5" />
+                </svg>
+                Browse as a gallery
+              </button>
+
+              <!-- Signed in only: there is nobody to reply to otherwise. -->
+              @if (signedIn()) {
+                <button
+                  type="button"
+                  role="menuitem"
+                  class="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-fg transition-colors hover:bg-bg-subtle sm:min-h-0"
+                  (click)="pick(requestStickers)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                       stroke-linecap="round" stroke-linejoin="round" class="size-4 text-fg-muted" aria-hidden="true">
+                    <path d="M4 6h16v12H4zM4 7l8 6 8-6" />
+                  </svg>
+                  Request more stickers
+                </button>
+              }
             </div>
 
             <!-- YOUR STICKERS -->
@@ -262,6 +290,8 @@ export class MenuBar {
   readonly login = output<void>();
   readonly logout = output<void>();
   readonly addSticker = output<void>();
+  readonly showGallery = output<void>();
+  readonly requestStickers = output<void>();
   readonly toggleSpin = output<void>();
   readonly basemapChange = output<string>();
   readonly toggleGroup = output<LayerGroupId>();

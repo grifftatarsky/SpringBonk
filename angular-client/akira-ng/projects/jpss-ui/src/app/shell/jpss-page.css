@@ -62,6 +62,25 @@
   left: calc(50% - var(--jpss-sidebar-width) / 2);
 }
 
+/* The status chip and the hover label, in one row at the bottom edge. A row
+ * rather than two absolutely-positioned elements because they used to share
+ * `bottom-3` and a long place name simply drew over the chip. The chip never
+ * shrinks and the label truncates, so neither can push the other off screen.
+ *
+ * Right edge tracks the sidebar for the same reason .jpss-centred does — so the
+ * bar does not slide under the panel when it opens. */
+.jpss-bottom-bar {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  transition: right 260ms ease;
+}
+
+.jpss-stage--sidebar .jpss-bottom-bar {
+  right: calc(var(--jpss-sidebar-width) + 0.75rem);
+}
+
 /* The sidebar itself: a full-height column pinned to the right of the stage.
  * It overlays rather than resizes the map, because resizing the GL canvas
  * mid-flight interrupts the camera animation that opened it. */
@@ -149,7 +168,8 @@
     animation: none;
   }
 
-  .jpss-centred {
+  .jpss-centred,
+  .jpss-bottom-bar {
     transition: none;
   }
 }

@@ -6,6 +6,7 @@
     [visibility]="visibility()"
     [spinning]="spinning()"
     [picking]="picking()"
+    [suspended]="view() === 'gallery'"
     (globeClick)="onGlobeClick($event)"
     (spinStop)="spinning.set(false)"
     (groupSizes)="groupSizes.set($event)"
@@ -26,11 +27,16 @@
         (toggleSpin)="toggleSpin()"
         (basemapChange)="basemap.set($event)"
         (toggleGroup)="toggleGroup($event)"
+        (showGallery)="view.set('gallery')"
+        (requestStickers)="requestingStickers.set(true)"
         (selectSticker)="open($event)" />
 
-      <!-- STATUS CHIP -->
+      <!-- BOTTOM BAR — the status chip and the hover label share one row so a long
+           place name cannot run underneath the chip, which is what happened when
+           both were absolutely positioned at the same edge. -->
+      <div class="jpss-bottom-bar flex items-center gap-2">
       <div
-        class="pointer-events-auto absolute bottom-3 left-3 flex items-center gap-2 rounded-full border border-rule bg-bg/85 px-3 py-1.5 text-xs text-fg-muted shadow-lg backdrop-blur-md">
+        class="pointer-events-auto flex shrink-0 items-center gap-2 rounded-full border border-rule bg-bg/85 px-3 py-1.5 text-xs text-fg-muted shadow-lg backdrop-blur-md">
         @if (mapLoading() || !stickers.loaded()) {
           <span class="size-2.5 animate-pulse rounded-full bg-accent" aria-hidden="true"></span>
           <span>Loading the globe…</span>
@@ -44,6 +50,17 @@
           @if (picking()) {
             <span class="text-accent">· click a spot</span>
           }
+        }
+      </div>
+
+        <!-- Centred in whatever the chip leaves, and always the first thing to
+             give up space: the chip is shrink-0, so this truncates instead. -->
+        @if (hovered(); as sticker) {
+          <div
+            class="mx-auto min-w-0 truncate rounded-full border border-rule bg-bg/90 px-3 py-1.5 text-xs shadow-lg backdrop-blur-md">
+            <span class="font-semibold text-fg">{{ sticker.authorName }}</span>
+            <span class="text-fg-muted"> · {{ label(sticker) }}</span>
+          </div>
         }
       </div>
 
@@ -62,14 +79,7 @@
         </div>
       }
 
-      <!-- HOVER LABEL — names whatever the cursor is over. -->
-      @if (hovered(); as sticker) {
-        <div
-          class="jpss-centred absolute bottom-3 max-w-[min(22rem,calc(100%-1.5rem))] truncate rounded-full border border-rule bg-bg/90 px-3 py-1.5 text-xs shadow-lg backdrop-blur-md">
-          <span class="font-semibold text-fg">{{ sticker.authorName }}</span>
-          <span class="text-fg-muted"> · {{ label(sticker) }}</span>
-        </div>
-      }
+
 
       <!-- TOAST -->
       @if (toast(); as note) {
@@ -116,6 +126,19 @@
           (viewPhoto)="viewingPhoto.set(sticker)" />
       }
     </aside>
+  }
+
+  @if (view() === 'gallery') {
+    <jpss-gallery-view
+      [stickers]="stickers.stickers()"
+      (open)="openFromGallery($event)"
+      (close)="view.set('globe')" />
+  }
+
+  @if (requestingStickers()) {
+    <jpss-request-stickers-prompt
+      [username]="username()"
+      (close)="requestingStickers.set(false)" />
   }
 
   <!-- Full screen photo. A sibling of the sidebar rather than a child of it:
