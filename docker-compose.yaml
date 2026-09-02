@@ -43,7 +43,7 @@ services:
     env_file:
       - .env
     environment:
-      PGHOST: pgsql
+      PGHOST: ${PG_HOST:-pgsql}
       PGUSER: ${POSTGRES_USER}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       BACKUP_DIR: /backups

@@ -138,6 +138,22 @@ still has sessions attached:
 Retention count and schedule timezone are `BACKUP_RETAIN` and `BACKUP_TZ` in
 `.env`. `backups/` is gitignored.
 
+Deploying this to production is not just a `git pull`: the compose file here is
+local-only, and the deploy repo has its own. It needs, on that side,
+
+1. `backup/pg-backup.sh` copied next to the deploy compose file (it is
+   bind-mounted by relative path),
+2. the `pg-backup` service block added to the deploy compose, with `PG_HOST` set
+   to whatever the Postgres service is called there,
+3. `image:` matched to the deployed Postgres — `pg_dumpall` can dump an *older*
+   server but refuses a newer one,
+4. a writable `backups/` directory on the host, on a disk with room for three
+   copies. `jps-db` holds photo blobs, so these dumps are not small the way the
+   local ones are.
+
+`depends_on: condition: service_healthy` requires the Postgres service there to
+actually define a healthcheck; drop the condition if it does not.
+
 ### Patterns & Approach
 
 - **BFF as security boundary** — the frontend is a public client with no token storage; all OAuth
