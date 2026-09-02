@@ -73,6 +73,17 @@
   z-index: 20;
   width: var(--jpss-sidebar-width);
   max-width: 100%;
+  /* A flex column, so whatever is inside can pin a footer and scroll the middle.
+     This is load-bearing on the phone sheet and easy to misread: there the box
+     is `bottom: 0` + `max-height`, so its height is *auto*, and a child asking
+     for `height: 100%` against an auto-height parent just gets auto back. The
+     composer then grew past the cap and rendered its Post button below the
+     screen edge with nothing to scroll. As a flex container the max-height
+     bounds the children instead. Desktop is unaffected — top/bottom already
+     gave it a definite height. */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border-left: 1px solid var(--color-rule);
   background: color-mix(in srgb, var(--color-bg) 94%, transparent);
   backdrop-filter: blur(12px);

@@ -20,7 +20,7 @@ import type { Sticker } from './sticker.models';
   imports: [DatePipe],
   host: { class: 'contents' },
   template: `
-    <section class="flex h-full flex-col overflow-hidden" aria-labelledby="jpss-sidebar-title">
+    <section class="flex min-h-0 flex-1 flex-col overflow-hidden" aria-labelledby="jpss-sidebar-title">
       <header class="flex items-start justify-between gap-2 border-b border-rule px-4 py-3">
         <div class="min-w-0">
           <p class="truncate text-sm font-semibold text-fg" id="jpss-sidebar-title">

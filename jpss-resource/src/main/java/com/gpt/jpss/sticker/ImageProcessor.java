@@ -1,8 +1,11 @@
 package com.gpt.jpss.sticker;
 
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.metadata.exif.ExifIFD0Directory;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -72,7 +75,7 @@ public class ImageProcessor {
           HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Images must be JPEG, PNG, WebP or GIF");
     }
 
-    BufferedImage source = decode(file);
+    BufferedImage source = applyOrientation(decode(file), orientation(file));
     try {
       BufferedImage display = scaleToFit(source, MAX_EDGE);
       BufferedImage thumb = scaleToFit(source, THUMB_EDGE);
@@ -121,6 +124,79 @@ public class ImageProcessor {
     } catch (IOException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "That file could not be read", e);
     }
+  }
+
+  /**
+   * The EXIF orientation tag, or 1 (already upright) when there is none.
+   *
+   * <p>This has to be read and applied because {@link ImageIO} does not.
+   * ImageIO hands back the raw pixel grid, while every browser rotates on the
+   * tag before painting — so a photo shot side-on or upside down previewed
+   * correctly in the composer and was then stored rotated. Re-encoding strips
+   * the tag, so the rotation has to be baked into the pixels here or it is lost.
+   *
+   * <p>Metadata on an upload is attacker-supplied and frequently malformed even
+   * when it is not. A file whose metadata cannot be read is still a perfectly
+   * good photo, so every failure degrades to "assume upright" rather than
+   * rejecting the upload.
+   */
+  private static int orientation(MultipartFile file) {
+    try (InputStream in = file.getInputStream()) {
+      var directory =
+          ImageMetadataReader.readMetadata(in).getFirstDirectoryOfType(ExifIFD0Directory.class);
+      if (directory == null) {
+        return 1;
+      }
+      Integer tag = directory.getInteger(ExifIFD0Directory.TAG_ORIENTATION);
+      return tag == null || tag < 1 || tag > 8 ? 1 : tag;
+    } catch (Exception e) {
+      return 1;
+    }
+  }
+
+  /**
+   * Bakes an EXIF orientation into the pixels.
+   *
+   * <p>The matrices map source coordinates to corrected ones, in the constructor
+   * order {@code (m00, m10, m01, m11, m02, m12)} — so {@code x' = m00·x + m01·y
+   * + m02}. Orientations 5 to 8 transpose the axes, which is why the target is
+   * allocated with width and height swapped for those.
+   */
+  private static BufferedImage applyOrientation(BufferedImage source, int orientation) {
+    if (orientation == 1) {
+      return source;
+    }
+    int w = source.getWidth();
+    int h = source.getHeight();
+    AffineTransform transform =
+        switch (orientation) {
+          case 2 -> new AffineTransform(-1, 0, 0, 1, w, 0); // mirror
+          case 3 -> new AffineTransform(-1, 0, 0, -1, w, h); // 180
+          case 4 -> new AffineTransform(1, 0, 0, -1, 0, h); // mirror vertical
+          case 5 -> new AffineTransform(0, 1, 1, 0, 0, 0); // transpose
+          case 6 -> new AffineTransform(0, 1, -1, 0, h, 0); // 90 clockwise
+          case 7 -> new AffineTransform(0, -1, -1, 0, h, w); // transverse
+          case 8 -> new AffineTransform(0, -1, 1, 0, 0, w); // 270 clockwise
+          default -> null;
+        };
+    if (transform == null) {
+      return source;
+    }
+
+    boolean swapsAxes = orientation >= 5;
+    BufferedImage target =
+        new BufferedImage(
+            swapsAxes ? h : w, swapsAxes ? w : h, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g = target.createGraphics();
+    try {
+      g.setRenderingHint(
+          RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      g.drawImage(source, transform, null);
+    } finally {
+      g.dispose();
+      source.flush();
+    }
+    return target;
   }
 
   /** Scaled so the long edge is at most {@code maxEdge}; returned untouched when already smaller. */

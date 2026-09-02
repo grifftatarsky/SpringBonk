@@ -1,9 +1,10 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
   computed,
+  DestroyRef,
   effect,
+  HostListener,
   inject,
   input,
   output,
@@ -12,6 +13,7 @@ import {
 } from '@angular/core';
 import { StickerService, describe } from './sticker.service';
 import type { Coordinate, Sticker } from './sticker.models';
+import { readExifLocation } from './exif-location';
 
 /** Matches jpss-resource's multipart cap, so an oversized photo fails here rather than at the proxy. */
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -36,25 +38,29 @@ const MAX_PLACE = 80;
   host: { class: 'contents' },
   template: `
     <form
-      class="pointer-events-auto overflow-hidden rounded-xl border border-rule bg-bg/95 shadow-2xl backdrop-blur-md"
+      class="pointer-events-auto flex min-h-0 flex-1 flex-col overflow-hidden"
       (submit)="submit($event)">
-      <header class="flex items-center justify-between gap-2 border-b border-rule px-3.5 py-2.5">
+      <header
+        class="flex shrink-0 items-center justify-between gap-2 border-b border-rule px-3.5 py-2.5">
         <h2 class="text-sm font-semibold text-fg">
           {{ editing() ? 'Edit sticker' : 'New sticker' }}
         </h2>
         <button
           type="button"
-          class="-mr-1 grid size-7 place-items-center rounded-md text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg"
+          class="-mr-2 grid size-11 place-items-center rounded-md text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg sm:-mr-1 sm:size-7"
           aria-label="Close composer"
           (click)="cancel.emit()">
-          <svg viewBox="0 0 16 16" fill="currentColor" class="size-3.5" aria-hidden="true">
+          <svg viewBox="0 0 16 16" fill="currentColor" class="size-4 sm:size-3.5" aria-hidden="true">
             <path
               d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
           </svg>
         </button>
       </header>
 
-      <div class="grid gap-3.5 px-3.5 py-3">
+      <!-- The only scrolling region. Everything that can grow — the photo
+           preview above all — lives in here, so the footer below stays put. -->
+      <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div class="grid gap-3.5 px-3.5 py-3">
         <!-- PHOTO -->
         <div>
           <label class="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-fg-subtle" [attr.for]="fileId">
@@ -136,7 +142,7 @@ const MAX_PLACE = 80;
           </span>
           <input
             type="text"
-            class="mt-1.5 w-full rounded-md border border-rule bg-bg-subtle px-2.5 py-1.5 text-sm text-fg placeholder:text-fg-subtle"
+            class="mt-1.5 w-full rounded-md border border-rule bg-bg-subtle px-2.5 py-1.5 text-base text-fg placeholder:text-fg-subtle sm:text-sm"
             placeholder="Prospect Park"
             [attr.maxlength]="maxPlace"
             [value]="place()"
@@ -150,7 +156,7 @@ const MAX_PLACE = 80;
           </span>
           <textarea
             rows="3"
-            class="mt-1.5 w-full resize-y rounded-md border border-rule bg-bg-subtle px-2.5 py-1.5 text-sm text-fg placeholder:text-fg-subtle"
+            class="mt-1.5 w-full resize-y rounded-md border border-rule bg-bg-subtle px-2.5 py-1.5 text-base text-fg placeholder:text-fg-subtle sm:text-sm"
             placeholder="What is this?"
             [attr.maxlength]="maxComment"
             [value]="comment()"
@@ -165,18 +171,65 @@ const MAX_PLACE = 80;
             {{ message }}
           </p>
         }
+        </div>
       </div>
 
-      <div class="flex items-center gap-2 border-t border-rule px-3.5 py-2.5">
+      <!-- Offered when the chosen photo carries GPS tags. Rendered inside the
+           form but positioned fixed, so it sits over the whole stage rather than
+           being clipped by the sheet. -->
+      @if (photoLocation(); as spot) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <button
+            type="button"
+            class="absolute inset-0 cursor-default bg-fg/40 backdrop-blur-sm"
+            aria-label="Keep the current location"
+            (click)="dismissPhotoLocation()"></button>
+          <section
+            class="relative z-10 w-full max-w-md rounded-lg border border-rule bg-bg p-5 shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="jpss-photo-location-title">
+            <h2 id="jpss-photo-location-title" class="text-base font-semibold text-fg">
+              This photo remembers where it was taken
+            </h2>
+            <p class="mt-1.5 text-sm leading-relaxed text-fg-muted">
+              Place the sticker there instead of picking a spot on the globe?
+            </p>
+            <p class="mt-2.5 font-mono text-xs tabular-nums text-fg-subtle">
+              {{ formatCoordinate(spot) }}
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                class="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover sm:min-h-0 sm:px-3.5 sm:py-1.5 sm:text-xs"
+                (click)="acceptPhotoLocation()">
+                Use that spot
+              </button>
+              <button
+                type="button"
+                class="inline-flex min-h-11 items-center justify-center rounded-md border border-rule px-4 text-sm font-semibold text-fg transition hover:bg-bg-subtle sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
+                (click)="dismissPhotoLocation()">
+                No, I will pick
+              </button>
+            </div>
+            <p class="mt-3 text-[0.7rem] leading-relaxed text-fg-subtle">
+              The location is only read here — the copy that gets uploaded has its
+              metadata stripped either way.
+            </p>
+          </section>
+        </div>
+      }
+
+      <div class="flex shrink-0 items-center gap-2 border-t border-rule px-3.5 py-2.5">
         <button
           type="submit"
-          class="rounded-md bg-accent px-3.5 py-1.5 text-xs font-semibold text-accent-fg transition hover:bg-accent-hover disabled:opacity-50"
+          class="inline-flex min-h-11 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-fg transition hover:bg-accent-hover disabled:opacity-50 sm:min-h-0 sm:px-3.5 sm:py-1.5 sm:text-xs"
           [disabled]="!canSubmit()">
           {{ busy() ? 'Saving…' : editing() ? 'Save changes' : 'Place sticker' }}
         </button>
         <button
           type="button"
-          class="rounded-md border border-rule px-3 py-1.5 text-xs font-semibold text-fg transition hover:bg-bg-subtle"
+          class="inline-flex min-h-11 items-center justify-center rounded-md border border-rule px-4 text-sm font-semibold text-fg transition hover:bg-bg-subtle sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs"
           [disabled]="busy()"
           (click)="cancel.emit()">
           Cancel
@@ -214,6 +267,8 @@ export class StickerComposer {
   protected readonly locating = signal(false);
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
+  /** A coordinate found in the chosen photo's EXIF, pending the user's answer. */
+  protected readonly photoLocation = signal<Coordinate | null>(null);
 
   protected readonly canSubmit = computed(() => {
     if (this.busy()) return false;
@@ -287,6 +342,49 @@ export class StickerComposer {
     this.file.set(file);
     this.fileName.set(file?.name ?? '');
     this.previewUrl.set(file ? URL.createObjectURL(file) : null);
+    this.photoLocation.set(null);
+    if (file) void this.offerPhotoLocation(file);
+  }
+
+  /**
+   * Offers the photo's own coordinate when it carries one.
+   *
+   * Asked rather than applied: the camera's idea of where a photo was taken is
+   * usually what the user wants, but not always — a photo of somewhere is not
+   * always a photo taken there — and silently moving a pin they had already
+   * placed would be worse than not offering at all.
+   *
+   * The result is discarded if they swapped the photo again while this was
+   * reading, so a slow parse cannot offer a location from a file that is no
+   * longer attached.
+   */
+  private async offerPhotoLocation(file: File): Promise<void> {
+    const found = await readExifLocation(file);
+    if (found && this.file() === file) {
+      this.photoLocation.set(found);
+    }
+  }
+
+  protected acceptPhotoLocation(): void {
+    const spot = this.photoLocation();
+    this.photoLocation.set(null);
+    if (spot) this.locate.emit(spot);
+  }
+
+  protected dismissPhotoLocation(): void {
+    this.photoLocation.set(null);
+  }
+
+  @HostListener('window:keydown.escape')
+  protected onEscape(): void {
+    this.dismissPhotoLocation();
+  }
+
+  /** The same N/S E/W form the sidebar uses, so the two read alike. */
+  protected formatCoordinate(spot: Coordinate): string {
+    const lat = `${Math.abs(spot.latitude).toFixed(4)}\u00b0 ${spot.latitude < 0 ? 'S' : 'N'}`;
+    const lon = `${Math.abs(spot.longitude).toFixed(4)}\u00b0 ${spot.longitude < 0 ? 'W' : 'E'}`;
+    return `${lat}, ${lon}`;
   }
 
   /** Object URLs are held by the document until revoked; a long session would leak every preview. */

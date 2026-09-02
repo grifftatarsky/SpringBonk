@@ -185,7 +185,7 @@ import type { Sticker } from '../stickers/sticker.models';
                   Basemap
                 </span>
                 <select
-                  class="mt-1.5 min-h-11 w-full rounded-md border border-rule bg-bg-subtle px-2 py-1.5 text-sm text-fg sm:min-h-0"
+                  class="mt-1.5 min-h-11 w-full rounded-md border border-rule bg-bg-subtle px-2 py-1.5 text-base text-fg sm:min-h-0 sm:text-sm"
                   [value]="basemap()"
                   (change)="onBasemap($event)">
                   @for (option of basemaps; track option.id) {

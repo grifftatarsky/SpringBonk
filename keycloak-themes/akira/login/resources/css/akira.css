@@ -483,6 +483,17 @@ a:hover {
   display: none;
 }
 
+/* iOS Safari zooms the whole page in when a focused input's font-size is under
+   16px, and does not zoom back out — which shoved the card off-screen on a
+   phone. 14px is right on desktop, so this only lifts it where the zoom rule
+   applies. */
+@media (max-width: 480px) {
+  .akira-input,
+  .akira-input-group .akira-input {
+    font-size: 1rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;

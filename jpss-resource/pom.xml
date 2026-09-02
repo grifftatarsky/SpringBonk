@@ -67,6 +67,17 @@
       <optional>true</optional>
     </dependency>
     <!--Swagger-->
+    <!-- EXIF. Needed to *honour* orientation before re-encoding: ImageIO decodes
+         raw pixels and ignores the tag, while every browser applies it, so a
+         photo taken side-on or upside down was stored rotated. Hand-parsing the
+         APP1 segment is easy to get right for well-formed files and easy to get
+         wrong for the many that are not. -->
+    <dependency>
+      <groupId>com.drewnoakes</groupId>
+      <artifactId>metadata-extractor</artifactId>
+      <version>2.19.0</version>
+    </dependency>
+
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
