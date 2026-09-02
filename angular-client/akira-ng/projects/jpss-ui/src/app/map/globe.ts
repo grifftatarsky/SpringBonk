@@ -442,6 +442,14 @@ export class Globe {
       // Supplied below, outside the map, so its placement is not at the mercy of
       // MapLibre's corner stacking.
       attributionControl: false,
+      // Cache size is this times the tiles in the viewport (default 5). When a
+      // tile is missing MapLibre scales up its parent to cover the gap, so the
+      // cache is what stands between a fast camera and a hole in the map — and
+      // this camera makes an unusually large excursion: opening a sticker flies
+      // to z16 and dismissing pulls back to about z1, far enough that the
+      // low-zoom parents have long since been evicted at the default. Costs
+      // memory in proportion, which is why it is 10 and not 30.
+      maxTileCacheZoomLevels: 10,
     });
     this.map = map;
     this.applied.set(basemap);

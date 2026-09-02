@@ -154,8 +154,15 @@ compose needs:
   server but refuses a newer one.
 - A writable backup directory on a disk with room for three copies. `jps-db`
   holds photo blobs, so those dumps are not small the way the local ones are.
-- `depends_on: condition: service_healthy` requires the Postgres service there
-  to actually define a healthcheck; drop the condition if it does not.
+- `depends_on` is optional, and so is a healthcheck on the Postgres service:
+  the script polls `pg_isready` before every dump, so a Postgres that is slow to
+  start or mid-restart at midnight is waited out rather than missed.
+
+The sidecar has a healthcheck of its own, and it asserts the *artefact* rather
+than the process: a non-empty `pgcluster-*.sql.gz` written within the last 26
+hours (24h schedule plus slack). A backup container's failure mode is silence —
+it sleeps a day at a time, so a broken one looks exactly like a working one from
+`docker ps`. This way a missed, empty, or truncated dump shows up as `unhealthy`.
 
 `pg-restore.sh` takes the backup directory or a specific dump as its argument
 rather than deriving one from its own location — where backups live is a

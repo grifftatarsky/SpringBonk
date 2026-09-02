@@ -23,6 +23,22 @@ PREFIX="pgcluster"
 
 log() { echo "[pg-backup] $(date '+%Y-%m-%d %H:%M:%S %Z') $*"; }
 
+wait_for_postgres() {
+  # Do not rely on compose's depends_on/healthcheck: not every deployment's
+  # Postgres service defines one, and at midnight the server may be mid-restart
+  # anyway. Poll here so the sidecar is correct either way.
+  local tries="${PG_WAIT_TRIES:-60}" i=0
+  until pg_isready -q; do
+    i=$((i + 1))
+    if [ "$i" -ge "$tries" ]; then
+      log "postgres unreachable at $PGHOST:$PGPORT after $tries attempts"
+      return 1
+    fi
+    [ "$i" = 1 ] && log "waiting for postgres at $PGHOST:$PGPORT"
+    sleep 2
+  done
+}
+
 backup_once() {
   mkdir -p "$BACKUP_DIR"
   local stamp target tmp
@@ -30,6 +46,7 @@ backup_once() {
   target="$BACKUP_DIR/$PREFIX-$stamp.sql.gz"
   tmp="$target.tmp"
 
+  wait_for_postgres || { log "FAILED: no server to dump"; return 1; }
   log "dumping cluster from $PGUSER@$PGHOST:$PGPORT"
   # Dump to .tmp and rename only on success: a container killed mid-dump must
   # not leave a truncated file that then counts as one of the retained copies.

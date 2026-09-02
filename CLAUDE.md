@@ -121,6 +121,12 @@ Read these before touching the relevant area.
   single-file bind mount is inode-pinned on Linux and `git pull` replaces files
   by rename, so a file mount silently keeps running the pre-pull script. It does
   not reproduce on Docker Desktop, which resolves shares by path.
+- **The sidecar's healthcheck asserts a recent non-empty dump, not liveness.** A
+  backup container sleeps 24h at a time, so a broken one is indistinguishable
+  from a working one by process state; `find -mmin -1560 -size +1k` over
+  `/backups` is the thing actually worth knowing. It also polls `pg_isready`
+  itself before each dump, so `depends_on: service_healthy` is a convenience,
+  not a requirement.
 - **`pg-restore.sh` takes its target as an argument, and reads credentials from
   the Postgres container.** Neither is derived from the script's own location:
   backup paths and `.env` live wherever a given deployment puts them, so callers
