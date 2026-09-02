@@ -43,8 +43,14 @@ const BY_SOURCE_LAYER: Readonly<Record<string, LayerGroupId>> = {
 
 export type GroupVisibility = Record<LayerGroupId, boolean>;
 
+/**
+ * Labels start off. Place names compete with the stickers for the same few
+ * pixels — the marks are what the page is about — and symbol layers are the
+ * most expensive thing in these styles to lay out, so the globe spins cheaper
+ * too. Everything else stays on; the tools menu turns labels back on.
+ */
 export function defaultVisibility(): GroupVisibility {
-  return { roads: true, labels: true, buildings: true, water: true, land: true, boundaries: true };
+  return { roads: true, labels: false, buildings: true, water: true, land: true, boundaries: true };
 }
 
 /** Which layer ids each group owns in the loaded style. Built once per style by {@link classifyLayers}. */

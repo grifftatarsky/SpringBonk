@@ -112,11 +112,16 @@ export class JpssPage {
 
   private readonly ownedIds = computed(() => new Set(this.stickers.mine().map(s => s.id)));
 
+  /**
+   * Deliberately does not read `hoveredId`. Hover is a GPU tint via deck's
+   * `autoHighlight`; reading it here would make every pointer move across the
+   * globe rebuild all three layers. `hoveredId` still drives the label below,
+   * which is DOM and cheap.
+   */
   protected readonly layers = computed(() =>
     stickerLayers({
       stickers: this.stickers.stickers(),
       selectedId: this.selectedId(),
-      hoveredId: this.hoveredId(),
       ownedIds: this.ownedIds(),
       tone: basemapTone(this.basemap()),
       // Only while the composer is actually waiting for one — a leftover marker

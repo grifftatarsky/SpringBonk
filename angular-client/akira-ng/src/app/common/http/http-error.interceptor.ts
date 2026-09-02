@@ -27,6 +27,17 @@ function toDisplayMessage(error: HttpErrorResponse): string {
   }
 }
 
+/**
+ * Set on a request whose errors should not raise a toast. Deliberately a header
+ * rather than an {@link HttpContextToken}: the token would have to be the same
+ * object on both sides, and a federated remote is a separate bundle with its own
+ * module instances, so identity comparison would silently never match.
+ *
+ * Left on the outgoing request rather than stripped — it costs a clone to remove
+ * and means nothing to the services downstream.
+ */
+export const SILENT_ERROR_HEADER = 'X-Silent-Error';
+
 let lastErrorKey: string = '';
 let lastErrorAt: number = 0;
 
@@ -38,7 +49,15 @@ export const httpErrorInterceptor: HttpInterceptorFn = (req, next) => {
       if (err instanceof HttpErrorResponse) {
         const url: string = (req.url || '').toString();
 
-        if (url.includes('/user/details') || url.includes('/login-options')) {
+        // Identity probes: a 401 is the answer, not a failure. The two paths
+        // are the shell's own; anything else opts out with the header, which is
+        // how a federated remote asks for silence without the shell having to
+        // know its URLs.
+        if (
+          url.includes('/user/details') ||
+          url.includes('/login-options') ||
+          req.headers.has(SILENT_ERROR_HEADER)
+        ) {
           return throwError((): HttpErrorResponse => err);
         }
 

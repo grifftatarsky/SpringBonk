@@ -56,7 +56,13 @@ const PALETTES: Record<BasemapTone, Palette> = {
 };
 
 /** Screen-space size of the mark, in pixels, by state. */
-const SIZE = { base: 34, hovered: 40, selected: 48 } as const;
+const SIZE = { base: 34, selected: 48 } as const;
+
+/**
+ * Hover tint, applied by deck's own picking module rather than by rebuilding
+ * the layers. See the note on `autoHighlight` below.
+ */
+const HIGHLIGHT: StickerColor = [255, 255, 255, 90];
 
 /** Picking runs against the card silhouette — the largest, most forgiving target. */
 export const STICKER_PICK_LAYER = 'sticker-plate';
@@ -64,7 +70,6 @@ export const STICKER_PICK_LAYER = 'sticker-plate';
 export interface StickerLayerOptions {
   readonly stickers: readonly Sticker[];
   readonly selectedId: string | null;
-  readonly hoveredId: string | null;
   /** Ids the signed-in user owns, so their stickers read as theirs. */
   readonly ownedIds: ReadonlySet<string>;
   /** Whether the loaded basemap is dark or light. */
@@ -74,16 +79,13 @@ export interface StickerLayerOptions {
   readonly onHover: (sticker: Sticker | null) => void;
 }
 
-function sizeOf(sticker: Sticker, selectedId: string | null, hoveredId: string | null): number {
-  if (sticker.id === selectedId) return SIZE.selected;
-  if (sticker.id === hoveredId) return SIZE.hovered;
-  return SIZE.base;
+function sizeOf(sticker: Sticker, selectedId: string | null): number {
+  return sticker.id === selectedId ? SIZE.selected : SIZE.base;
 }
 
 export function stickerLayers({
   stickers,
   selectedId,
-  hoveredId,
   ownedIds,
   tone,
   pending,
@@ -95,8 +97,8 @@ export function stickerLayers({
 
   // Hoisted so both layers agree, and so the update triggers below only have to
   // name the things that actually change.
-  const size = (d: Sticker) => sizeOf(d, selectedId, hoveredId);
-  const sizeTrigger = [selectedId, hoveredId];
+  const size = (d: Sticker) => sizeOf(d, selectedId);
+  const sizeTrigger = [selectedId];
 
   const shared = {
     data,
@@ -114,6 +116,12 @@ export function stickerLayers({
       // The one hit target. Putting picking on both layers would let a click
       // land on the card of one sticker and the face of its neighbour.
       pickable: true,
+      // Hover is drawn by the picking module on the GPU, not by rebuilding the
+      // layers. Reading a hover id in the layer builder meant every pointer move
+      // across the globe produced a new layer array and a full setProps — for a
+      // tint. This costs nothing per frame.
+      autoHighlight: true,
+      highlightColor: HIGHLIGHT as unknown as number[],
       frame: atlas.frames.plate,
       getColor: d =>
         d.id === selectedId

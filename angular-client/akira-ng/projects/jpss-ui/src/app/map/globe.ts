@@ -107,6 +107,37 @@ const SPIN_SETTLE_MS = REDUCED_MOTION ? 0 : 1800;
 /** Backstop so a style that never finishes loading cannot leave the map permanently invisible. */
 const FADE_FAILSAFE_MS = 4000;
 
+/** How long the camera takes to reach a sticker. */
+const FLY_MS = REDUCED_MOTION ? 0 : 2200;
+
+/**
+ * The defocus is cleared by MapLibre's `idle` event — every tile in, nothing
+ * animating. This is the backstop for the case where idle never comes: a source
+ * that errors, or a camera move that starts before the last one settled. Longer
+ * than the flight, so it only ever fires after the picture should already be up.
+ */
+const SETTLE_FAILSAFE_MS = FLY_MS + 900;
+
+/** How long the camera holds full defocus before it starts gathering focus. */
+const DEFOCUS_HOLD_MS = 260;
+
+/**
+ * Deep defocus on departure, easing to a light one for the body of the flight,
+ * then sharp once the tiles are in. Three discrete states rather than one set of
+ * keyframes: a CSS transition cannot interpolate *out* of a forwards-filled
+ * animation — the before-change style is computed without it, so there is no
+ * delta and the last step snaps. Each phase here is a plain class swap, so every
+ * step interpolates.
+ */
+type SettlePhase = 'off' | 'deep' | 'cruise';
+
+/**
+ * Ceiling on the device pixel ratio deck renders at. `true` would follow the
+ * device, which on a modern phone means 3.
+ */
+const DECK_MAX_PIXEL_RATIO =
+  typeof window === 'undefined' ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+
 const INITIAL_VIEW = {
   center: [-30, 25] as [number, number],
   // Far enough out that the globe reads as a globe on first paint.
@@ -164,6 +195,8 @@ export type CameraTarget =
       <div
         class="jpss-globe__canvas"
         [class.jpss-globe__canvas--hidden]="!ready()"
+        [class.jpss-globe__canvas--defocus-deep]="settlePhase() === 'deep'"
+        [class.jpss-globe__canvas--defocus-cruise]="settlePhase() === 'cruise'"
         [style.transition-duration.ms]="fadeMs"
         #container></div>
 
@@ -202,6 +235,12 @@ export class Globe {
   protected readonly attribution = ATTRIBUTION_LINKS;
   protected readonly fadeMs = FADE_MS;
   protected readonly ready = signal(false);
+  /** How far through resolving a camera flight is — see {@link beginSettle}. */
+  protected readonly settlePhase = signal<SettlePhase>('off');
+  private settleTimer?: number;
+  private cruiseTimer?: number;
+  /** Set when the map goes idle before the deep hold is up — see {@link onIdle}. */
+  private settledEarly = false;
 
   private map?: MapLibreMap;
   private overlay?: MapboxOverlay;
@@ -281,12 +320,14 @@ export class Globe {
     const map = this.map;
     if (!map) return;
 
+    this.beginSettle();
+
     if (target.kind === 'center') {
       map.flyTo({
         center: [target.longitude, target.latitude],
         zoom: target.zoom,
         offset: target.offset ?? [0, 0],
-        duration: REDUCED_MOTION ? 0 : 2200,
+        duration: FLY_MS,
         essential: true,
       });
       return;
@@ -296,9 +337,63 @@ export class Globe {
     map.fitBounds(target.bounds, {
       padding: 90,
       maxZoom: 12,
-      duration: REDUCED_MOTION ? 0 : 2200,
+      duration: FLY_MS,
       essential: true,
     });
+  }
+
+  /**
+   * Defocuses the basemap for the duration of a camera flight, so the detail
+   * that streams in at the far end resolves into focus instead of popping in
+   * tile by tile. Only the MapLibre canvas is blurred: deck draws to its own
+   * canvas under `interleaved: false`, so the sticker marks stay sharp
+   * throughout and the effect reads as the ground coming into focus behind
+   * them rather than as the whole view going soft.
+   *
+   * Cleared by `idle` — MapLibre fires it once every tile for the current
+   * camera is in and nothing is animating, which is precisely the moment the
+   * picture is worth looking at. `flyTo` is only ever called to zoom *in*;
+   * the pull-back is driven by the spin, whose per-frame `jumpTo` would keep
+   * the map from ever going idle.
+   */
+  private beginSettle(): void {
+    if (REDUCED_MOTION) return;
+    this.clearSettleTimers();
+    this.settledEarly = false;
+    this.settlePhase.set('deep');
+    this.cruiseTimer = window.setTimeout(() => {
+      // If every tile was already cached the map went idle during the hold.
+      // Resolve from there rather than easing into a cruise nobody needs — but
+      // still resolve *through* the transition, so it reads as focusing.
+      this.settlePhase.set(this.settledEarly ? 'off' : 'cruise');
+    }, DEFOCUS_HOLD_MS);
+    this.settleTimer = window.setTimeout(() => this.endSettle(), SETTLE_FAILSAFE_MS);
+  }
+
+  /**
+   * MapLibre fires `idle` once every tile for the current camera is in and
+   * nothing is animating — the moment the picture is worth looking at, and so
+   * the moment to bring it into focus. An idle that arrives during the deep
+   * hold is remembered rather than acted on: snapping back 260ms after the blur
+   * appeared reads as a glitch, not as a camera.
+   */
+  private readonly onIdle = (): void => {
+    if (this.settlePhase() === 'off') return;
+    if (this.settlePhase() === 'deep') {
+      this.settledEarly = true;
+      return;
+    }
+    this.endSettle();
+  };
+
+  private endSettle(): void {
+    this.clearSettleTimers();
+    this.settlePhase.set('off');
+  }
+
+  private clearSettleTimers(): void {
+    window.clearTimeout(this.settleTimer);
+    window.clearTimeout(this.cruiseTimer);
   }
 
   // region map lifecycle
@@ -333,10 +428,16 @@ export class Globe {
       interleaved: false,
       layers: this.layers(),
       views: VIEWS.globe,
+      // Phones report a device pixel ratio of 3, which is 2.25x the fragments of
+      // 2 for marks that are flat colour over a 256px glyph — no visible gain,
+      // and it is the single biggest lever on a mobile GPU. MapLibre keeps its
+      // own ratio for the basemap, where the extra density does show in labels.
+      useDevicePixels: DECK_MAX_PIXEL_RATIO,
     } as never);
     map.addControl(this.overlay);
 
     map.on('styledata', this.onStyleData);
+    map.on('idle', this.onIdle);
     map.on('styleimagemissing', this.onMissingImage);
     map.on('move', this.onMove);
     map.on('click', this.onClick);
@@ -352,10 +453,12 @@ export class Globe {
     window.clearTimeout(this.fadeTimer);
     window.clearTimeout(this.failsafeTimer);
     window.clearTimeout(this.loadingTimer);
+    this.clearSettleTimers();
 
     const map = this.map;
     if (!map) return;
     map.off('styledata', this.onStyleData);
+    map.off('idle', this.onIdle);
     map.off('styleimagemissing', this.onMissingImage);
     map.off('move', this.onMove);
     map.off('click', this.onClick);

@@ -35,10 +35,10 @@ import type { Sticker } from './sticker.models';
         </div>
         <button
           type="button"
-          class="-mr-1 -mt-0.5 grid size-7 shrink-0 place-items-center rounded-md text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg"
+          class="-mr-2 -mt-1 grid size-11 shrink-0 sm:-mr-1 sm:-mt-0.5 sm:size-7 place-items-center rounded-md text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg"
           aria-label="Close sticker and return to the globe"
           (click)="dismiss.emit()">
-          <svg viewBox="0 0 16 16" fill="currentColor" class="size-3.5" aria-hidden="true">
+          <svg viewBox="0 0 16 16" fill="currentColor" class="size-4 sm:size-3.5" aria-hidden="true">
             <path
               d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
           </svg>
@@ -51,7 +51,7 @@ import type { Sticker } from './sticker.models';
              Aspect ratio comes from the stored dimensions, so nothing reflows
              when the photo lands. -->
         <div
-          class="relative bg-bg-sunk bg-cover bg-center"
+          class="relative max-h-[34dvh] bg-bg-sunk bg-cover bg-center sm:max-h-[26rem]"
           [style.aspect-ratio]="aspectRatio()"
           [style.background-image]="placeholder()">
           <div class="absolute inset-0 backdrop-blur-xl"></div>
@@ -77,14 +77,14 @@ import type { Sticker } from './sticker.models';
             <div class="mt-2 flex gap-2">
               <button
                 type="button"
-                class="rounded-md bg-danger px-3 py-1.5 text-xs font-semibold text-danger-fg transition hover:opacity-90 disabled:opacity-60"
+                class="rounded-md bg-danger inline-flex min-h-11 items-center justify-center px-4 text-sm font-semibold sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs text-danger-fg transition hover:opacity-90 disabled:opacity-60"
                 [disabled]="busy()"
                 (click)="confirmDelete()">
                 {{ busy() ? 'Deleting…' : 'Delete' }}
               </button>
               <button
                 type="button"
-                class="rounded-md border border-rule px-3 py-1.5 text-xs font-semibold text-fg transition hover:bg-bg-subtle"
+                class="rounded-md border border-rule inline-flex min-h-11 items-center justify-center px-4 text-sm font-semibold sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs text-fg transition hover:bg-bg-subtle"
                 [disabled]="busy()"
                 (click)="confirming.set(false)">
                 Keep it
@@ -94,13 +94,13 @@ import type { Sticker } from './sticker.models';
             <div class="flex gap-2">
               <button
                 type="button"
-                class="rounded-md border border-rule px-3 py-1.5 text-xs font-semibold text-fg transition hover:bg-bg-subtle"
+                class="rounded-md border border-rule inline-flex min-h-11 items-center justify-center px-4 text-sm font-semibold sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs text-fg transition hover:bg-bg-subtle"
                 (click)="edit.emit(sticker())">
                 Edit
               </button>
               <button
                 type="button"
-                class="rounded-md px-3 py-1.5 text-xs font-semibold text-danger transition hover:bg-danger-subtle"
+                class="rounded-md inline-flex min-h-11 items-center justify-center px-4 text-sm font-semibold sm:min-h-0 sm:px-3 sm:py-1.5 sm:text-xs text-danger transition hover:bg-danger-subtle"
                 (click)="confirming.set(true)">
                 Delete
               </button>

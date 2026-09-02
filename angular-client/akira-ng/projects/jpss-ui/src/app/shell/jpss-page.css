@@ -75,12 +75,28 @@
     top: auto;
     left: 0;
     width: auto;
-    max-height: 72dvh;
+    max-height: 78dvh;
     border-left: 0;
     border-top: 1px solid var(--color-rule);
-    box-shadow: 0 -12px 32px rgb(0 0 0 / 28%);
+    /* Rounded top and a grabber, so it reads as a sheet over the map rather
+       than as the page having ended. */
+    border-radius: 1rem 1rem 0 0;
+    box-shadow: 0 -12px 32px rgb(0 0 0 / 34%);
+    padding-top: 0.5rem;
     padding-bottom: env(safe-area-inset-bottom);
     animation-name: jpss-sheet-in;
+  }
+
+  .jpss-sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0.4375rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2.25rem;
+    height: 0.25rem;
+    border-radius: 999px;
+    background-color: var(--color-rule-strong);
   }
 }
 

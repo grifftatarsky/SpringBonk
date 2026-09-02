@@ -44,6 +44,9 @@ services:
       - .env
     volumes:
       - ./keycloak/:/opt/keycloak/data/import/
+      # Themes live outside ./keycloak because that whole directory is mounted
+      # as the realm import dir, and Keycloak scans it for realm JSON.
+      - ./keycloak-themes/:/opt/keycloak/themes/
     environment:
       KC_DB: postgres
       KC_DB_URL: ${AUTH_DATASOURCE_JDBC_URL}

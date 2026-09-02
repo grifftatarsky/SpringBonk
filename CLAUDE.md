@@ -120,9 +120,11 @@ Read these before touching the relevant area.
 ## Local credentials
 
 Keycloak admin `admin` / `randompassword` (`KEYCLOAK_ADMIN_PASSWORD` in `.env`).
-Realm users `brice`, `brice2`, `brice3`, `igor` — passwords are committed PBKDF2
-hashes, so reset one via the admin API if you need to log in. Recreating the
-Postgres volume re-imports the realm and reverts any reset.
+
+Realm users `brice`, `brice2`, `brice3`, `igor` all have the password **`secret`**.
+Use it. Do not reset them via the admin API — the hashes in the realm export are
+the source of truth and a reset only diverges the running container from it
+until the volume is recreated.
 
 `.env` is tracked and holds **local defaults only**. Production values live in
 the deploy repo's own `.env`; never copy a real credential into this one.

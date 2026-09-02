@@ -63,7 +63,14 @@ export class StickerService {
 
   async loadMe(): Promise<CurrentUser | null> {
     try {
-      const me = await firstValueFrom(this.http.get<CurrentUser>(`${BASE}/me`));
+      // Anonymous browsing is the normal state here, so the 401 this returns
+      // when signed out is the answer to the question, not an error worth
+      // interrupting anyone about. The header tells the shell's error
+      // interceptor to stay quiet; every other call on this service still
+      // reports failures normally.
+      const me = await firstValueFrom(
+        this.http.get<CurrentUser>(`${BASE}/me`, { headers: { 'X-Silent-Error': 'true' } }),
+      );
       this.currentUser.set(me);
       return me;
     } catch {

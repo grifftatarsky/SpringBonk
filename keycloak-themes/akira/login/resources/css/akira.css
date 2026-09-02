@@ -1,0 +1,490 @@
+/* Akira login theme.
+ *
+ * Tokens are copied from the app's stylesheet rather than imported: Keycloak
+ * serves this from its own resource path and has no access to the Angular build
+ * output, and a login page that silently falls back to unstyled defaults is
+ * worse than one that duplicates twenty-five custom properties. If the palette
+ * changes in angular-client/akira-ng/src/styles.css, change it here too. */
+
+:root {
+  --font-sans: InterVariable, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-bg: #ffffff;
+  --color-bg-subtle: #fafaf9;
+  --color-bg-muted: #f4f4f2;
+  --color-fg: #0b0b0c;
+  --color-fg-muted: #52525b;
+  --color-fg-subtle: #8a8a8f;
+  --color-rule: #e7e7e4;
+  --color-rule-strong: #d4d4d0;
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-fg: #ffffff;
+  --color-accent-subtle: #eff6ff;
+  --color-danger: #b91c1c;
+  --color-danger-subtle: #fef2f2;
+  --color-warn: #a16207;
+  --color-warn-subtle: #fefce8;
+  --color-success: #15803d;
+  --color-success-subtle: #f0fdf4;
+  --color-focus: #3b82f6;
+
+  --icon-eye: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
+  --icon-eye-off: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M6.61 6.61A18.8 18.8 0 0 0 2 11s3.5 7 10 7a9.7 9.7 0 0 0 5.39-1.61'/%3E%3Cpath d='M14.12 14.12a3 3 0 1 1-4.24-4.24'/%3E%3Cpath d='M2 2l20 20'/%3E%3C/svg%3E");
+}
+
+/* The .dark class is set by theme-sync.js from the same localStorage key the
+ * app writes, so the login page arrives in whatever mode the user chose. */
+.dark {
+  --color-bg: #0a0a0b;
+  --color-bg-subtle: #111113;
+  --color-bg-muted: #18181b;
+  --color-fg: #f4f4f5;
+  --color-fg-muted: #a1a1aa;
+  --color-fg-subtle: #71717a;
+  --color-rule: #1f1f23;
+  --color-rule-strong: #2a2a2f;
+  --color-accent: #60a5fa;
+  --color-accent-hover: #93c5fd;
+  --color-accent-fg: #0a0a0b;
+  --color-accent-subtle: #0c1a33;
+  --color-danger: #f87171;
+  --color-danger-subtle: #2a0a0a;
+  --color-warn: #fbbf24;
+  --color-warn-subtle: #2a1a03;
+  --color-success: #4ade80;
+  --color-success-subtle: #052e16;
+  --color-focus: #60a5fa;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.akira-html {
+  color-scheme: light;
+}
+
+.akira-html.dark {
+  color-scheme: dark;
+}
+
+.akira-body {
+  margin: 0;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* The app's gutter hatching, so the login does not read as a different site. */
+  background-image: repeating-linear-gradient(
+    315deg,
+    var(--color-rule) 0,
+    var(--color-rule) 1px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 10px 10px;
+  background-attachment: fixed;
+}
+
+.akira-login {
+  width: 100%;
+  max-width: 25rem;
+}
+
+/* ---- header ------------------------------------------------------------ */
+
+.akira-header {
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.akira-header__brand {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-fg);
+}
+
+/* ---- card -------------------------------------------------------------- */
+
+.akira-card {
+  border: 1px solid var(--color-rule);
+  border-radius: 0.75rem;
+  background-color: var(--color-bg);
+  padding: 1.75rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 8px 24px rgb(0 0 0 / 6%);
+}
+
+.dark .akira-card {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 30%);
+}
+
+#kc-page-title {
+  margin: 0 0 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  color: var(--color-fg);
+}
+
+#kc-content,
+#kc-content-wrapper,
+.akira-content {
+  min-width: 0;
+}
+
+/* ---- fields ------------------------------------------------------------ */
+
+.akira-field {
+  margin-bottom: 1rem;
+}
+
+.akira-label,
+.akira-label-wrap label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-fg-muted);
+}
+
+.akira-input {
+  display: block;
+  width: 100%;
+  padding: 0.5625rem 0.75rem;
+  border: 1px solid var(--color-rule-strong);
+  border-radius: 0.375rem;
+  background-color: var(--color-bg-subtle);
+  color: var(--color-fg);
+  font: inherit;
+  font-size: 0.875rem;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.akira-input::placeholder {
+  color: var(--color-fg-subtle);
+}
+
+.akira-input:hover {
+  border-color: var(--color-fg-subtle);
+}
+
+.akira-input:focus,
+.akira-input:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 22%, transparent);
+}
+
+.akira-field--error .akira-input {
+  border-color: var(--color-danger);
+}
+
+.akira-input-error {
+  display: block;
+  margin-top: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--color-danger);
+}
+
+/* Password field + reveal button share a row. */
+.akira-input-group {
+  display: flex;
+  align-items: stretch;
+}
+
+.akira-input-group .akira-input {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: 0;
+}
+
+.akira-eye {
+  flex: none;
+  width: 2.75rem;
+  border: 1px solid var(--color-rule-strong);
+  border-left: 0;
+  border-top-right-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+  background-color: var(--color-bg-subtle);
+  color: var(--color-fg-subtle);
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.akira-eye:hover {
+  color: var(--color-fg);
+  background-color: var(--color-bg-muted);
+}
+
+.akira-eye:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+/* base renders an empty <i>, so the glyph comes from here. Masked rather than
+ * a background image, so it takes the button's currentColor and follows the
+ * theme instead of being a fixed-colour asset (an emoji glyph renders in full
+ * colour and looks pasted on). */
+.akira-eye__icon {
+  display: block;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0 auto;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.akira-eye__icon--show {
+  -webkit-mask-image: var(--icon-eye);
+  mask-image: var(--icon-eye);
+}
+
+.akira-eye__icon--hide {
+  -webkit-mask-image: var(--icon-eye-off);
+  mask-image: var(--icon-eye-off);
+}
+
+/* ---- options row ------------------------------------------------------- */
+
+.akira-form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.8125rem;
+}
+
+.akira-form-options__wrap {
+  display: contents;
+}
+
+.akira-form-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+}
+
+.akira-checkbox {
+  accent-color: var(--color-accent);
+  margin-right: 0.375rem;
+}
+
+.akira-form-options label {
+  color: var(--color-fg-muted);
+  cursor: pointer;
+}
+
+/* ---- buttons ----------------------------------------------------------- */
+
+.akira-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5625rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  background-color: var(--color-bg-subtle);
+  color: var(--color-fg);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.akira-btn--block {
+  width: 100%;
+}
+
+.akira-btn--primary {
+  background-color: var(--color-accent);
+  color: var(--color-accent-fg);
+}
+
+.akira-btn--primary:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.akira-btn--default {
+  border-color: var(--color-rule-strong);
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+}
+
+.akira-btn--default:hover {
+  background-color: var(--color-bg-subtle);
+}
+
+.akira-btn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.akira-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* ---- links ------------------------------------------------------------- */
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+#kc-registration,
+#kc-registration-container {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-rule);
+  font-size: 0.875rem;
+  color: var(--color-fg-muted);
+  text-align: center;
+}
+
+#kc-info,
+#kc-info-wrapper {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: var(--color-fg-muted);
+  text-align: center;
+}
+
+/* ---- alerts ------------------------------------------------------------ */
+
+.akira-feedback {
+  margin-bottom: 1rem;
+}
+
+.akira-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.akira-alert__title {
+  margin: 0;
+  font-weight: 500;
+}
+
+.alert-error,
+.pf-m-danger {
+  border-color: color-mix(in srgb, var(--color-danger) 40%, transparent);
+  background-color: var(--color-danger-subtle);
+  color: var(--color-danger);
+}
+
+.alert-warning {
+  border-color: color-mix(in srgb, var(--color-warn) 40%, transparent);
+  background-color: var(--color-warn-subtle);
+  color: var(--color-warn);
+}
+
+.alert-success {
+  border-color: color-mix(in srgb, var(--color-success) 40%, transparent);
+  background-color: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.alert-info {
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+/* ---- identity providers ------------------------------------------------ */
+
+.akira-social {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-rule);
+}
+
+.akira-social__list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---- locale switcher --------------------------------------------------- */
+
+.akira-locale {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.akira-locale__list {
+  margin: 0.25rem 0 0;
+  padding: 0.25rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 0.5rem;
+  background-color: var(--color-bg);
+  list-style: none;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 10%);
+}
+
+.akira-locale__item {
+  display: block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  color: var(--color-fg);
+}
+
+.akira-locale__item:hover {
+  background-color: var(--color-bg-subtle);
+  text-decoration: none;
+}
+
+#kc-current-locale-link {
+  border: 0;
+  background: none;
+  color: var(--color-fg-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.akira-hidden {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

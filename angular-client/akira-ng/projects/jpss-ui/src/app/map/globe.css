@@ -79,10 +79,69 @@
   background-color: rgb(120 160 210 / 14%);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .jpss-globe__canvas,
-  .jpss-globe__attribution {
-    transition: none;
+/* MapLibre's zoom cluster is ~31px wide — under any touch guidance — and pinch
+   and double-tap already do the job on a phone. Hidden rather than enlarged:
+   the globe wants the space more than the buttons do. */
+@media (max-width: 639px) {
+  .jpss-globe .maplibregl-ctrl-bottom-right {
+    display: none;
   }
 }
 
+
+
+/* A focus pull, not a fade: the basemap is defocused for the length of a camera
+   flight and resolves once every tile for the destination is in. Scoped to the
+   MapLibre canvas alone — deck draws to its own canvas (interleaved: false), so
+   the sticker marks stay sharp and the ground comes into focus behind them.
+
+   The slight scale-up hides the soft edge blur() leaves at the element bounds,
+   which would otherwise read as a dark vignette against the container. It is on
+   the canvas, not the container MapLibre measures pointers against, so hit
+   testing is untouched. */
+.jpss-globe__canvas .maplibregl-canvas {
+  /* blur(0) rather than `none`, so removing the defocus classes has a matching value to
+     transition *from* when the keyframes stop filling. */
+  filter: blur(0) saturate(1);
+  transform: scale(1);
+  transition:
+    filter 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: filter;
+}
+
+/* A pull rather than a hold. Defocus hard on departure — that is where the
+   ground changes fastest and where tiles are missing outright — then gather
+   focus across the flight, so the globe can still be seen turning underneath.
+   The flight ends on a slight softness rather than zero; dropping both classes
+   on `idle` resolves that last step, timed to the moment the final tile is in.
+
+   Three states rather than keyframes: a transition cannot interpolate out of a
+   forwards-filled animation, so the resolve would snap. See SettlePhase. */
+.jpss-globe__canvas--defocus-deep .maplibregl-canvas {
+  filter: blur(8px) saturate(0.85);
+  transform: scale(1.05);
+  transition-duration: 220ms;
+}
+
+.jpss-globe__canvas--defocus-cruise .maplibregl-canvas {
+  filter: blur(2px) saturate(0.96);
+  transform: scale(1.012);
+  transition-duration: 1500ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jpss-globe__canvas,
+  .jpss-globe__attribution,
+  .jpss-globe__canvas .maplibregl-canvas {
+    transition: none;
+  }
+
+  /* beginSettle() already returns early under reduced motion; this is the
+     belt-and-braces guard for a preference that changes mid-flight. */
+  .jpss-globe__canvas--defocus-deep .maplibregl-canvas,
+  .jpss-globe__canvas--defocus-cruise .maplibregl-canvas {
+    filter: none;
+    transform: none;
+  }
+}

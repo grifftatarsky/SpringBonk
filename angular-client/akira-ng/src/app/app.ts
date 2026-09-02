@@ -40,6 +40,9 @@ type NavGroup = Readonly<{
 
 type ThemePreference = 'system' | 'light' | 'dark';
 
+/** Must track `--color-bg` in styles.css and the metas in index.html. */
+const THEME_COLOUR = { light: '#ffffff', dark: '#0a0a0b' } as const;
+
 @Component({
   selector: 'app-root',
   imports: [
@@ -150,6 +153,22 @@ export class App {
     }
     const useDarkTheme = preference === 'dark' || (preference === 'system' && systemPrefersDark);
     root.classList.toggle('dark', useDarkTheme);
+    this.applyBrowserChromeColour(useDarkTheme);
+  }
+
+  /**
+   * iOS Safari (and Chrome on Android) tint the browser chrome — the status bar
+   * behind the notch or Dynamic Island, and the bottom toolbar — from
+   * `<meta name="theme-color">`. The two tags in index.html carry
+   * `media="(prefers-color-scheme: ...)"` so the chrome is already right on the
+   * first paint, before this runs. But a media query cannot see a *manual*
+   * theme choice, so once the preference resolves we write the same colour into
+   * both tags: whichever one Safari matches then yields the same answer.
+   */
+  private applyBrowserChromeColour(useDarkTheme: boolean): void {
+    const colour = useDarkTheme ? THEME_COLOUR.dark : THEME_COLOUR.light;
+    const tags = this.document?.head?.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+    tags?.forEach((tag) => tag.setAttribute('content', colour));
   }
 
   // region Mobile Menu

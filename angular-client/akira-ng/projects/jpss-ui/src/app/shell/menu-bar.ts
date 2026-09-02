@@ -45,8 +45,8 @@ import type { Sticker } from '../stickers/sticker.models';
         @if (!authChecked()) {
           <span class="px-3 py-1 text-sm text-fg-subtle">Checking…</span>
         } @else if (username(); as name) {
-          <span class="max-w-[9rem] truncate px-3 py-1 text-sm text-fg">
-            Welcome, <span class="font-semibold">{{ name }}</span>
+          <span class="max-w-[7rem] truncate px-3 py-1 text-sm text-fg sm:max-w-[9rem]">
+            <span class="hidden sm:inline">Welcome, </span><span class="font-semibold">{{ name }}</span>
           </span>
         } @else {
           <button
@@ -59,7 +59,7 @@ import type { Sticker } from '../stickers/sticker.models';
 
         <button
           type="button"
-          class="grid size-8 shrink-0 place-items-center rounded-full text-fg transition-colors hover:bg-bg-subtle"
+          class="grid size-10 shrink-0 place-items-center rounded-full text-fg transition-colors hover:bg-bg-subtle sm:size-8"
           aria-haspopup="menu"
           aria-label="Globe tools"
           [attr.aria-expanded]="open()"
@@ -85,7 +85,7 @@ import type { Sticker } from '../stickers/sticker.models';
                 <button
                   type="button"
                   role="menuitem"
-                  class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-fg transition-colors hover:bg-bg-subtle"
+                  class="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-fg transition-colors hover:bg-bg-subtle sm:min-h-0"
                   (click)="pick(addSticker)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                        stroke-linecap="round" stroke-linejoin="round" class="size-4 text-accent" aria-hidden="true">
@@ -97,7 +97,7 @@ import type { Sticker } from '../stickers/sticker.models';
                 <button
                   type="button"
                   role="menuitem"
-                  class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-fg transition-colors hover:bg-bg-subtle"
+                  class="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-fg transition-colors hover:bg-bg-subtle sm:min-h-0"
                   (click)="pick(login)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                        stroke-linecap="round" stroke-linejoin="round" class="size-4 text-accent" aria-hidden="true">
@@ -110,7 +110,7 @@ import type { Sticker } from '../stickers/sticker.models';
               <button
                 type="button"
                 role="menuitemcheckbox"
-                class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-fg transition-colors hover:bg-bg-subtle"
+                class="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-fg transition-colors hover:bg-bg-subtle sm:min-h-0"
                 [attr.aria-checked]="spinning()"
                 (click)="toggleSpin.emit()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -139,7 +139,7 @@ import type { Sticker } from '../stickers/sticker.models';
                         <button
                           type="button"
                           role="menuitem"
-                          class="flex w-full items-baseline justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-bg-subtle"
+                          class="flex min-h-11 w-full items-baseline justify-between gap-3 rounded-lg px-2.5 py-2.5 text-left transition-colors hover:bg-bg-subtle sm:min-h-0 sm:py-1.5"
                           (click)="choose(sticker)">
                           <span class="min-w-0 flex-1 truncate text-sm text-fg">
                             {{ sticker.place || sticker.comment }}
@@ -162,7 +162,7 @@ import type { Sticker } from '../stickers/sticker.models';
                   Basemap
                 </span>
                 <select
-                  class="mt-1.5 w-full rounded-md border border-rule bg-bg-subtle px-2 py-1.5 text-sm text-fg"
+                  class="mt-1.5 min-h-11 w-full rounded-md border border-rule bg-bg-subtle px-2 py-1.5 text-sm text-fg sm:min-h-0"
                   [value]="basemap()"
                   (change)="onBasemap($event)">
                   @for (option of basemaps; track option.id) {
@@ -182,13 +182,13 @@ import type { Sticker } from '../stickers/sticker.models';
               <div class="mt-1.5 grid gap-0.5">
                 @for (group of groups; track group.id) {
                   <label
-                    class="flex cursor-pointer items-center gap-2.5 rounded-md px-1 py-1 text-sm transition-colors hover:bg-bg-subtle"
+                    class="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-md px-1 py-1 text-sm transition-colors hover:bg-bg-subtle sm:min-h-0"
                     [class.cursor-default]="!countOf(group.id)"
                     [class.opacity-50]="!countOf(group.id)"
                     [title]="group.hint">
                     <input
                       type="checkbox"
-                      class="size-3.5 accent-accent"
+                      class="size-4 accent-accent sm:size-3.5"
                       [checked]="visibility()[group.id]"
                       [disabled]="!countOf(group.id)"
                       (change)="toggleGroup.emit(group.id)" />
@@ -207,7 +207,7 @@ import type { Sticker } from '../stickers/sticker.models';
                 <button
                   type="button"
                   role="menuitem"
-                  class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg"
+                  class="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg sm:min-h-0"
                   (click)="pick(logout)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                        stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
