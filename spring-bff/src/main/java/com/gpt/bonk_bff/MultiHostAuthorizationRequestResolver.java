@@ -3,6 +3,7 @@ package com.gpt.bonk_bff;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.client.SpringAddonsServerOAuth2AuthorizationRequestResolver;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -78,7 +79,16 @@ public class MultiHostAuthorizationRequestResolver {
     final Set<String> allowed = allowedOrigins.stream()
         .map(String::trim)
         .filter(s -> !s.isEmpty())
-        .map(MultiHostAuthorizationRequestResolver::normalize)
+        .map(origin -> {
+          final var normalized = normalize(origin);
+          if (normalized == null) {
+            // Misconfiguration, not user input: fail the boot rather than start
+            // with a silently smaller allowlist than the operator intended.
+            throw new IllegalStateException(
+                "bff.allowed-client-origins contains an unparseable origin: " + origin);
+          }
+          return normalized;
+        })
         .collect(Collectors.toUnmodifiableSet());
 
     if (allowed.isEmpty()) {
@@ -90,16 +100,32 @@ public class MultiHostAuthorizationRequestResolver {
     return new ForwardedOriginResolver(delegate, allowed);
   }
 
-  /** Scheme + authority only, lower-cased, no trailing slash — the comparison key. */
+  /**
+   * Scheme + authority only, lower-cased — the comparison key. Null when the
+   * input is not a parseable origin.
+   *
+   * <p>The value reaching this from a request header is attacker-influenced and
+   * need not be a URI at all, so a parse failure is an expected input rather
+   * than an exceptional one: it returns null and the caller falls back to
+   * client-uri. Letting it throw turned a junk header into an unauthenticated
+   * 500 on the login endpoint.
+   */
   private static String normalize(String origin) {
-    final var uri = URI.create(origin);
-    return UriComponentsBuilder.newInstance()
-        .scheme(uri.getScheme())
-        .host(uri.getHost())
-        .port(uri.getPort())
-        .build()
-        .toUriString()
-        .toLowerCase();
+    try {
+      final var uri = new URI(origin);
+      if (uri.getScheme() == null || uri.getHost() == null) {
+        return null;
+      }
+      return UriComponentsBuilder.newInstance()
+          .scheme(uri.getScheme())
+          .host(uri.getHost())
+          .port(uri.getPort())
+          .build()
+          .toUriString()
+          .toLowerCase();
+    } catch (URISyntaxException | IllegalArgumentException e) {
+      return null;
+    }
   }
 
   record ForwardedOriginResolver(
