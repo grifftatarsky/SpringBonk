@@ -43,6 +43,13 @@ server:
         secure: ${COOKIE_SECURE:false}      # HTTPS only in production
         http-only: ${COOKIE_HTTP_ONLY:true} # Prevent JavaScript access
         same-site: ${COOKIE_SAME_SITE:lax}  # Safari compatibility + CSRF protection
+# Multi-domain logins ##############################################################################
+# Public origins this BFF is allowed to send a user back to after login. An
+# origin that is not listed falls back to client-uri, so a forged Host cannot
+# retarget the flow. Every entry must ALSO be registered on the Keycloak client
+# as a valid redirect URI — this list is the first of two gates, not the only one.
+bff:
+  allowed-client-origins: ${BFF_ALLOWED_ORIGINS:}
 # Security #########################################################################################
 spring:
   # Sticker photos (up to 8MB) are proxied to jpss-resource through this
@@ -133,6 +140,14 @@ com:
             - ${jps-prefix}/**
             - /login/**
             - /oauth2/**
+          # Guards against open redirect on post_login_success_uri /
+          # X-POST-LOGOUT-SUCCESS-URI. Defaults to "any path under client-uri",
+          # which would refuse a second domain, so both are named explicitly.
+          # The default reproduces the library's own (anything under the
+          # reverse proxy, plus relative URIs); prod overrides it to add the
+          # second domain.
+          post-login-allowed-uri-patterns: ${BFF_POST_LOGIN_PATTERNS:^${reverse-proxy-uri}(/.*)?$,^/.*$}
+          post-logout-allowed-uri-patterns: ${BFF_POST_LOGOUT_PATTERNS:^${reverse-proxy-uri}(/.*)?$,^/.*$}
           csrf: cookie-accessible-from-js
           oauth2-redirections:
             rp-initiated-logout: ACCEPTED

@@ -139,7 +139,12 @@ export class StickerService {
     const options = await firstValueFrom(this.http.get<LoginOption[]>(`${BFF}/login-options`));
     if (!options.length) return;
 
-    const url = new URL(options[0].loginUri, window.location.origin);
+    // The BFF builds loginUri from its own client-uri, so it always names the
+    // primary domain. Only the path is kept: the flow has to start on whichever
+    // host the browser is already on, or the session cookie is set somewhere the
+    // user is not. The BFF picks the matching redirect_uri from that request.
+    const { pathname, search } = new URL(options[0].loginUri, window.location.origin);
+    const url = new URL(pathname + search, window.location.origin);
     url.searchParams.append('post_login_success_uri', window.location.href);
     url.searchParams.append('post_login_failure_uri', `${window.location.origin}/login-error`);
     window.location.href = url.toString();

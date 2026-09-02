@@ -430,7 +430,7 @@
 							}
 						],
 						"styles": [
-							"projects/jpss-ui/src/styles.css"
+							"src/styles.css"
 						],
 						"polyfills": [
 							"es-module-shims"
