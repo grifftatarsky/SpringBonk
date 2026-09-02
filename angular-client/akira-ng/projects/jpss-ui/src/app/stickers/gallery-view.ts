@@ -78,7 +78,7 @@ type SortKey = 'newest' | 'oldest' | 'author';
           @for (sticker of page(); track sticker.id) {
             <li class="jpss-gallery__slide">
               <figure
-                class="flex h-full flex-col overflow-hidden rounded-xl border border-rule bg-bg">
+                class="relative flex h-full flex-col overflow-hidden rounded-xl border border-rule bg-bg">
                 <div class="relative min-h-0 flex-1 bg-bg-sunk">
                   <img
                     class="absolute inset-0 size-full cursor-zoom-in object-cover"
@@ -88,22 +88,67 @@ type SortKey = 'newest' | 'oldest' | 'author';
                     decoding="async"
                     (click)="open.emit(sticker)" />
                 </div>
-                <figcaption class="shrink-0 border-t border-rule px-3 py-2.5">
+
+                <!-- Fixed height, always two rows, whether or not there is a
+                     story to show. Cards that disagree about their caption
+                     height make the whole track look broken as it scrolls. -->
+                <figcaption
+                  class="jpss-gallery__bar flex shrink-0 flex-col justify-center gap-0.5 border-t border-rule px-3">
                   <p class="flex items-baseline justify-between gap-2 text-sm">
                     <span class="truncate font-semibold text-fg">{{ sticker.authorName }}</span>
                     <span class="shrink-0 text-xs text-fg-subtle">
                       {{ sticker.createdAt | date: 'mediumDate' }}
                     </span>
                   </p>
-                  @if (sticker.comment) {
-                    <p class="mt-1 line-clamp-2 text-xs leading-relaxed text-fg-muted">
-                      {{ sticker.comment }}
-                    </p>
-                  }
-                  <p class="mt-1.5 truncate font-mono text-[0.7rem] text-fg-subtle">
-                    {{ where(sticker) }}
+                  <p class="flex items-center justify-between gap-2">
+                    <span class="truncate font-mono text-[0.7rem] text-fg-subtle">
+                      {{ where(sticker) }}
+                    </span>
+                    @if (sticker.comment) {
+                      <button
+                        type="button"
+                        class="-mr-1 flex shrink-0 items-center gap-1 rounded px-1 py-0.5 text-[0.7rem] font-semibold text-accent transition-colors hover:bg-bg-subtle"
+                        [attr.aria-expanded]="expandedId() === sticker.id"
+                        (click)="toggle(sticker.id)">
+                        Story
+                        <svg viewBox="0 0 16 16" fill="currentColor" class="size-3" aria-hidden="true">
+                          <path d="M8 3.5a.75.75 0 0 1 .53.22l4 4a.75.75 0 1 1-1.06 1.06L8 5.31 4.53 8.78a.75.75 0 0 1-1.06-1.06l4-4A.75.75 0 0 1 8 3.5Z" />
+                        </svg>
+                      </button>
+                    }
                   </p>
                 </figcaption>
+
+                <!-- Slides up over the photo rather than growing the card, so
+                     the track never reflows while somebody is reading. -->
+                @if (sticker.comment; as story) {
+                  <div
+                    class="jpss-gallery__story absolute inset-0 flex flex-col bg-bg/95 backdrop-blur-md"
+                    [class.jpss-gallery__story--open]="expandedId() === sticker.id"
+                    [attr.aria-hidden]="expandedId() !== sticker.id">
+                    <div class="flex shrink-0 items-start justify-between gap-2 px-3 pt-3">
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-semibold text-fg">{{ sticker.authorName }}</p>
+                        <p class="truncate font-mono text-[0.7rem] text-fg-subtle">
+                          {{ where(sticker) }}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        class="-mr-1 -mt-1 grid size-9 shrink-0 place-items-center rounded-md text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg"
+                        aria-label="Close story"
+                        [attr.tabindex]="expandedId() === sticker.id ? null : -1"
+                        (click)="toggle(sticker.id)">
+                        <svg viewBox="0 0 16 16" fill="currentColor" class="size-3.5" aria-hidden="true">
+                          <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3">
+                      <p class="text-sm leading-relaxed whitespace-pre-wrap text-fg">{{ story }}</p>
+                    </div>
+                  </div>
+                }
               </figure>
             </li>
           }
@@ -177,6 +222,28 @@ type SortKey = 'newest' | 'oldest' | 'author';
       scroll-snap-align: center;
     }
 
+    /* One height for every caption, so the photos above them line up. */
+    .jpss-gallery__bar {
+      height: 3.75rem;
+    }
+
+    .jpss-gallery__story {
+      transform: translateY(100%);
+      visibility: hidden;
+      transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), visibility 260ms;
+    }
+
+    .jpss-gallery__story--open {
+      transform: translateY(0);
+      visibility: visible;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .jpss-gallery__story {
+        transition: none;
+      }
+    }
+
     @media (min-width: 640px) {
       .jpss-gallery__track {
         /* Centred and capped rather than stretched: a card that fills a desktop
@@ -211,6 +278,8 @@ export class GalleryView {
   protected readonly debounced = signal('');
   protected readonly sort = signal<SortKey>('newest');
   protected readonly pageIndex = signal(0);
+  /** Which card has its story slid up, if any. */
+  protected readonly expandedId = signal<string | null>(null);
 
   private timer?: number;
 
@@ -254,6 +323,7 @@ export class GalleryView {
   protected onQuery(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.query.set(value);
+    this.expandedId.set(null);
     window.clearTimeout(this.timer);
     this.timer = window.setTimeout(() => {
       this.debounced.set(value);
@@ -263,10 +333,16 @@ export class GalleryView {
 
   protected onSort(event: Event): void {
     this.sort.set((event.target as HTMLSelectElement).value as SortKey);
+    this.expandedId.set(null);
     this.pageIndex.set(0);
   }
 
+  protected toggle(id: string): void {
+    this.expandedId.update(open => (open === id ? null : id));
+  }
+
   protected step(by: number): void {
+    this.expandedId.set(null);
     this.pageIndex.update(i => Math.min(Math.max(0, i + by), this.pageCount() - 1));
   }
 

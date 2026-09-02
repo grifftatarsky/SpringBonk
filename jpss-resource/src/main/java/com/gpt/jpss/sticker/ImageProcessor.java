@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,8 +48,19 @@ public class ImageProcessor {
   /** Long edge of the stored display image. Anything larger is scaled down. */
   private static final int MAX_EDGE = 1600;
 
-  /** Long edge of the atlas tile the globe draws. Small on purpose — hundreds share one texture. */
-  private static final int THUMB_EDGE = 128;
+  /**
+   * Long edge of the small rendition.
+   *
+   * <p>Sized for the widest thing that actually renders it. A gallery card is at
+   * most 22rem across, which on the 3x phone screens this is built for is about
+   * 930 device pixels — so 960 renders it at roughly 1:1 rather than upscaling.
+   * It is still only a third of the display rendition's pixel count, which is
+   * the point of having two.
+   *
+   * <p>It was 128, chosen for an atlas the globe never ended up drawing photos
+   * into — the marks are vector glyphs — which left every gallery card soft.
+   */
+  private static final int THUMB_EDGE = 960;
 
   /** Ceiling on decoded pixels, checked from the header. 40MP is well past any phone camera. */
   private static final long MAX_PIXELS = 40_000_000L;
@@ -92,6 +104,43 @@ public class ImageProcessor {
     } finally {
       source.flush();
     }
+  }
+
+  /**
+   * Re-derives the small rendition from an already-stored display image.
+   *
+   * <p>Exists for the one-off thumbnail backfill: the original upload is not
+   * kept, but the display rendition is, and it is far larger than the thumbnail
+   * needs — so a better thumbnail can be produced without asking anyone to
+   * re-upload. No orientation or metadata work here, because the display
+   * rendition already went through {@link #process} and came out upright and
+   * stripped.
+   *
+   * <p>Safe to delete along with the backfill, unless {@link #THUMB_EDGE} is
+   * ever changed again, in which case this is how you would apply it.
+   */
+  public Thumbnail thumbnailFrom(byte[] display) {
+    BufferedImage source;
+    try {
+      source = ImageIO.read(new ByteArrayInputStream(display));
+    } catch (IOException e) {
+      throw new IllegalArgumentException("stored image could not be decoded", e);
+    }
+    if (source == null) {
+      throw new IllegalArgumentException("stored image could not be decoded");
+    }
+    try {
+      boolean transparent = source.getColorModel().hasAlpha();
+      return new Thumbnail(
+          encode(scaleToFit(source, THUMB_EDGE), transparent),
+          transparent ? "image/png" : "image/jpeg");
+    } finally {
+      source.flush();
+    }
+  }
+
+  /** A regenerated small rendition. */
+  public record Thumbnail(byte[] data, String contentType) {
   }
 
   private BufferedImage decode(MultipartFile file) {

@@ -31,7 +31,7 @@ class ImageProcessorTest {
     assertThat(processed.contentType()).isEqualTo("image/jpeg");
 
     var thumb = ImageIO.read(new java.io.ByteArrayInputStream(processed.thumbData()));
-    assertThat(Math.max(thumb.getWidth(), thumb.getHeight())).isEqualTo(128);
+    assertThat(Math.max(thumb.getWidth(), thumb.getHeight())).isEqualTo(960);
     assertThat(processed.thumbContentType()).isEqualTo("image/jpeg");
   }
 

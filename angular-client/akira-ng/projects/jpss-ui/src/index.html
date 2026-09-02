@@ -13,6 +13,34 @@
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)" />
   <meta name="color-scheme" content="light dark" />
+
+  <!-- Search results and link previews. Absolute URLs because scrapers do not
+       resolve relative ones, and this document is only ever served from
+       findjo.org — inside the host shell akira-ng's own index.html is used. -->
+  <meta name="description"
+        content="Find Jo, in sticker form, around the world!" />
+  <link rel="canonical" href="https://findjo.org/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Jo Peace Sticker Service" />
+  <meta property="og:title" content="Find Jo" />
+  <meta property="og:description"
+        content="Find Jo, in sticker form, around the world!" />
+  <meta property="og:url" content="https://findjo.org/" />
+  <meta property="og:image" content="https://findjo.org/og-preview.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="A dark globe with Jo Peace stickers pinned across it." />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Find Jo" />
+  <meta name="twitter:description"
+        content="Photos of the Jo Peace sticker, pinned wherever people found or placed one." />
+  <meta name="twitter:image" content="https://findjo.org/og-preview.png" />
+
+  <!-- The sticker itself, straight from the glyph the globe draws. -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 </head>
 <body>
   <app-root></app-root>

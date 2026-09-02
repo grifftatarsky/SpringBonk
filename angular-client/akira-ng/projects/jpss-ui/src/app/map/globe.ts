@@ -488,6 +488,17 @@ export class Globe {
     map.remove();
     this.map = undefined;
     this.overlay = undefined;
+
+    // Everything below describes the map that just died, and a resumed globe
+    // builds a new one. Leaving `patched` set was a real bug: onStyleData's
+    // guard saw the basemap as already patched, skipped setProjection, and the
+    // globe came back as flat Mercator. The classified layer ids belong to the
+    // old style object too, and the deck view has to start from the projection
+    // the fresh camera actually opens at.
+    this.patched = null;
+    this.groups = emptyStyleGroups();
+    this.deckView.set('globe');
+    this.ready.set(false);
   }
 
   private applyStyle(basemap: string): void {
