@@ -40,19 +40,28 @@
   }
 
   /* Outlook ignores this and lands on the bgcolor attribute instead, which is
-     the intended fallback: a flat wash rather than the app's gutter hatching. */
+     the intended fallback: a flat wash rather than the app's gutter hatching.
+
+     Deliberately weaker than akira.css, which uses --color-rule at a 10px tile.
+     In the app the hatch is gutter texture and nothing is ever set on top of
+     it; here the wordmark sits directly on it, and at the app's contrast the
+     lines won that fight. Lighter line, wider tile: same motif, but it reads as
+     paper grain rather than as stripes, and the realm name comes back. */
   .akira-hatch {
     background-color: #fafaf9;
     background-image: repeating-linear-gradient(
-      315deg, #e7e7e4 0, #e7e7e4 1px, transparent 0, transparent 50%);
-    background-size: 10px 10px;
+      315deg, #f2f2f0 0, #f2f2f0 1px, transparent 0, transparent 50%);
+    background-size: 16px 16px;
   }
 
   @media (prefers-color-scheme: dark) {
+    /* Dark needed this most: #1f1f23 on #0a0a0b was the loudest thing in the
+       message, louder than the card's own border. */
     .akira-hatch {
       background-color: #0a0a0b !important;
       background-image: repeating-linear-gradient(
-        315deg, #1f1f23 0, #1f1f23 1px, transparent 0, transparent 50%) !important;
+        315deg, #121215 0, #121215 1px, transparent 0, transparent 50%) !important;
+      background-size: 16px 16px !important;
     }
     .akira-body { background-color: #0a0a0b !important; }
     .akira-card { background-color: #0a0a0b !important; border-color: #1f1f23 !important; }
