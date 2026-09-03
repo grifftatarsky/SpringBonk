@@ -282,6 +282,8 @@ export class Globe {
   private groups: StyleGroups = emptyStyleGroups();
   /** The basemap whose per-style setup has already been applied. */
   private patched: string | null = null;
+  /** A map has been built once, so a later one is a resume rather than an entrance. */
+  private opened = false;
   /** The style actually handed to MapLibre — lags the input across a fade. */
   private readonly applied = signal<string | null>(null);
 
@@ -409,11 +411,22 @@ export class Globe {
 
   private create(): void {
     const basemap = this.basemap();
+    // Only the first map of the session gets the opening shot, and only if the
+    // settle is going to run at all — see the `zoom` note below.
+    const intro = !this.opened && this.spinning();
+    this.opened = true;
     const map = new maplibregl.Map({
       container: this.container().nativeElement,
       style: styleFor(basemap),
       center: INITIAL_VIEW.center,
-      zoom: INITIAL_VIEW.zoom,
+      // The wide opening shot is an intro, and an intro plays once. It only
+      // reads as one because the settle animation immediately pulls it back to
+      // the resting zoom — so without that animation it is not a flourish, it
+      // is just the globe being too close. Two ways that happened: coming back
+      // from the gallery after opening a sticker, which turns spin off, and
+      // reduced-motion, where it never starts. Both landed on a globe wound in
+      // to 2.2 with nothing left to pull it out.
+      zoom: intro ? INITIAL_VIEW.zoom : restingZoom(),
       pitch: INITIAL_VIEW.pitch,
       bearing: INITIAL_VIEW.bearing,
       // The globe interpolates itself into Mercator around z11-12, so one camera
@@ -443,6 +456,9 @@ export class Globe {
     // Overlaid also means a basemap style swap cannot delete deck's layers.
     this.overlay = new MapLibreOverlay({
       interleaved: false,
+      // Must be layers built for *this* Deck: a descriptor cannot outlive the
+      // Deck it was handed to. The shell rebuilds them whenever the globe
+      // suspends, which is what makes that true — see `layers` in JpssPage.
       layers: this.layers(),
       views: VIEWS.globe,
       // Phones report a device pixel ratio of 3, which is 2.25x the fragments of

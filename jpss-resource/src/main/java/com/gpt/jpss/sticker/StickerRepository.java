@@ -1,6 +1,7 @@
 package com.gpt.jpss.sticker;
 
 import com.gpt.jpss.sticker.model.Sticker;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,4 +19,10 @@ public interface StickerRepository extends JpaRepository<Sticker, UUID> {
    */
   @Query("select s from Sticker s join fetch s.author order by s.createdAt desc")
   List<Sticker> wall();
+
+  /** Total stickers by one author, for the per-user cap. */
+  long countByAuthorId(UUID authorId);
+
+  /** Stickers one author has posted since a moment, for the rolling window. */
+  long countByAuthorIdAndCreatedAtAfter(UUID authorId, Instant since);
 }

@@ -1,1 +1,17 @@
 reverse-proxy-uri: ${reverse-proxy-scheme}://${reverse-proxy-container-name}
+
+# API documentation ################################################################################
+# Off in production. The services warn about this at startup, and `/v3/api-docs`
+# answered 200 to anyone who could reach the port.
+#
+# Disabling beats removing the permit-all entries, which is what PLANNED_WORK #3
+# originally proposed: a path that does not exist cannot be exposed by a routing
+# mistake, whereas a path that merely requires a token is one misconfigured
+# gateway route away from being readable. The permit-all entries stay in the
+# base config so Swagger UI still works locally, where it is useful and where
+# there is nothing to protect — in prod they match nothing.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

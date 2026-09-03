@@ -8,36 +8,94 @@ Bugs and papercuts live in `KNOWN_ISSUES.md`. This file is for accepted debt.
 
 ---
 
-## 1. Move JPSS image storage to MongoDB, and add a per-user rate limit
+## 1. Get JPSS image bytes off the volume Keycloak lives on
 
 **Today.** `jpss-resource` stores both renditions of every photo as `BYTEA` in
-the `sticker_image` table: a display image capped at 1600px on the long edge and
-a 128px atlas tile. Uploads are capped at 8MB each. There is no per-user quota
-and no rate limit — an authenticated user can post photos indefinitely.
+`sticker_image`: a display image capped at 1600px on the long edge and a 960px
+thumbnail. Uploads are capped at 8MB each.
 
-**Why it is fine for now.** Posting requires a Keycloak session, and the realm is
-people we know. The blast radius of abuse is a conversation, not an incident.
+**The per-user rate limit is done.** `StickerService` enforces a 250-sticker cap
+and a rolling 15-uploads-per-hour window before `ImageProcessor` runs, so a
+rejected upload costs a row count rather than a decode
+(`jpss.limits.stickers-per-user`, `.uploads-per-window`, `.window`). That was
+half of this item; the storage half is what is left, and the limit is what buys
+the time to do it properly — growth is now bounded rather than open-ended:
 
-**What makes it urgent.** Two triggers, either one on its own:
+| | display+thumb |
+|---|---|
+| one user at the cap | 76 – 161 MB |
+| 10 users at the cap | 0.7 – 1.6 GB |
+| 50 users at the cap | 3.7 – 8.1 GB |
 
-- **Open or widened signup.** The moment an account is cheap to obtain, unbounded
-  upload becomes an unbounded write primitive.
-- **Disk pressure on the Postgres volume.** `jps-db` shares `postgres_data` with
-  Keycloak's `auth-db`. Filling that volume does not degrade stickers — it takes
-  down authentication for every service in the stack. That coupling is the real
-  reason this is on the list.
+**What makes it urgent.** One trigger, and it is not size on its own: all seven
+databases live in a single `postgres:18.6` container on one `postgres_data`
+volume, and `auth-db` is Keycloak's. Filling that volume does not degrade
+stickers — it takes down authentication for every service in the stack. The
+coupling is the problem. Read the table above as "how many users before the
+shared volume is at risk", not as a storage bill.
 
-Watch it with the storage query in the deploy notes
-(`pg_total_relation_size('sticker_image')`).
+### The decision: not MongoDB
 
-**What it becomes.** A MongoDB container holding the image bytes, with
-`sticker_image` reduced to a reference (id, content type, dimensions) or dropped
-entirely. Plus a per-user rate limit — a sticker count cap and a rolling upload
-window — enforced in `StickerService` before `ImageProcessor` runs, so a rejected
-upload costs a row lookup rather than a decode.
+Mongo was the standing plan here and it is the wrong tool, for reasons that only
+became clear once the requirement was written down plainly: **we want to fetch an
+opaque byte array by UUID.** That is the one workload a document database has no
+advantage in. Mongo earns its keep on rich, queryable, schema-flexible
+*documents*; ours would be a `_id` and a `BinData`, which is a key-value store
+with a query planner attached.
 
-Do both together: the quota is what stops the new store filling up, and the new
-store is what stops the quota being about Postgres.
+What it would cost, specifically:
+
+- **A hardware gate.** MongoDB 5.0 and later require **ARMv8.2-A** on arm64. The
+  Pi 4's Cortex-A72 is ARMv8.0-A, so every 5.x/6.x/7.x/8.x build dies with
+  `Illegal instruction (core dumped)` — not a config problem, an unsupported
+  instruction set. Pi 5 (Cortex-A76) is ARMv8.2-A and is fine. **If this is a
+  Pi 4, the option does not exist** short of pinning 4.4.18 or building from
+  source with `-march=armv8-a`, neither of which is a thing to run in 2026.
+- **Memory on a box that has none spare.** WiredTiger's default cache is half of
+  RAM minus 1GB. Alongside Postgres, Keycloak and five Spring JVMs that has to
+  be pinned with `--wiredTigerCacheSizeGB` or it will win the OOM fight.
+- **A second engine to back up, monitor and upgrade**, for bytes that need
+  neither queries nor indexes.
+- **It does not avoid the consistency problem.** Bytes outside Postgres means a
+  sticker row and its image can no longer be written or deleted in one
+  transaction, so you need orphan cleanup and a reconciliation story. Every
+  non-Postgres option below pays this; Mongo is not cheaper for paying it.
+- GridFS is not needed either way — our images are far under the 16MB BSON
+  limit, so plain `BinData` would do. Worth saying because reaching for GridFS
+  reflexively is the usual mistake.
+
+### What to do instead, in order
+
+**Now — a second Postgres instance for `jps-db`.** This fixes the *stated*
+problem, which is volume coupling, not Postgres's fitness for blobs. One compose
+service with its own volume, one `JPS_DATASOURCE_URL` change, **zero code**.
+Keeps the image write inside the same transaction as the sticker row, keeps one
+backup tool, keeps one thing to learn. Nothing above can fill Keycloak's disk
+any more, which was the entire point.
+
+**Later, if bytes outgrow the Pi's disk or its upstream link — object storage.**
+The trigger to watch is bandwidth, not gigabytes: serving 400kB photos from a
+home connection is the constraint that will actually bite first, and no local
+store fixes it. At that point the honest answer is a hosted bucket with a CDN in
+front — **Cloudflare R2** (zero egress fees) or Backblaze B2 — because getting
+photo traffic off the home uplink is the whole win. If it must stay in the
+house, **Garage** is the right shape: a single Rust binary and a config file,
+built for exactly this scale. Note that **MinIO is now a trap** — the admin UI
+was stripped from Community Edition in 2025 and the project entered maintenance
+mode in December 2025.
+
+**Not the filesystem.** It is the cheapest option and it does work, but it trades
+one shared-volume coupling for another and gives up atomic delete, and the
+compose bind-mount would need care to survive a container rebuild. If the second
+Postgres is rejected, this is the fallback, not the first choice.
+
+**Already done, unconditionally.** Changeset `004` sets both blob columns to
+`STORAGE EXTERNAL`. `bytea` defaults to `EXTENDED`, which runs a compression
+pass over every value; JPEG is already entropy coded, so that pass reliably
+saves nothing and we were paying the CPU for it on a Pi. This is a win under
+every option above and is independent of all of them.
+
+Watch it with `pg_total_relation_size('sticker_image')` from the deploy notes.
 
 ---
 
@@ -75,37 +133,39 @@ long way off — likely tens of thousands of stickers.
 
 ---
 
-## 3. Put every Swagger UI and OpenAPI doc behind the gateway and Keycloak
+## 3. OpenAPI docs — locked down in prod; decide if the team ever needs them
 
-**Today.** All five services list these in `resourceserver.permit-all`:
+**Done, differently from the original plan.** All four resource servers
+(`jpss-resource`, `spring-ooze`, `spring-resource`, `spring-decks`) now set the
+following in `application-prod.yml`:
 
 ```yaml
-- /swagger-ui*/**
-- /v3/api-docs*/**
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 ```
 
-`GET /v3/api-docs` returns `200` unauthenticated. In prod the services are only
-reachable through nginx and the BFF, so this is not publicly exposed *today* —
-but it is one routing change away from being so, and the permit-all entry is
-what would make that change silent.
+Verified: under `--spring.profiles.active=prod`, `/v3/api-docs` and
+`/swagger-ui.html` both return **404**, and the startup warning about the docs
+endpoint being enabled is gone. Without the profile they still return 200, so
+local Swagger UI is untouched.
 
-**Why it is fine for now.** No nginx location proxies to the doc paths, so
-nothing outside the compose network can reach them.
+**Why disabling beat the original "drop the permit-all entries".** The plan was
+to remove `/swagger-ui*/**` and `/v3/api-docs*/**` from every `permit-all` list
+so the docs would require a bearer token. Disabling is the stronger control: a
+path that does not exist cannot be exposed by a routing mistake, whereas a path
+that merely wants a token is one misconfigured gateway route from being
+readable. It also costs nothing in dev, where token-gating Swagger UI is pure
+friction and there is nothing to protect. **The permit-all entries were
+deliberately left in place** — in prod they now match nothing.
 
-**What makes it urgent.** Any of: publishing a service port, adding a route that
-happens to cover `/v3/api-docs`, or wanting the docs available to the team
-without an SSH tunnel — that last one is the likely trigger, and it is exactly
-when the wrong fix (widen permit-all) is most tempting.
-
-**What it becomes.** Drop both entries from every service's permit-all so the
-docs require a bearer token like any other endpoint, then expose them
-deliberately through the BFF — a gateway route under a prefix, with `TokenRelay`
-so a signed-in session reaches them. Docs then follow the same auth as the API
-they describe, and there is one place to revoke access.
-
-Consider `springdoc.api-docs.enabled` / `springdoc.swagger-ui.enabled` set to
-`false` under the `prod` profile as the belt-and-braces version — the services
-already warn about this at startup.
+**What is left, and it is a question rather than a task.** The docs are now
+unreachable in prod by anyone, including us. If the team ever wants them there,
+the fix is a BFF gateway route with `TokenRelay` and flipping `enabled` back on
+for that service — **not** widening `permit-all`, which is the tempting wrong
+answer and the reason this entry stays in the file.
 
 ---
 
@@ -262,3 +322,50 @@ matching is exact string comparison, so you would need an `ops` entry per realm
 **What makes it urgent.** findjo.org wanting its own signups (realm), or
 deciding the akira client secret leaking should not take findjo.org with it
 (client). Neither is true today.
+
+---
+
+## 7. Put Redis in front of the resource servers
+
+**Today.** There is **no caching layer anywhere in the stack.** Not in
+`jpss-resource`, not in `spring-ooze`, `spring-resource` or `spring-decks`.
+Every read is a round trip to Postgres, every time. Spring's cache abstraction
+is not wired up in any service — there is no `@EnableCaching`, no cache manager,
+and therefore not even an in-process fallback.
+
+**Why it is fine for now.** The read volume is a handful of people and Postgres
+on the Pi is not breathing hard. Nothing is slow because of this yet.
+
+**What makes it urgent.** The first one of these to happen:
+
+- **The globe's wall query.** `GET /jps/stickers` is unpaginated by design (see
+  item 2 — we *want* every point resident) and every visitor runs it on load.
+  It is the most cacheable request in the system: identical for everyone, and
+  only invalidated when someone posts or deletes. Today each page load is a full
+  table scan's worth of work.
+- **Image bytes.** Already served with a week-long `Cache-Control` and an ETag,
+  so browsers and any CDN handle repeats — but a cold client still pulls
+  hundreds of kB through Postgres and the JVM. This one gets *more* interesting,
+  not less, if item 1 moves the bytes to a second store.
+- **Keycloak user lookups.** `keycloak_user` is read on essentially every
+  authenticated request to resolve `sub` to a local row. Small, hot, almost
+  never changes — the textbook cache entry.
+
+**What it becomes.** A Redis container on the compose network, one
+`spring-boot-starter-data-redis` dependency and `@EnableCaching` per service,
+with `@Cacheable`/`@CacheEvict` on the three cases above. Namespace the keys per
+service (`jpss:`, `ooze:`, …) so one Redis can serve all four without them
+colliding; a shared instance is right at this size and the prefix is what keeps
+that from becoming a mistake.
+
+**Do the easy version first.** If a single Redis is unwelcome operationally,
+`@EnableCaching` with the default in-process `ConcurrentMapCacheManager` gets
+most of the win for one annotation and zero infrastructure — each service caches
+its own hot reads in heap. That is strictly worse across restarts and cannot be
+shared or invalidated across services, so it is a step rather than the answer,
+but it is a cheap step and it makes the `@Cacheable` placement work reusable.
+
+**Sequencing note.** Redis is also the natural home for the rate-limit counters
+in item 1, which today are `count(*)` queries against `sticker`. Not a reason to
+do it sooner — the counts are cheap and correctness matters more than speed
+there — but if Redis lands, that is the second thing to move onto it.

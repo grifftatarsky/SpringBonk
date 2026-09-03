@@ -1,9 +1,11 @@
+import { Theme } from '../shared/theme';
 import { stickerLabel } from '../stickers/sticker.models';
 import {
   ChangeDetectionStrategy,
   Component,
-  HostListener,
   computed,
+  HostListener,
+  inject,
   input,
   output,
   signal,
@@ -158,6 +160,33 @@ import type { Sticker } from '../stickers/sticker.models';
                 Browse as a gallery
               </button>
 
+              <!-- Standalone only. Inside the host shell the header already has
+                   a theme control, and two switches for one preference is worse
+                   than one in the wrong place. -->
+              @if (theme.standalone) {
+                <button
+                  type="button"
+                  role="menuitemcheckbox"
+                  class="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-fg transition-colors hover:bg-bg-subtle sm:min-h-0"
+                  [attr.aria-checked]="theme.dark()"
+                  (click)="theme.toggle()">
+                  @if (theme.dark()) {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" stroke-linejoin="round" class="size-4 text-fg-muted" aria-hidden="true">
+                      <circle cx="12" cy="12" r="4" />
+                      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+                    </svg>
+                    Light mode
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" stroke-linejoin="round" class="size-4 text-fg-muted" aria-hidden="true">
+                      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+                    </svg>
+                    Dark mode
+                  }
+                </button>
+              }
+
               <!-- Signed in only: there is nobody to reply to otherwise. -->
               @if (signedIn()) {
                 <button
@@ -276,6 +305,7 @@ import type { Sticker } from '../stickers/sticker.models';
   `,
 })
 export class MenuBar {
+  protected readonly theme = inject(Theme);
   protected readonly label = stickerLabel;
 
   readonly authChecked = input(false);

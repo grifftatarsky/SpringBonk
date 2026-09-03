@@ -1,0 +1,38 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 004 — stop Postgres compressing JPEGs.
+  #
+  # `bytea` defaults to EXTENDED storage, which means every write runs the
+  # value through the column's compression method before pushing it out to the
+  # TOAST table. Our two blob columns hold JPEG, which is already entropy
+  # coded: the pass reliably fails to find a saving, and Postgres stores the
+  # original anyway. We pay the CPU and keep the same bytes.
+  #
+  # EXTERNAL keeps the out-of-line storage and skips only the compression
+  # attempt. On a Raspberry Pi that CPU is worth having back, and it also makes
+  # range reads on the value cheaper, since an uncompressed TOAST value can be
+  # fetched in slices rather than reassembled whole.
+  #
+  # Note this changes new writes only — existing rows keep whatever they were
+  # stored as until they are next rewritten. With ~0% compression achieved on
+  # JPEG, that difference is not worth a rewrite.
+  # ==========================================================================
+  - changeSet:
+      id: 004-image-storage-external
+      author: jpss
+      # SET STORAGE is idempotent and there is no Liquibase abstraction for it,
+      # so this is raw SQL with no rollback beyond restoring the default.
+      changes:
+        - sql:
+            dbms: postgresql
+            sql: >-
+              ALTER TABLE sticker_image
+                ALTER COLUMN data SET STORAGE EXTERNAL,
+                ALTER COLUMN thumb_data SET STORAGE EXTERNAL;
+      rollback:
+        - sql:
+            dbms: postgresql
+            sql: >-
+              ALTER TABLE sticker_image
+                ALTER COLUMN data SET STORAGE EXTENDED,
+                ALTER COLUMN thumb_data SET STORAGE EXTENDED;

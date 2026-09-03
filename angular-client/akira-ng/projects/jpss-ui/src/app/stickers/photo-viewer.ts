@@ -20,6 +20,11 @@ const DOUBLE_TAP_SCALE = 2.5;
 /**
  * The photo, as large as the viewport allows, with zoom and pan.
  *
+ * The scrim is dark in both themes rather than derived from the foreground
+ * token, which inverts: in dark mode that painted a near-white sheet over the
+ * photo. A picture is looked at against a dark ground either way; only the
+ * depth of it changes with the theme.
+ *
  * Deliberately does not close on a click anywhere on the image or the backdrop.
  * The whole point of opening it is to look closely, which means dragging and
  * pinching — and a drag that ends on the backdrop would otherwise dismiss the
@@ -31,7 +36,7 @@ const DOUBLE_TAP_SCALE = 2.5;
   host: { class: 'contents' },
   template: `
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-fg/80 backdrop-blur-md"
+      class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#101114db] dark:bg-[#040507e6] backdrop-blur-md"
       role="dialog"
       aria-modal="true"
       [attr.aria-label]="alt()">
@@ -56,6 +61,26 @@ const DOUBLE_TAP_SCALE = 2.5;
           draggable="false" />
       </div>
 
+      <!-- Same-origin, so the download attribute is honoured and names the file
+           rather than opening it in a tab. -->
+      <a
+        class="absolute right-16 top-3 grid size-11 place-items-center rounded-full bg-bg/40 text-fg backdrop-blur-sm transition hover:bg-bg/70 sm:right-14 sm:size-9"
+        [href]="src()"
+        [attr.download]="filename()"
+        aria-label="Download this photo">
+        <svg
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="size-4"
+          aria-hidden="true">
+          <path d="M8 2v8m0 0 3-3m-3 3L5 7M2.5 11.5v1a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-1" />
+        </svg>
+      </a>
+
       <button
         type="button"
         class="absolute right-3 top-3 grid size-11 place-items-center rounded-full bg-bg/40 text-fg backdrop-blur-sm transition hover:bg-bg/70 sm:size-9"
@@ -72,6 +97,8 @@ const DOUBLE_TAP_SCALE = 2.5;
 export class PhotoViewer {
   readonly src = input.required<string>();
   readonly alt = input('');
+  /** What the saved file is called. Composed by the parent, which has the sticker. */
+  readonly filename = input('sticker.jpg');
 
   readonly close = output<void>();
 

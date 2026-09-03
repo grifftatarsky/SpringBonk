@@ -18,6 +18,20 @@ server:
   port: ${PORT_JPS:7087}
 # Spring Properties ################################################################################
 spring:
+  mvc:
+    # RFC 7807. Without this a ResponseStatusException renders as
+    # {status, error, path} and the reason is dropped, so every deliberate
+    # message — "That sticker belongs to someone else", "You have reached the
+    # limit of N stickers" — reached the client as a bare status code and the UI
+    # fell back to generic text.
+    #
+    # Safe to expose: the reasons are hand-written strings meant for the person
+    # reading them. Unhandled exceptions still render a generic detail rather
+    # than a stack trace, which is what `include-message: always` would have
+    # risked.
+    problemdetails:
+      enabled: true
+
   application:
     name: Jo Peace Sticker Service
   devtools:

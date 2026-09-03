@@ -6,7 +6,7 @@
     [visibility]="visibility()"
     [spinning]="spinning()"
     [picking]="picking()"
-    [suspended]="view() === 'gallery'"
+    [suspended]="globeSuspended()"
     (globeClick)="onGlobeClick($event)"
     (spinStop)="spinning.set(false)"
     (groupSizes)="groupSizes.set($event)"
@@ -148,6 +148,7 @@
     <jpss-photo-viewer
       [src]="stickers.imageUrl(sticker)"
       [alt]="'Sticker by ' + sticker.authorName"
+      [filename]="downloadName(sticker)"
       (close)="viewingPhoto.set(null)" />
   }
 

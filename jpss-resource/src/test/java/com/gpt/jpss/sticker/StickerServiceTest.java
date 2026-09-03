@@ -3,6 +3,7 @@ package com.gpt.jpss.sticker;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,6 +23,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -42,12 +46,13 @@ class StickerServiceTest {
 
   @InjectMocks private StickerService service;
 
+  private KeycloakUser owner;
   private Sticker sticker;
   private UUID stickerId;
 
   @BeforeEach
   void setUp() throws Exception {
-    var owner = new KeycloakUser(OWNER, "jo", Instant.now());
+    owner = new KeycloakUser(OWNER, "jo", Instant.now());
     sticker = new Sticker(owner, 40.7, -74.0, "hello", null);
     stickerId = UUID.randomUUID();
     setId(sticker, stickerId);
@@ -230,5 +235,79 @@ class StickerServiceTest {
 
   private static Caller moderator(java.util.UUID id) {
     return new Caller(id, true);
+  }
+
+  @Test
+  void refusesAnUploadOnceTheCapIsReachedWithoutTouchingTheImage() {
+    ReflectionTestUtils.setField(service, "maxPerUser", 3);
+    when(stickers.countByAuthorId(OWNER)).thenReturn(3L);
+
+    assertThatThrownBy(() -> service.create(owner, edit(), upload()))
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+        .isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+
+    // The whole point of checking first: a rejected upload must not cost a
+    // decode and a re-encode of an 8MB photo.
+    verify(imageProcessor, never()).process(any());
+    verify(stickers, never()).save(any());
+  }
+
+  @Test
+  void refusesAnUploadThatBreachesTheRollingWindow() {
+    ReflectionTestUtils.setField(service, "perWindow", 5);
+    when(stickers.countByAuthorId(OWNER)).thenReturn(1L);
+    when(stickers.countByAuthorIdAndCreatedAtAfter(eq(OWNER), any())).thenReturn(5L);
+
+    assertThatThrownBy(() -> service.create(owner, edit(), upload()))
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting(e -> ((ResponseStatusException) e).getStatusCode())
+        .isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+
+    verify(imageProcessor, never()).process(any());
+  }
+
+  @Test
+  void allowsAnUploadComfortablyInsideBothLimits() {
+    when(stickers.countByAuthorId(OWNER)).thenReturn(2L);
+    when(stickers.countByAuthorIdAndCreatedAtAfter(eq(OWNER), any())).thenReturn(1L);
+    when(imageProcessor.process(any()))
+        .thenReturn(new ImageProcessor.Processed(
+            new byte[] {1}, "image/jpeg", 800, 600, new byte[] {2}, "image/jpeg"));
+    when(stickers.save(any())).thenAnswer(call -> {
+      Sticker saved = call.getArgument(0);
+      ReflectionTestUtils.setField(saved, "id", UUID.randomUUID());
+      ReflectionTestUtils.setField(saved, "createdAt", Instant.now());
+      ReflectionTestUtils.setField(saved, "updatedAt", Instant.now());
+      return saved;
+    });
+
+    var created = service.create(owner, edit(), upload());
+
+    assertThat(created.authorId()).isEqualTo(OWNER);
+    verify(imageProcessor).process(any());
+  }
+
+  @Test
+  void doesNotRateLimitReplacingThePhotoOnAnExistingSticker() {
+    ReflectionTestUtils.setField(service, "maxPerUser", 1);
+    when(stickers.findById(stickerId)).thenReturn(Optional.of(sticker));
+    when(imageProcessor.process(any()))
+        .thenReturn(new ImageProcessor.Processed(
+            new byte[] {1}, "image/jpeg", 800, 600, new byte[] {2}, "image/jpeg"));
+    when(images.findById(stickerId)).thenReturn(Optional.empty());
+
+    // A replace cannot grow the table, which is what the limit protects.
+    service.replaceImage(stickerId, author(OWNER), upload());
+
+    verify(stickers, never()).countByAuthorId(any());
+  }
+
+  private static StickerEditRequest edit() {
+    return new StickerEditRequest(1.0, 2.0, "hello", "somewhere");
+  }
+
+  private static MultipartFile upload() {
+    return new MockMultipartFile("image", "p.jpg", "image/jpeg", new byte[] {1, 2, 3});
   }
 }

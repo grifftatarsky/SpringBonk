@@ -6,9 +6,12 @@ import com.gpt.jpss.sticker.dto.StickerEditRequest;
 import com.gpt.jpss.sticker.dto.StickerResponse;
 import com.gpt.jpss.sticker.model.Sticker;
 import com.gpt.jpss.sticker.model.StickerImage;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +33,23 @@ public class StickerService {
 
   private final StickerRepository stickers;
   private final StickerImageRepository images;
+
+  // The inline values are not redundant with the property defaults: Spring
+  // overwrites these after construction, but a plain `new StickerService(...)`
+  // in a unit test never gets that far, and a zero cap would reject every
+  // upload. Keep the two in step.
+
+  /** Most stickers one account may hold at once. */
+  @Value("${jpss.limits.stickers-per-user:250}")
+  private int maxPerUser = 250;
+
+  /** How many may be posted inside {@link #window}. */
+  @Value("${jpss.limits.uploads-per-window:15}")
+  private int perWindow = 15;
+
+  /** The rolling window the upload count is measured over. */
+  @Value("${jpss.limits.window:PT1H}")
+  private Duration window = Duration.ofHours(1);
   private final ImageProcessor imageProcessor;
 
   /**
@@ -68,6 +88,7 @@ public class StickerService {
 
   @Transactional
   public StickerResponse create(KeycloakUser author, StickerEditRequest edit, MultipartFile file) {
+    enforceUploadLimits(author.getId());
     ImageProcessor.Processed processed = imageProcessor.process(file);
 
     Sticker sticker = new Sticker(
@@ -111,6 +132,41 @@ public class StickerService {
     // Explicit, because the image is keyed by this id rather than associated to it.
     images.deleteById(sticker.getId());
     stickers.delete(sticker);
+  }
+
+  /**
+   * Two limits, both checked before the image is touched: a rejected upload
+   * should cost two counts, not a decode and a re-encode of an 8MB photo.
+   *
+   * <p>The cap bounds what one account can ever accumulate; the window bounds
+   * how fast. They answer different questions — a hundred stickers over a year
+   * is a keen user, a hundred in an hour is not — and either alone leaves the
+   * other case open.
+   *
+   * <p>This deliberately does not cover replacing a photo on an existing
+   * sticker. The risk in the deploy notes is unbounded *growth* — the sticker
+   * table shares a volume with Keycloak's database, and filling it takes
+   * authentication down with it. A replace swaps bytes on a row that already
+   * exists, so it cannot grow the table. It does cost a decode, which is a
+   * separate concern and not one a row count would answer.
+   */
+  private void enforceUploadLimits(UUID authorId) {
+    long owned = stickers.countByAuthorId(authorId);
+    if (owned >= maxPerUser) {
+      throw new ResponseStatusException(
+          HttpStatus.TOO_MANY_REQUESTS,
+          "You have reached the limit of %d stickers. Remove one to make room."
+              .formatted(maxPerUser));
+    }
+
+    Instant since = Instant.now().minus(window);
+    long recent = stickers.countByAuthorIdAndCreatedAtAfter(authorId, since);
+    if (recent >= perWindow) {
+      throw new ResponseStatusException(
+          HttpStatus.TOO_MANY_REQUESTS,
+          "That is %d stickers in %d minutes. Give it a little while."
+              .formatted(perWindow, window.toMinutes()));
+    }
   }
 
   private static StickerImage withBytes(StickerImage image, ImageProcessor.Processed processed) {

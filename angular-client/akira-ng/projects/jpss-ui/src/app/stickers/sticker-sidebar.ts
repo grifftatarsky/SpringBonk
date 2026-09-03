@@ -16,6 +16,14 @@ import { formatCoordinate } from './sticker.models';
  * Deleting asks first, inline. A native confirm would drop the photo out of view
  * at the exact moment somebody is deciding whether they meant it.
  */
+/**
+ * How wide and how tall the photo well is allowed to get, as width ÷ height.
+ * 4:3 down to 4:5 — landscape enough to suit most cameras, portrait enough for a
+ * phone held upright, without either extreme dictating the panel's shape.
+ */
+const WELL_WIDEST = 4 / 3;
+const WELL_TALLEST = 4 / 5;
+
 @Component({
   selector: 'jpss-sticker-sidebar',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -161,9 +169,22 @@ export class StickerSidebar {
     () => `url("${this.service.imageUrl(this.sticker(), 'thumb')}")`,
   );
 
+  /**
+   * The shape of the photo well, clamped rather than taken literally.
+   *
+   * <p>Using the photo's own ratio meant a panorama became a letterbox strip and
+   * a tall portrait ran to the height cap, so the panel's proportions lurched
+   * between stickers. Clamping to a band and letting `object-cover` take the
+   * overflow fills the well every time, and only the extreme shapes lose
+   * anything — a slight crop off the long edge, never a squeeze.
+   */
   protected readonly aspectRatio = computed(() => {
     const { imageWidth, imageHeight } = this.sticker();
-    return imageWidth > 0 && imageHeight > 0 ? `${imageWidth} / ${imageHeight}` : '4 / 3';
+    if (imageWidth <= 0 || imageHeight <= 0) {
+      return `${WELL_WIDEST}`;
+    }
+    const ratio = imageWidth / imageHeight;
+    return `${Math.min(WELL_WIDEST, Math.max(WELL_TALLEST, ratio))}`;
   });
 
   protected readonly coordinates = computed(() => formatCoordinate(this.sticker()));

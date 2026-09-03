@@ -124,13 +124,33 @@ export class JpssPage {
   private readonly ownedIds = computed(() => new Set(this.stickers.mine().map(s => s.id)));
 
   /**
+   * The globe releases its WebGL context while the gallery is up, so this is
+   * also "the deck instance is about to be thrown away and rebuilt". Bound to
+   * the globe *and* read by `layers` below, deliberately from one expression:
+   * the two have to agree, and deriving them separately is how they drift.
+   */
+  protected readonly globeSuspended = computed(() => this.view() === 'gallery');
+
+  /**
    * Deliberately does not read `hoveredId`. Hover is a GPU tint via deck's
    * `autoHighlight`; reading it here would make every pointer move across the
    * globe rebuild all three layers. `hoveredId` still drives the label below,
    * which is DOM and cheap.
+   *
+   * It does read `globeSuspended`, which is otherwise nothing to do with what a
+   * layer looks like. A deck Layer is a descriptor, but not an inert one: once
+   * handed over, deck initialises it against the live WebGL context and
+   * resolves its async props in place — `atlas` stops being our canvas and
+   * becomes an uploaded texture. Suspending for the gallery destroys that
+   * context, so a memoized array would come back holding layers deck refuses to
+   * initialise ("assertion failed", no marks at all) carrying textures from a
+   * context that no longer exists (marks as black squares). Both were real.
+   * Reading it here means a resumed globe always gets descriptors built for the
+   * deck instance it is actually about to create.
    */
-  protected readonly layers = computed(() =>
-    stickerLayers({
+  protected readonly layers = computed(() => {
+    this.globeSuspended();
+    return stickerLayers({
       stickers: this.stickers.stickers(),
       selectedId: this.selectedId(),
       ownedIds: this.ownedIds(),
@@ -139,8 +159,8 @@ export class JpssPage {
       // on a closed form is a spot nobody picked.
       pending: this.composing() ? this.pending() : null,
       onHover: sticker => this.hoveredId.set(sticker?.id ?? null),
-    }),
-  );
+    });
+  });
 
   constructor() {
     void this.stickers.load();
@@ -206,6 +226,23 @@ export class JpssPage {
    * Picking a sticker in the gallery goes back to the globe and opens it there,
    * so "where is this" is answered by the view that can answer it.
    */
+  /**
+   * What a saved photo is called. Named after where it was taken and when, so a
+   * folder of these is still readable a year later — an id would not be. Falls
+   * back to the author when there is no place label, and strips anything a file
+   * system might object to.
+   */
+  protected downloadName(sticker: Sticker): string {
+    const extension = sticker.imageContentType === 'image/png' ? 'png' : 'jpg';
+    const slug =
+      (sticker.place ?? sticker.authorName)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 40) || 'sticker';
+    return `jo-${slug}-${sticker.createdAt.slice(0, 10)}.${extension}`;
+  }
+
   protected openFromGallery(sticker: Sticker): void {
     this.view.set('globe');
     this.open(sticker);

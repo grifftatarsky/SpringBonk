@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
+import { Theme } from './shared/theme';
 
 /** Must track `--color-bg` in styles.css and the metas in index.html. */
 const THEME_COLOUR = { light: '#ffffff', dark: '#0a0a0b' } as const;
@@ -10,10 +11,10 @@ const THEME_COLOUR = { light: '#ffffff', dark: '#0a0a0b' } as const;
  * findjo.org in production. In federation the host loads ./routes directly and
  * owns the theme, so this component never runs there.
  *
- * Standalone has no theme picker (there is no settings surface to hang one on),
- * but it still has to *resolve* a theme: without this the page renders light on
- * a dark phone, and the `theme-color` meta — which follows the OS on its own —
- * would tint the Dynamic Island dark over a white page.
+ * Theme resolution lives in {@link Theme}, which the globe's ⋯ menu also drives.
+ * What is left here is the browser-chrome colour: the `theme-color` metas follow
+ * the OS on their own, so without this a manual override would tint the Dynamic
+ * Island dark over a white page.
  */
 @Component({
   selector: 'app-root',
@@ -23,28 +24,14 @@ const THEME_COLOUR = { light: '#ffffff', dark: '#0a0a0b' } as const;
 })
 export class App {
   private readonly document = inject(DOCUMENT);
-  private readonly destroyRef = inject(DestroyRef);
-
-  private readonly query: MediaQueryList | null =
-    typeof window === 'undefined' ? null : window.matchMedia('(prefers-color-scheme: dark)');
-  private readonly prefersDark = signal(this.query?.matches ?? false);
+  private readonly theme = inject(Theme);
 
   constructor() {
-    if (this.query) {
-      const onChange = (event: MediaQueryListEvent) => this.prefersDark.set(event.matches);
-      this.query.addEventListener('change', onChange);
-      this.destroyRef.onDestroy(() => this.query?.removeEventListener('change', onChange));
-    }
-    // findjo.org is a separate origin from the host, so this only ever picks up
-    // a preference stored by a previous standalone visit — never the host's.
-    if (typeof window !== 'undefined') {
-      const stored = window.localStorage.getItem('akira-theme');
-      if (stored === 'light' || stored === 'dark') {
-        this.prefersDark.set(stored === 'dark');
-      }
-    }
     this.dropShellHeaderOffset();
-    effect(() => this.applyTheme(this.prefersDark()));
+    // Theme is the service's job now — it owns the class and the stored choice,
+    // and the ⋯ menu's toggle drives the same signal. Applying it here as well
+    // would give the document two writers.
+    effect(() => this.applyChromeColour(this.theme.dark()));
   }
 
   /**
@@ -56,8 +43,7 @@ export class App {
     this.document?.documentElement?.style.setProperty('--jpss-shell-header', '0px');
   }
 
-  private applyTheme(dark: boolean): void {
-    this.document?.documentElement?.classList.toggle('dark', dark);
+  private applyChromeColour(dark: boolean): void {
     // Overwrite both media-scoped metas with the resolved colour, so whichever
     // one Safari matches gives the same answer.
     this.document?.head
