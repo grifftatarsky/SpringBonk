@@ -259,6 +259,20 @@ export class JpssPage {
   }
 
   /**
+   * The gallery's Globe button. Turning is the globe's idle state, so coming
+   * back to it should turn.
+   *
+   * It dismisses too, and that is not scope creep: the resumed globe opens at
+   * the resting zoom rather than wherever the camera was, so a sticker selected
+   * before the detour is already stale by the time we get here. Leaving it
+   * highlighted under an open sidebar would caption a view nobody is looking at.
+   */
+  protected leaveGallery(): void {
+    this.view.set('globe');
+    this.dismiss();
+  }
+
+  /**
    * Keeps the point the camera flies to inside the half of the stage the sidebar
    * is not covering. MapLibre reads this as a pixel offset from centre, so on a
    * phone — where the sidebar is a bottom sheet — it has to move up instead of

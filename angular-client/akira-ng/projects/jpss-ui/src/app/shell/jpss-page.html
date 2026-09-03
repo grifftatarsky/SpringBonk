@@ -132,7 +132,7 @@
     <jpss-gallery-view
       [stickers]="stickers.stickers()"
       (open)="openFromGallery($event)"
-      (close)="view.set('globe')" />
+      (close)="leaveGallery()" />
   }
 
   @if (requestingStickers()) {
