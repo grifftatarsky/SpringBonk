@@ -1,5 +1,6 @@
 package com.gpt.oozengine.model.dto.response;
 
+import com.gpt.oozengine.constant.SrdVersion;
 import com.gpt.oozengine.model.Monster;
 import java.util.UUID;
 
@@ -23,7 +24,8 @@ public record MonsterResponse(
     String actions,
     String description,
     boolean base,
-    UUID overridesId) {
+    UUID overridesId,
+    SrdVersion srdVersion) {
 
   public static MonsterResponse from(Monster m) {
     return new MonsterResponse(
@@ -46,6 +48,7 @@ public record MonsterResponse(
         m.getActions(),
         m.getDescription(),
         m.isBaseContent(),
-        m.getOverridesId());
+        m.getOverridesId(),
+        m.getSrdVersion());
   }
 }

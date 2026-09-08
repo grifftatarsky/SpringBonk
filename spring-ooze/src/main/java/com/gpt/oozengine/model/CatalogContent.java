@@ -1,6 +1,9 @@
 package com.gpt.oozengine.model;
 
+import com.gpt.oozengine.constant.SrdVersion;
 import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.MappedSuperclass;
 import java.util.UUID;
 import lombok.Getter;
@@ -30,6 +33,16 @@ public abstract class CatalogContent extends BaseEntity {
 
   @Column(name = "overrides_id")
   private UUID overridesId;
+
+  /**
+   * Which SRD this row's rules came from, or null for content that isn't from
+   * an SRD at all — a DM's own creation. An override inherits the version of
+   * the base row it shadows, so hiding an edition hides a DM's edited copies of
+   * it too rather than stranding them in the list.
+   */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "srd_version", length = 16)
+  private SrdVersion srdVersion;
 
   /** True for shared, unowned, immutable base content. */
   public boolean isBaseContent() {

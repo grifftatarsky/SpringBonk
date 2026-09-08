@@ -62,9 +62,25 @@ export class Finder {
     '&body=' +
     encodeURIComponent("Hey! I'm requesting access for Dungeon Master tools on Oozengine. Thanks!");
 
+  /**
+   * Whether to include SRD 5.1 rows. On by default — the 5.1 content we carry
+   * is only what 5.2 has no equivalent of, so hiding it by default would hide
+   * the reason it was imported. Remembered per browser; a blocked or empty
+   * localStorage just means the default.
+   */
+  protected readonly showLegacy = signal(Finder.readShowLegacy());
+
+  /** True once the open folder actually holds 5.1 rows — the toggle is hidden
+   * otherwise rather than offering to filter a distinction that isn't there. */
+  protected readonly hasLegacy = computed(() =>
+    this.all().some(i => i.srdVersion === 'SRD_5_1'),
+  );
+
   protected readonly filtered = computed(() => {
     const q = this.search().trim().toLowerCase();
-    const list = this.all();
+    const legacy = this.showLegacy();
+    let list = this.all();
+    if (!legacy) list = list.filter(i => i.srdVersion !== 'SRD_5_1');
     return q ? list.filter(i => i.name.toLowerCase().includes(q)) : list;
   });
 
@@ -164,6 +180,30 @@ export class Finder {
 
   protected dotClass(i: CatalogItem): string {
     return i.overridesId ? 'bg-warn' : 'bg-success';
+  }
+
+  protected toggleLegacy(): void {
+    const next = !this.showLegacy();
+    this.showLegacy.set(next);
+    // Deselecting matters: hiding 5.1 while a 5.1 row is open would otherwise
+    // leave the detail pane showing something the list no longer offers.
+    if (!next && this.selected()?.srdVersion === 'SRD_5_1') this.selectedId.set(null);
+    try {
+      localStorage.setItem(Finder.LEGACY_KEY, next ? 'on' : 'off');
+    } catch {
+      // Private windows and blocked site data throw on write; the toggle still
+      // works for this session, it just won't be remembered.
+    }
+  }
+
+  private static readonly LEGACY_KEY = 'ooze.showLegacySrd';
+
+  private static readShowLegacy(): boolean {
+    try {
+      return localStorage.getItem(Finder.LEGACY_KEY) !== 'off';
+    } catch {
+      return true;
+    }
   }
 
   private loadItems(selectAfter: string | null): void {

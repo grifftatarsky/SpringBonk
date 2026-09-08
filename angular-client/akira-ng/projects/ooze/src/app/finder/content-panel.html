@@ -79,6 +79,11 @@
       <div>
         <h3 class="text-lg font-semibold tracking-tight text-fg">{{ it.name }}</h3>
         @if (subtitle(it); as sub) {<p class="text-xs text-fg-muted">{{ sub }}</p>}
+        @if (it.srdVersion === 'SRD_5_1') {
+          <p class="mt-1 text-[0.7rem] text-fg-subtle">
+            From SRD 5.1 (2014 rules). SRD 5.2 has no equivalent of this entry.
+          </p>
+        }
       </div>
       @if (it.base) {
         <span class="shrink-0 rounded border border-rule bg-bg-muted px-1.5 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-fg-subtle">Base</span>

@@ -1,5 +1,6 @@
 package com.gpt.oozengine.model.dto.response;
 
+import com.gpt.oozengine.constant.SrdVersion;
 import com.gpt.oozengine.model.Species;
 import java.util.UUID;
 
@@ -12,7 +13,8 @@ public record SpeciesResponse(
     String traits,
     String description,
     boolean base,
-    UUID overridesId) {
+    UUID overridesId,
+    SrdVersion srdVersion) {
 
   public static SpeciesResponse from(Species s) {
     return new SpeciesResponse(
@@ -24,6 +26,7 @@ public record SpeciesResponse(
         s.getTraits(),
         s.getDescription(),
         s.isBaseContent(),
-        s.getOverridesId());
+        s.getOverridesId(),
+        s.getSrdVersion());
   }
 }

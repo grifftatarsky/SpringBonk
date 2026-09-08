@@ -79,3 +79,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/025-srd-feats-backgrounds.yaml
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/026-srd-version.yaml
+      relativeToChangelogFile: false

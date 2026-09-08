@@ -1,5 +1,6 @@
 package com.gpt.oozengine.model.dto.response;
 
+import com.gpt.oozengine.constant.SrdVersion;
 import com.gpt.oozengine.model.Feat;
 import java.util.UUID;
 
@@ -10,7 +11,8 @@ public record FeatResponse(
     String prerequisite,
     String description,
     boolean base,
-    UUID overridesId) {
+    UUID overridesId,
+    SrdVersion srdVersion) {
 
   public static FeatResponse from(Feat f) {
     return new FeatResponse(
@@ -20,6 +22,7 @@ public record FeatResponse(
         f.getPrerequisite(),
         f.getDescription(),
         f.isBaseContent(),
-        f.getOverridesId());
+        f.getOverridesId(),
+        f.getSrdVersion());
   }
 }

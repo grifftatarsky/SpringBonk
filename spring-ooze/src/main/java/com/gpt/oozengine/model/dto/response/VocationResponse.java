@@ -1,5 +1,6 @@
 package com.gpt.oozengine.model.dto.response;
 
+import com.gpt.oozengine.constant.SrdVersion;
 import com.gpt.oozengine.model.Vocation;
 import java.util.UUID;
 
@@ -13,7 +14,8 @@ public record VocationResponse(
     String savingThrows,
     String description,
     boolean base,
-    UUID overridesId) {
+    UUID overridesId,
+    SrdVersion srdVersion) {
 
   public static VocationResponse from(Vocation v) {
     return new VocationResponse(
@@ -26,6 +28,7 @@ public record VocationResponse(
         v.getSavingThrows(),
         v.getDescription(),
         v.isBaseContent(),
-        v.getOverridesId());
+        v.getOverridesId(),
+        v.getSrdVersion());
   }
 }

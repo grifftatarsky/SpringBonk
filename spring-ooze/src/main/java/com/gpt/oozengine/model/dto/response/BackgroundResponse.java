@@ -1,5 +1,6 @@
 package com.gpt.oozengine.model.dto.response;
 
+import com.gpt.oozengine.constant.SrdVersion;
 import com.gpt.oozengine.model.Background;
 import java.util.UUID;
 
@@ -13,7 +14,8 @@ public record BackgroundResponse(
     String equipment,
     String description,
     boolean base,
-    UUID overridesId) {
+    UUID overridesId,
+    SrdVersion srdVersion) {
 
   public static BackgroundResponse from(Background b) {
     return new BackgroundResponse(
@@ -26,6 +28,7 @@ public record BackgroundResponse(
         b.getEquipment(),
         b.getDescription(),
         b.isBaseContent(),
-        b.getOverridesId());
+        b.getOverridesId(),
+        b.getSrdVersion());
   }
 }

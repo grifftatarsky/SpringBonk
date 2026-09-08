@@ -25,12 +25,19 @@ export interface FieldDef {
   readonly max?: number;
 }
 
+/**
+ * Which SRD a row's rules came from. Null means it isn't SRD content — a DM's
+ * own creation — and such rows are never filtered out by the edition toggle.
+ */
+export type SrdVersion = 'SRD_5_2' | 'SRD_5_1';
+
 /** A row from any catalog endpoint. Always has these; other keys are per-type. */
 export interface CatalogItem {
   readonly id: string;
   readonly name: string;
   readonly base: boolean;
   readonly overridesId: string | null;
+  readonly srdVersion: SrdVersion | null;
   readonly [key: string]: unknown;
 }
 

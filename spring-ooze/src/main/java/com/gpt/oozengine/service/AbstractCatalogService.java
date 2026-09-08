@@ -97,6 +97,11 @@ public abstract class AbstractCatalogService<E extends CatalogContent, REQ, RES>
       apply(req, override);
       override.setOwnerId(userId);
       override.setOverridesId(id);
+      // The override is still that edition's content, so it follows the base
+      // row when a reader filters editions. apply() can't set this — the
+      // request DTOs carry no SRD version, deliberately: a DM edits rules text,
+      // not which book the rules came from.
+      override.setSrdVersion(e.getSrdVersion());
       return toResponse(repo().save(override));
     }
     if (!userId.equals(e.getOwnerId())) {
