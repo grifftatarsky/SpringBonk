@@ -100,9 +100,18 @@ export class Finder {
     return [...map.values()].sort((a, b) => a.order - b.order || a.label.localeCompare(b.label));
   });
 
-  protected readonly selected = computed(
-    () => this.all().find(i => i.id === this.selectedId()) ?? null,
-  );
+  /**
+   * The open entry, in full. List rows can be summaries, so the detail is
+   * fetched on selection and cached per id — reopening one is free, and the
+   * list payload stays small however big the catalog gets.
+   */
+  private readonly detailCache = signal<Record<string, CatalogItem>>({});
+
+  protected readonly selected = computed(() => {
+    const id = this.selectedId();
+    if (!id) return null;
+    return this.detailCache()[id] ?? this.all().find(i => i.id === id) ?? null;
+  });
 
   /** On mobile the detail is a bottom sheet shown only when something's open. */
   protected readonly detailOpen = computed(() => this.selected() !== null || this.creating());
@@ -130,6 +139,18 @@ export class Finder {
   protected select(i: CatalogItem): void {
     this.creating.set(false);
     this.selectedId.set(i.id);
+    this.loadDetail(i.id);
+  }
+
+  private loadDetail(id: string): void {
+    const def = this.openDef();
+    if (!def || this.detailCache()[id]) return;
+    this.content.get(def.apiPath, id).subscribe({
+      next: full => this.detailCache.update(c => ({ ...c, [id]: full })),
+      // The summary from the list is already showing; a failed detail fetch
+      // leaves it in place rather than blanking the pane.
+      error: () => undefined,
+    });
   }
 
   protected startCreate(): void {
@@ -214,10 +235,11 @@ export class Finder {
     this.content.list(def.apiPath).subscribe({
       next: list => {
         this.all.set(list);
+        this.detailCache.set({});
         this.loading.set(false);
-        this.selectedId.set(
-          selectAfter && list.some(i => i.id === selectAfter) ? selectAfter : null,
-        );
+        const reselect = selectAfter && list.some(i => i.id === selectAfter) ? selectAfter : null;
+        this.selectedId.set(reselect);
+        if (reselect) this.loadDetail(reselect);
       },
       error: () => {
         this.loading.set(false);

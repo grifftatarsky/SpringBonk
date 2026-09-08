@@ -34,9 +34,18 @@ public record MonsterResponse(
     UUID overridesId,
     SrdVersion srdVersion) {
 
+  /** Without the stat block: what a list row needs, and nothing more. */
+  public static MonsterResponse summary(Monster m) {
+    return build(m, false);
+  }
+
   public static MonsterResponse from(Monster m) {
+    return build(m, true);
+  }
+
+  private static MonsterResponse build(Monster m, boolean withStatBlock) {
     var s = m.getStatBlock();
-    var block = StatBlockResponse.from(s);
+    var block = withStatBlock ? StatBlockResponse.from(s) : null;
     String hp =
         s == null || s.getHitPoints() == null
             ? null

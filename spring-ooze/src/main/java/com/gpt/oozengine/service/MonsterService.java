@@ -69,4 +69,14 @@ public class MonsterService extends AbstractCatalogService<Monster, MonsterReque
   protected MonsterResponse toResponse(Monster m) {
     return MonsterResponse.from(m);
   }
+
+  /**
+   * The bestiary is 330 creatures; with every stat block's features and effects
+   * attached the list is over a megabyte, and the finder's list renders none of
+   * it. Send the summary, and let opening a creature fetch the block.
+   */
+  @Override
+  protected MonsterResponse toListResponse(Monster m) {
+    return MonsterResponse.summary(m);
+  }
 }

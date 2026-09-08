@@ -43,6 +43,16 @@ public abstract class AbstractCatalogService<E extends CatalogContent, REQ, RES>
 
   protected abstract RES toResponse(E entity);
 
+  /**
+   * The shape a row takes in a list, which need not be the shape it takes on its
+   * own. Defaults to the full response; a type whose detail is large — a
+   * creature carries its whole stat block — overrides this to leave the heavy
+   * part out, and the client fetches it per row when one is opened.
+   */
+  protected RES toListResponse(E entity) {
+    return toResponse(entity);
+  }
+
   protected abstract Comparator<E> listOrder();
 
   /** Base content with the caller's overrides swapped in, hidden/overridden
@@ -71,7 +81,7 @@ public abstract class AbstractCatalogService<E extends CatalogContent, REQ, RES>
       }
       visible.addAll(mine);
     }
-    return visible.stream().sorted(listOrder()).map(this::toResponse).toList();
+    return visible.stream().sorted(listOrder()).map(this::toListResponse).toList();
   }
 
   @Transactional(readOnly = true)

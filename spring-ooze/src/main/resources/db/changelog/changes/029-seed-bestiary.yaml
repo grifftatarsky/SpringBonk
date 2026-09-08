@@ -1,0 +1,249 @@
+databaseChangeLog:
+  # ==========================================================================
+  # 029 — the SRD 5.2.1 bestiary: 330 stat blocks, 1,323 features, 1,003
+  # effects, structured rather than transcribed as prose.
+  #
+  # Loaded from CSV rather than written as inserts. At this volume the YAML
+  # would be several megabytes of boilerplate and unreviewable; a CSV is the
+  # same data as a diffable table, and loadData is the tool Liquibase provides
+  # for exactly this. The four seeded monsters from 009 are replaced, since the
+  # book's own versions supersede the hand-written slice.
+  #
+  # Ids are UUIDv5 derived from the creature's name, so re-deriving the files
+  # from the PDF is byte-identical and a parser fix shows up as a change to the
+  # rows it touched rather than as 3,000 new ids.
+  #
+  # NULL is the null placeholder: an empty CSV cell loads as an empty string,
+  # which for an enum column is a value Hibernate cannot map back.
+  #
+  # Not included: Gear. It references 21 items the catalog doesn't hold yet, and
+  # stat_block_gear.item_id is a real foreign key. 029-link-bestiary-gear joins
+  # on name for whatever exists, and re-runs as new items land.
+  # ==========================================================================
+
+  - changeSet:
+      id: 029-clear-seeded-monsters
+      author: oozengine
+      # 009's four are the book's creatures written by hand; the import brings
+      # the real ones. Deleting the monster cascades to its stat block through
+      # the entity, but the changelog has to do it explicitly.
+      changes:
+        - sql:
+            sql: |
+              DELETE FROM hidden_content WHERE content_type = 'MONSTER' AND base_id IN (
+                SELECT id FROM monsters WHERE owner_id IS NULL);
+              DELETE FROM stat_blocks WHERE id IN (
+                SELECT stat_block_id FROM monsters WHERE owner_id IS NULL AND stat_block_id IS NOT NULL);
+              DELETE FROM monsters WHERE owner_id IS NULL;
+
+  - changeSet:
+      id: 029-load-stat-blocks
+      author: oozengine
+      changes:
+        - loadData:
+            tableName: stat_blocks
+            file: db/changelog/data/bestiary-stat-blocks.csv
+            relativeToChangelogFile: false
+            usePreparedStatements: true
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: created_at, type: DATE}
+              - column: {name: updated_at, type: DATE}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: size, type: STRING}
+              - column: {name: creature_type, type: STRING}
+              - column: {name: creature_subtype, type: STRING}
+              - column: {name: alignment, type: STRING}
+              - column: {name: armor_class, type: NUMERIC}
+              - column: {name: initiative_bonus, type: NUMERIC}
+              - column: {name: hp_average, type: NUMERIC}
+              - column: {name: hp_dice_count, type: NUMERIC}
+              - column: {name: hp_dice_faces, type: NUMERIC}
+              - column: {name: hp_dice_bonus, type: NUMERIC}
+              - column: {name: can_hover, type: BOOLEAN}
+              - column: {name: score_strength, type: NUMERIC}
+              - column: {name: score_dexterity, type: NUMERIC}
+              - column: {name: score_constitution, type: NUMERIC}
+              - column: {name: score_intelligence, type: NUMERIC}
+              - column: {name: score_wisdom, type: NUMERIC}
+              - column: {name: score_charisma, type: NUMERIC}
+              - column: {name: passive_perception, type: NUMERIC}
+              - column: {name: languages, type: STRING}
+              - column: {name: telepathy_feet, type: NUMERIC}
+              - column: {name: challenge_rating, type: NUMERIC}
+              - column: {name: experience_points, type: NUMERIC}
+              - column: {name: proficiency_bonus, type: NUMERIC}
+              - column: {name: legendary_action_uses, type: NUMERIC}
+
+  - changeSet:
+      id: 029-load-monsters
+      author: oozengine
+      changes:
+        - loadData:
+            tableName: monsters
+            file: db/changelog/data/bestiary-monsters.csv
+            relativeToChangelogFile: false
+            usePreparedStatements: true
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: created_at, type: DATE}
+              - column: {name: updated_at, type: DATE}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: srd_version, type: STRING}
+              - column: {name: name, type: STRING}
+              - column: {name: stat_block_id, type: UUID}
+
+  - changeSet:
+      id: 029-load-stat-block-collections
+      author: oozengine
+      changes:
+        - loadData:
+            tableName: stat_block_speeds
+            file: db/changelog/data/bestiary-speeds.csv
+            relativeToChangelogFile: false
+            usePreparedStatements: true
+            columns:
+              - column: {name: stat_block_id, type: UUID}
+              - column: {name: movement_type, type: STRING}
+              - column: {name: speed_feet, type: NUMERIC}
+        - loadData:
+            tableName: stat_block_saves
+            file: db/changelog/data/bestiary-saves.csv
+            relativeToChangelogFile: false
+            usePreparedStatements: true
+            columns:
+              - column: {name: stat_block_id, type: UUID}
+              - column: {name: ability, type: STRING}
+              - column: {name: bonus, type: NUMERIC}
+        - loadData:
+            tableName: stat_block_skills
+            file: db/changelog/data/bestiary-skills.csv
+            relativeToChangelogFile: false
+            usePreparedStatements: true
+            columns:
+              - column: {name: stat_block_id, type: UUID}
+              - column: {name: skill, type: STRING}
+              - column: {name: bonus, type: NUMERIC}
+        - loadData:
+            tableName: stat_block_senses
+            file: db/changelog/data/bestiary-senses.csv
+            relativeToChangelogFile: false
+            usePreparedStatements: true
+            columns:
+              - column: {name: stat_block_id, type: UUID}
+              - column: {name: sense_type, type: STRING}
+              - column: {name: range_feet, type: NUMERIC}
+        - loadData:
+            tableName: stat_block_damage_responses
+            file: db/changelog/data/bestiary-damage-responses.csv
+            relativeToChangelogFile: false
+            usePreparedStatements: true
+            columns:
+              - column: {name: stat_block_id, type: UUID}
+              - column: {name: damage_type, type: STRING}
+              - column: {name: response, type: STRING}
+        - loadData:
+            tableName: stat_block_condition_immunities
+            file: db/changelog/data/bestiary-condition-immunities.csv
+            relativeToChangelogFile: false
+            usePreparedStatements: true
+            columns:
+              - column: {name: stat_block_id, type: UUID}
+              - column: {name: condition_id, type: UUID}
+
+  - changeSet:
+      id: 029-load-features
+      author: oozengine
+      changes:
+        - loadData:
+            tableName: features
+            file: db/changelog/data/bestiary-features.csv
+            relativeToChangelogFile: false
+            usePreparedStatements: true
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: created_at, type: DATE}
+              - column: {name: updated_at, type: DATE}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: name, type: STRING}
+              - column: {name: description, type: STRING}
+              - column: {name: ordinal, type: NUMERIC}
+              - column: {name: stat_block_id, type: UUID}
+              - column: {name: activation, type: STRING}
+              - column: {name: legendary_cost, type: NUMERIC}
+              - column: {name: trigger_text, type: STRING}
+              - column: {name: ritual, type: BOOLEAN}
+              - column: {name: uses_reset, type: STRING}
+              - column: {name: uses_max, type: NUMERIC}
+              - column: {name: recharge_min, type: NUMERIC}
+              - column: {name: recharge_max, type: NUMERIC}
+              - column: {name: range_feet, type: NUMERIC}
+              - column: {name: range_long_feet, type: NUMERIC}
+              - column: {name: reach_feet, type: NUMERIC}
+              - column: {name: delivery, type: STRING}
+              - column: {name: attack_kind, type: STRING}
+              - column: {name: attack_bonus, type: NUMERIC}
+              - column: {name: attack_bonus_source, type: STRING}
+              - column: {name: save_ability, type: STRING}
+              - column: {name: save_dc, type: NUMERIC}
+              - column: {name: save_dc_source, type: STRING}
+
+  - changeSet:
+      id: 029-load-effects
+      author: oozengine
+      changes:
+        - loadData:
+            tableName: effects
+            file: db/changelog/data/bestiary-effects.csv
+            relativeToChangelogFile: false
+            usePreparedStatements: true
+            columns:
+              - column: {name: id, type: UUID}
+              - column: {name: created_at, type: DATE}
+              - column: {name: updated_at, type: DATE}
+              - column: {name: version, type: NUMERIC}
+              - column: {name: feature_id, type: UUID}
+              - column: {name: outcome, type: STRING}
+              - column: {name: kind, type: STRING}
+              - column: {name: ordinal, type: NUMERIC}
+              - column: {name: dice_count, type: NUMERIC}
+              - column: {name: dice_faces, type: NUMERIC}
+              - column: {name: dice_bonus, type: NUMERIC}
+              - column: {name: dice_average, type: NUMERIC}
+              - column: {name: damage_type, type: STRING}
+              - column: {name: half_damage, type: BOOLEAN}
+              - column: {name: condition_id, type: UUID}
+              - column: {name: escape_dc, type: NUMERIC}
+              - column: {name: notes, type: STRING}
+
+  - changeSet:
+      id: 029-link-bestiary-gear
+      author: oozengine
+      # Joins on name so it links whatever the item catalog already holds — five
+      # rows today, the rest when the equipment import lands. Written as a join
+      # rather than fixed ids precisely so it can be re-run then.
+      changes:
+        # An ordinary table, not a temporary one: Liquibase commits between
+        # changes and schema-qualifies loadData's target, so a session-scoped
+        # temp table is gone — and unqualifiable — by the time it is loaded.
+        - createTable:
+            tableName: bestiary_gear_staging
+            columns:
+              - column: {name: stat_block_id, type: UUID}
+              - column: {name: item_name, type: VARCHAR(255)}
+              - column: {name: quantity, type: INT}
+        - loadData:
+            tableName: bestiary_gear_staging
+            file: db/changelog/data/bestiary-gear.csv
+            relativeToChangelogFile: false
+            usePreparedStatements: true
+            columns:
+              - column: {name: stat_block_id, type: UUID}
+              - column: {name: item_name, type: STRING}
+              - column: {name: quantity, type: NUMERIC}
+        - sql:
+            sql: |
+              INSERT INTO stat_block_gear (stat_block_id, item_id, quantity)
+              SELECT g.stat_block_id, i.id, g.quantity
+              FROM bestiary_gear_staging g
+              JOIN items i ON i.owner_id IS NULL AND i.name = g.item_name;

@@ -21,6 +21,15 @@ export class ContentService {
     return this.http.get<CatalogItem[]>(this.url(path));
   }
 
+  /**
+   * One row in full. A list row can be a summary — the bestiary omits stat
+   * blocks, or the response is well over a megabyte — so opening an entry
+   * fetches the rest.
+   */
+  get(path: string, id: string): Observable<CatalogItem> {
+    return this.http.get<CatalogItem>(`${this.url(path)}/${id}`);
+  }
+
   create(path: string, body: Record<string, unknown>): Observable<CatalogItem> {
     return this.http.post<CatalogItem>(this.url(path), body);
   }
