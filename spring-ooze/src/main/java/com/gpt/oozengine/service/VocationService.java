@@ -8,18 +8,15 @@ import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import com.gpt.oozengine.repository.VocationRepository;
 import java.util.Comparator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class VocationService extends AbstractCatalogService<Vocation, VocationRequest, VocationResponse> {
 
   private final VocationRepository vocations;
   private final HiddenContentRepository hidden;
-
-  public VocationService(VocationRepository vocations, HiddenContentRepository hidden) {
-    this.vocations = vocations;
-    this.hidden = hidden;
-  }
 
   @Override
   protected CatalogRepository<Vocation> repo() {

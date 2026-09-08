@@ -8,19 +8,16 @@ import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.GlossaryEntryRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import java.util.Comparator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class GlossaryEntryService
     extends AbstractCatalogService<GlossaryEntry, GlossaryEntryRequest, GlossaryEntryResponse> {
 
   private final GlossaryEntryRepository entries;
   private final HiddenContentRepository hidden;
-
-  public GlossaryEntryService(GlossaryEntryRepository entries, HiddenContentRepository hidden) {
-    this.entries = entries;
-    this.hidden = hidden;
-  }
 
   @Override
   protected CatalogRepository<GlossaryEntry> repo() {

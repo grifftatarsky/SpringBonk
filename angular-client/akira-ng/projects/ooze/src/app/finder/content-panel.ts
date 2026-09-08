@@ -20,7 +20,7 @@ import {
 import { CatalogItem, ContentTypeDef, FieldDef, titleCase } from './ooze-content.models';
 import { ContentService } from './content.service';
 import { StatBlockEditor } from './stat-block-editor';
-import { FeatureView, StatBlockView } from './stat-block.models';
+import { FeatureStepView, FeatureView, StatBlockView } from './stat-block.models';
 
 /**
  * Generic detail + editor for any catalog item, rendered from its
@@ -232,21 +232,7 @@ export class ContentPanel {
    * it through the import.
    */
   protected attackLine(f: FeatureView): string {
-    const parts: string[] = [];
-    if (f.delivery === 'ATTACK_ROLL' && f.attackBonus != null) {
-      const kind = f.attackKind ? titleCase(f.attackKind).replace('Melee Or Ranged', 'Melee or Ranged') : 'Attack';
-      const reach = f.reachFeet ? `reach ${f.reachFeet} ft.` : '';
-      const range = f.rangeFeet ? `range ${f.rangeFeet}${f.rangeLongFeet ? '/' + f.rangeLongFeet : ''} ft.` : '';
-      parts.push(`${kind} Attack Roll: +${f.attackBonus}${[reach, range].filter(Boolean).length ? ', ' + [reach, range].filter(Boolean).join(' or ') : ''}`);
-    } else if (f.delivery === 'SAVING_THROW' && f.saveAbility) {
-      parts.push(`${titleCase(f.saveAbility)} Saving Throw: DC ${f.saveDc ?? '—'}`);
-    }
-    const damage = (f.effects ?? [])
-      .filter(e => e.kind === 'DAMAGE' && e.amount)
-      .map(e => `${e.amount}${e.damageType ? ' ' + titleCase(e.damageType) : ''}`)
-      .join(' plus ');
-    if (damage) parts.push(`${f.delivery === 'ATTACK_ROLL' ? 'Hit' : 'Failure'}: ${damage} damage`);
-    return parts.join('. ');
+    return (f.steps ?? []).map(stepLine).filter(Boolean).join(' \u2192 ');
   }
 
   protected booleanChips(item: CatalogItem): string[] {
@@ -302,4 +288,38 @@ export class ContentPanel {
       ctrl.setValue(v ?? this.initial(f));
     }
   }
+}
+
+/**
+ * One resolution step written the way the book writes it — "Melee Attack Roll:
+ * +9, reach 15 ft. Hit: 2d6 + 5 Bludgeoning damage" — reassembled from the
+ * structured fields. A chained feature renders both, which is the quickest way
+ * to see that the second roll survived an import.
+ */
+function stepLine(s: FeatureStepView): string {
+  const parts: string[] = [];
+  if (s.delivery === 'ATTACK_ROLL' && s.attackBonus != null) {
+    const kind = s.attackKind
+      ? titleCase(s.attackKind).replace('Melee Or Ranged', 'Melee or Ranged')
+      : 'Attack';
+    const where = [
+      s.reachFeet ? `reach ${s.reachFeet} ft.` : '',
+      s.rangeFeet ? `range ${s.rangeFeet}${s.rangeLongFeet ? '/' + s.rangeLongFeet : ''} ft.` : '',
+    ].filter(Boolean);
+    parts.push(`${kind} Attack Roll: +${s.attackBonus}${where.length ? ', ' + where.join(' or ') : ''}`);
+  } else if (s.delivery === 'SAVING_THROW' && s.saveAbility) {
+    parts.push(`${titleCase(s.saveAbility)} Saving Throw: DC ${s.saveDc ?? '\u2014'}`);
+  }
+  const damage = (s.effects ?? [])
+    .filter(e => e.kind === 'DAMAGE' && e.amount)
+    .map(e => `${e.amount}${e.damageType ? ' ' + titleCase(e.damageType) : ''}`)
+    .join(' plus ');
+  if (damage) {
+    parts.push(`${s.delivery === 'ATTACK_ROLL' ? 'Hit' : 'Failure'}: ${damage} damage`);
+  }
+  const conditions = (s.effects ?? [])
+    .filter(e => e.kind === 'APPLY_CONDITION' && e.conditionName)
+    .map(e => e.conditionName + (e.escapeDc ? ` (escape DC ${e.escapeDc})` : ''));
+  if (conditions.length) parts.push(conditions.join(', '));
+  return parts.join('. ');
 }

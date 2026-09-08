@@ -1,16 +1,16 @@
 package com.gpt.oozengine.model.dto.response;
 
-import com.gpt.oozengine.constant.rules.Ability;
 import com.gpt.oozengine.constant.rules.Activation;
 import com.gpt.oozengine.constant.rules.AreaShape;
-import com.gpt.oozengine.constant.rules.AttackKind;
-import com.gpt.oozengine.constant.rules.Delivery;
 import com.gpt.oozengine.constant.rules.UsesReset;
 import com.gpt.oozengine.model.mechanics.Feature;
 import java.util.List;
 import java.util.UUID;
 
-/** One capability, with enough structure for a client to render it as a stat line. */
+/**
+ * One capability. The rolls it makes are in {@link #steps} — usually one, two
+ * where the book chains an attack into a follow-up save.
+ */
 public record FeatureResponse(
     UUID id,
     String name,
@@ -22,17 +22,9 @@ public record FeatureResponse(
     Integer usesMax,
     Integer rechargeMin,
     Integer rechargeMax,
-    Delivery delivery,
-    AttackKind attackKind,
-    Integer attackBonus,
-    Ability saveAbility,
-    Integer saveDc,
-    Integer reachFeet,
-    Integer rangeFeet,
-    Integer rangeLongFeet,
     AreaShape areaShape,
     Integer areaSizeFeet,
-    List<EffectResponse> effects) {
+    List<FeatureStepResponse> steps) {
 
   public static FeatureResponse from(Feature f) {
     return new FeatureResponse(
@@ -46,16 +38,8 @@ public record FeatureResponse(
         f.getUsesMax(),
         f.getRechargeMin(),
         f.getRechargeMax(),
-        f.getDelivery(),
-        f.getAttackKind(),
-        f.getAttackBonus(),
-        f.getSaveAbility(),
-        f.getSaveDc(),
-        f.getReachFeet(),
-        f.getRangeFeet(),
-        f.getRangeLongFeet(),
         f.getAreaShape(),
         f.getAreaSizeFeet(),
-        f.getEffects().stream().map(EffectResponse::from).toList());
+        f.getSteps().stream().map(FeatureStepResponse::from).toList());
   }
 }

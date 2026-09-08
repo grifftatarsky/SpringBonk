@@ -1,15 +1,11 @@
 package com.gpt.oozengine.model.mechanics;
 
-import com.gpt.oozengine.constant.rules.Ability;
 import com.gpt.oozengine.constant.rules.Activation;
 import com.gpt.oozengine.constant.rules.AreaShape;
-import com.gpt.oozengine.constant.rules.AttackKind;
-import com.gpt.oozengine.constant.rules.Delivery;
 import com.gpt.oozengine.constant.rules.RangeType;
 import com.gpt.oozengine.constant.rules.TargetKind;
 import com.gpt.oozengine.constant.rules.TimeUnit;
 import com.gpt.oozengine.constant.rules.UsesReset;
-import com.gpt.oozengine.constant.rules.ValueSource;
 import com.gpt.oozengine.model.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -39,11 +35,11 @@ import lombok.Setter;
  * one thing to execute and an importer has one thing to write.
  *
  * <p><b>Structure.</b> A Feature says <em>when</em> it can be used
- * ({@link #activation}, {@link #usesMax}), <em>what it reaches</em>
- * ({@link #rangeType}, {@link #areaShape}, {@link #targetKind}) and <em>how it
- * decides whether it lands</em> ({@link #delivery}). What actually happens then
- * lives in {@link #effects}, one row per branch — the SRD's own "Hit:",
- * "Failure:", "Success:" labels.
+ * ({@link #activation}, {@link #usesMax}) and <em>what it reaches</em>
+ * ({@link #rangeType}, {@link #areaShape}, {@link #targetKind}). <em>How it
+ * lands</em>, and what happens then, lives in {@link #steps}: one per roll the
+ * book asks for, each with its outcome branches named after the SRD's own
+ * "Hit:", "Failure:" and "Success:" labels.
  *
  * <p><b>Ownership.</b> Exactly one of the six owner columns is set, enforced by a
  * database check constraint rather than by convention. Nullable foreign keys were
@@ -154,15 +150,8 @@ public class Feature extends BaseEntity {
   @Column(name = "range_type", length = 16)
   private RangeType rangeType;
 
-  @Column(name = "range_feet")
-  private Integer rangeFeet;
-
-  /** Long range for a ranged attack, i.e. the 320 in "range 80/320 ft." */
-  @Column(name = "range_long_feet")
-  private Integer rangeLongFeet;
-
-  @Column(name = "reach_feet")
-  private Integer reachFeet;
+  // Measured distances live on the step, not here: they belong to the roll, and
+  // a chained attack-then-save has a reach for the attack and none for the save.
 
   @Enumerated(EnumType.STRING)
   @Column(name = "target_kind", length = 24)
@@ -187,46 +176,18 @@ public class Feature extends BaseEntity {
   private Integer areaHeightFeet;
   // endregion
 
-  // region How it lands
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false, length = 20)
-  private Delivery delivery = Delivery.AUTOMATIC;
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "attack_kind", length = 20)
-  private AttackKind attackKind;
-
-  @Column(name = "attack_bonus")
-  private Integer attackBonus;
-
-  /**
-   * Where {@link #attackBonus} comes from. A stat block's is fixed; a spell's is
-   * the caster's spell attack bonus, so the number can't live on the row.
-   */
-  @Enumerated(EnumType.STRING)
-  @Column(name = "attack_bonus_source", length = 24)
-  private ValueSource attackBonusSource;
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "save_ability", length = 16)
-  private Ability saveAbility;
-
-  @Column(name = "save_dc")
-  private Integer saveDc;
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "save_dc_source", length = 24)
-  private ValueSource saveDcSource;
-  // endregion
-
   // region What happens
+  /**
+   * The rolls this feature makes, in order. Almost always one; a chained
+   * attack-then-save is two. See {@link FeatureStep}.
+   */
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
   @JoinColumn(name = "feature_id", nullable = false)
   @OrderBy("ordinal ASC")
-  // Same reason as StatBlock.features: a page of features resolves its
-  // effects in one round trip.
+  // Batched for the same reason as StatBlock.features: a page of features
+  // resolves its steps in one round trip.
   @BatchSize(size = 64)
-  private List<Effect> effects = new ArrayList<>();
+  private List<FeatureStep> steps = new ArrayList<>();
 
   /**
    * For Multiattack and anything else that spends its activation invoking other
@@ -238,9 +199,9 @@ public class Feature extends BaseEntity {
   private List<FeatureComponent> components = new ArrayList<>();
   // endregion
 
-  public void addEffect(Effect e) {
-    e.setOrdinal(effects.size());
-    effects.add(e);
+  public void addStep(FeatureStep step) {
+    step.setOrdinal(steps.size());
+    steps.add(step);
   }
 
   public void addComponent(FeatureComponent c) {

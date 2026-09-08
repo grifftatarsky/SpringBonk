@@ -17,6 +17,7 @@ import com.gpt.oozengine.constant.rules.EffectOutcome;
 import com.gpt.oozengine.constant.rules.MovementType;
 import com.gpt.oozengine.constant.rules.SenseType;
 import com.gpt.oozengine.constant.rules.Skill;
+import com.gpt.oozengine.constant.rules.StepTrigger;
 import com.gpt.oozengine.constant.rules.UsesReset;
 import com.gpt.oozengine.model.Condition;
 import com.gpt.oozengine.model.Monster;
@@ -28,6 +29,7 @@ import com.gpt.oozengine.model.mechanics.DiceRoll;
 import com.gpt.oozengine.model.mechanics.Effect;
 import com.gpt.oozengine.model.mechanics.Feature;
 import com.gpt.oozengine.model.mechanics.FeatureComponent;
+import com.gpt.oozengine.model.mechanics.FeatureStep;
 import com.gpt.oozengine.repository.ConditionRepository;
 import com.gpt.oozengine.repository.FeatureRepository;
 import com.gpt.oozengine.repository.MonsterRepository;
@@ -90,17 +92,18 @@ class RulesModelTests {
     Feature tentacle = new Feature();
     tentacle.setName("Tentacle");
     tentacle.setActivation(Activation.ACTION);
-    tentacle.setDelivery(Delivery.ATTACK_ROLL);
-    tentacle.setAttackKind(AttackKind.MELEE);
-    tentacle.setAttackBonus(9);
-    tentacle.setReachFeet(15);
+    FeatureStep swing = new FeatureStep();
+    swing.setDelivery(Delivery.ATTACK_ROLL);
+    swing.setAttackKind(AttackKind.MELEE);
+    swing.setAttackBonus(9);
+    swing.setReachFeet(15);
 
     Effect damage = new Effect();
     damage.setOutcome(EffectOutcome.HIT);
     damage.setKind(EffectKind.DAMAGE);
     damage.setAmount(new DiceRoll(2, 6, 5, 12));
     damage.setDamageType(DamageType.BLUDGEONING);
-    tentacle.addEffect(damage);
+    swing.addEffect(damage);
 
     // The rider that makes the Tentacle more than a damage roll, and the reason
     // effects are a list rather than one column per outcome.
@@ -110,7 +113,8 @@ class RulesModelTests {
     grapple.setCondition(grappled);
     grapple.setEscapeDc(14);
     grapple.setNotes("Large or smaller creatures only; one of four tentacles.");
-    tentacle.addEffect(grapple);
+    swing.addEffect(grapple);
+    tentacle.addStep(swing);
     block.addFeature(tentacle);
 
     Feature multiattack = new Feature();
@@ -139,11 +143,14 @@ class RulesModelTests {
 
     Feature readTentacle = rb.getFeatures().getFirst();
     assertThat(readTentacle.getName()).isEqualTo("Tentacle");
-    assertThat(readTentacle.getEffects()).hasSize(2);
-    assertThat(readTentacle.getEffects().getFirst().getAmount().expression()).isEqualTo("2d6 + 5");
-    assertThat(readTentacle.getEffects().get(1).getCondition().getCode())
+    assertThat(readTentacle.getSteps()).hasSize(1);
+    FeatureStep readSwing = readTentacle.getSteps().getFirst();
+    assertThat(readSwing.getAttackBonus()).isEqualTo(9);
+    assertThat(readSwing.getEffects()).hasSize(2);
+    assertThat(readSwing.getEffects().getFirst().getAmount().expression()).isEqualTo("2d6 + 5");
+    assertThat(readSwing.getEffects().get(1).getCondition().getCode())
         .isEqualTo(ConditionCode.GRAPPLED);
-    assertThat(readTentacle.getEffects().get(1).getEscapeDc()).isEqualTo(14);
+    assertThat(readSwing.getEffects().get(1).getEscapeDc()).isEqualTo(14);
 
     Feature readMultiattack = rb.getFeatures().get(1);
     assertThat(readMultiattack.getComponents()).hasSize(1);
@@ -209,7 +216,7 @@ class RulesModelTests {
         .anySatisfy(d -> assertThat(d.getDamageType()).isEqualTo(DamageType.FIRE));
 
     // Rend: two damage types on one hit, which is what makes effects a list.
-    Feature rend = feature(s, "Rend");
+    FeatureStep rend = onlyStep(feature(s, "Rend"));
     assertThat(rend.getDelivery()).isEqualTo(Delivery.ATTACK_ROLL);
     assertThat(rend.getAttackBonus()).isEqualTo(14);
     assertThat(rend.getReachFeet()).isEqualTo(10);
@@ -220,13 +227,14 @@ class RulesModelTests {
     assertThat(rend.getEffects().get(1).getDamageType()).isEqualTo(DamageType.FIRE);
 
     // Fire Breath: a recharge, a save, and half damage on a success.
-    Feature breath = feature(s, "Fire Breath");
+    Feature breathFeature = feature(s, "Fire Breath");
+    assertThat(breathFeature.getUsesReset()).isEqualTo(UsesReset.RECHARGE);
+    assertThat(breathFeature.getRechargeMin()).isEqualTo(5);
+    assertThat(breathFeature.getRechargeMax()).isEqualTo(6);
+    FeatureStep breath = onlyStep(breathFeature);
     assertThat(breath.getDelivery()).isEqualTo(Delivery.SAVING_THROW);
     assertThat(breath.getSaveAbility()).isEqualTo(Ability.DEXTERITY);
     assertThat(breath.getSaveDc()).isEqualTo(21);
-    assertThat(breath.getUsesReset()).isEqualTo(UsesReset.RECHARGE);
-    assertThat(breath.getRechargeMin()).isEqualTo(5);
-    assertThat(breath.getRechargeMax()).isEqualTo(6);
     assertThat(breath.getEffects()).extracting(Effect::getOutcome)
         .containsExactly(EffectOutcome.SAVE_FAILURE, EffectOutcome.SAVE_SUCCESS);
     assertThat(breath.getEffects().getFirst().getAmount().expression()).isEqualTo("17d6");
@@ -239,7 +247,7 @@ class RulesModelTests {
   void ridersLinkToConditionRows() {
     StatBlock s = byName("Aboleth").getStatBlock();
     Feature tentacle = feature(s, "Tentacle");
-    Effect grapple = tentacle.getEffects().stream()
+    Effect grapple = onlyStep(tentacle).getEffects().stream()
         .filter(e -> e.getKind() == EffectKind.APPLY_CONDITION)
         .findFirst()
         .orElseThrow();
@@ -254,11 +262,57 @@ class RulesModelTests {
         .contains(ConditionCode.PARALYZED, ConditionCode.PRONE, ConditionCode.UNCONSCIOUS);
   }
 
+  @Test
+  @Transactional
+  @DisplayName("a chained attack-then-save imports as two steps")
+  void chainedFeaturesImportAsSteps() {
+    // The Ghoul's Claw is an attack and then, only on a hit, a save against
+    // paralysis. Under a single-delivery model the save existed only as prose.
+    Feature claw = feature(byName("Ghoul").getStatBlock(), "Claw");
+    assertThat(claw.getSteps()).hasSize(2);
+
+    FeatureStep swipe = claw.getSteps().getFirst();
+    assertThat(swipe.getTrigger()).isEqualTo(StepTrigger.ALWAYS);
+    assertThat(swipe.getDelivery()).isEqualTo(Delivery.ATTACK_ROLL);
+    assertThat(swipe.getAttackBonus()).isEqualTo(4);
+    assertThat(swipe.getEffects().getFirst().getAmount().expression()).isEqualTo("1d4 + 2");
+
+    FeatureStep paralysis = claw.getSteps().get(1);
+    assertThat(paralysis.getTrigger()).isEqualTo(StepTrigger.ON_PREVIOUS_HIT);
+    assertThat(paralysis.getDelivery()).isEqualTo(Delivery.SAVING_THROW);
+    assertThat(paralysis.getSaveAbility()).isEqualTo(Ability.CONSTITUTION);
+    assertThat(paralysis.getSaveDc()).isEqualTo(10);
+    assertThat(paralysis.getTargetFilter()).contains("Undead or elf");
+    assertThat(paralysis.getEffects()).singleElement()
+        .satisfies(e -> assertThat(e.getCondition().getCode()).isEqualTo(ConditionCode.PARALYZED));
+  }
+
+  @Test
+  @Transactional
+  @DisplayName("escalating failure branches import as separate effects")
+  void escalatingFailuresImport() {
+    // A Cockatrice's bite Restrains on the first failure and Petrifies on the
+    // second; one SAVE_FAILURE branch cannot say that.
+    Feature bite = feature(byName("Cockatrice").getStatBlock(), "Petrifying Bite");
+    FeatureStep save = bite.getSteps().get(1);
+    assertThat(save.getEffects()).extracting(Effect::getOutcome)
+        .containsExactly(EffectOutcome.FIRST_FAILURE, EffectOutcome.SECOND_FAILURE);
+    assertThat(save.getEffects().getFirst().getCondition().getCode())
+        .isEqualTo(ConditionCode.RESTRAINED);
+    assertThat(save.getEffects().get(1).getCondition().getCode())
+        .isEqualTo(ConditionCode.PETRIFIED);
+  }
+
   private Monster byName(String name) {
     return monsters.findByOwnerIdIsNull().stream()
         .filter(m -> m.getName().equals(name))
         .findFirst()
         .orElseThrow(() -> new AssertionError("not imported: " + name));
+  }
+
+  private static FeatureStep onlyStep(Feature f) {
+    assertThat(f.getSteps()).hasSize(1);
+    return f.getSteps().getFirst();
   }
 
   private static Feature feature(StatBlock s, String name) {

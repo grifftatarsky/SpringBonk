@@ -9,21 +9,16 @@ import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import com.gpt.oozengine.repository.MonsterRepository;
 import java.util.Comparator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class MonsterService extends AbstractCatalogService<Monster, MonsterRequest, MonsterResponse> {
 
   private final MonsterRepository monsters;
   private final StatBlockMapper statBlocks;
   private final HiddenContentRepository hidden;
-
-  public MonsterService(
-      MonsterRepository monsters, HiddenContentRepository hidden, StatBlockMapper statBlocks) {
-    this.monsters = monsters;
-    this.hidden = hidden;
-    this.statBlocks = statBlocks;
-  }
 
   @Override
   protected CatalogRepository<Monster> repo() {

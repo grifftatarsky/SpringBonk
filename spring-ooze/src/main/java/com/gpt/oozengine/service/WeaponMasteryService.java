@@ -8,19 +8,16 @@ import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import com.gpt.oozengine.repository.WeaponMasteryRepository;
 import java.util.Comparator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class WeaponMasteryService
     extends AbstractCatalogService<WeaponMastery, WeaponMasteryRequest, WeaponMasteryResponse> {
 
   private final WeaponMasteryRepository masteries;
   private final HiddenContentRepository hidden;
-
-  public WeaponMasteryService(WeaponMasteryRepository masteries, HiddenContentRepository hidden) {
-    this.masteries = masteries;
-    this.hidden = hidden;
-  }
 
   @Override
   protected CatalogRepository<WeaponMastery> repo() {

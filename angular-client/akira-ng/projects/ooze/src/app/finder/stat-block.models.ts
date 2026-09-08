@@ -44,8 +44,13 @@ export const ATTACK_KINDS = ['MELEE', 'RANGED', 'MELEE_OR_RANGED'] as const;
 
 export const AREA_SHAPES = ['CONE', 'CUBE', 'CYLINDER', 'EMANATION', 'LINE', 'SPHERE'] as const;
 
-export const EFFECT_OUTCOMES = ['ALWAYS', 'HIT', 'CRITICAL_HIT', 'MISS', 'SAVE_FAILURE',
-  'SAVE_SUCCESS', 'SAVE_EITHER'] as const;
+export const EFFECT_OUTCOMES = ['ALWAYS', 'HIT', 'CRITICAL_HIT', 'MISS', 'HIT_OR_MISS',
+  'SAVE_FAILURE', 'SAVE_SUCCESS', 'SAVE_EITHER', 'FIRST_FAILURE', 'SECOND_FAILURE',
+  'SUBSEQUENT_FAILURES', 'FAILURE_BY_5_OR_MORE'] as const;
+
+/** Why a step happens: a follow-up save only fires if the attack before it hit. */
+export const STEP_TRIGGERS = ['ALWAYS', 'ON_PREVIOUS_HIT', 'ON_PREVIOUS_MISS',
+  'ON_PREVIOUS_FAILURE', 'ON_PREVIOUS_SUCCESS'] as const;
 
 export const EFFECT_KINDS = ['DAMAGE', 'HEALING', 'TEMPORARY_HIT_POINTS', 'APPLY_CONDITION',
   'REMOVE_CONDITION', 'MOVEMENT', 'ABILITY_SCORE_CHANGE', 'RESOURCE_CHANGE', 'SUMMON',
@@ -100,16 +105,25 @@ export interface FeatureView {
   readonly usesMax: number | null;
   readonly rechargeMin: number | null;
   readonly rechargeMax: number | null;
+  readonly areaShape: string | null;
+  readonly areaSizeFeet: number | null;
+  /** One per roll the book asks for; a chained attack-then-save is two. */
+  readonly steps: readonly FeatureStepView[];
+}
+
+export interface FeatureStepView {
+  readonly id: string;
+  readonly ordinal: number;
+  readonly trigger: string;
+  readonly targetFilter: string | null;
   readonly delivery: string;
   readonly attackKind: string | null;
   readonly attackBonus: number | null;
-  readonly saveAbility: string | null;
-  readonly saveDc: number | null;
   readonly reachFeet: number | null;
   readonly rangeFeet: number | null;
   readonly rangeLongFeet: number | null;
-  readonly areaShape: string | null;
-  readonly areaSizeFeet: number | null;
+  readonly saveAbility: string | null;
+  readonly saveDc: number | null;
   readonly effects: readonly EffectView[];
 }
 

@@ -8,18 +8,15 @@ import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import com.gpt.oozengine.repository.ItemRepository;
 import java.util.Comparator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class ItemService extends AbstractCatalogService<Item, ItemRequest, ItemResponse> {
 
   private final ItemRepository items;
   private final HiddenContentRepository hidden;
-
-  public ItemService(ItemRepository items, HiddenContentRepository hidden) {
-    this.items = items;
-    this.hidden = hidden;
-  }
 
   @Override
   protected CatalogRepository<Item> repo() {

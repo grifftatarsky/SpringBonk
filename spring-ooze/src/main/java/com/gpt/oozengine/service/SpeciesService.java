@@ -9,18 +9,15 @@ import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import com.gpt.oozengine.repository.SpeciesRepository;
 import java.util.Comparator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class SpeciesService extends AbstractCatalogService<Species, SpeciesRequest, SpeciesResponse> {
 
   private final SpeciesRepository species;
   private final HiddenContentRepository hidden;
-
-  public SpeciesService(SpeciesRepository species, HiddenContentRepository hidden) {
-    this.species = species;
-    this.hidden = hidden;
-  }
 
   @Override
   protected CatalogRepository<Species> repo() {

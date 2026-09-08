@@ -7,20 +7,28 @@ import com.gpt.oozengine.model.creature.SkillBonus;
 import com.gpt.oozengine.model.creature.StatBlock;
 import com.gpt.oozengine.model.dto.request.EffectRequest;
 import com.gpt.oozengine.model.dto.request.FeatureComponentRequest;
+import com.gpt.oozengine.constant.rules.Activation;
+import com.gpt.oozengine.constant.rules.Delivery;
+import com.gpt.oozengine.constant.rules.StepTrigger;
+import com.gpt.oozengine.constant.rules.UsesReset;
 import com.gpt.oozengine.model.dto.request.FeatureRequest;
+import com.gpt.oozengine.model.dto.request.FeatureStepRequest;
 import com.gpt.oozengine.model.dto.request.StatBlockRequest;
 import com.gpt.oozengine.model.mechanics.DiceRoll;
 import com.gpt.oozengine.model.mechanics.Effect;
 import com.gpt.oozengine.model.mechanics.Feature;
 import com.gpt.oozengine.model.mechanics.FeatureComponent;
+import com.gpt.oozengine.model.mechanics.FeatureStep;
 import com.gpt.oozengine.repository.ConditionRepository;
 import com.gpt.oozengine.repository.FeatureRepository;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,15 +45,11 @@ import org.springframework.stereotype.Component;
  * every save would break the references and churn the ids for no reason.
  */
 @Component
+@RequiredArgsConstructor
 public class StatBlockMapper {
 
   private final ConditionRepository conditions;
   private final FeatureRepository features;
-
-  public StatBlockMapper(ConditionRepository conditions, FeatureRepository features) {
-    this.conditions = conditions;
-    this.features = features;
-  }
 
   public void apply(StatBlockRequest r, StatBlock s) {
     if (r == null) {
@@ -159,7 +163,7 @@ public class StatBlockMapper {
     Map<UUID, Feature> existing = new HashMap<>();
     s.getFeatures().forEach(f -> existing.put(f.getId(), f));
 
-    List<Feature> next = new java.util.ArrayList<>();
+    List<Feature> next = new ArrayList<>();
     int ordinal = 0;
     for (FeatureRequest fr : requested) {
       Feature f = fr.id() == null ? new Feature() : existing.get(fr.id());
@@ -179,52 +183,75 @@ public class StatBlockMapper {
   private void applyFeature(FeatureRequest r, Feature f) {
     f.setName(r.name());
     f.setDescription(blankToNull(r.description()));
-    f.setActivation(orDefault(r.activation(), com.gpt.oozengine.constant.rules.Activation.ACTION));
+    f.setActivation(orDefault(r.activation(), Activation.ACTION));
     f.setLegendaryCost(r.legendaryCost());
     f.setActivationTime(r.activationTime());
     f.setActivationUnit(r.activationUnit());
     f.setTriggerText(blankToNull(r.triggerText()));
     f.setRitual(r.ritual());
-    f.setUsesReset(orDefault(r.usesReset(), com.gpt.oozengine.constant.rules.UsesReset.AT_WILL));
+    f.setUsesReset(orDefault(r.usesReset(), UsesReset.AT_WILL));
     f.setUsesMax(r.usesMax());
     f.setRechargeMin(r.rechargeMin());
     f.setRechargeMax(r.rechargeMax());
     f.setRangeType(r.rangeType());
-    f.setRangeFeet(r.rangeFeet());
-    f.setRangeLongFeet(r.rangeLongFeet());
-    f.setReachFeet(r.reachFeet());
     f.setTargetKind(r.targetKind());
     f.setTargetCount(r.targetCount());
     f.setTargetFilter(blankToNull(r.targetFilter()));
     f.setAreaShape(r.areaShape());
     f.setAreaSizeFeet(r.areaSizeFeet());
     f.setAreaHeightFeet(r.areaHeightFeet());
-    f.setDelivery(orDefault(r.delivery(), com.gpt.oozengine.constant.rules.Delivery.AUTOMATIC));
-    f.setAttackKind(r.attackKind());
-    f.setAttackBonus(r.attackBonus());
-    f.setAttackBonusSource(r.attackBonusSource());
-    f.setSaveAbility(r.saveAbility());
-    f.setSaveDc(r.saveDc());
-    f.setSaveDcSource(r.saveDcSource());
-    syncEffects(r.effects(), f);
+    syncSteps(r.steps(), f);
     syncComponents(r.components(), f);
   }
 
-  private void syncEffects(List<EffectRequest> requested, Feature f) {
+  /** Steps are matched on id for the same reason features are: they are the
+   * unit the simulator resolves, and an edit shouldn't renumber them. */
+  private void syncSteps(List<FeatureStepRequest> requested, Feature f) {
+    if (requested == null) {
+      return;
+    }
+    Map<UUID, FeatureStep> existing = new HashMap<>();
+    f.getSteps().forEach(s -> existing.put(s.getId(), s));
+
+    List<FeatureStep> next = new ArrayList<>();
+    int ordinal = 0;
+    for (FeatureStepRequest sr : requested) {
+      FeatureStep step =
+          sr.id() == null ? new FeatureStep() : existing.getOrDefault(sr.id(), new FeatureStep());
+      step.setTrigger(orDefault(sr.trigger(), StepTrigger.ALWAYS));
+      step.setTargetFilter(blankToNull(sr.targetFilter()));
+      step.setDelivery(orDefault(sr.delivery(), Delivery.AUTOMATIC));
+      step.setAttackKind(sr.attackKind());
+      step.setAttackBonus(sr.attackBonus());
+      step.setAttackBonusSource(sr.attackBonusSource());
+      step.setReachFeet(sr.reachFeet());
+      step.setRangeFeet(sr.rangeFeet());
+      step.setRangeLongFeet(sr.rangeLongFeet());
+      step.setSaveAbility(sr.saveAbility());
+      step.setSaveDc(sr.saveDc());
+      step.setSaveDcSource(sr.saveDcSource());
+      step.setOrdinal(ordinal++);
+      syncEffects(sr.effects(), step);
+      next.add(step);
+    }
+    f.getSteps().clear();
+    f.getSteps().addAll(next);
+  }
+
+  private void syncEffects(List<EffectRequest> requested, FeatureStep step) {
     if (requested == null) {
       return;
     }
     Map<UUID, Effect> existing = new HashMap<>();
-    f.getEffects().forEach(e -> existing.put(e.getId(), e));
+    step.getEffects().forEach(e -> existing.put(e.getId(), e));
 
-    List<Effect> next = new java.util.ArrayList<>();
+    List<Effect> next = new ArrayList<>();
     int ordinal = 0;
     for (EffectRequest er : requested) {
       Effect e = er.id() == null ? new Effect() : existing.getOrDefault(er.id(), new Effect());
       e.setOutcome(er.outcome());
       e.setKind(er.kind());
-      e.setAmount(
-          new DiceRoll(er.diceCount(), er.diceFaces(), er.diceBonus(), er.diceAverage()));
+      e.setAmount(new DiceRoll(er.diceCount(), er.diceFaces(), er.diceBonus(), er.diceAverage()));
       e.setDamageType(er.damageType());
       e.setHalfDamage(er.halfDamage());
       e.setCondition(lookup(er.conditionId(), conditions::findById));
@@ -238,15 +265,15 @@ public class StatBlockMapper {
       e.setOrdinal(ordinal++);
       next.add(e);
     }
-    f.getEffects().clear();
-    f.getEffects().addAll(next);
+    step.getEffects().clear();
+    step.getEffects().addAll(next);
   }
 
   private void syncComponents(List<FeatureComponentRequest> requested, Feature f) {
     if (requested == null) {
       return;
     }
-    List<FeatureComponent> next = new java.util.ArrayList<>();
+    List<FeatureComponent> next = new ArrayList<>();
     int ordinal = 0;
     for (FeatureComponentRequest cr : requested) {
       Feature target = lookup(cr.referencedFeatureId(), features::findById);

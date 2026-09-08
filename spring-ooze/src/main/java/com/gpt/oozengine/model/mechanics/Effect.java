@@ -23,7 +23,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * One consequence of a {@link Feature}, attached to the branch that produces it.
+ * One consequence of a {@link FeatureStep}, attached to the branch that
+ * produces it.
  *
  * <p>A feature can have several: the Aboleth's Tentacle deals damage on a hit
  * <em>and</em> applies Grappled on the same hit, which is two rows sharing
@@ -46,8 +47,12 @@ import lombok.Setter;
 public class Effect extends BaseEntity {
 
   /** Which branch of the parent feature's resolution this belongs to. */
+  /** Read-only mirror of the owning column, for queries that skip the aggregate. */
+  @Column(name = "step_id", insertable = false, updatable = false)
+  private java.util.UUID stepId;
+
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false, length = 20)
+  @Column(nullable = false, length = 24)
   private EffectOutcome outcome = EffectOutcome.ALWAYS;
 
   @Enumerated(EnumType.STRING)

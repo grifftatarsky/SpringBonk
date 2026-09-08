@@ -1,15 +1,11 @@
 package com.gpt.oozengine.model.dto.request;
 
-import com.gpt.oozengine.constant.rules.Ability;
 import com.gpt.oozengine.constant.rules.Activation;
 import com.gpt.oozengine.constant.rules.AreaShape;
-import com.gpt.oozengine.constant.rules.AttackKind;
-import com.gpt.oozengine.constant.rules.Delivery;
 import com.gpt.oozengine.constant.rules.RangeType;
 import com.gpt.oozengine.constant.rules.TargetKind;
 import com.gpt.oozengine.constant.rules.TimeUnit;
 import com.gpt.oozengine.constant.rules.UsesReset;
-import com.gpt.oozengine.constant.rules.ValueSource;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
@@ -31,21 +27,11 @@ public record FeatureRequest(
     Integer rechargeMin,
     Integer rechargeMax,
     RangeType rangeType,
-    Integer rangeFeet,
-    Integer rangeLongFeet,
-    Integer reachFeet,
     TargetKind targetKind,
     Integer targetCount,
     String targetFilter,
     AreaShape areaShape,
     Integer areaSizeFeet,
     Integer areaHeightFeet,
-    Delivery delivery,
-    AttackKind attackKind,
-    Integer attackBonus,
-    ValueSource attackBonusSource,
-    Ability saveAbility,
-    Integer saveDc,
-    ValueSource saveDcSource,
-    @Valid List<EffectRequest> effects,
+    @Valid List<FeatureStepRequest> steps,
     @Valid List<FeatureComponentRequest> components) {}

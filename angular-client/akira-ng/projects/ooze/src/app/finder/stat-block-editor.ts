@@ -5,7 +5,7 @@ import { CatalogItem, titleCase } from './ooze-content.models';
 import {
   ABILITIES, ACTIVATIONS, ALIGNMENTS, AREA_SHAPES, ATTACK_KINDS, CREATURE_TYPES,
   DAMAGE_RESPONSES, DAMAGE_TYPES, DELIVERIES, EFFECT_KINDS, EFFECT_OUTCOMES, MOVEMENT_TYPES,
-  SENSE_TYPES, SIZES, SKILLS, StatBlockView, USES_RESETS, parseDice,
+  SENSE_TYPES, SIZES, SKILLS, STEP_TRIGGERS, StatBlockView, USES_RESETS, parseDice,
 } from './stat-block.models';
 
 /**
@@ -47,6 +47,7 @@ export class StatBlockEditor {
   protected readonly areaShapes = AREA_SHAPES;
   protected readonly effectOutcomes = EFFECT_OUTCOMES;
   protected readonly effectKinds = EFFECT_KINDS;
+  protected readonly stepTriggers = STEP_TRIGGERS;
 
   protected readonly label = titleCase;
 
@@ -115,8 +116,12 @@ export class StatBlockEditor {
     return this.form.get('features') as FormArray<FormGroup>;
   }
 
-  protected effectsOf(feature: FormGroup): FormArray<FormGroup> {
-    return feature.get('effects') as FormArray<FormGroup>;
+  protected stepsOf(feature: FormGroup): FormArray<FormGroup> {
+    return feature.get('steps') as FormArray<FormGroup>;
+  }
+
+  protected effectsOf(step: FormGroup): FormArray<FormGroup> {
+    return step.get('effects') as FormArray<FormGroup>;
   }
 
   protected immunityIds = signal<readonly string[]>([]);
@@ -146,8 +151,15 @@ export class StatBlockEditor {
     this.features.push(this.newFeature());
   }
 
-  protected addEffect(feature: FormGroup): void {
-    this.effectsOf(feature).push(this.newEffect());
+  protected addStep(feature: FormGroup): void {
+    const steps = this.stepsOf(feature);
+    // A second step is a follow-up, so it defaults to firing on a hit — which is
+    // what every chained feature in the book does.
+    steps.push(this.newStep(steps.length ? 'ON_PREVIOUS_HIT' : 'ALWAYS'));
+  }
+
+  protected addEffect(step: FormGroup): void {
+    this.effectsOf(step).push(this.newEffect());
   }
 
   protected removeAt(array: FormArray<FormGroup>, index: number): void {
@@ -169,9 +181,12 @@ export class StatBlockEditor {
       conditionImmunityIds: this.immunityIds(),
       features: (v['features'] as Record<string, any>[]).map(f => ({
         ...f,
-        effects: (f['effects'] as Record<string, any>[]).map(e => ({
-          ...e,
-          conditionId: e['conditionId'] || null,
+        steps: (f['steps'] as Record<string, any>[]).map(st => ({
+          ...st,
+          effects: (st['effects'] as Record<string, any>[]).map(e => ({
+            ...e,
+            conditionId: e['conditionId'] || null,
+          })),
         })),
       })),
     };
@@ -189,16 +204,25 @@ export class StatBlockEditor {
       usesMax: [null as number | null],
       rechargeMin: [null as number | null],
       rechargeMax: [null as number | null],
+      areaShape: [null as string | null],
+      areaSizeFeet: [null as number | null],
+      steps: this.fb.array([] as FormGroup[]),
+    });
+  }
+
+  private newStep(trigger = 'ALWAYS'): FormGroup {
+    return this.fb.group({
+      id: [null as string | null],
+      trigger: [trigger],
+      targetFilter: [''],
       delivery: ['AUTOMATIC'],
       attackKind: [null as string | null],
       attackBonus: [null as number | null],
-      saveAbility: [null as string | null],
-      saveDc: [null as number | null],
       reachFeet: [null as number | null],
       rangeFeet: [null as number | null],
       rangeLongFeet: [null as number | null],
-      areaShape: [null as string | null],
-      areaSizeFeet: [null as number | null],
+      saveAbility: [null as string | null],
+      saveDc: [null as number | null],
       effects: this.fb.array([] as FormGroup[]),
     });
   }
@@ -295,36 +319,46 @@ export class StatBlockEditor {
         usesMax: f.usesMax,
         rechargeMin: f.rechargeMin,
         rechargeMax: f.rechargeMax,
-        delivery: f.delivery,
-        attackKind: f.attackKind,
-        attackBonus: f.attackBonus,
-        saveAbility: f.saveAbility,
-        saveDc: f.saveDc,
-        reachFeet: f.reachFeet,
-        rangeFeet: f.rangeFeet,
-        rangeLongFeet: f.rangeLongFeet,
         areaShape: f.areaShape,
         areaSizeFeet: f.areaSizeFeet,
       });
-      const effects = group.get('effects') as FormArray<FormGroup>;
-      for (const e of f.effects ?? []) {
-        const dice = parseDice(e.amount);
-        const eg = this.newEffect();
-        eg.patchValue({
-          id: e.id,
-          outcome: e.outcome,
-          kind: e.kind,
-          diceCount: dice.count,
-          diceFaces: dice.faces,
-          diceBonus: dice.bonus,
-          diceAverage: e.average,
-          damageType: e.damageType,
-          halfDamage: e.halfDamage,
-          conditionId: e.conditionId,
-          escapeDc: e.escapeDc,
-          notes: e.notes ?? '',
+      const steps = group.get('steps') as FormArray<FormGroup>;
+      for (const st of f.steps ?? []) {
+        const sg = this.newStep();
+        sg.patchValue({
+          id: st.id,
+          trigger: st.trigger,
+          targetFilter: st.targetFilter ?? '',
+          delivery: st.delivery,
+          attackKind: st.attackKind,
+          attackBonus: st.attackBonus,
+          reachFeet: st.reachFeet,
+          rangeFeet: st.rangeFeet,
+          rangeLongFeet: st.rangeLongFeet,
+          saveAbility: st.saveAbility,
+          saveDc: st.saveDc,
         });
-        effects.push(eg);
+        const effects = sg.get('effects') as FormArray<FormGroup>;
+        for (const e of st.effects ?? []) {
+          const dice = parseDice(e.amount);
+          const eg = this.newEffect();
+          eg.patchValue({
+            id: e.id,
+            outcome: e.outcome,
+            kind: e.kind,
+            diceCount: dice.count,
+            diceFaces: dice.faces,
+            diceBonus: dice.bonus,
+            diceAverage: e.average,
+            damageType: e.damageType,
+            halfDamage: e.halfDamage,
+            conditionId: e.conditionId,
+            escapeDc: e.escapeDc,
+            notes: e.notes ?? '',
+          });
+          effects.push(eg);
+        }
+        steps.push(sg);
       }
       this.features.push(group);
     }

@@ -9,22 +9,17 @@ import com.gpt.oozengine.repository.FeatRepository;
 import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import java.util.Comparator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class BackgroundService
     extends AbstractCatalogService<Background, BackgroundRequest, BackgroundResponse> {
 
   private final BackgroundRepository backgrounds;
   private final HiddenContentRepository hidden;
   private final FeatRepository feats;
-
-  public BackgroundService(
-      BackgroundRepository backgrounds, HiddenContentRepository hidden, FeatRepository feats) {
-    this.backgrounds = backgrounds;
-    this.hidden = hidden;
-    this.feats = feats;
-  }
 
   @Override
   protected CatalogRepository<Background> repo() {

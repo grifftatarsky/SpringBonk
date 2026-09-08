@@ -16,9 +16,11 @@ import com.gpt.oozengine.constant.rules.EffectOutcome;
 import com.gpt.oozengine.constant.rules.MovementType;
 import com.gpt.oozengine.constant.rules.SenseType;
 import com.gpt.oozengine.constant.rules.Skill;
+import com.gpt.oozengine.constant.rules.StepTrigger;
 import com.gpt.oozengine.constant.rules.UsesReset;
 import com.gpt.oozengine.model.dto.request.EffectRequest;
 import com.gpt.oozengine.model.dto.request.FeatureRequest;
+import com.gpt.oozengine.model.dto.request.FeatureStepRequest;
 import com.gpt.oozengine.model.dto.request.MonsterRequest;
 import com.gpt.oozengine.model.dto.request.StatBlockRequest;
 import com.gpt.oozengine.model.dto.response.FeatureResponse;
@@ -68,18 +70,55 @@ class StatBlockEditorTests {
         .getId();
   }
 
-  private static FeatureRequest tentacle(UUID id, UUID grappled, int attackBonus) {
+  /**
+   * A feature with only the fields these tests care about. FeatureRequest has 22
+   * components and positional nulls for the other sixteen are unreadable and
+   * easy to miscount.
+   */
+  private static FeatureRequest feature(
+      UUID id, String name, Activation activation, UsesReset reset, Integer usesMax,
+      Integer rechargeMin, Integer rechargeMax, List<FeatureStepRequest> steps) {
     return new FeatureRequest(
-        id, "Tentacle", "Reaches from the murk.", Activation.ACTION, null, null, null, null, false,
-        UsesReset.AT_WILL, null, null, null, null, null, null, 15, null, null, null, null, null,
-        null, Delivery.ATTACK_ROLL, AttackKind.MELEE, attackBonus, null, null, null, null,
-        List.of(
-            new EffectRequest(null, EffectOutcome.HIT, EffectKind.DAMAGE, 2, 6, 5, 12,
-                DamageType.BLUDGEONING, false, null, null, null, null, null, null, null, null),
-            new EffectRequest(null, EffectOutcome.HIT, EffectKind.APPLY_CONDITION, null, null, null,
-                null, null, false, grappled, 14, null, null, null, null, null,
-                "Large or smaller creatures only.")),
-        List.of());
+        id, name, null, activation, null, null, null, null, false,
+        reset, usesMax, rechargeMin, rechargeMax,
+        null, null, null, null, null, null, null,
+        steps, List.of());
+  }
+
+  /** An attack that both damages and grapples on the same hit. */
+  private static FeatureRequest tentacle(UUID id, UUID grappled, int attackBonus) {
+    FeatureStepRequest swing =
+        new FeatureStepRequest(null, StepTrigger.ALWAYS, null, Delivery.ATTACK_ROLL,
+            AttackKind.MELEE, attackBonus, null, 15, null, null, null, null, null,
+            List.of(
+                new EffectRequest(null, EffectOutcome.HIT, EffectKind.DAMAGE, 2, 6, 5, 12,
+                    DamageType.BLUDGEONING, false, null, null, null, null, null, null, null, null),
+                new EffectRequest(null, EffectOutcome.HIT, EffectKind.APPLY_CONDITION, null, null,
+                    null, null, null, false, grappled, 14, null, null, null, null, null,
+                    "Large or smaller creatures only.")));
+    return feature(id, "Tentacle", Activation.ACTION, UsesReset.AT_WILL, null, null, null,
+        List.of(swing));
+  }
+
+  /**
+   * The chained shape the book uses: an attack, and only on a hit, a save. The
+   * Ghoul, the werecreatures and eleven others resolve this way.
+   */
+  private static FeatureRequest chainedBite(UUID grappled) {
+    FeatureStepRequest bite =
+        new FeatureStepRequest(null, StepTrigger.ALWAYS, null, Delivery.ATTACK_ROLL,
+            AttackKind.MELEE, 4, null, 5, null, null, null, null, null,
+            List.of(new EffectRequest(null, EffectOutcome.HIT, EffectKind.DAMAGE, 1, 4, 2, 4,
+                DamageType.PIERCING, false, null, null, null, null, null, null, null, null)));
+    FeatureStepRequest paralysis =
+        new FeatureStepRequest(null, StepTrigger.ON_PREVIOUS_HIT,
+            "If the target is a creature that isn't an Undead or elf", Delivery.SAVING_THROW,
+            null, null, null, null, null, null, Ability.CONSTITUTION, 10, null,
+            List.of(new EffectRequest(null, EffectOutcome.SAVE_FAILURE,
+                EffectKind.APPLY_CONDITION, null, null, null, null, null, false, grappled, null,
+                null, null, null, null, null, null)));
+    return feature(null, "Claw", Activation.ACTION, UsesReset.AT_WILL, null, null, null,
+        List.of(bite, paralysis));
   }
 
   private static StatBlockRequest block(UUID grappled, List<FeatureRequest> features) {
@@ -127,11 +166,13 @@ class StatBlockEditorTests {
     assertThat(created.hitPoints()).isEqualTo("150 (20d10 + 40)");
 
     FeatureResponse f = created.statBlock().features().getFirst();
-    assertThat(f.attackBonus()).isEqualTo(9);
-    assertThat(f.effects()).hasSize(2);
-    assertThat(f.effects().getFirst().amount()).isEqualTo("2d6 + 5");
-    assertThat(f.effects().get(1).conditionName()).isEqualTo("Grappled");
-    assertThat(f.effects().get(1).escapeDc()).isEqualTo(14);
+    assertThat(f.steps()).hasSize(1);
+    var swing = f.steps().getFirst();
+    assertThat(swing.attackBonus()).isEqualTo(9);
+    assertThat(swing.effects()).hasSize(2);
+    assertThat(swing.effects().getFirst().amount()).isEqualTo("2d6 + 5");
+    assertThat(swing.effects().get(1).conditionName()).isEqualTo("Grappled");
+    assertThat(swing.effects().get(1).escapeDc()).isEqualTo(14);
 
     monsters.delete(created.id(), user);
   }
@@ -151,12 +192,12 @@ class StatBlockEditorTests {
 
     // Keep the tentacle (by id, with a changed bonus), add a second feature.
     FeatureRequest bite =
-        new FeatureRequest(null, "Bite", null, Activation.BONUS_ACTION, null, null, null, null,
-            false, UsesReset.RECHARGE, null, 5, 6, null, null, null, 5, null, null, null, null,
-            null, null, Delivery.ATTACK_ROLL, AttackKind.MELEE, 7, null, null, null, null,
-            List.of(new EffectRequest(null, EffectOutcome.HIT, EffectKind.DAMAGE, 1, 8, 3, 7,
-                DamageType.PIERCING, false, null, null, null, null, null, null, null, null)),
-            List.of());
+        feature(null, "Bite", Activation.BONUS_ACTION, UsesReset.RECHARGE, null, 5, 6,
+            List.of(new FeatureStepRequest(null, StepTrigger.ALWAYS, null, Delivery.ATTACK_ROLL,
+                AttackKind.MELEE, 7, null, 5, null, null, null, null, null,
+                List.of(new EffectRequest(null, EffectOutcome.HIT, EffectKind.DAMAGE, 1, 8, 3, 7,
+                    DamageType.PIERCING, false, null, null, null, null, null, null, null,
+                    null)))));
 
     MonsterResponse edited =
         monsters.update(
@@ -170,7 +211,8 @@ class StatBlockEditorTests {
     assertThat(edited.statBlock().features().getFirst().id())
         .as("the kept feature holds its id, so Multiattack still points at it")
         .isEqualTo(tentacleId);
-    assertThat(edited.statBlock().features().getFirst().attackBonus()).isEqualTo(11);
+    assertThat(edited.statBlock().features().getFirst().steps().getFirst().attackBonus())
+        .isEqualTo(11);
     assertThat(edited.statBlock().features().get(1).rechargeMin()).isEqualTo(5);
 
     // Now remove the tentacle entirely.
@@ -202,6 +244,30 @@ class StatBlockEditorTests {
     assertThat(renamed.name()).isEqualTo("Renamed");
     assertThat(renamed.statBlock().features()).hasSize(1);
     assertThat(renamed.statBlock().armorClass()).isEqualTo(17);
+
+    monsters.delete(created.id(), user);
+  }
+
+  @Test
+  @DisplayName("a chained attack-then-save keeps both rolls")
+  void chainedStepsRoundTrip() {
+    UUID grappled = grappledId();
+    UUID user = UUID.randomUUID();
+    MonsterResponse created =
+        monsters.create(
+            new MonsterRequest("Chained Ghoul", null,
+                block(grappled, List.of(chainedBite(grappled)))),
+            user);
+
+    var steps = created.statBlock().features().getFirst().steps();
+    assertThat(steps).hasSize(2);
+    assertThat(steps.getFirst().delivery()).isEqualTo(Delivery.ATTACK_ROLL);
+    assertThat(steps.getFirst().trigger()).isEqualTo(StepTrigger.ALWAYS);
+    assertThat(steps.get(1).delivery()).isEqualTo(Delivery.SAVING_THROW);
+    assertThat(steps.get(1).trigger()).isEqualTo(StepTrigger.ON_PREVIOUS_HIT);
+    assertThat(steps.get(1).saveDc()).isEqualTo(10);
+    assertThat(steps.get(1).targetFilter()).contains("Undead or elf");
+    assertThat(steps.get(1).effects()).hasSize(1);
 
     monsters.delete(created.id(), user);
   }

@@ -237,45 +237,10 @@
           </div>
 
           <div class="grid grid-cols-4 gap-2">
-            <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Resolves by
-              <select formControlName="delivery" class="w-full rounded-md border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
-                @for (d of deliveries; track d) {<option [ngValue]="d">{{ label(d) }}</option>}
-              </select></label>
-            <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Attack
-              <select formControlName="attackKind" class="w-full rounded-md border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
-                <option [ngValue]="null">—</option>
-                @for (k of attackKinds; track k) {<option [ngValue]="k">{{ label(k) }}</option>}
-              </select></label>
-            <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">To hit
-              <input type="number" formControlName="attackBonus"
-                     class="w-full rounded-md border border-rule bg-bg px-1.5 py-1 text-xs text-fg" /></label>
-            <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Reach (ft.)
-              <input type="number" formControlName="reachFeet" min="0"
-                     class="w-full rounded-md border border-rule bg-bg px-1.5 py-1 text-xs text-fg" /></label>
-          </div>
-
-          <div class="grid grid-cols-4 gap-2">
-            <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Save
-              <select formControlName="saveAbility" class="w-full rounded-md border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
-                <option [ngValue]="null">—</option>
-                @for (a of abilities; track a) {<option [ngValue]="a">{{ label(a) }}</option>}
-              </select></label>
-            <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">DC
-              <input type="number" formControlName="saveDc"
-                     class="w-full rounded-md border border-rule bg-bg px-1.5 py-1 text-xs text-fg" /></label>
-            <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Range (ft.)
-              <input type="number" formControlName="rangeFeet" min="0"
-                     class="w-full rounded-md border border-rule bg-bg px-1.5 py-1 text-xs text-fg" /></label>
-            <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Long
-              <input type="number" formControlName="rangeLongFeet" min="0"
-                     class="w-full rounded-md border border-rule bg-bg px-1.5 py-1 text-xs text-fg" /></label>
-          </div>
-
-          <div class="grid grid-cols-4 gap-2">
             <label class="col-span-2 grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Area
               <select formControlName="areaShape" class="w-full rounded-md border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
                 <option [ngValue]="null">—</option>
-                @for (s of areaShapes; track s) {<option [ngValue]="s">{{ label(s) }}</option>}
+                @for (a of areaShapes; track a) {<option [ngValue]="a">{{ label(a) }}</option>}
               </select></label>
             <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Size (ft.)
               <input type="number" formControlName="areaSizeFeet" min="0"
@@ -293,53 +258,113 @@
             <textarea formControlName="description" rows="3"
                       class="w-full rounded-md border border-rule bg-bg px-2 py-1.5 text-xs text-fg"></textarea></label>
 
-          <!-- EFFECTS -->
-          <div class="grid gap-1.5 border-t border-rule pt-2" formArrayName="effects">
-            <p class="text-[0.65rem] font-semibold uppercase tracking-wide text-fg-subtle">Effects</p>
-            @for (e of effectsOf($any(f)).controls; track $index; let j = $index) {
-              <div class="grid gap-1.5 rounded-md bg-bg-subtle p-2" [formGroupName]="j">
+          <!-- RESOLUTION STEPS -->
+          <div class="grid gap-2 border-t border-rule pt-2" formArrayName="steps">
+            <p class="text-[0.65rem] font-semibold uppercase tracking-wide text-fg-subtle">
+              Resolution — one per roll the book asks for
+            </p>
+            @for (st of stepsOf($any(f)).controls; track $index; let k = $index) {
+              <div class="grid gap-1.5 rounded-md border border-rule/70 p-2" [formGroupName]="k">
                 <div class="flex flex-wrap items-center gap-1.5">
-                  <select formControlName="outcome" aria-label="Outcome"
-                          class="w-32 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
-                    @for (o of effectOutcomes; track o) {<option [ngValue]="o">{{ label(o) }}</option>}
-                  </select>
-                  <select formControlName="kind" aria-label="Effect kind"
+                  <span class="rounded bg-bg-muted px-1.5 py-0.5 text-[0.6rem] font-semibold text-fg-subtle">Step {{ k + 1 }}</span>
+                  @if (k > 0) {
+                    <select formControlName="trigger" aria-label="When this step happens"
+                            class="w-44 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
+                      @for (t of stepTriggers; track t) {<option [ngValue]="t">{{ label(t) }}</option>}
+                    </select>
+                  }
+                  <select formControlName="delivery" aria-label="Resolves by"
                           class="w-36 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
-                    @for (k of effectKinds; track k) {<option [ngValue]="k">{{ label(k) }}</option>}
+                    @for (d of deliveries; track d) {<option [ngValue]="d">{{ label(d) }}</option>}
                   </select>
-                  <input type="number" formControlName="diceCount" placeholder="2" aria-label="Dice count"
-                         class="w-14 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" />
-                  <span class="text-xs text-fg-subtle">d</span>
-                  <input type="number" formControlName="diceFaces" placeholder="6" aria-label="Dice faces"
-                         class="w-14 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" />
-                  <input type="number" formControlName="diceBonus" placeholder="+5" aria-label="Dice bonus"
-                         class="w-16 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" />
-                  <select formControlName="damageType" aria-label="Damage type"
-                          class="w-32 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
-                    <option [ngValue]="null">—</option>
-                    @for (d of damageTypes; track d) {<option [ngValue]="d">{{ label(d) }}</option>}
-                  </select>
-                  <button type="button" (click)="removeAt(effectsOf($any(f)), j)" aria-label="Remove effect"
-                          class="ml-auto rounded border border-rule px-2 py-1 text-[0.65rem] text-fg-muted transition hover:bg-bg">Remove</button>
+                  <button type="button" (click)="removeAt(stepsOf($any(f)), k)" aria-label="Remove step"
+                          class="ml-auto rounded border border-rule px-2 py-1 text-[0.65rem] text-fg-muted transition hover:bg-bg-subtle">Remove step</button>
                 </div>
-                <div class="flex flex-wrap items-center gap-1.5">
-                  <label class="inline-flex items-center gap-1 text-[0.65rem] text-fg-muted">
-                    <input type="checkbox" formControlName="halfDamage" /> Half on success
-                  </label>
-                  <select formControlName="conditionId" aria-label="Condition applied"
-                          class="w-40 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
-                    <option [ngValue]="null">No condition</option>
-                    @for (c of conditions(); track c.id) {<option [ngValue]="c.id">{{ c.name }}</option>}
-                  </select>
-                  <input type="number" formControlName="escapeDc" placeholder="Escape DC" aria-label="Escape DC"
-                         class="w-28 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" />
-                  <input type="text" formControlName="notes" placeholder="Anything the fields can't carry"
-                         class="min-w-0 flex-1 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" />
+
+                <div class="grid grid-cols-4 gap-1.5">
+                  <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Attack
+                    <select formControlName="attackKind" class="w-full rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
+                      <option [ngValue]="null">—</option>
+                      @for (a of attackKinds; track a) {<option [ngValue]="a">{{ label(a) }}</option>}
+                    </select></label>
+                  <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">To hit
+                    <input type="number" formControlName="attackBonus"
+                           class="w-full rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" /></label>
+                  <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Save
+                    <select formControlName="saveAbility" class="w-full rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
+                      <option [ngValue]="null">—</option>
+                      @for (a of abilities; track a) {<option [ngValue]="a">{{ label(a) }}</option>}
+                    </select></label>
+                  <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">DC
+                    <input type="number" formControlName="saveDc"
+                           class="w-full rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" /></label>
+                </div>
+
+                <div class="grid grid-cols-4 gap-1.5">
+                  <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Reach (ft.)
+                    <input type="number" formControlName="reachFeet" min="0"
+                           class="w-full rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" /></label>
+                  <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Range
+                    <input type="number" formControlName="rangeFeet" min="0"
+                           class="w-full rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" /></label>
+                  <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Long
+                    <input type="number" formControlName="rangeLongFeet" min="0"
+                           class="w-full rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" /></label>
+                  <label class="grid gap-1 text-[0.65rem] font-medium text-fg-subtle">Applies to
+                    <input type="text" formControlName="targetFilter" placeholder="If the target is a Humanoid"
+                           class="w-full rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" /></label>
+                </div>
+
+                <div class="grid gap-1.5" formArrayName="effects">
+                  @for (e of effectsOf($any(st)).controls; track $index; let j = $index) {
+                    <div class="grid gap-1.5 rounded bg-bg-subtle p-2" [formGroupName]="j">
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        <select formControlName="outcome" aria-label="Outcome"
+                                class="w-44 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
+                          @for (o of effectOutcomes; track o) {<option [ngValue]="o">{{ label(o) }}</option>}
+                        </select>
+                        <select formControlName="kind" aria-label="Effect kind"
+                                class="w-36 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
+                          @for (kk of effectKinds; track kk) {<option [ngValue]="kk">{{ label(kk) }}</option>}
+                        </select>
+                        <input type="number" formControlName="diceCount" placeholder="2" aria-label="Dice count"
+                               class="w-14 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" />
+                        <span class="text-xs text-fg-subtle">d</span>
+                        <input type="number" formControlName="diceFaces" placeholder="6" aria-label="Dice faces"
+                               class="w-14 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" />
+                        <input type="number" formControlName="diceBonus" placeholder="+5" aria-label="Dice bonus"
+                               class="w-16 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" />
+                        <select formControlName="damageType" aria-label="Damage type"
+                                class="w-32 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
+                          <option [ngValue]="null">—</option>
+                          @for (d of damageTypes; track d) {<option [ngValue]="d">{{ label(d) }}</option>}
+                        </select>
+                        <button type="button" (click)="removeAt(effectsOf($any(st)), j)" aria-label="Remove effect"
+                                class="ml-auto rounded border border-rule px-2 py-1 text-[0.65rem] text-fg-muted transition hover:bg-bg">Remove</button>
+                      </div>
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        <label class="inline-flex items-center gap-1 text-[0.65rem] text-fg-muted">
+                          <input type="checkbox" formControlName="halfDamage" /> Half on success
+                        </label>
+                        <select formControlName="conditionId" aria-label="Condition applied"
+                                class="w-40 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg">
+                          <option [ngValue]="null">No condition</option>
+                          @for (c of conditions(); track c.id) {<option [ngValue]="c.id">{{ c.name }}</option>}
+                        </select>
+                        <input type="number" formControlName="escapeDc" placeholder="Escape DC" aria-label="Escape DC"
+                               class="w-28 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" />
+                        <input type="text" formControlName="notes" placeholder="Anything the fields can't carry"
+                               class="min-w-0 flex-1 rounded border border-rule bg-bg px-1.5 py-1 text-xs text-fg" />
+                      </div>
+                    </div>
+                  }
+                  <button type="button" (click)="addEffect($any(st))"
+                          class="justify-self-start rounded-md border border-rule px-2 py-1 text-[0.65rem] font-medium text-fg-muted transition hover:bg-bg-subtle">Add effect</button>
                 </div>
               </div>
             }
-            <button type="button" (click)="addEffect($any(f))"
-                    class="justify-self-start rounded-md border border-rule px-2 py-1 text-[0.65rem] font-medium text-fg-muted transition hover:bg-bg-subtle">Add effect</button>
+            <button type="button" (click)="addStep($any(f))"
+                    class="justify-self-start rounded-md border border-rule px-2 py-1 text-[0.65rem] font-medium text-fg-muted transition hover:bg-bg-subtle">Add step</button>
           </div>
         </div>
       }

@@ -8,19 +8,16 @@ import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.ConditionRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import java.util.Comparator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class ConditionService
     extends AbstractCatalogService<Condition, ConditionRequest, ConditionResponse> {
 
   private final ConditionRepository conditions;
   private final HiddenContentRepository hidden;
-
-  public ConditionService(ConditionRepository conditions, HiddenContentRepository hidden) {
-    this.conditions = conditions;
-    this.hidden = hidden;
-  }
 
   @Override
   protected CatalogRepository<Condition> repo() {
