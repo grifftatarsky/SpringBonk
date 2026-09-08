@@ -88,6 +88,13 @@ updates:
       npm-security:
         applies-to: "security-updates"
         patterns: ["*"]
+    # Ignore pre-release versions of deck.gl and luma.gl to prevent
+    # incompatibility issues until stable releases are available.
+    ignore:
+      - dependency-name: "@deck.gl/*"
+        update-types: ["version-update:semver-prerelease"]
+      - dependency-name: "@luma.gl/*"
+        update-types: ["version-update:semver-prerelease"]
 
   # ── Docker base images ──────────────────────────────────────────────────
   # The service Dockerfiles use non-standard names (DockerfileBFF, etc.).
