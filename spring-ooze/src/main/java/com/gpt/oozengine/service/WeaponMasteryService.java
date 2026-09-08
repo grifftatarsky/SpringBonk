@@ -7,7 +7,6 @@ import com.gpt.oozengine.model.dto.response.WeaponMasteryResponse;
 import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import com.gpt.oozengine.repository.WeaponMasteryRepository;
-import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -37,11 +36,6 @@ public class WeaponMasteryService
   @Override
   protected WeaponMastery instantiate() {
     return new WeaponMastery();
-  }
-
-  @Override
-  protected Comparator<WeaponMastery> listOrder() {
-    return Comparator.comparing(WeaponMastery::getName, String.CASE_INSENSITIVE_ORDER);
   }
 
   @Override

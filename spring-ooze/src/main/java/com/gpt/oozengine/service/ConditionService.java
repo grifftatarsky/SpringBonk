@@ -7,7 +7,6 @@ import com.gpt.oozengine.model.dto.response.ConditionResponse;
 import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.ConditionRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
-import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -37,11 +36,6 @@ public class ConditionService
   @Override
   protected Condition instantiate() {
     return new Condition();
-  }
-
-  @Override
-  protected Comparator<Condition> listOrder() {
-    return Comparator.comparing(Condition::getName, String.CASE_INSENSITIVE_ORDER);
   }
 
   @Override

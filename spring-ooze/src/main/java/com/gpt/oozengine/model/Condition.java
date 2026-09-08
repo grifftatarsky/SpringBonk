@@ -18,9 +18,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Condition extends CatalogContent {
 
-  @Column(nullable = false)
-  private String name;
-
   /**
    * The rule this row represents, or null for a DM's homebrew condition. The
    * table owns the text and who may edit it; the code is what the simulator

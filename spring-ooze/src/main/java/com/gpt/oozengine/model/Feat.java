@@ -26,9 +26,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Feat extends CatalogContent {
 
-  @Column(nullable = false)
-  private String name;
-
   @Enumerated(EnumType.STRING)
   @Column(name = "category", nullable = false, length = 24)
   private FeatCategory category;

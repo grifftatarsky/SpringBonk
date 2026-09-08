@@ -31,9 +31,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Monster extends CatalogContent {
 
-  @Column(nullable = false)
-  private String name;
-
   /** Flavour text. Everything mechanical lives on the stat block. */
   @Column(columnDefinition = "text")
   private String description;

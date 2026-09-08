@@ -28,6 +28,13 @@ import lombok.Setter;
 @Setter
 public abstract class CatalogContent extends BaseEntity {
 
+  /**
+   * Every catalog type has one, and it is what the finder sorts and searches
+   * on. Declared here so a single query can page and filter any of them.
+   */
+  @Column(nullable = false)
+  private String name;
+
   @Column(name = "owner_id")
   private UUID ownerId;
 

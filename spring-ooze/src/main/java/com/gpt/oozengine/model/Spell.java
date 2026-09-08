@@ -42,9 +42,6 @@ import lombok.Setter;
 public class Spell extends CatalogContent {
 
   // region Basic Info
-  @Column(nullable = false)
-  private String name;
-
   /// 0 = cantrip, 1-9 = spell levels.
   @Column(nullable = false)
   private int level;

@@ -73,8 +73,10 @@
             <p class="px-1 py-6 text-center text-xs text-fg-subtle">Loading…</p>
           } @else if (loadError()) {
             <p class="px-1 py-6 text-center text-xs text-danger">Couldn't reach Oozengine. Is the backend running?</p>
-          } @else if (!filtered().length) {
-            <p class="px-1 py-6 text-center text-xs text-fg-subtle">Nothing here yet.</p>
+          } @else if (!all().length) {
+            <p class="px-1 py-6 text-center text-xs text-fg-subtle">
+              @if (search()) { No match for "{{ search() }}". } @else { Nothing here yet. }
+            </p>
           } @else {
             <div class="pr-1 lg:max-h-[26rem] lg:overflow-y-auto">
               @for (g of groups(); track g.key) {
@@ -109,6 +111,17 @@
                     </li>
                   }
                 </ul>
+              }
+              @if (hasMore()) {
+                <div class="grid gap-1 px-1 pb-1 pt-2">
+                  <button type="button" (click)="loadMore()" [disabled]="loadingMore()"
+                          class="w-full rounded-md border border-rule px-2.5 py-1.5 text-xs font-medium text-fg-muted transition hover:bg-bg hover:text-fg disabled:opacity-60">
+                    {{ loadingMore() ? 'Loading…' : 'Load more' }}
+                  </button>
+                  <p class="text-center text-[0.65rem] text-fg-subtle">
+                    Showing {{ all().length }} of {{ total() }}
+                  </p>
+                </div>
               }
             </div>
           }

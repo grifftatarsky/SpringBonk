@@ -8,7 +8,6 @@ import com.gpt.oozengine.repository.BackgroundRepository;
 import com.gpt.oozengine.repository.FeatRepository;
 import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
-import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -39,11 +38,6 @@ public class BackgroundService
   @Override
   protected Background instantiate() {
     return new Background();
-  }
-
-  @Override
-  protected Comparator<Background> listOrder() {
-    return Comparator.comparing(Background::getName, String.CASE_INSENSITIVE_ORDER);
   }
 
   @Override

@@ -27,9 +27,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Background extends CatalogContent {
 
-  @Column(nullable = false)
-  private String name;
-
   /** The three abilities a background offers; the player splits +2/+1 or +1/+1/+1. */
   @ElementCollection(fetch = FetchType.LAZY)
   @CollectionTable(name = "background_abilities", joinColumns = @JoinColumn(name = "background_id"))

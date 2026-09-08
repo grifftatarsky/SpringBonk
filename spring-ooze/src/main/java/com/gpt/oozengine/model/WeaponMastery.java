@@ -18,9 +18,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class WeaponMastery extends CatalogContent {
 
-  @Column(nullable = false)
-  private String name;
-
   /** Behavioural handle; null for homebrew. See {@link Condition#getCode()}. */
   @Enumerated(EnumType.STRING)
   @Column(length = 16)

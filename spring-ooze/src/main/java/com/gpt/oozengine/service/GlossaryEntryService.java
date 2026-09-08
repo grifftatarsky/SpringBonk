@@ -7,7 +7,6 @@ import com.gpt.oozengine.model.dto.response.GlossaryEntryResponse;
 import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.GlossaryEntryRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
-import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -37,11 +36,6 @@ public class GlossaryEntryService
   @Override
   protected GlossaryEntry instantiate() {
     return new GlossaryEntry();
-  }
-
-  @Override
-  protected Comparator<GlossaryEntry> listOrder() {
-    return Comparator.comparing(GlossaryEntry::getName, String.CASE_INSENSITIVE_ORDER);
   }
 
   @Override

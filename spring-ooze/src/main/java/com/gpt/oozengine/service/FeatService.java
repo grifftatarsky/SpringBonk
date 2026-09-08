@@ -7,7 +7,6 @@ import com.gpt.oozengine.model.dto.response.FeatResponse;
 import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.FeatRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
-import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,11 +35,6 @@ public class FeatService extends AbstractCatalogService<Feat, FeatRequest, FeatR
   @Override
   protected Feat instantiate() {
     return new Feat();
-  }
-
-  @Override
-  protected Comparator<Feat> listOrder() {
-    return Comparator.comparing(Feat::getName, String.CASE_INSENSITIVE_ORDER);
   }
 
   @Override

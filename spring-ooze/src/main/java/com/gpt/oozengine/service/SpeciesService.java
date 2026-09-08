@@ -8,7 +8,6 @@ import com.gpt.oozengine.model.dto.response.SpeciesResponse;
 import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import com.gpt.oozengine.repository.SpeciesRepository;
-import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -37,11 +36,6 @@ public class SpeciesService extends AbstractCatalogService<Species, SpeciesReque
   @Override
   protected Species instantiate() {
     return new Species();
-  }
-
-  @Override
-  protected Comparator<Species> listOrder() {
-    return Comparator.comparing(Species::getName, String.CASE_INSENSITIVE_ORDER);
   }
 
   @Override

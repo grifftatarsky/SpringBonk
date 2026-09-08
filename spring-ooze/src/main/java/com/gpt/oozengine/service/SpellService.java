@@ -7,8 +7,8 @@ import com.gpt.oozengine.model.dto.response.SpellResponse;
 import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import com.gpt.oozengine.repository.SpellRepository;
-import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /** Spell catalog. Override mechanics live in {@link AbstractCatalogService}. */
@@ -39,12 +39,11 @@ public class SpellService extends AbstractCatalogService<Spell, SpellRequest, Sp
     return new Spell();
   }
 
+  /** Spell lists read by level, then name — the order the book prints. */
   @Override
-  protected Comparator<Spell> listOrder() {
-    return Comparator.comparingInt(Spell::getLevel)
-        .thenComparing(Spell::getName, String.CASE_INSENSITIVE_ORDER);
+  protected Sort defaultSort() {
+    return Sort.by(Sort.Order.asc("level"), Sort.Order.asc("name").ignoreCase());
   }
-
   @Override
   protected void apply(SpellRequest r, Spell s) {
     s.setName(r.name());

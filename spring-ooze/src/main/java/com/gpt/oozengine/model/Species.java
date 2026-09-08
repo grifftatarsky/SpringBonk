@@ -34,9 +34,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Species extends CatalogContent {
 
-  @Column(nullable = false)
-  private String name;
-
   @Enumerated(EnumType.STRING)
   @Column(length = 16)
   private CreatureSize size;

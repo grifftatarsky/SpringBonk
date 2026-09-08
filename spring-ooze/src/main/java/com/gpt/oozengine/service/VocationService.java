@@ -7,7 +7,6 @@ import com.gpt.oozengine.model.dto.response.VocationResponse;
 import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import com.gpt.oozengine.repository.VocationRepository;
-import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,11 +35,6 @@ public class VocationService extends AbstractCatalogService<Vocation, VocationRe
   @Override
   protected Vocation instantiate() {
     return new Vocation();
-  }
-
-  @Override
-  protected Comparator<Vocation> listOrder() {
-    return Comparator.comparing(Vocation::getName, String.CASE_INSENSITIVE_ORDER);
   }
 
   @Override

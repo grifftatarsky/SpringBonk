@@ -7,7 +7,6 @@ import com.gpt.oozengine.model.dto.response.ItemResponse;
 import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import com.gpt.oozengine.repository.ItemRepository;
-import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,11 +35,6 @@ public class ItemService extends AbstractCatalogService<Item, ItemRequest, ItemR
   @Override
   protected Item instantiate() {
     return new Item();
-  }
-
-  @Override
-  protected Comparator<Item> listOrder() {
-    return Comparator.comparing(Item::getName, String.CASE_INSENSITIVE_ORDER);
   }
 
   @Override

@@ -8,7 +8,6 @@ import com.gpt.oozengine.model.dto.response.MonsterResponse;
 import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import com.gpt.oozengine.repository.MonsterRepository;
-import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,11 +37,6 @@ public class MonsterService extends AbstractCatalogService<Monster, MonsterReque
   @Override
   protected Monster instantiate() {
     return new Monster();
-  }
-
-  @Override
-  protected Comparator<Monster> listOrder() {
-    return Comparator.comparing(Monster::getName, String.CASE_INSENSITIVE_ORDER);
   }
 
   @Override

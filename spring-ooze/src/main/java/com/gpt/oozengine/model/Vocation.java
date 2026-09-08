@@ -32,9 +32,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Vocation extends CatalogContent {
 
-  @Column(nullable = false)
-  private String name;
-
   /** Faces of the class's Hit Point Die: the 10 in d10. */
   @Column(name = "hit_die")
   private Integer hitDie;

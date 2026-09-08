@@ -25,9 +25,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Subclass extends CatalogContent {
 
-  @Column(nullable = false)
-  private String name;
-
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "vocation_id", nullable = false)
   private Vocation vocation;

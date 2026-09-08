@@ -93,8 +93,10 @@ export class StatBlockEditor {
   });
 
   constructor() {
-    this.content.list('condition').subscribe({
-      next: rows => this.conditions.set(rows),
+    // The condition immunity picker needs every condition at once, and the
+    // rules define about fifteen — one page over the cap holds the lot.
+    this.content.list('condition', { size: 200 }).subscribe({
+      next: page => this.conditions.set(page.content),
       error: () => this.conditions.set([]),
     });
     // Repopulate whenever the panel hands over a different creature.
