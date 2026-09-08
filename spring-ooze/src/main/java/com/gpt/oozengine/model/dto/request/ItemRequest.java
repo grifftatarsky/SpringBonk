@@ -1,13 +1,17 @@
 package com.gpt.oozengine.model.dto.request;
 
+import com.gpt.oozengine.constant.rules.ItemCategory;
+import com.gpt.oozengine.constant.rules.Rarity;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
 
 public record ItemRequest(
     @NotBlank String name,
-    @NotBlank String category,
-    String rarity,
-    String cost,
-    String weight,
+    @NotNull ItemCategory itemCategory,
+    Rarity rarityTier,
+    BigDecimal costGp,
+    BigDecimal weightLb,
     boolean attunement,
-    @NotBlank String description,
-    String properties) {}
+    String attunementNote,
+    @NotBlank String description) {}

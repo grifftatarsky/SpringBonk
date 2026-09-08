@@ -49,8 +49,9 @@ public class FeatService extends AbstractCatalogService<Feat, FeatRequest, FeatR
   @Override
   protected void apply(FeatRequest r, Feat f) {
     f.setName(r.name());
-    f.setFeatCategory(r.featCategory());
+    f.setCategory(r.category());
     f.setPrerequisite(r.prerequisite());
+    f.setRepeatable(r.repeatable());
     f.setDescription(r.description());
   }
 

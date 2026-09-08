@@ -49,13 +49,13 @@ public class ItemService extends AbstractCatalogService<Item, ItemRequest, ItemR
   @Override
   protected void apply(ItemRequest r, Item i) {
     i.setName(r.name());
-    i.setCategory(r.category());
-    i.setRarity(r.rarity());
-    i.setCost(r.cost());
-    i.setWeight(r.weight());
+    i.setItemCategory(r.itemCategory());
+    i.setRarityTier(r.rarityTier());
+    i.setCostGp(r.costGp());
+    i.setWeightLb(r.weightLb());
     i.setAttunement(r.attunement());
+    i.setAttunementNote(r.attunementNote());
     i.setDescription(r.description());
-    i.setProperties(r.properties());
   }
 
   @Override

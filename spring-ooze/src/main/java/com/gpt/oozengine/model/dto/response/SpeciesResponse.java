@@ -1,17 +1,22 @@
 package com.gpt.oozengine.model.dto.response;
 
 import com.gpt.oozengine.constant.SrdVersion;
+import com.gpt.oozengine.constant.rules.CreatureSize;
+import com.gpt.oozengine.constant.rules.CreatureType;
+import com.gpt.oozengine.constant.rules.MovementType;
 import com.gpt.oozengine.model.Species;
+import java.util.List;
 import java.util.UUID;
 
 public record SpeciesResponse(
     UUID id,
     String name,
-    String size,
-    String speed,
-    String creatureType,
-    String traits,
+    CreatureSize size,
+    CreatureSize alternateSize,
+    CreatureType creatureType,
+    Integer walkSpeed,
     String description,
+    List<FeatureResponse> features,
     boolean base,
     UUID overridesId,
     SrdVersion srdVersion) {
@@ -21,10 +26,11 @@ public record SpeciesResponse(
         s.getId(),
         s.getName(),
         s.getSize(),
-        s.getSpeed(),
+        s.getAlternateSize(),
         s.getCreatureType(),
-        s.getTraits(),
+        s.getSpeeds().get(MovementType.WALK),
         s.getDescription(),
+        s.getFeatures().stream().map(FeatureResponse::from).toList(),
         s.isBaseContent(),
         s.getOverridesId(),
         s.getSrdVersion());

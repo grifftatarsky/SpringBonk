@@ -5,6 +5,7 @@ import com.gpt.oozengine.model.Background;
 import com.gpt.oozengine.model.dto.request.BackgroundRequest;
 import com.gpt.oozengine.model.dto.response.BackgroundResponse;
 import com.gpt.oozengine.repository.BackgroundRepository;
+import com.gpt.oozengine.repository.FeatRepository;
 import com.gpt.oozengine.repository.CatalogRepository;
 import com.gpt.oozengine.repository.HiddenContentRepository;
 import java.util.Comparator;
@@ -16,10 +17,13 @@ public class BackgroundService
 
   private final BackgroundRepository backgrounds;
   private final HiddenContentRepository hidden;
+  private final FeatRepository feats;
 
-  public BackgroundService(BackgroundRepository backgrounds, HiddenContentRepository hidden) {
+  public BackgroundService(
+      BackgroundRepository backgrounds, HiddenContentRepository hidden, FeatRepository feats) {
     this.backgrounds = backgrounds;
     this.hidden = hidden;
+    this.feats = feats;
   }
 
   @Override
@@ -50,12 +54,19 @@ public class BackgroundService
   @Override
   protected void apply(BackgroundRequest r, Background b) {
     b.setName(r.name());
-    b.setAbilityScores(r.abilityScores());
-    b.setFeat(r.feat());
-    b.setSkillProficiencies(r.skillProficiencies());
     b.setToolProficiencies(r.toolProficiencies());
     b.setEquipment(r.equipment());
     b.setDescription(r.description());
+    b.setFeat(r.featId() == null ? null : feats.findById(r.featId()).orElse(null));
+    b.setFeatNote(r.featNote());
+    b.getAbilityScores().clear();
+    if (r.abilityScores() != null) {
+      b.getAbilityScores().addAll(r.abilityScores());
+    }
+    b.getSkillProficiencies().clear();
+    if (r.skillProficiencies() != null) {
+      b.getSkillProficiencies().addAll(r.skillProficiencies());
+    }
   }
 
   @Override

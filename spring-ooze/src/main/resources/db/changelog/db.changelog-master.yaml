@@ -82,3 +82,9 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/026-srd-version.yaml
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/027-rules-model.yaml
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/changes/028-rules-model-migrate.yaml
+      relativeToChangelogFile: false

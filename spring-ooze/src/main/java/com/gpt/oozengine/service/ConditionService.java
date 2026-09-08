@@ -50,6 +50,7 @@ public class ConditionService
   @Override
   protected void apply(ConditionRequest r, Condition c) {
     c.setName(r.name());
+    c.setCode(r.code());
     c.setDescription(r.description());
   }
 

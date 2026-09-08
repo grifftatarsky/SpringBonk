@@ -15,7 +15,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { CatalogItem, ContentTypeDef, FieldDef } from './ooze-content.models';
+import { CatalogItem, ContentTypeDef, FieldDef, titleCase } from './ooze-content.models';
 import { ContentService } from './content.service';
 
 /**
@@ -62,8 +62,20 @@ export class ContentPanel {
     });
   }
 
-  protected metaInputs(): readonly FieldDef[] {
+  /** Meta fields for the read-only detail grid — includes list fields. */
+  protected metaFields(): readonly FieldDef[] {
     return this.def().fields.filter(f => f.group === 'meta' && f.kind !== 'boolean');
+  }
+
+  /**
+   * Meta fields the generic form can edit. List fields are excluded: a set of
+   * abilities or skills needs a multi-select, and rendering one as a text input
+   * would let a save silently flatten it.
+   */
+  protected metaInputs(): readonly FieldDef[] {
+    return this.def().fields.filter(
+      f => f.group === 'meta' && f.kind !== 'boolean' && f.kind !== 'list',
+    );
   }
 
   protected metaBooleans(): readonly FieldDef[] {
@@ -169,11 +181,13 @@ export class ContentPanel {
 
   protected hasValue(item: CatalogItem, f: FieldDef): boolean {
     const v = item[f.key];
+    if (Array.isArray(v)) return v.length > 0;
     return v !== null && v !== undefined && String(v).trim() !== '';
   }
 
   protected display(item: CatalogItem, f: FieldDef): string {
     const v = item[f.key];
+    if (Array.isArray(v)) return v.map(x => titleCase(String(x))).join(', ');
     if (f.kind === 'select' && f.options) {
       const opt = f.options.find(o => String(o.value) === String(v));
       if (opt) return opt.label;

@@ -50,11 +50,22 @@ public class VocationService extends AbstractCatalogService<Vocation, VocationRe
   protected void apply(VocationRequest r, Vocation v) {
     v.setName(r.name());
     v.setLikes(r.likes());
-    v.setPrimaryAbility(r.primaryAbility());
     v.setComplexity(r.complexity());
     v.setHitDie(r.hitDie());
-    v.setSavingThrows(r.savingThrows());
+    v.setCasterProgression(r.casterProgression());
+    v.setSpellcastingAbility(r.spellcastingAbility());
     v.setDescription(r.description());
+    replace(v.getPrimaryAbilities(), r.primaryAbilities());
+    replace(v.getSavingThrowProficiencies(), r.savingThrowProficiencies());
+  }
+
+  /** Replaces a managed collection in place; clearing and re-adding keeps
+   * Hibernate's orphan tracking happy where assigning a new set would not. */
+  private static <T> void replace(java.util.Set<T> target, java.util.Set<T> source) {
+    target.clear();
+    if (source != null) {
+      target.addAll(source);
+    }
   }
 
   @Override

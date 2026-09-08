@@ -1,0 +1,112 @@
+package com.gpt.oozengine.model.mechanics;
+
+import com.gpt.oozengine.constant.rules.Ability;
+import com.gpt.oozengine.constant.rules.DamageType;
+import com.gpt.oozengine.constant.rules.EffectKind;
+import com.gpt.oozengine.constant.rules.EffectOutcome;
+import com.gpt.oozengine.constant.rules.MovementType;
+import com.gpt.oozengine.constant.rules.TimeUnit;
+import com.gpt.oozengine.model.BaseEntity;
+import com.gpt.oozengine.model.Condition;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+/**
+ * One consequence of a {@link Feature}, attached to the branch that produces it.
+ *
+ * <p>A feature can have several: the Aboleth's Tentacle deals damage on a hit
+ * <em>and</em> applies Grappled on the same hit, which is two rows sharing
+ * {@link EffectOutcome#HIT}. A saving-throw feature typically has one row at
+ * {@link EffectOutcome#SAVE_FAILURE} and, where the book says "Success: Half
+ * damage", one at {@link EffectOutcome#SAVE_SUCCESS} with {@link #halfDamage}
+ * set rather than a second dice expression — halving is a rule, not a different
+ * roll, and writing it as data would let the two drift.
+ *
+ * <p>The simulator reads {@link #kind} to decide what to do and never reads
+ * {@link #notes}; {@link #notes} is for the residue of a sentence that carries
+ * more than the columns can, so that no information from the book is discarded
+ * on import.
+ */
+@Entity
+@Table(name = "effects")
+@Getter
+@Setter
+@NoArgsConstructor
+public class Effect extends BaseEntity {
+
+  /** Which branch of the parent feature's resolution this belongs to. */
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private EffectOutcome outcome = EffectOutcome.ALWAYS;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 28)
+  private EffectKind kind;
+
+  @Column(nullable = false)
+  private int ordinal;
+
+  // region Amount — damage, healing, temporary hit points
+  @Embedded
+  @AttributeOverride(name = "count", column = @Column(name = "dice_count"))
+  @AttributeOverride(name = "faces", column = @Column(name = "dice_faces"))
+  @AttributeOverride(name = "bonus", column = @Column(name = "dice_bonus"))
+  @AttributeOverride(name = "average", column = @Column(name = "dice_average"))
+  private DiceRoll amount;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "damage_type", length = 16)
+  private DamageType damageType;
+
+  /** True where the book says "Success: Half damage" — no second amount is stored. */
+  @Column(name = "half_damage", nullable = false)
+  private boolean halfDamage;
+  // endregion
+
+  // region Condition applied or removed
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "condition_id")
+  private Condition condition;
+
+  /** Escape DC for Grappled and Restrained, where the target breaks out with a check. */
+  @Column(name = "escape_dc")
+  private Integer escapeDc;
+
+  /** Ability for a repeated save to shake the condition off, if the book grants one. */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "repeat_save_ability", length = 16)
+  private Ability repeatSaveAbility;
+
+  @Column(name = "duration_amount")
+  private Integer durationAmount;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "duration_unit", length = 16)
+  private TimeUnit durationUnit;
+  // endregion
+
+  // region Movement — pushes, pulls, teleports
+  @Enumerated(EnumType.STRING)
+  @Column(name = "movement_type", length = 16)
+  private MovementType movementType;
+
+  /** Positive pushes away from the source, negative pulls toward it. */
+  @Column(name = "movement_feet")
+  private Integer movementFeet;
+  // endregion
+
+  /** Anything the columns above can't carry, kept verbatim so nothing is lost. */
+  @Column(columnDefinition = "text")
+  private String notes;
+}

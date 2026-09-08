@@ -47,7 +47,7 @@ class SrdVersionTests {
     Condition base = repo.findByOwnerIdIsNull().getFirst();
 
     ConditionResponse override =
-        conditions.update(base.getId(), new ConditionRequest(base.getName(), "my table's ruling"), user);
+        conditions.update(base.getId(), new ConditionRequest(base.getName(), base.getCode(), "my table's ruling"), user);
 
     // Without the inheritance the override would come back null and go on
     // showing after a reader switched that edition off.
@@ -63,7 +63,7 @@ class SrdVersionTests {
   void createdContentHasNoVersion() {
     UUID user = UUID.randomUUID();
     ConditionResponse created =
-        conditions.create(new ConditionRequest("Bewildered", "Homebrew condition."), user);
+        conditions.create(new ConditionRequest("Bewildered", null, "Homebrew condition."), user);
 
     assertThat(created.srdVersion()).isNull();
 

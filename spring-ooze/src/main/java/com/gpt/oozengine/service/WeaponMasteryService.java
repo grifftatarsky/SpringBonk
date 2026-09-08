@@ -50,6 +50,7 @@ public class WeaponMasteryService
   @Override
   protected void apply(WeaponMasteryRequest r, WeaponMastery w) {
     w.setName(r.name());
+    w.setCode(r.code());
     w.setDescription(r.description());
   }
 
