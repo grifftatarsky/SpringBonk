@@ -77,6 +77,23 @@ updates:
           - "@angular/*"
           - "@angular-architects/*"
           - "@softarc/*"
+      # The globe stack moves together for the same reason Angular does:
+      # @deck.gl/layers, @deck.gl/maplibre and @luma.gl/engine all peer-depend
+      # on "~9.4.0" of their siblings, so a partial bump is unresolvable. They
+      # are also bundled — not shared — into jpss-ui, where two copies of
+      # @luma.gl/shadertools means shader hooks register on one ShaderAssembler
+      # and compile against the other: a green build whose every fragment
+      # shader fails at runtime. No update-types filter, so majors stay grouped.
+      #
+      # maplibre-gl rides along because it shares deck's GL context. Note that
+      # 6.8.0 is known to leave the globe stuck on "Loading the globe…" — only
+      # the lockfile holds it at 6.6.0, so review this group's PRs against a
+      # running globe rather than a green build. See CLAUDE.md.
+      deckgl:
+        patterns:
+          - "@deck.gl/*"
+          - "@luma.gl/*"
+          - "maplibre-gl"
       # Everything else, low-risk only.
       npm-minor-and-patch:
         patterns: ["*"]
@@ -84,17 +101,13 @@ updates:
           - "@angular/*"
           - "@angular-architects/*"
           - "@softarc/*"
+          - "@deck.gl/*"
+          - "@luma.gl/*"
+          - "maplibre-gl"
         update-types: ["minor", "patch"]
       npm-security:
         applies-to: "security-updates"
         patterns: ["*"]
-    # Ignore pre-release versions of deck.gl and luma.gl to prevent
-    # incompatibility issues until stable releases are available.
-    ignore:
-      - dependency-name: "@deck.gl/*"
-        update-types: ["version-update:semver-prerelease"]
-      - dependency-name: "@luma.gl/*"
-        update-types: ["version-update:semver-prerelease"]
 
   # ── Docker base images ──────────────────────────────────────────────────
   # The service Dockerfiles use non-standard names (DockerfileBFF, etc.).
