@@ -73,9 +73,20 @@ Read these before touching the relevant area.
   `@angular-architects/native-federation:build`, which only wraps; the real
   Angular options live in the `esbuild` target. `assets` on `build` is silently
   ignored.
-- **`.npmrc` sets `legacy-peer-deps`** because the deck.gl 9.4 betas have
-  self-contradictory peer ranges. Without it `npm ci` fails outright. Remove it
-  when 9.4 goes stable.
+- **maplibre-gl is held at 6.6.0; 6.8.0 leaves the globe stuck on "Loading the
+  globe…".** `onStyleData` never reaches `ready.set(true)`, so the canvas stays
+  hidden. Isolated by building deck/luma 9.4.0 stable twice against maplibre
+  6.6.0 (ready) and 6.8.0 (stuck) with nothing else changed, so it is maplibre,
+  not deck. The lockfile is the only thing holding it — `package.json` still
+  says `^6.6.0` — so a dependabot bump of it needs the globe eyeballed before
+  merge, not just a green build. Not in `ignore`, because that would suppress
+  its security updates too.
+- **The globe stack is on stable `^9.4.0` and must stay in lockstep.**
+  `@deck.gl/*` and `@luma.gl/*` peer-depend on `~9.4.0` of each other, so a
+  partial bump is unresolvable; dependabot's `deckgl` group exists to keep them
+  on one PR. Do not re-pin the `9.4.0-beta.*` versions this replaced — their
+  peer metadata was self-contradictory and needed `legacy-peer-deps` in
+  `.npmrc`, which is why that file no longer exists.
 - **`jpss-ui` runs in two shells and the difference is load-bearing.** Inside the
   host it sits under a 3.5rem header; standalone (findjo.org) there is no header
   and no host `App`. Anything the host provides has to have a standalone
