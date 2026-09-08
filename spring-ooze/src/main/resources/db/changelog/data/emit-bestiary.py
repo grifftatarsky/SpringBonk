@@ -11,8 +11,7 @@ import os
 import uuid
 
 SCRATCH = os.path.dirname(os.path.abspath(__file__))
-DATA = ('/Users/gtatarsky/projects/SpringBonk/spring-ooze/src/main/resources/'
-        'db/changelog/data')
+DATA = SCRATCH
 NS = uuid.UUID('5bd10000-0000-4000-a000-000000000000')  # "SRD" namespace for this import
 # Liquibase's loadData DATE parser wants ISO_LOCAL_DATE_TIME; a trailing Z
 # makes it give up and inline the value as a bare SQL literal.

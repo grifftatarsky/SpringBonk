@@ -9,8 +9,12 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 /** Weapon mastery properties — Cleave, Topple, Vex, and the rest (2024). */
+// Batched for the same reason the properties are: the Mastery column is a
+// link every weapon on a page follows.
+@BatchSize(size = 64)
 @Entity
 @Table(name = "weapon_masteries")
 @Getter

@@ -19,6 +19,7 @@ import {
 } from '@angular/forms';
 import { CatalogItem, ContentTypeDef, FieldDef, titleCase } from './ooze-content.models';
 import { ContentService } from './content.service';
+import { ItemEditor } from './item-editor';
 import { StatBlockEditor } from './stat-block-editor';
 import { FeatureStepView, FeatureView, StatBlockView } from './stat-block.models';
 
@@ -31,7 +32,7 @@ import { FeatureStepView, FeatureView, StatBlockView } from './stat-block.models
  */
 @Component({
   selector: 'ooze-content-panel',
-  imports: [ReactiveFormsModule, StatBlockEditor],
+  imports: [ReactiveFormsModule, ItemEditor, StatBlockEditor],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './content-panel.html',
 })
@@ -52,6 +53,16 @@ export class ContentPanel {
    */
   protected readonly usesStatBlock = computed(() => this.def().key === 'bestiary');
 
+  /**
+   * Items bring one too, but alongside the generic form rather than instead of
+   * it: a name, a price and a rarity are ordinary fields, while the weapon and
+   * armor rows are not.
+   */
+  protected readonly usesItemDetail = computed(() => this.def().key === 'items');
+
+  /** The category the form currently holds, so the editor shows the right block. */
+  protected readonly editedCategory = signal('');
+
   protected readonly statBlock = computed<StatBlockView | null>(
     () => (this.item()?.['statBlock'] as StatBlockView | undefined) ?? null,
   );
@@ -61,6 +72,7 @@ export class ContentPanel {
   );
 
   private readonly blockEditor = viewChild(StatBlockEditor);
+  private readonly itemEditor = viewChild(ItemEditor);
 
   protected readonly form = signal<FormGroup>(new FormGroup({}));
   protected readonly editing = signal(false);
@@ -88,13 +100,14 @@ export class ContentPanel {
   }
 
   /**
-   * Meta fields the generic form can edit. List fields are excluded: a set of
-   * abilities or skills needs a multi-select, and rendering one as a text input
-   * would let a save silently flatten it.
+   * Meta fields the generic form can edit. List and derived fields are
+   * excluded: a set of abilities needs a multi-select and a weapon's damage
+   * needs four inputs, and rendering either as a text box would let a save
+   * silently flatten it.
    */
   protected metaInputs(): readonly FieldDef[] {
     return this.def().fields.filter(
-      f => f.group === 'meta' && f.kind !== 'boolean' && f.kind !== 'list',
+      f => f.group === 'meta' && f.kind !== 'boolean' && f.kind !== 'list' && !f.value,
     );
   }
 
@@ -130,6 +143,10 @@ export class ContentPanel {
     const editor = this.blockEditor();
     if (editor) {
       body['statBlock'] = editor.value();
+    }
+    const item = this.itemEditor();
+    if (item) {
+      Object.assign(body, item.value());
     }
     const path = this.def().apiPath;
     const current = this.item();
@@ -206,12 +223,14 @@ export class ContentPanel {
   }
 
   protected hasValue(item: CatalogItem, f: FieldDef): boolean {
+    if (f.value) return f.value(item).trim() !== '';
     const v = item[f.key];
     if (Array.isArray(v)) return v.length > 0;
     return v !== null && v !== undefined && String(v).trim() !== '';
   }
 
   protected display(item: CatalogItem, f: FieldDef): string {
+    if (f.value) return f.value(item);
     const v = item[f.key];
     if (Array.isArray(v)) return v.map(x => titleCase(String(x))).join(', ');
     if (f.kind === 'select' && f.options) {
@@ -241,11 +260,22 @@ export class ContentPanel {
       .map(f => f.label);
   }
 
+  /**
+   * Which weapon/armor block the item editor shows follows the category field —
+   * and only that one, so changing a rarity doesn't hide a weapon's damage.
+   */
+  protected onSelectChange(key: string, value: string): void {
+    if (key === 'itemCategory') {
+      this.editedCategory.set(value);
+    }
+  }
+
   private buildForm(def: ContentTypeDef): FormGroup {
     const controls: Record<string, FormControl> = {
       name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     };
     for (const f of def.fields) {
+      if (f.value) continue; // derived: display-only, no control to bind
       const validators: ValidatorFn[] = [];
       if (f.required) validators.push(Validators.required);
       if (f.kind === 'number') {
@@ -287,6 +317,7 @@ export class ContentPanel {
       const v = item ? item[f.key] : undefined;
       ctrl.setValue(v ?? this.initial(f));
     }
+    this.editedCategory.set(String(form.get('itemCategory')?.value ?? ''));
   }
 }
 

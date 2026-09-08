@@ -27,6 +27,7 @@
             @switch (f.kind) {
               @case ('select') {
                 <select [formControlName]="f.key"
+                        (change)="onSelectChange(f.key, $any($event.target).value)"
                         class="w-full rounded-md border border-rule bg-bg px-2.5 py-1.5 text-sm text-fg">
                   @for (o of f.options; track o.value) {<option [ngValue]="o.value">{{ o.label }}</option>}
                 </select>
@@ -53,6 +54,10 @@
           </label>
         }
       </div>
+    }
+
+    @if (usesItemDetail()) {
+      <ooze-item-editor [item]="item()" [category]="editedCategory()" />
     }
 
     @for (f of proseFields(); track f.key) {

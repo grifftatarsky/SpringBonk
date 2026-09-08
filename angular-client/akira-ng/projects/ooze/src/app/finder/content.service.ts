@@ -51,6 +51,14 @@ export class ContentService {
   }
 
   /**
+   * Every base row of one item category. The editor's pickers need whole closed
+   * sets — the five kinds of ammunition — which a page of names does not give.
+   */
+  byCategory(category: string): Observable<CatalogItem[]> {
+    return this.http.get<CatalogItem[]>(`${this.url('item')}/by-category/${category}`);
+  }
+
+  /**
    * Which SRD editions this catalog draws on. Asked for separately because a
    * page can't answer it: with the edition toggle already off, the rows it
    * would have to prove itself with are exactly the ones missing.

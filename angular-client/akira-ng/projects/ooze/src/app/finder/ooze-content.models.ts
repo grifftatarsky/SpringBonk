@@ -5,6 +5,15 @@
  * matter of adding a def (plus its backend slice).
  */
 
+import {
+  ArmorView,
+  ItemRef,
+  WeaponView,
+  armorClassLine,
+  weaponDamageLine,
+  weaponRangeLine,
+} from './item.models';
+
 export type FieldKind = 'text' | 'textarea' | 'number' | 'select' | 'boolean' | 'list';
 
 export interface FieldOption {
@@ -23,6 +32,13 @@ export interface FieldDef {
   readonly required?: boolean;
   readonly min?: number;
   readonly max?: number;
+  /**
+   * Derives what the detail pane shows, for a value the DTO nests rather than
+   * holds flat — a weapon's damage, an armor's AC formula. A field with one is
+   * display-only: there is no single control that could edit it back, so the
+   * type brings its own editor for that part instead.
+   */
+  readonly value?: (item: CatalogItem) => string;
 }
 
 /**
@@ -30,6 +46,18 @@ export interface FieldDef {
  * own creation — and such rows are never filtered out by the edition toggle.
  */
 export type SrdVersion = 'SRD_5_2' | 'SRD_5_1';
+
+function weaponView(i: CatalogItem): WeaponView | null {
+  return (i['weapon'] as WeaponView | undefined) ?? null;
+}
+
+function armorView(i: CatalogItem): ArmorView | null {
+  return (i['armor'] as ArmorView | undefined) ?? null;
+}
+
+function refNames(refs: unknown): string {
+  return Array.isArray(refs) ? (refs as ItemRef[]).map(r => r.name).join(', ') : '';
+}
 
 /** A row from any catalog endpoint. Always has these; other keys are per-type. */
 export interface CatalogItem {
@@ -121,6 +149,8 @@ const ITEM_CATEGORY_OPTIONS: readonly FieldOption[] = [
   { value: 'OTHER', label: 'Other' },
 ];
 
+const TOOL_ABILITY_OPTIONS = optional(ABILITY_OPTIONS);
+
 const RARITY_OPTIONS = optional(
   enumOptions('COMMON', 'UNCOMMON', 'RARE', 'VERY_RARE', 'LEGENDARY', 'ARTIFACT', 'VARIES'),
 );
@@ -171,22 +201,53 @@ export const CONTENT_TYPES: readonly ContentTypeDef[] = [
     title: 'Items & gear',
     apiPath: 'item',
     iconPath: 'M5 8h14v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM9 8a3 3 0 0 1 6 0',
-    description: 'Weapons, armor, and equipment.',
+    description: 'Weapons, armor, tools, gear, and magic items.',
     implemented: true,
     fields: [
       { key: 'itemCategory', label: 'Category', kind: 'select', group: 'meta', required: true, options: ITEM_CATEGORY_OPTIONS },
       { key: 'rarityTier', label: 'Rarity', kind: 'select', group: 'meta', options: RARITY_OPTIONS },
+      { key: 'rarityNote', label: 'Rarities', kind: 'text', group: 'meta' },
+      { key: 'appliesTo', label: 'Applies to', kind: 'text', group: 'meta' },
       { key: 'costGp', label: 'Cost (gp)', kind: 'number', group: 'meta', min: 0 },
       { key: 'weightLb', label: 'Weight (lb)', kind: 'number', group: 'meta', min: 0 },
       { key: 'attunement', label: 'Requires attunement', kind: 'boolean', group: 'meta' },
       { key: 'attunementNote', label: 'Attunement', kind: 'text', group: 'meta' },
-      { key: 'weaponDamage', label: 'Damage', kind: 'list', group: 'meta' },
-      { key: 'weaponDamageType', label: 'Damage type', kind: 'list', group: 'meta' },
-      { key: 'weaponProperties', label: 'Weapon properties', kind: 'list', group: 'meta' },
-      { key: 'masteryName', label: 'Mastery', kind: 'list', group: 'meta' },
-      { key: 'armorCategory', label: 'Armor class', kind: 'list', group: 'meta' },
-      { key: 'baseArmorClass', label: 'Base AC', kind: 'list', group: 'meta' },
-      { key: 'description', label: 'Description', kind: 'textarea', group: 'prose', required: true },
+      { key: 'toolAbility', label: 'Tool ability', kind: 'select', group: 'meta', options: TOOL_ABILITY_OPTIONS },
+      // Display-only: the item editor owns these, because none of them is a
+      // value one input could put back.
+      { key: 'weaponCategory', label: 'Weapon', kind: 'list', group: 'meta',
+        value: i => weaponView(i) ? titleCase(weaponView(i)!.category) : '' },
+      { key: 'weaponDamage', label: 'Damage', kind: 'list', group: 'meta',
+        value: i => weaponDamageLine(weaponView(i)) },
+      { key: 'weaponRange', label: 'Range', kind: 'list', group: 'meta',
+        value: i => weaponRangeLine(weaponView(i)) },
+      { key: 'weaponProperties', label: 'Properties', kind: 'list', group: 'meta',
+        value: i => (weaponView(i)?.properties ?? []).map(titleCase).join(', ') },
+      { key: 'masteryName', label: 'Mastery', kind: 'list', group: 'meta',
+        value: i => weaponView(i)?.masteryName ?? '' },
+      { key: 'ammunition', label: 'Ammunition', kind: 'list', group: 'meta',
+        value: i => weaponView(i)?.ammunition?.name ?? '' },
+      { key: 'armorCategory', label: 'Armor', kind: 'list', group: 'meta',
+        value: i => armorView(i) ? titleCase(armorView(i)!.category) : '' },
+      { key: 'armorClass', label: 'Armor Class', kind: 'list', group: 'meta',
+        value: i => armorClassLine(armorView(i)) },
+      { key: 'armorStrength', label: 'Strength', kind: 'list', group: 'meta',
+        value: i => { const s = armorView(i)?.strengthRequirement; return s ? `Str ${s}` : ''; } },
+      { key: 'armorStealth', label: 'Stealth', kind: 'list', group: 'meta',
+        value: i => (armorView(i)?.stealthDisadvantage ? 'Disadvantage' : '') },
+      { key: 'donDoff', label: 'Don / doff', kind: 'list', group: 'meta',
+        value: i => {
+          const a = armorView(i);
+          if (!a) return '';
+          return a.donMinutes === 0
+            ? 'Utilize action'
+            : `${a.donMinutes} min / ${a.doffMinutes} min`;
+        } },
+      { key: 'crafts', label: 'Crafts', kind: 'list', group: 'meta',
+        value: i => refNames(i['crafts']) },
+      { key: 'baseOptions', label: 'Base items', kind: 'list', group: 'meta',
+        value: i => refNames(i['baseOptions']) },
+      { key: 'description', label: 'Description', kind: 'textarea', group: 'prose' },
     ],
     subtitle: i => {
       const cat = titleCase(String(i['itemCategory'] ?? ''));
