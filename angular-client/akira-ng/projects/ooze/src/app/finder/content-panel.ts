@@ -1,12 +1,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   input,
   output,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import {
   FormControl,
@@ -17,6 +19,8 @@ import {
 } from '@angular/forms';
 import { CatalogItem, ContentTypeDef, FieldDef, titleCase } from './ooze-content.models';
 import { ContentService } from './content.service';
+import { StatBlockEditor } from './stat-block-editor';
+import { FeatureView, StatBlockView } from './stat-block.models';
 
 /**
  * Generic detail + editor for any catalog item, rendered from its
@@ -27,7 +31,7 @@ import { ContentService } from './content.service';
  */
 @Component({
   selector: 'ooze-content-panel',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, StatBlockEditor],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './content-panel.html',
 })
@@ -41,6 +45,22 @@ export class ContentPanel {
 
   readonly changed = output<string | null>();
   readonly closeCreate = output<void>();
+
+  /**
+   * Content types whose mechanics are a tree rather than a row, and so bring
+   * their own editor instead of the generic label/value form.
+   */
+  protected readonly usesStatBlock = computed(() => this.def().key === 'bestiary');
+
+  protected readonly statBlock = computed<StatBlockView | null>(
+    () => (this.item()?.['statBlock'] as StatBlockView | undefined) ?? null,
+  );
+
+  protected readonly features = computed<readonly FeatureView[]>(
+    () => this.statBlock()?.features ?? [],
+  );
+
+  private readonly blockEditor = viewChild(StatBlockEditor);
 
   protected readonly form = signal<FormGroup>(new FormGroup({}));
   protected readonly editing = signal(false);
@@ -105,6 +125,12 @@ export class ContentPanel {
       return;
     }
     const body = form.getRawValue() as Record<string, unknown>;
+    // The stat block editor owns its own form; the panel still owns the save,
+    // so there is one request path whatever the fields looked like.
+    const editor = this.blockEditor();
+    if (editor) {
+      body['statBlock'] = editor.value();
+    }
     const path = this.def().apiPath;
     const current = this.item();
     const call =
@@ -193,6 +219,34 @@ export class ContentPanel {
       if (opt) return opt.label;
     }
     return v == null ? '' : String(v);
+  }
+
+  protected activationLabel(f: FeatureView): string {
+    return titleCase(f.activation);
+  }
+
+  /**
+   * The stat line a stat block prints under a feature's name — "Melee Attack
+   * Roll: +9, reach 15 ft. Hit: 2d6 + 5 Bludgeoning" — reassembled from the
+   * structured fields, so it reads as the book does and proves the numbers made
+   * it through the import.
+   */
+  protected attackLine(f: FeatureView): string {
+    const parts: string[] = [];
+    if (f.delivery === 'ATTACK_ROLL' && f.attackBonus != null) {
+      const kind = f.attackKind ? titleCase(f.attackKind).replace('Melee Or Ranged', 'Melee or Ranged') : 'Attack';
+      const reach = f.reachFeet ? `reach ${f.reachFeet} ft.` : '';
+      const range = f.rangeFeet ? `range ${f.rangeFeet}${f.rangeLongFeet ? '/' + f.rangeLongFeet : ''} ft.` : '';
+      parts.push(`${kind} Attack Roll: +${f.attackBonus}${[reach, range].filter(Boolean).length ? ', ' + [reach, range].filter(Boolean).join(' or ') : ''}`);
+    } else if (f.delivery === 'SAVING_THROW' && f.saveAbility) {
+      parts.push(`${titleCase(f.saveAbility)} Saving Throw: DC ${f.saveDc ?? '—'}`);
+    }
+    const damage = (f.effects ?? [])
+      .filter(e => e.kind === 'DAMAGE' && e.amount)
+      .map(e => `${e.amount}${e.damageType ? ' ' + titleCase(e.damageType) : ''}`)
+      .join(' plus ');
+    if (damage) parts.push(`${f.delivery === 'ATTACK_ROLL' ? 'Hit' : 'Failure'}: ${damage} damage`);
+    return parts.join('. ');
   }
 
   protected booleanChips(item: CatalogItem): string[] {

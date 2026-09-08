@@ -1,0 +1,141 @@
+/**
+ * The rules vocabularies, mirrored from `com.gpt.oozengine.constant.rules`.
+ *
+ * <p>Kept as plain string unions rather than generated: they are closed sets the
+ * SRD fixes, they change only when the book does, and a build-time generator
+ * would be more machinery than the six lists below are worth.
+ */
+
+export const SIZES = ['TINY', 'SMALL', 'MEDIUM', 'LARGE', 'HUGE', 'GARGANTUAN'] as const;
+
+export const CREATURE_TYPES = ['ABERRATION', 'BEAST', 'CELESTIAL', 'CONSTRUCT', 'DRAGON',
+  'ELEMENTAL', 'FEY', 'FIEND', 'GIANT', 'HUMANOID', 'MONSTROSITY', 'OOZE', 'PLANT',
+  'UNDEAD'] as const;
+
+export const ALIGNMENTS = ['LAWFUL_GOOD', 'NEUTRAL_GOOD', 'CHAOTIC_GOOD', 'LAWFUL_NEUTRAL',
+  'NEUTRAL', 'CHAOTIC_NEUTRAL', 'LAWFUL_EVIL', 'NEUTRAL_EVIL', 'CHAOTIC_EVIL', 'UNALIGNED',
+  'ANY'] as const;
+
+export const ABILITIES = ['STRENGTH', 'DEXTERITY', 'CONSTITUTION', 'INTELLIGENCE', 'WISDOM',
+  'CHARISMA'] as const;
+
+export const SKILLS = ['ACROBATICS', 'ANIMAL_HANDLING', 'ARCANA', 'ATHLETICS', 'DECEPTION',
+  'HISTORY', 'INSIGHT', 'INTIMIDATION', 'INVESTIGATION', 'MEDICINE', 'NATURE', 'PERCEPTION',
+  'PERFORMANCE', 'PERSUASION', 'RELIGION', 'SLEIGHT_OF_HAND', 'STEALTH', 'SURVIVAL'] as const;
+
+export const MOVEMENT_TYPES = ['WALK', 'BURROW', 'CLIMB', 'FLY', 'SWIM'] as const;
+
+export const SENSE_TYPES = ['BLINDSIGHT', 'DARKVISION', 'TREMORSENSE', 'TRUESIGHT'] as const;
+
+export const DAMAGE_TYPES = ['ACID', 'BLUDGEONING', 'COLD', 'FIRE', 'FORCE', 'LIGHTNING',
+  'NECROTIC', 'PIERCING', 'POISON', 'PSYCHIC', 'RADIANT', 'SLASHING', 'THUNDER'] as const;
+
+export const DAMAGE_RESPONSES = ['RESISTANCE', 'IMMUNITY', 'VULNERABILITY'] as const;
+
+export const ACTIVATIONS = ['PASSIVE', 'ACTION', 'BONUS_ACTION', 'REACTION', 'FREE', 'LEGENDARY',
+  'LAIR', 'TIMED', 'SPECIAL'] as const;
+
+export const USES_RESETS = ['AT_WILL', 'RECHARGE', 'PER_DAY', 'SHORT_REST', 'LONG_REST', 'DAWN',
+  'SPECIAL'] as const;
+
+export const DELIVERIES = ['AUTOMATIC', 'ATTACK_ROLL', 'SAVING_THROW', 'ABILITY_CONTEST'] as const;
+
+export const ATTACK_KINDS = ['MELEE', 'RANGED', 'MELEE_OR_RANGED'] as const;
+
+export const AREA_SHAPES = ['CONE', 'CUBE', 'CYLINDER', 'EMANATION', 'LINE', 'SPHERE'] as const;
+
+export const EFFECT_OUTCOMES = ['ALWAYS', 'HIT', 'CRITICAL_HIT', 'MISS', 'SAVE_FAILURE',
+  'SAVE_SUCCESS', 'SAVE_EITHER'] as const;
+
+export const EFFECT_KINDS = ['DAMAGE', 'HEALING', 'TEMPORARY_HIT_POINTS', 'APPLY_CONDITION',
+  'REMOVE_CONDITION', 'MOVEMENT', 'ABILITY_SCORE_CHANGE', 'RESOURCE_CHANGE', 'SUMMON',
+  'AREA_TERRAIN', 'SPECIAL'] as const;
+
+export type Ability = (typeof ABILITIES)[number];
+export type MovementType = (typeof MOVEMENT_TYPES)[number];
+export type SenseType = (typeof SENSE_TYPES)[number];
+export type Skill = (typeof SKILLS)[number];
+
+/** What `GET /monster` returns inside each row. */
+export interface StatBlockView {
+  readonly id?: string;
+  readonly size: string | null;
+  readonly creatureType: string | null;
+  readonly creatureSubtype: string | null;
+  readonly alignment: string | null;
+  readonly armorClass: number | null;
+  readonly armorClassNote: string | null;
+  readonly initiativeBonus: number | null;
+  readonly hitPointsAverage: number | null;
+  readonly hitPointsDice: string | null;
+  readonly speeds: Record<string, number>;
+  readonly canHover: boolean;
+  readonly abilityScores: Record<string, number>;
+  readonly saveBonuses: Record<string, number>;
+  readonly skills: Record<string, number>;
+  readonly senses: Record<string, number>;
+  readonly passivePerception: number | null;
+  readonly damageResponses: readonly string[];
+  readonly conditionImmunities: readonly string[];
+  readonly languages: string | null;
+  readonly telepathyFeet: number | null;
+  readonly challengeRating: number | null;
+  readonly experiencePoints: number | null;
+  readonly proficiencyBonus: number | null;
+  readonly spellcastingAbility: string | null;
+  readonly spellSaveDc: number | null;
+  readonly spellAttackBonus: number | null;
+  readonly legendaryActionUses: number | null;
+  readonly features: readonly FeatureView[];
+}
+
+export interface FeatureView {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string | null;
+  readonly activation: string;
+  readonly legendaryCost: number | null;
+  readonly triggerText: string | null;
+  readonly usesReset: string;
+  readonly usesMax: number | null;
+  readonly rechargeMin: number | null;
+  readonly rechargeMax: number | null;
+  readonly delivery: string;
+  readonly attackKind: string | null;
+  readonly attackBonus: number | null;
+  readonly saveAbility: string | null;
+  readonly saveDc: number | null;
+  readonly reachFeet: number | null;
+  readonly rangeFeet: number | null;
+  readonly rangeLongFeet: number | null;
+  readonly areaShape: string | null;
+  readonly areaSizeFeet: number | null;
+  readonly effects: readonly EffectView[];
+}
+
+export interface EffectView {
+  readonly id: string;
+  readonly outcome: string;
+  readonly kind: string;
+  readonly amount: string | null;
+  readonly average: number | null;
+  readonly damageType: string | null;
+  readonly halfDamage: boolean;
+  readonly conditionId: string | null;
+  readonly conditionName: string | null;
+  readonly escapeDc: number | null;
+  readonly notes: string | null;
+}
+
+/** Splits "2d6 + 5" back into the parts the request carries. */
+export function parseDice(expr: string | null | undefined): {
+  count: number | null;
+  faces: number | null;
+  bonus: number | null;
+} {
+  if (!expr) return { count: null, faces: null, bonus: null };
+  const m = /^\s*(\d+)d(\d+)\s*(?:([+-])\s*(\d+))?\s*$/.exec(expr);
+  if (!m) return { count: null, faces: null, bonus: null };
+  const bonus = m[4] ? Number(m[4]) * (m[3] === '-' ? -1 : 1) : null;
+  return { count: Number(m[1]), faces: Number(m[2]), bonus };
+}

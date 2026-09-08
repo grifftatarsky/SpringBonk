@@ -15,7 +15,11 @@
              class="w-full rounded-md border border-rule bg-bg px-2.5 py-1.5 text-sm text-fg" />
     </label>
 
-    @if (metaInputs().length) {
+    @if (usesStatBlock()) {
+      <ooze-stat-block-editor [statBlock]="statBlock()" />
+    }
+
+    @if (!usesStatBlock() && metaInputs().length) {
       <div class="grid grid-cols-2 gap-2">
         @for (f of metaInputs(); track f.key) {
           <label class="grid gap-1 text-xs font-medium text-fg-subtle">
@@ -41,7 +45,7 @@
       </div>
     }
 
-    @if (metaBooleans().length) {
+    @if (!usesStatBlock() && metaBooleans().length) {
       <div class="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-fg-muted">
         @for (f of metaBooleans(); track f.key) {
           <label class="inline-flex items-center gap-1.5">
@@ -119,6 +123,30 @@
           <p class="whitespace-pre-line text-sm/6 text-fg-muted">{{ display(it, f) }}</p>
         </div>
       }
+    }
+
+    @if (features().length) {
+      <div class="grid gap-2 border-t border-rule pt-3">
+        @for (ft of features(); track ft.id) {
+          <div>
+            <p class="text-sm font-semibold text-fg">
+              {{ ft.name }}
+              @if (ft.activation !== 'ACTION') {
+                <span class="ml-1 rounded border border-rule px-1 py-px align-middle text-[0.6rem] font-medium uppercase tracking-wide text-fg-subtle">{{ activationLabel(ft) }}</span>
+              }
+              @if (ft.rechargeMin) {
+                <span class="ml-1 rounded border border-rule px-1 py-px align-middle text-[0.6rem] font-medium text-fg-subtle">Recharge {{ ft.rechargeMin }}–{{ ft.rechargeMax }}</span>
+              }
+            </p>
+            @if (attackLine(ft); as line) {
+              <p class="font-mono text-[0.7rem] text-accent">{{ line }}</p>
+            }
+            @if (ft.description) {
+              <p class="whitespace-pre-line text-sm/6 text-fg-muted">{{ ft.description }}</p>
+            }
+          </div>
+        }
+      </div>
     }
 
     @if (canEdit()) {
