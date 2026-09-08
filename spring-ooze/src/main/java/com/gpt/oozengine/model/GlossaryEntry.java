@@ -15,9 +15,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class GlossaryEntry extends CatalogContent {
 
-  @Column(nullable = false)
-  private String name;
-
   @Column(nullable = false, columnDefinition = "text")
   private String description;
 }
